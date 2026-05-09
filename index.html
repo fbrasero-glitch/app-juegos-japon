@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pasaporte de Misiones - Japón</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#C8102E">
+    <!-- Iconos para iOS -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- CONTENEDOR DE CONFETI -->
+    <div id="confetti-container"></div>
+
+    <!-- PANTALLA DE INICIO (HOME) -->
+    <div id="view-home" class="view active">
+        <div class="home-header">
+            <button id="btn-judge-secret" aria-label="Acceso Juez">🔒</button>
+        </div>
+        <div class="home-content">
+            <h1>Pasaporte a Japón</h1>
+            <p>Selecciona tu perfil de explorador</p>
+            <div class="profiles">
+                <button class="btn-profile" data-role="kid9">
+                    <span class="emoji">🦊</span>
+                    <span class="name">Explorador de 9</span>
+                </button>
+                <button class="btn-profile" data-role="kid14">
+                    <span class="emoji">🐉</span>
+                    <span class="name">Navegante de 14</span>
+                </button>
+            </div>
+            <button id="btn-passport" class="btn-secondary">Ver Pasaporte</button>
+            <button id="btn-debug-unlock" class="btn-secondary" style="margin-top:10px; border: 2px dashed var(--color-accent); color: var(--color-accent);">🛠️ Desbloquear Todo (Test)</button>
+        </div>
+        
+        <!-- Modal PIN Juez -->
+        <div id="judge-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Acceso Restringido</h2>
+                <p>Solo para el Juez Supremo</p>
+                <input type="password" id="judge-pin-input" placeholder="PIN" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                <div class="modal-actions">
+                    <button id="btn-judge-cancel" class="btn-secondary">Cancelar</button>
+                    <button id="btn-judge-login" class="btn-primary">Entrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER GLOBAL (Para las demás vistas) -->
+    <header id="main-header" class="hidden">
+        <button id="btn-back" class="btn-icon">⬅️ Volver</button>
+        <h2 id="header-title">Misiones</h2>
+        <button id="btn-switch-user" class="btn-icon">🏠 Cambiar</button>
+    </header>
+
+    <!-- LISTA DE DÍAS (NIÑOS) -->
+    <div id="view-days" class="view hidden">
+        <div class="user-stats">
+            <div class="level-badge" id="user-level">Lvl 1</div>
+            <div class="xp-bar-container">
+                <div class="xp-text"><span id="user-xp">0</span> / <span id="user-next-xp">100</span> XP</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="user-xp-fill"></div>
+                </div>
+            </div>
+        </div>
+        <div id="days-list" class="list-container">
+            <!-- Los días se inyectan dinámicamente aquí -->
+        </div>
+    </div>
+
+    <!-- DETALLE DE MISIÓN (NIÑOS) -->
+    <div id="view-mission" class="view hidden">
+        <div id="mission-content" class="mission-container">
+            <!-- El contenido específico de cada misión se inyecta aquí -->
+        </div>
+    </div>
+
+    <!-- PANEL DEL JUEZ -->
+    <div id="view-judge" class="view hidden">
+        <div class="judge-header">
+            <h2>Misiones Pendientes</h2>
+        </div>
+        <div id="pending-missions-list" class="list-container">
+            <!-- Misiones pendientes se inyectan aquí -->
+        </div>
+    </div>
+
+    <!-- PASAPORTE (GALERÍA) -->
+    <div id="view-passport" class="view hidden">
+        <h2>Tus Logros</h2>
+        <div id="passport-gallery" class="gallery-container">
+            <!-- Títulos y sellos se inyectan aquí -->
+        </div>
+    </div>
+
+    <!-- Modal Notificaciones/Alertas -->
+    <div id="alert-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="alert-title">Aviso</h2>
+            <p id="alert-message">Mensaje</p>
+            <button id="btn-alert-ok" class="btn-primary">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Modal de Celebración Especial -->
+    <div id="celebration-modal" class="modal hidden" style="z-index: 3000; background: rgba(0,0,0,0.9);">
+        <div class="modal-content" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; border: 2px solid #d4af37; max-width: 90%;">
+            <h1 style="color: #d4af37; font-family: serif;">⛩️ Guardianes de la Tradición</h1>
+            <p style="font-style: italic; margin-bottom: 20px;">Kioto ha sido completado con honor.</p>
+            <div id="celebration-results" style="text-align: left; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <!-- Se llenará dinámicamente -->
+            </div>
+            <button id="btn-close-celebration" class="btn-primary" style="width: 100%; background: #d4af37;">¡Siguiente Etapa!</button>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW registrado', reg))
+                .catch(err => console.log('Error SW', err));
+            });
+        }
+    </script>
+    <script src="missions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

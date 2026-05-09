@@ -1,0 +1,2 @@
+"import re\n\nwith open('app.js', 'r', encoding='utf-8') as f:\n    content = f.read()\n\n# 1. Definir TODAS las misiones correctamente\n# He recopilado estas de la historia de la conversaciÃ³n\nMISSIONS = {\n    \"day_1_kid14_jetlag\": \"\"\"{\n        da
+<truncated 74712 bytes>

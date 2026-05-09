@@ -1,0 +1,129 @@
+{
+    "day_6_kid14_edicto": {
+        day: 6, title: "El Edicto del Emperador", role: "kid14", xp: 15, location: "Palacio Imperial de Kioto",
+        render: () => {
+            return `
+                <p class="mission-desc">Escribe un "Decreto Imperial" absurdo para tu familia y recítalo con voz solemne.</p>
+                <textarea id="edicto-text" placeholder="Por la presente, ordeno que..." style="width:100%; height:100px; padding:15px;"></textarea>
+                <button id="btn-submit" class="btn-primary" style="width:100%; margin-top:15px;">Proclamar Edicto</button>
+            `;
+        },
+        attachEvents: () => {
+            document.getElementById('btn-submit').addEventListener('click', () => {
+                const val = document.getElementById('edicto-text').value;
+                submitMission('day_6_kid14_edicto', { type: 'text', data: val });
+            });
+        }
+    },
+    "day_6_kid9_jardin": {
+        day: 6, title: "El Jardín de las Nubes Verdes", role: "kid9", xp: 15, location: "Palacio Imperial de Kioto",
+        render: () => {
+            return `
+                <p class="mission-desc">Dibuja o describe la forma del pino más raro que veas.</p>
+                <textarea id="pino-text" placeholder="El pino parece un..." style="width:100%; height:80px; padding:15px;"></textarea>
+                <button id="btn-submit" class="btn-primary" style="width:100%; margin-top:15px;">Enviar Observación</button>
+            `;
+        },
+        attachEvents: () => {
+            document.getElementById('btn-submit').addEventListener('click', () => {
+                const val = document.getElementById('pino-text').value;
+                submitMission('day_6_kid9_jardin', { type: 'text', data: val });
+            });
+        }
+    },
+    "day_6_kid9_ruisenor": {
+        day: 6, title: "El Piso del Ruiseñor", role: "kid9", xp: 15, location: "Castillo de Nijo",
+        render: () => {
+            return `
+                <p class="mission-desc">Primero intenta caminar como un ninja (sin ruido). Luego graba el chirrido real del suelo.</p>
+                <div id="audio-ui" style="text-align:center;">
+                    <div id="mic-icon" style="font-size:3rem;">🎤</div>
+                    <button id="btn-record" class="btn-secondary">🔴 Grabar Chirrido</button>
+                </div>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
+            `;
+        },
+        attachEvents: () => {
+            const btn = document.getElementById('btn-record');
+            const btnSubmit = document.getElementById('btn-submit');
+            let audioBlob = null;
+            btn.addEventListener('click', async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                let chunks = [];
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    audioBlob = new Blob(chunks, { type: 'audio/webm' });
+                    btnSubmit.classList.remove('hidden');
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start();
+                btn.innerText = "⏹ Detener";
+                setTimeout(() => { if(mediaRecorder.state==='recording') mediaRecorder.stop(); }, 5000);
+            });
+            btnSubmit.addEventListener('click', () => {
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    const audioId = 'audio_' + Date.now();
+                    savePhotoToDB(audioId, re.target.result).then(() => {
+                        submitMission('day_6_kid9_ruisenor', { type: 'mixed', data: `Chirrido Castillo. ID: ${audioId}` });
+                    });
+                };
+                reader.readAsDataURL(audioBlob);
+            });
+        }
+    },
+    "day_6_kid14_ninja": {
+        day: 6, title: "Plan de Infiltración Ninja", role: "kid14", xp: 15, location: "Castillo de Nijo",
+        render: () => {
+            return `
+                <p class="mission-desc">¿Cómo entrarías al castillo sin que te oigan los "suelos cantores"? Escribe tu plan (2 frases).</p>
+                <textarea id="ninja-plan" placeholder="Mi plan es..." style="width:100%; height:100px; padding:15px;"></textarea>
+                <button id="btn-submit" class="btn-primary" style="width:100%; margin-top:15px;">Enviar Plan</button>
+            `;
+        },
+        attachEvents: () => {
+            document.getElementById('btn-submit').addEventListener('click', () => {
+                const val = document.getElementById('ninja-plan').value;
+                submitMission('day_6_kid14_ninja', { type: 'text', data: val });
+            });
+        }
+    },
+    "day_6_kid14_tiempo": {
+        day: 6, title: "Viaje en el Tiempo", role: "kid14", xp: 15, location: "Sannenzaka / Ninenzaka",
+        render: () => {
+            return `
+                <p class="mission-desc">Toma una foto donde parezca que estás en el año 1600. ¡Cero objetos modernos!</p>
+                <div class="camera-container">
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+                    <button class="btn-secondary" onclick="document.getElementById('camera-input').click()">📸 Foto 1600</button>
+                    <img id="camera-preview" class="camera-preview">
+                </div>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
+            `;
+        },
+        attachEvents: () => {
+            let photo = null;
+            document.getElementById('camera-input').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    photo = await compressImage(file);
+                    document.getElementById('camera-preview').src = photo;
+                    document.getElementById('camera-preview').style.display = 'block';
+                    document.getElementById('btn-submit').classList.remove('hidden');
+                }
+            });
+            document.getElementById('btn-submit').addEventListener('click', () => {
+                const id = 'photo_'+Date.now();
+                savePhotoToDB(id, photo).then(() => {
+                    submitMission('day_6_kid14_tiempo', { type: 'mixed', data: `Foto época. ID: ${id}` });
+                });
+            });
+        }
+    },
+    "day_6_fam_decreto": { tag: "versus", day: 6, title: "El Duelo del Decreto", role: "both", xp: 25, location: "Palacio Imperial", render: () => `<div id="v-p1"><p>Escribid vuestros decretos en secreto.</p><input type="password" id="d9" placeholder="Niña..."><input type="password" id="d14" placeholder="Niño..."><button id="btn-r" class="btn-primary">Revelar</button></div><div id="v-p2" class="hidden"><p id="res"></p><button id="btn-s" class="btn-primary">Enviar al Juez</button></div>`, attachEvents: () => { const btnR=document.getElementById('btn-r'); btnR.addEventListener('click', () => { document.getElementById('res').innerText = '9: ' + document.getElementById('d9').value + ' | 14: ' + document.getElementById('d14').value; document.getElementById('v-p1').classList.add('hidden'); document.getElementById('v-p2').classList.remove('hidden'); }); document.getElementById('btn-s').addEventListener('click', () => submitMission('day_6_fam_decreto', {type:'text', data:'Duelo OK'}, 'both', true)); } },
+    "day_6_kid9_ruisenor_video": { tag: "video", day: 6, title: "El Espía del Suelo", role: "kid9", xp: 20, location: "Nijo", render: () => `<p class="mission-desc">Vídeo 10s y descripción.</p><input type="file" accept="video/*" capture="environment" id="v"><input type="text" id="d" placeholder="Me recuerda a..."><button id="b" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('b').addEventListener('click', () => submitMission('day_6_kid9_ruisenor_video', {type:'text', data:document.getElementById('d').value})); } },
+    "day_6_kid14_ninja_plan": { tag: "writing", day: 6, title: "Plan Infiltración Ninja", role: "kid14", xp: 15, location: "Nijo", render: () => `<p class="mission-desc">Escribe tu plan (2 frases).</p><textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_kid14_ninja_plan', {type:'text', data:document.getElementById('t').value})); } },
+    "day_6_kid14_foto_1600": { tag: "writing", day: 6, title: "Fotógrafo de 1600", role: "kid14", xp: 20, location: "Sannenzaka", render: () => { const dep=gameState.kid14.missions['day_6_kid14_tiempo']; if(!dep || dep.status!=='approved') return `<p>🔒 Completa "Viaje Tiempo" primero.</p>`; return `<textarea id="h" placeholder="Contexto histórico..."></textarea><button id="b" class="btn-primary">Enviar</button>`; }, attachEvents: () => { const b=document.getElementById('b'); if(b) b.addEventListener('click', () => submitMission('day_6_kid14_foto_1600', {type:'text', data:document.getElementById('h').value})); } },
+    "day_6_kid9_ninja_steps": { tag: "game", day: 6, title: "Pasos de Ninja (G)", role: "kid9", xp: 20, location: "Nijo", render: () => `<div id="ninja-game" class="game-container" style="height:300px;"><div class="rhythm-zone"></div><div id="ninja-score" style="position:absolute;top:10px;right:10px;">0/5</div></div><button id="btn-start" class="btn-primary">Empezar</button><button id="btn-victory" class="btn-primary hidden">Enviar</button>`, attachEvents: () => { const cont=document.getElementById('ninja-game'); const sc=document.getElementById('ninja-score'); const btnS=document.getElementById('btn-start'); const btnV=document.getElementById('btn-victory'); let score=0; let active=false; let foots=[]; const spawn=() => { if(!active) return; const f=document.createElement('div'); f.innerHTML='👣'; f.style.position='absolute'; f.style.top='-50px'; f.style.left='50%'; f.style.fontSize='2rem'; f.dataset.hit='false'; cont.appendChild(f); foots.push({el:f, top:-50}); setTimeout(spawn, 1500); }; const loop=() => { if(!active) return; foots.forEach((f,i) => { f.top+=3; f.el.style.top=f.top+'px'; if(f.top>300){f.el.remove(); foots.splice(i,1);} }); requestAnimationFrame(loop); }; cont.addEventListener('touchstart', () => { foots.forEach(f => { if(f.top>200 && f.top<280 && f.el.dataset.hit==='false'){ f.el.dataset.hit='true'; score++; sc.innerText=score+'/5'; if(score>=5){active=false; btnV.classList.remove('hidden');} } }); }); btnS.addEventListener('click', () => { btnS.classList.add('hidden'); active=true; spawn(); loop(); }); btnV.addEventListener('click', () => submitMission('day_6_kid9_ninja_steps', {type:'text', data:'Superado'})); } },
+}
