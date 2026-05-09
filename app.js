@@ -334,6 +334,52 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
     renderDayMissions(role, currentDay, currentDayMissions);
 }
 
+window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamily = false) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    
+    if (btn.nextElementSibling && btn.nextElementSibling.classList.contains('hidden-camera-input')) {
+        return; // Event listeners already attached
+    }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,video/*';
+    input.capture = 'environment';
+    input.className = 'hidden-camera-input';
+    input.style.display = 'none';
+    btn.parentNode.insertBefore(input, btn.nextSibling);
+    
+    input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const originalText = btn.innerText;
+        btn.innerText = '⏳ Procesando...';
+        btn.disabled = true;
+        
+        try {
+            if (file.type.startsWith('video/')) {
+                submitMission(missionId, {type: 'video', data: 'Vídeo guardado en la galería del explorador. ¡Pídele que te lo enseñe!'}, role, isFamily);
+            } else {
+                const compressed = await compressImage(file);
+                const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                await savePhotoToDB(photoId, compressed);
+                submitMission(missionId, {type: 'photo', data: photoId}, role, isFamily);
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('Error', 'No se pudo procesar el archivo. Reinténtalo.');
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    btn.addEventListener('click', () => {
+        input.click();
+    });
+};
+
 // ==========================================
 // 5. PANEL DEL JUEZ
 // ==========================================
@@ -358,22 +404,36 @@ async function renderJudgePanel() {
 
         if (p.data.submission.type === 'number' || p.data.submission.type === 'text') {
             dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
+        } else if (p.data.submission.type === 'photo') {
+            const photoData = await getPhotoFromDB(p.data.submission.data);
+            dataHtml = `<img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px;">`;
+        } else if (p.data.submission.type === 'video' || p.data.submission.type === 'audio') {
+            dataHtml = `<b>Evidencia Multimedia:</b> ${p.data.submission.data}`;
+        } else if (p.data.submission.type === 'game') {
+            dataHtml = `<b>Resultado de la Prueba:</b> ${p.data.submission.data}`;
         } else if (p.data.submission.type === 'photo_choice') {
             const photoData = await getPhotoFromDB(p.data.submission.data.photoId);
             dataHtml = `
-                <img src="${photoData}" alt="Evidencia"><br>
+                <img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-bottom:10px;"><br>
                 <b>Elección:</b> ${p.data.submission.data.choice}
             `;
         } else if (p.data.submission.type === 'mixed') {
             const parts = p.data.submission.data.split('. Foto ID: ');
             if (parts.length > 1) {
                 const photoData = await getPhotoFromDB(parts[1]);
-                dataHtml = `<b>${parts[0]}</b><br><img src="${photoData}" alt="Evidencia">`;
+                dataHtml = `<b>${parts[0]}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-top:10px;">`;
             } else {
                 dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
             }
         } else if (p.data.submission.type === 'family') {
             dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
+        }
+        
+        if (p.config.correctAnswer) {
+            dataHtml += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--color-gray-light);">
+                <b style="color: var(--color-accent);">💡 Respuesta Esperada:</b><br>
+                <span style="font-size: 0.9rem; color: var(--color-gray-dark);">${p.config.correctAnswer}</span>
+            </div>`;
         }
 
         card.innerHTML = `
