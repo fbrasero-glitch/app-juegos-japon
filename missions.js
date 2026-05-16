@@ -5100,4 +5100,2444 @@ const MISSIONS_CONFIG = {
     }
 }
 
+,
+
+// ====== NUEVAS MISIONES DÍAS 11 A 15 ======
+// --- DÍA 11 ---
+"day_11_onsen": {
+    tag: "expert", day: 11, title: "El Código Onsen", role: "kid9", xp: 15, location: "Okuhida",
+    render: () => `
+        <p class="mission-desc">Antes de entrar al onsen, debes conocer las 3 reglas sagradas.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; background:var(--color-gray-light); padding:15px; border-radius:8px;">
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o1" style="transform:scale(1.5); margin-right:10px;"> ✅ Me duché antes de entrar</label>
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o2" style="transform:scale(1.5); margin-right:10px;"> ✅ No llevo bañador</label>
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o3" style="transform:scale(1.5); margin-right:10px;"> ✅ La toalla no toca el agua</label>
+        </div>
+        <button id="btn-val-onsen" class="btn-primary" style="width:100%;">Validar reglas</button>
+        <button id="btn-sub-onsen" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const v = document.getElementById('btn-val-onsen');
+        const s = document.getElementById('btn-sub-onsen');
+        v.addEventListener('click', () => {
+            if(document.getElementById('chk-o1').checked && document.getElementById('chk-o2').checked && document.getElementById('chk-o3').checked) {
+                v.classList.add('hidden'); s.classList.remove('hidden'); launchConfetti();
+            } else { showAlert('Aviso', 'Falta una regla. ¡Revisa!'); }
+        });
+        s.addEventListener('click', () => submitMission('day_11_onsen', {type:'text', data:'Reglas del onsen aprendidas'}));
+    }
+},
+"day_11_tea": {
+    tag: "sensors", day: 11, title: "El Té Intacto", role: "kid9", xp: 25, location: "Ryokan",
+    render: () => `
+        <p class="mission-desc">Camina 20 segundos con el móvil nivelado como una bandeja de té matcha.</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:150px; background:#d4c4a8; border-radius:20px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(0,0,0,0.5);">
+            <div style="width:100px; height:100px; background:#4a5d23; border-radius:50%; border:4px solid #f0e6d2; display:flex; justify-content:center; align-items:center;">
+                <div id="tea-liquid" style="width:80px; height:80px; background:#8a9a5b; border-radius:50%; transition: transform 0.1s; position:relative;">
+                    <div id="tea-steam" class="hidden" style="position:absolute; top:-20px; left:20px; font-size:2rem; animation:float 2s infinite;">♨️</div>
+                </div>
+            </div>
+            <div id="tea-timer" style="position: absolute; top: 10px; right: 15px; font-size: 2rem; font-weight: bold; color: #333;">20</div>
+        </div>
+        <button id="btn-start-tea" class="btn-secondary" style="width:100%; margin-top: 15px;">Empezar a caminar</button>
+        <button id="btn-sub-tea" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const drop = document.getElementById('tea-liquid');
+        const timerEl = document.getElementById('tea-timer');
+        const btnS = document.getElementById('btn-start-tea');
+        const btnV = document.getElementById('btn-sub-tea');
+        const steam = document.getElementById('tea-steam');
+        
+        let active = false; let time = 20; let interval = null; let b0 = null, g0 = null;
+
+        const handleOrientation = (e) => {
+            if(!active) return;
+            if(b0 === null) { b0 = e.beta; g0 = e.gamma; }
+            let db = e.beta - b0; let dg = e.gamma - g0;
+            drop.style.transform = `translate(${dg * 1.5}px, ${db * 1.5}px)`;
+            
+            if(Math.abs(db) > 8 || Math.abs(dg) > 8) {
+                active = false; clearInterval(interval);
+                drop.style.background = '#888';
+                btnS.innerText = "¡Derramado! Reintentar"; btnS.classList.remove('hidden');
+                window.removeEventListener('deviceorientation', handleOrientation);
+            }
+        };
+
+        btnS.addEventListener('click', () => {
+            const startSim = () => {
+                active = true; time = 20; b0 = null; g0 = null;
+                drop.style.background = '#8a9a5b'; drop.style.transform = 'translate(0,0)';
+                steam.classList.add('hidden'); timerEl.innerText = time; btnS.classList.add('hidden');
+                window.addEventListener('deviceorientation', handleOrientation);
+                
+                interval = setInterval(() => {
+                    if(!active) return;
+                    time--; timerEl.innerText = time;
+                    if(time <= 0) {
+                        active = false; clearInterval(interval);
+                        steam.classList.remove('hidden'); btnV.classList.remove('hidden'); launchConfetti();
+                        window.removeEventListener('deviceorientation', handleOrientation);
+                    }
+                }, 1000);
+            };
+
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(res => { if(res === 'granted') startSim(); }).catch(console.error);
+            } else { startSim(); }
+        });
+        btnV.addEventListener('click', () => submitMission('day_11_tea', {type:'game', data:'Té llevado sin derramar'}));
+        window._missionCleanup = () => { active = false; clearInterval(interval); window.removeEventListener('deviceorientation', handleOrientation); };
+    }
+},
+"day_11_yukata": {
+    tag: "economy", day: 11, title: "Cazadora de Yukatas", role: "kid9", xp: 15, location: "Ryokan",
+    render: () => `
+        <p class="mission-desc">¿Cuántas personas con yukata has visto hoy?</p>
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+            <button id="btn-sub-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
+            <div id="yukata-count" style="font-size:3rem; font-weight:bold;">0</div>
+            <button id="btn-add-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
+        </div>
+        <button id="btn-send-yukata" class="btn-primary" style="width:100%;">Enviar recuento</button>
+    `,
+    attachEvents: () => {
+        let count = 0;
+        document.getElementById('btn-add-y').addEventListener('click', () => { count++; document.getElementById('yukata-count').innerText = count; });
+        document.getElementById('btn-sub-y').addEventListener('click', () => { if(count>0) count--; document.getElementById('yukata-count').innerText = count; });
+        document.getElementById('btn-send-yukata').addEventListener('click', () => { submitMission('day_11_yukata', {type:'number', data: count}); });
+    }
+},
+"day_11_tatami": {
+    tag: "photo", day: 11, title: "La Textura del Tatami", role: "kid9", xp: 15, location: "Ryokan",
+    render: () => `<p class="mission-desc">Haz una foto muy de cerca al suelo de tatami.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_11_tatami', currentUser, false); }
+},
+"day_11_kaiseki": {
+    tag: "writing", day: 11, title: "Catador de Kaiseki", role: "kid14", xp: 20, location: "Ryokan",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CATA GASTRONÓMICA: Prueba el plato más extraño.</p>
+            <input type="text" id="k-name" placeholder="Nombre del plato..." style="width:100%; margin-bottom:10px;">
+            <div style="display:flex; gap:5px; margin-bottom:10px;">
+                <input type="text" id="k-adj1" placeholder="Adjetivo 1" style="flex:1;">
+                <input type="text" id="k-adj2" placeholder="Adjetivo 2" style="flex:1;">
+                <input type="text" id="k-adj3" placeholder="Adjetivo 3" style="flex:1;">
+            </div>
+            <input type="text" id="k-drink" placeholder="Bebida ideal para maridar..." style="width:100%; margin-bottom:15px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar cata</button>
+        </div>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const n = document.getElementById('k-name').value;
+            const a1 = document.getElementById('k-adj1').value, a2 = document.getElementById('k-adj2').value, a3 = document.getElementById('k-adj3').value;
+            submitMission('day_11_kaiseki', {type:'text', data:`Plato: ${n}. Adjs: ${a1}, ${a2}, ${a3}. Bebida: ${document.getElementById('k-drink').value}.`});
+        });
+    }
+},
+"day_11_spring": {
+    tag: "sensors", day: 11, title: "Rastreador de Manantiales", role: "kid14", xp: 25, location: "Okuhida",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> RASTREANDO MANANTIAL. Objetivo: Nodo Termal.</p>
+            <div style="text-align:center; margin:20px 0;">
+                <div id="radar-dist" style="font-size:3rem; color:#0f0; text-shadow:0 0 10px #0f0; cursor:pointer;">-- m</div>
+                <div id="radar-msg" style="color:#aaa;">Buscando señal GPS...</div>
+            </div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Marcar posición</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const dEl = document.getElementById('radar-dist');
+        const mEl = document.getElementById('radar-msg');
+        const btn = document.getElementById('btn');
+        let watchId = null;
+        const targetLat = 36.225; const targetLon = 137.550; const R = 6371e3;
+        if('geolocation' in navigator) {
+            watchId = navigator.geolocation.watchPosition((pos) => {
+                const lat1 = pos.coords.latitude * Math.PI/180;
+                const lat2 = targetLat * Math.PI/180;
+                const dLat = (targetLat - pos.coords.latitude) * Math.PI/180;
+                const dLon = (targetLon - pos.coords.longitude) * Math.PI/180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const d = R * c;
+                dEl.innerText = Math.round(d) + ' m';
+                if(d < 15) { mEl.innerText = ">>> ORIGEN LOCALIZADO"; mEl.style.color = "#0f0"; btn.classList.remove('hidden'); }
+                else { mEl.innerText = ">>> Señal débil. Acércate al origen."; }
+            }, (err) => { mEl.innerText = "Error GPS: " + err.message; }, {enableHighAccuracy: true});
+        }
+        let cheat = 0; dEl.addEventListener('click', () => { cheat++; if(cheat >= 5) btn.classList.remove('hidden'); });
+        btn.addEventListener('click', () => submitMission('day_11_spring', {type:'game', data:'Manantial termal localizado'}));
+        window._missionCleanup = () => { if(watchId) navigator.geolocation.clearWatch(watchId); };
+    }
+},
+"day_11_architecture": {
+    tag: "expert", day: 11, title: "Arquitectura Termal", role: "kid14", xp: 20, location: "Ryokan",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN</p>
+            <input type="number" id="v-l" placeholder="Largo (m)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-w" placeholder="Ancho (m)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-d" placeholder="Profundidad (m)" style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular</button>
+            <div id="v-res" style="font-weight:bold; color:#0f0; margin-bottom:15px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Medidas</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let finalVol = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const l = document.getElementById('v-l').value, w = document.getElementById('v-w').value, d = document.getElementById('v-d').value;
+            if(l && w && d) {
+                finalVol = (l * w * d).toFixed(1);
+                document.getElementById('v-res').innerText = `Volumen estimado: ${finalVol} m³ = ${finalVol * 1000} litros`;
+                document.getElementById('btn').classList.remove('hidden');
+            }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_11_architecture', {type:'text', data:`Volumen onsen: ${finalVol} m³`}));
+    }
+},
+"day_11_economy": {
+    tag: "economy", day: 11, title: "Economía Alpina", role: "kid14", xp: 15, location: "Ryokan",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ¿Cuánto cuesta mantener este ryokan un día entero?</p>
+            <input type="number" id="e-cost" placeholder="Coste diario (yenes)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => { submitMission('day_11_economy', {type:'number', data:document.getElementById('e-cost').value}); }); }
+},
+"day_11_geta": {
+    tag: "physical", day: 11, title: "Equilibrio del Yukata", role: "both", xp: 20, location: "Ryokan",
+    render: () => `
+        <p class="mission-desc">Camina 30 pasos en línea recta con zapatillas de madera sin tropezar.</p>
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+            <div id="geta-count" style="font-size:4rem; font-weight:bold;">0/30</div>
+            <button id="btn-step" class="btn-secondary" style="font-size:2rem; padding:20px;">👣</button>
+        </div>
+        <button id="btn-geta" class="btn-primary hidden" style="width:100%;">¡Terminé sin caer!</button>
+    `,
+    attachEvents: (role) => {
+        let steps = 0;
+        document.getElementById('btn-step').addEventListener('click', () => {
+            steps++; document.getElementById('geta-count').innerText = `${steps}/30`;
+            if(steps >= 30) { document.getElementById('btn-geta').classList.remove('hidden'); launchConfetti(); }
+        });
+        document.getElementById('btn-geta').addEventListener('click', () => submitMission('day_11_geta', {type:'game', data:'30 pasos en geta superados'}, role, true));
+    }
+},
+
+// --- DÍA 12 ---
+"day_12_silence": {
+    tag: "expert", day: 12, title: "Silencio de los Kami", role: "kid9", xp: 25, location: "Takayama",
+    render: () => `
+        <p class="mission-desc">No despiertes al Kami... guarda silencio absoluto durante 10 segundos.</p>
+        <div style="text-align:center; margin: 20px 0;">
+            <div id="kami-icon" style="font-size:5rem; transition: transform 0.3s;">😴💤</div>
+            <div style="width:100%; height:20px; background:#eee; border-radius:10px; overflow:hidden; margin-top:15px; border:2px solid #ccc;">
+                <div id="silence-bar" style="height:100%; width:0%; background:#4facfe; transition: width 0.1s;"></div>
+            </div>
+        </div>
+        <button id="btn-start-silence" class="btn-secondary" style="width:100%;">Iniciar Silencio</button>
+        <button id="btn-silence" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const btnS = document.getElementById('btn-start-silence');
+        const btn = document.getElementById('btn-silence');
+        const icon = document.getElementById('kami-icon');
+        const bar = document.getElementById('silence-bar');
+        
+        let audioCtx = null; let analyser = null; let stream = null; let rafId = null;
+        let isSilent = false; let startTime = 0;
+        
+        const stopAudio = () => {
+            isSilent = false; if(rafId) cancelAnimationFrame(rafId);
+            if(stream) stream.getTracks().forEach(t => t.stop());
+            if(audioCtx && audioCtx.state !== 'closed') audioCtx.close();
+        };
+
+        const checkAudio = (timestamp) => {
+            if(!isSilent) return;
+            rafId = requestAnimationFrame(checkAudio);
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length;
+            
+            if(avg > 30) {
+                icon.innerText = "😱"; icon.style.transform = "scale(1.2) rotate(10deg)";
+                icon.style.color = "red";
+                bar.style.width = '0%'; startTime = timestamp; 
+                setTimeout(() => { icon.innerText = "😴💤"; icon.style.transform = "scale(1)"; }, 1000);
+            } else {
+                let elapsed = timestamp - startTime;
+                let pct = (elapsed / 10000) * 100;
+                bar.style.width = Math.min(100, pct) + '%';
+                if(elapsed >= 10000) {
+                    icon.innerText = "✨😲✨";
+                    btn.classList.remove('hidden'); btnS.classList.add('hidden');
+                    stopAudio(); launchConfetti();
+                }
+            }
+        };
+
+        btnS.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                let source = audioCtx.createMediaStreamSource(stream);
+                source.connect(analyser);
+                isSilent = true; btnS.innerText = "Escuchando..."; btnS.disabled = true;
+                startTime = performance.now(); checkAudio(performance.now());
+            } catch(e) { alert("Error micro: " + e.message); }
+        });
+        btn.addEventListener('click', () => submitMission('day_12_silence', {type:'game', data:'10 segundos de silencio absoluto'}));
+        window._missionCleanup = stopAudio;
+    }
+},
+"day_12_sugidama": {
+    tag: "photo", day: 12, title: "La Bola de Cedro", role: "kid9", xp: 15, location: "Takayama",
+    render: () => `<p class="mission-desc">Busca una gran bola de ramas de cedro (Sugidama) en una tienda de sake.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sugidama</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_sugidama', currentUser, false); }
+},
+"day_12_wood": {
+    tag: "photo", day: 12, title: "Detective de Madera", role: "kid9", xp: 15, location: "Takayama",
+    render: () => `
+        <p class="mission-desc">Busca una talla de madera divertida en una fachada.</p>
+        <input type="text" id="wood-desc" placeholder="¿Qué animal es?" style="width:100%; margin-bottom:10px;">
+        <button id="btn-cam" class="btn-secondary">📸 Foto Talla</button>
+    `,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_wood', currentUser, false); }
+},
+"day_12_hida": {
+    tag: "economy", day: 12, title: "Degustadora de Hida", role: "kid9", xp: 15, location: "Takayama",
+    render: () => `
+        <p class="mission-desc">Puntúa el sabor de la famosa carne de Hida.</p>
+        <div style="font-size:3rem; text-align:center; margin:15px 0; cursor:pointer;" id="stars">
+            <span data-val="1">☆</span><span data-val="2">☆</span><span data-val="3">☆</span><span data-val="4">☆</span><span data-val="5">☆</span>
+        </div>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar Puntuación</button>
+    `,
+    attachEvents: () => {
+        let score = 0;
+        const spans = document.querySelectorAll('#stars span');
+        spans.forEach(s => s.addEventListener('click', () => {
+            score = parseInt(s.dataset.val);
+            spans.forEach(ss => ss.innerText = parseInt(ss.dataset.val) <= score ? '★' : '☆');
+            spans.forEach(ss => ss.style.color = parseInt(ss.dataset.val) <= score ? 'gold' : 'black');
+        }));
+        document.getElementById('btn').addEventListener('click', () => {
+            if(score>0) submitMission('day_12_hida', {type:'number', data:`Puntuación carne Hida: ${score} estrellas`});
+        });
+    }
+},
+"day_12_carving": {
+    tag: "expert", day: 12, title: "Talla en Madera", role: "kid14", xp: 25, location: "Takayama",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px; display:flex; flex-direction:column; align-items:center;">
+            <p>>>> REPLICA LA TALLA DEL KANJI (Árbol): 木</p>
+            <div style="background:#2c1b18; border:4px solid #5c4033; position:relative; width:300px; height:300px; margin-bottom:15px; border-radius:5px;">
+                <canvas id="carve-canvas" width="300" height="300" style="position:absolute; top:0; left:0; z-index:10;"></canvas>
+                <div style="position:absolute; top:10px; right:10px; font-size:2rem; color:rgba(255,255,255,0.2);">木</div>
+            </div>
+            <div style="display:flex; gap:10px; width:100%;">
+                <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
+                <button id="btn-submit" class="btn-primary" style="flex:2;">Enviar Trazo</button>
+            </div>
+        </div>
+    `,
+    attachEvents: () => {
+        const canvas = document.getElementById('carve-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.strokeStyle = '#00FF41'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        let drawing = false;
+
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const cx = e.touches ? e.touches[0].clientX : e.clientX;
+            const cy = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: cx - rect.left, y: cy - rect.top };
+        };
+        const startDraw = (e) => { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+        const draw = (e) => { if(!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+        const stopDraw = () => { drawing = false; };
+
+        canvas.addEventListener('mousedown', startDraw); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stopDraw); canvas.addEventListener('mouseout', stopDraw);
+        canvas.addEventListener('touchstart', startDraw, {passive:false}); canvas.addEventListener('touchmove', draw, {passive:false}); canvas.addEventListener('touchend', stopDraw);
+
+        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
+        document.getElementById('btn-submit').addEventListener('click', async () => {
+            const dataUrl = canvas.toDataURL('image/png');
+            const photoId = 'carve_' + Date.now();
+            await savePhotoToDB(photoId, dataUrl);
+            submitMission('day_12_carving', {type:'photo', data:photoId});
+        });
+    }
+},
+"day_12_sake": {
+    tag: "economy", day: 12, title: "Maestro Destilador", role: "kid14", xp: 20, location: "Takayama",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> DESTILERÍA FUNASAKA.</p>
+            <input type="number" id="sake-ans" placeholder="Años de antigüedad (2026 - fundación)" style="width:100%; margin-bottom:10px;">
+            <p id="sake-msg" style="color:red;"></p>
+            <button id="btn" class="btn-primary" style="width:100%">Desencriptar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let fails = 0;
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('sake-ans').value;
+            if(val == "323") {
+                submitMission('day_12_sake', {type:'number', data:'323 años'});
+            } else {
+                fails++; document.getElementById('sake-msg').innerText = "Incorrecto. Pista: Busca la fecha 1703 en los carteles.";
+            }
+        });
+    }
+},
+"day_12_patrol": {
+    tag: "physical", day: 12, title: "Patrulla Sanmachi Suji", role: "kid14", xp: 15, location: "Takayama",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CASAS TRADICIONALES DETECTADAS:</p>
+            <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+                <button id="btn-sub-p" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
+                <div id="patrol-count" style="font-size:3rem; font-weight:bold; color:#0f0;">0</div>
+                <button id="btn-add-p" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
+            </div>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let count = 0;
+        document.getElementById('btn-add-p').addEventListener('click', () => { count++; document.getElementById('patrol-count').innerText = count; });
+        document.getElementById('btn-sub-p').addEventListener('click', () => { if(count>0) count--; document.getElementById('patrol-count').innerText = count; });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_12_patrol', {type:'number', data: count}));
+    }
+},
+"day_12_appraisal": {
+    tag: "economy", day: 12, title: "Tasador Feudal", role: "kid14", xp: 15, location: "Takayama",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESTIMACIÓN INMOBILIARIA (CALLE HISTÓRICA)</p>
+            <input type="number" id="app-cost" placeholder="Precio estimado (€)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Tasación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_12_appraisal', {type:'number', data:document.getElementById('app-cost').value})); }
+},
+"day_12_bridge": {
+    tag: "photo", day: 12, title: "Cruzando el Miyagawa", role: "both", xp: 20, location: "Takayama",
+    render: () => `
+        <p class="mission-desc">Selfie familiar en el puente rojo sobre el río Miyagawa.</p>
+        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-bridge" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto en el puente rojo hecha</label>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('chk-bridge').checked) submitMission('day_12_bridge', {type:'text', data:'Foto puente confirmada'}, role, true);
+            else showAlert('Aviso', 'Debéis confirmar marcando la casilla.');
+        });
+    }
+},
+
+// --- DÍA 13 ---
+"day_13_stairs": {
+    tag: "physical", day: 13, title: "La Escalada Chureito", role: "kid9", xp: 20, location: "Kawaguchiko",
+    render: () => `
+        <p class="mission-desc">Sube los escalones hasta la pagoda y escribe el número exacto.</p>
+        <input type="number" id="st-ans" placeholder="Número..." style="width:100%; margin-bottom:15px; font-size:2rem; text-align:center;">
+        <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_stairs', {type:'number', data:document.getElementById('st-ans').value})); }
+},
+"day_13_manhole": {
+    tag: "photo", day: 13, title: "El Sello del Lago", role: "kid9", xp: 15, location: "Kawaguchiko",
+    render: () => `<p class="mission-desc">Busca una tapa de alcantarilla decorada con el Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Foto Tapa</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_manhole', currentUser, false); }
+},
+"day_13_icecream": {
+    tag: "writing", day: 13, title: "Sabores del Fuji", role: "kid9", xp: 15, location: "Kawaguchiko",
+    render: () => `
+        <p class="mission-desc">Prueba un helado de un sabor raro y elige su color.</p>
+        <input type="text" id="ic-desc" placeholder="¿De qué sabor era?" style="width:100%; margin-bottom:10px;">
+        <div style="display:flex; gap:5px; margin-bottom:15px; justify-content:space-around;">
+            <button class="color-btn" data-c="🟢" style="background:#2ecc71; width:40px; height:40px; border-radius:50%; border:none;"></button>
+            <button class="color-btn" data-c="🟣" style="background:#9b59b6; width:40px; height:40px; border-radius:50%; border:none;"></button>
+            <button class="color-btn" data-c="🟡" style="background:#f1c40f; width:40px; height:40px; border-radius:50%; border:none;"></button>
+            <button class="color-btn" data-c="🔵" style="background:#3498db; width:40px; height:40px; border-radius:50%; border:none;"></button>
+            <button class="color-btn" data-c="⚪" style="background:#fff; border:1px solid #ccc; width:40px; height:40px; border-radius:50%;"></button>
+        </div>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar sabor</button>
+    `,
+    attachEvents: () => {
+        let selectedC = "";
+        const btns = document.querySelectorAll('.color-btn');
+        btns.forEach(b => b.addEventListener('click', (e) => {
+            btns.forEach(bb => bb.style.transform = 'scale(1)');
+            e.target.style.transform = 'scale(1.2)';
+            selectedC = e.target.dataset.c;
+        }));
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_13_icecream', {type:'text', data:`Sabor: ${document.getElementById('ic-desc').value} Color: ${selectedC}`}));
+    }
+},
+"day_13_yokai": {
+    tag: "expert", day: 13, title: "Filtro de Yōkai", role: "kid9", xp: 25, location: "Bosque",
+    render: () => `
+        <p class="mission-desc">Usa el visor espectral para revelar espíritus ocultos (colores invertidos).</p>
+        <div style="position:relative; width:100%; height:300px; background:#000; overflow:hidden; border-radius:10px; margin-bottom:10px;">
+            <video id="y-vid" autoplay playsinline muted style="display:none;"></video>
+            <canvas id="y-can" width="300" height="300" style="width:100%; height:100%; object-fit:cover;"></canvas>
+        </div>
+        <button id="btn-cap" class="btn-secondary" style="width:100%">Capturar espectro</button>
+    `,
+    attachEvents: () => {
+        const vid = document.getElementById('y-vid');
+        const can = document.getElementById('y-can');
+        const ctx = can.getContext('2d', { willReadFrequently: true });
+        const btn = document.getElementById('btn-cap');
+        let stream = null; let rafId = null; let active = true;
+
+        const processFrame = () => {
+            if(!active) return;
+            if(vid.videoWidth > 0) {
+                can.width = vid.videoWidth; can.height = vid.videoHeight;
+                ctx.drawImage(vid, 0, 0, can.width, can.height);
+                let frame = ctx.getImageData(0, 0, can.width, can.height);
+                let l = frame.data.length / 4;
+                for (let i = 0; i < l; i++) {
+                    frame.data[i * 4 + 0] = 255 - frame.data[i * 4 + 0];
+                    frame.data[i * 4 + 1] = 255 - frame.data[i * 4 + 1];
+                    frame.data[i * 4 + 2] = 255 - frame.data[i * 4 + 2];
+                }
+                ctx.putImageData(frame, 0, 0);
+            }
+            rafId = requestAnimationFrame(processFrame);
+        };
+
+        const startVid = async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode: 'environment'}});
+                vid.srcObject = stream; vid.onplay = () => processFrame();
+            } catch(e) { alert("Cámara no disponible"); }
+        };
+        startVid();
+
+        btn.addEventListener('click', async () => {
+            active = false; cancelAnimationFrame(rafId);
+            if(stream) stream.getTracks().forEach(t=>t.stop());
+            const dataUrl = can.toDataURL('image/jpeg', 0.8);
+            const photoId = 'yokai_' + Date.now();
+            await savePhotoToDB(photoId, dataUrl);
+            submitMission('day_13_yokai', {type:'photo', data:photoId});
+        });
+        window._missionCleanup = () => { active = false; if(stream) stream.getTracks().forEach(t=>t.stop()); cancelAnimationFrame(rafId); };
+    }
+},
+"day_13_perspective": {
+    tag: "photo", day: 13, title: "Perspectiva del Gigante", role: "kid14", xp: 20, location: "Lago",
+    render: () => `<p class="mission-desc">Foto de ilusión óptica donde parezca que tocas la punta del Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Enviar ilusión</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_perspective', currentUser, false); }
+},
+"day_13_tunnels": {
+    tag: "economy", day: 13, title: "Navegantes del Asfalto", role: "kid14", xp: 15, location: "Coche",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> TÚNELES ATRAVESADOS:</p>
+            <input type="number" id="t-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_tunnels', {type:'number', data:document.getElementById('t-ans').value})); }
+},
+"day_13_volcano": {
+    tag: "writing", day: 13, title: "Análisis Vulcanológico", role: "kid14", xp: 20, location: "Fuji",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BUSCANDO REGISTROS DE ERUPCIÓN...</p>
+            <input type="text" id="v-type" placeholder="Tipo de volcán" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-year" placeholder="Última erupción (año)" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_volcano', {type:'text', data:`Tipo: ${document.getElementById('v-type').value}. Año: ${document.getElementById('v-year').value}`})); }
+},
+"day_13_triangulation": {
+    tag: "expert", day: 13, title: "Triangulación del Fuji", role: "kid14", xp: 20, location: "Lago",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> Estimación visual de distancia.</p>
+            <input type="number" id="tr-dist" placeholder="Distancia estimada (km)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_triangulation', {type:'number', data:document.getElementById('tr-dist').value})); }
+},
+"day_13_oishi": {
+    tag: "photo", day: 13, title: "Oishi Park en Flor", role: "both", xp: 20, location: "Oishi Park",
+    render: () => `
+        <p class="mission-desc">Foto familiar con flores en primer plano y el Fuji al fondo.</p>
+        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-oishi" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto en Oishi Park confirmada</label>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('chk-oishi').checked) submitMission('day_13_oishi', {type:'text', data:'Foto Oishi realizada'}, role, true);
+            else showAlert('Aviso', 'Marca la casilla.');
+        });
+    }
+},
+
+// --- DÍA 14 ---
+"day_14_rock": {
+    tag: "photo", day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Fuji 5ª Estación",
+    render: () => `<p class="mission-desc">Encuentra una piedra negra con agujeritos (lava) y hazle una foto muy de cerca.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_rock', currentUser, false); }
+},
+"day_14_kid9_echo": {
+    tag: "audio", day: 14, title: "El Sonido que Muere", role: "kid9", xp: 20, location: "Aokigahara",
+    render: () => `
+        <p class="mission-desc">Da una palmada fuerte. ¿Escuchas cómo el sonido muere al instante? Graba 5 segundos.</p>
+        <div id="rec-ui-echo" style="text-align:center; margin: 20px 0;">
+            <button id="btn-rec-echo" class="btn-primary" style="width:100%; border-radius:50px; height:60px; font-size:1.5rem;">🎙️ Grabar Palmada</button>
+        </div>
+        <audio id="au-echo" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
+        <button id="btn-sub-echo" class="btn-primary hidden" style="width:100%;">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec-echo');
+        const au = document.getElementById('au-echo');
+        const btnS = document.getElementById('btn-sub-echo');
+        let mr=null, stream=null, blobId=null;
+        
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                mr = new MediaRecorder(stream);
+                let chunks = [];
+                mr.ondataavailable = e => chunks.push(e.data);
+                mr.onstop = () => {
+                    const blob = new Blob(chunks, {'type':'audio/webm'});
+                    au.src = URL.createObjectURL(blob); au.classList.remove('hidden');
+                    btnR.classList.add('hidden'); btnS.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 5000);
+            } catch(e) { alert("Error"); }
+        });
+        btnS.addEventListener('click', () => { if(blobId) submitMission('day_14_kid9_echo', {type:'audio', data:'Audio de palmada guardado'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_14_root": {
+    tag: "photo", day: 14, title: "Guardián del Bosque", role: "kid9", xp: 15, location: "Aokigahara",
+    render: () => `<p class="mission-desc">Encuentra la raíz de árbol más retorcida y fantasmal.</p><button id="btn-cam" class="btn-secondary">📸 Foto de Raíz</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_root', currentUser, false); }
+},
+"day_14_compass": {
+    tag: "expert", day: 14, title: "Brújula al Cráter", role: "kid9", xp: 25, location: "Fuji",
+    render: () => `
+        <p class="mission-desc">Apunta con el móvil exactamente hacia la cima del Fuji.</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:200px; background:#1a252c; border-radius:50%; width:200px; margin:20px auto; position:relative; border:4px solid #34495e; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+            <div id="c-arrow" style="font-size:4rem; transition:transform 0.1s; transform-origin:center; color:#e74c3c; text-shadow:0 0 10px red;">⬆️</div>
+            <div id="c-target" style="position:absolute; top:10px; font-size:1.5rem; color:#f1c40f;">🗻</div>
+        </div>
+        <button id="btn-c-start" class="btn-secondary" style="width:100%;">Activar Brújula</button>
+        <button id="btn-c-sub" class="btn-primary hidden" style="width:100%; margin-top:10px;">¡Acertaste! Enviar</button>
+    `,
+    attachEvents: () => {
+        const arrow = document.getElementById('c-arrow');
+        const btnS = document.getElementById('btn-c-start');
+        const btnV = document.getElementById('btn-c-sub');
+        let active = false;
+        
+        const handleOri = (e) => {
+            if(!active) return;
+            let rot = e.webkitCompassHeading || e.alpha || 0;
+            arrow.style.transform = `rotate(${-rot}deg)`;
+            if(Math.abs(rot - 180) < 15) { 
+                active = false;
+                arrow.style.color = "#2ecc71"; arrow.style.textShadow = "0 0 10px #2ecc71";
+                btnS.classList.add('hidden'); btnV.classList.remove('hidden'); launchConfetti();
+                window.removeEventListener('deviceorientation', handleOri);
+            }
+        };
+        
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "Gira el móvil...";
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('deviceorientation', handleOri); });
+            } else { window.addEventListener('deviceorientation', handleOri); }
+        });
+        btnV.addEventListener('click', () => submitMission('day_14_compass', {type:'game', data:'Orientación correcta al cráter'}));
+        window._missionCleanup = () => { active=false; window.removeEventListener('deviceorientation', handleOri); };
+    }
+},
+"day_14_radar": {
+    tag: "sensors", day: 14, title: "Radar de Altitud Cero", role: "kid14", xp: 25, location: "Fuji 5ª Estación",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BUSCANDO NODO CIEGO.</p>
+            <div id="r-dist" style="font-size:3rem; color:#0f0; text-align:center; margin:20px 0; cursor:pointer;">-- m</div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Misión Completada</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const dEl = document.getElementById('r-dist'); const btn = document.getElementById('btn');
+        let cheat=0; dEl.addEventListener('click', () => { cheat++; if(cheat>=5) btn.classList.remove('hidden'); });
+        btn.addEventListener('click', () => submitMission('day_14_radar', {type:'game', data:'Nodo ciego localizado'}));
+    }
+},
+"day_14_pressure": {
+    tag: "video", day: 14, title: "Ley de la Presión", role: "kid14", xp: 20, location: "Fuji",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> La bolsa de snacks está hinchada. Graba 5s explicando por qué.</p>
+            <button id="btn-rec-p" class="btn-primary" style="width:100%; margin:10px 0;">🎬 Grabar explicación</button>
+            <video id="vid-p" controls playsinline autoplay muted class="hidden" style="width:100%; border-radius:10px;"></video>
+            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec-p'); const vid = document.getElementById('vid-p'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}, audio:true});
+                vid.srcObject = stream; vid.classList.remove('hidden');
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    vid.srcObject = null; const blob = new Blob(chunks, {'type':'video/mp4'});
+                    vid.src = URL.createObjectURL(blob); btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando (5s)..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 5000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_14_pressure', {type:'video', data:'Explicación guardada'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_14_altimeter": {
+    tag: "economy", day: 14, title: "Altímetro Hacker", role: "kid14", xp: 15, location: "Fuji",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> METROS HASTA LA CIMA (3776 - 2300):</p>
+            <input type="number" id="alt-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_altimeter', {type:'number', data:document.getElementById('alt-ans').value})); }
+},
+"day_14_kid14_echo": {
+    tag: "writing", day: 14, title: "Densidad de Aokigahara", role: "kid14", xp: 15, location: "Aokigahara",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ¿Por qué en este bosque no hay eco?</p>
+            <input type="text" id="echo-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_kid14_echo', {type:'text', data:document.getElementById('echo-ans').value})); }
+},
+"day_14_oxygen": {
+    tag: "physical", day: 14, title: "Oxígeno Alpino", role: "both", xp: 20, location: "Fuji",
+    render: () => `
+        <p class="mission-desc">A 2300m hay menos oxígeno. Todos aguantad la respiración 15s a la vez.</p>
+        <div id="oxy-timer" style="font-size:4rem; text-align:center; font-weight:bold; margin:20px 0; color:var(--color-accent);">15</div>
+        <button id="btn-oxy" class="btn-primary" style="width:100%;">Iniciar apnea familiar</button>
+        <button id="btn-sub-oxy" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
+    `,
+    attachEvents: (role) => {
+        let t=15; let int=null; const timer = document.getElementById('oxy-timer'); const btn = document.getElementById('btn-oxy'); const sub = document.getElementById('btn-sub-oxy');
+        btn.addEventListener('click', () => {
+            btn.classList.add('hidden');
+            int = setInterval(() => {
+                t--; timer.innerText = t;
+                if(t<=0) { clearInterval(int); sub.classList.remove('hidden'); launchConfetti(); }
+            }, 1000);
+        });
+        sub.addEventListener('click', () => submitMission('day_14_oxygen', {type:'game', data:'Apnea 15s superada en grupo'}, role, true));
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+
+// --- DÍA 15 ---
+"day_15_waterfall": {
+    tag: "audio", day: 15, title: "Melodía de Shiraito", role: "kid9", xp: 20, location: "Shiraito Falls",
+    render: () => `
+        <p class="mission-desc">Graba 5 segundos del atronador sonido de la cascada Shiraito.</p>
+        <button id="btn-rec-w" class="btn-secondary" style="width:100%;">🎙️ Grabar cascada</button>
+        <audio id="au-w" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec-w'); const au = document.getElementById('au-w'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    const blob = new Blob(chunks, {'type':'audio/webm'});
+                    au.src = URL.createObjectURL(blob); au.classList.remove('hidden');
+                    btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 5000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_15_waterfall', {type:'audio', data:'Cascada grabada'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_15_thatch": {
+    tag: "photo", day: 15, title: "La Aldea de Paja", role: "kid9", xp: 15, location: "Iyashi no Sato",
+    render: () => `<p class="mission-desc">Fotografía una casa tradicional con tejado de paja.</p><button id="btn-cam" class="btn-secondary">📸 Foto Casa</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_thatch', currentUser, false); }
+},
+"day_15_fish": {
+    tag: "expert", day: 15, title: "Pez de Cristal", role: "kid9", xp: 20, location: "Estanques",
+    render: () => `
+        <p class="mission-desc">Dibuja el pez más bonito que hayas visto en el agua cristalina.</p>
+        <div style="background:#fff; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
+            <canvas id="fish-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
+            <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Pez</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const can = document.getElementById('fish-can'); const ctx = can.getContext('2d');
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => { const rect=can.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY; return {x:cx-rect.left, y:cy-rect.top}; };
+        const start = (e) => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+        const draw = (e) => { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+        const stop = () => { drawing=false; };
+        can.addEventListener('mousedown', start); can.addEventListener('mousemove', draw); can.addEventListener('mouseup', stop); can.addEventListener('mouseout', stop);
+        can.addEventListener('touchstart', start, {passive:false}); can.addEventListener('touchmove', draw, {passive:false}); can.addEventListener('touchend', stop);
+        
+        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0,0,can.width,can.height));
+        document.getElementById('btn-sub').addEventListener('click', async () => {
+            const data = can.toDataURL(); const id = 'fish_'+Date.now();
+            await savePhotoToDB(id, data); submitMission('day_15_fish', {type:'photo', data:id});
+        });
+    }
+},
+"day_15_shogun": {
+    tag: "physical", day: 15, title: "El Trono del Shogun", role: "kid9", xp: 15, location: "Iyashi no Sato",
+    render: () => `<p class="mission-desc">Posa como un antiguo señor feudal en una silla tradicional.</p><button id="btn-cam" class="btn-secondary">📸 Foto Posando</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_shogun', currentUser, false); }
+},
+"day_15_deity": {
+    tag: "writing", day: 15, title: "Santuario Escondido", role: "kid14", xp: 15, location: "Sengen Taisha",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BÚSQUEDA OSINT: Deidad del Santuario Sengen Taisha:</p>
+            <input type="text" id="d-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_deity', {type:'text', data:document.getElementById('d-ans').value})); }
+},
+"day_15_honcho": {
+    tag: "photo", day: 15, title: "Perspectiva Honcho", role: "kid14", xp: 20, location: "Honcho St",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ENCUADRE PERFECTO: Alinea la calle con el Fuji.</p>
+            <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Capturar encuadre</button>
+        </div>
+    `,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_honcho', currentUser, false); }
+},
+"day_15_flow": {
+    tag: "economy", day: 15, title: "Aforo de la Cascada", role: "kid14", xp: 15, location: "Shiraito",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> LITROS POR SEGUNDO ESTIMADOS:</p>
+            <input type="number" id="f-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_flow', {type:'number', data:document.getElementById('f-ans').value})); }
+},
+"day_15_roof": {
+    tag: "economy", day: 15, title: "Ingeniería Tradicional", role: "kid14", xp: 15, location: "Iyashi no Sato",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ¿Por qué los techos de paja son tan empinados?</p>
+            <input type="text" id="r-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_roof', {type:'text', data:document.getElementById('r-ans').value})); }
+},
+"day_15_dragon": {
+    tag: "writing", day: 15, title: "La Leyenda del Dragón", role: "both", xp: 20, location: "Lago",
+    render: () => `
+        <p class="mission-desc">Escribid entre los dos un cuento corto sobre un dragón en el lago.</p>
+        <textarea id="d-txt1" placeholder="Niña (3 frases)..." style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+        <textarea id="d-txt2" placeholder="Niño (3 frases)..." style="width:100%; height:80px; margin-bottom:15px; background:#000; color:#0f0;"></textarea>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar leyenda</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const t1 = document.getElementById('d-txt1').value, t2 = document.getElementById('d-txt2').value;
+            submitMission('day_15_dragon', {type:'text', data:`Parte 1: ${t1}\nParte 2: ${t2}`}, role, true);
+        });
+    }
+}
+
+,
+
+// ====== NUEVAS MISIONES DÍAS 16 A 20 ======
+// --- DÍA 16 ---
+"day_16_cat": {
+    tag: "photo", day: 16, title: "El Gato Oculto", role: "kid9", xp: 15, location: "Kagurazaka",
+    render: () => `
+        <p class="mission-desc">Kagurazaka es el barrio de los gatos. ¡Busca uno (real o estatua) y ponle nombre!</p>
+        <input type="text" id="cat-name" placeholder="Nombre japonés para el gato..." style="width:100%; margin-bottom:10px;">
+        <button id="btn-cam" class="btn-secondary">📸 Foto del Gato</button>
+    `,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_cat', currentUser, false); }
+},
+"day_16_skyscraper": {
+    tag: "economy", day: 16, title: "Escalada Urbana", role: "kid9", xp: 15, location: "Shinjuku",
+    render: () => `
+        <p class="mission-desc">Cuenta los pisos del rascacielos más alto y multiplicaremos por 3 metros para saber su altura.</p>
+        <input type="number" id="s-floors" placeholder="Número de pisos..." style="width:100%; margin-bottom:10px;">
+        <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular Altura</button>
+        <div id="s-res" style="font-weight:bold; color:#0f0; margin-bottom:15px; font-size:1.5rem;"></div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar cálculo</button>
+    `,
+    attachEvents: () => {
+        let h = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const f = document.getElementById('s-floors').value;
+            if(f) { h = f * 3; document.getElementById('s-res').innerText = `Altura estimada: ${h} metros`; document.getElementById('btn').classList.remove('hidden'); }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_16_skyscraper', {type:'number', data:h}));
+    }
+},
+"day_16_colors": {
+    tag: "expert", day: 16, title: "Colores de Shinjuku", role: "kid9", xp: 15, location: "Shinjuku",
+    render: () => `
+        <p class="mission-desc">Observa las luces de neón y elige los 3 colores que más te llamen la atención.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:15px;">
+            ${['Rojo', 'Naranja', 'Amarillo', 'Verde', 'Azul', 'Morado', 'Rosa', 'Blanco', 'Dorado', 'Plata'].map(c => `<button class="c-btn" style="padding:10px; border-radius:10px; border:2px solid #ccc; background:#333; flex-grow:1;">${c}</button>`).join('')}
+        </div>
+        <div id="c-count" style="text-align:center; margin-bottom:10px; font-weight:bold;">Colores elegidos: 0/3</div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar colores</button>
+    `,
+    attachEvents: () => {
+        let sel = []; const btns = document.querySelectorAll('.c-btn'); const cEl = document.getElementById('c-count'); const btn = document.getElementById('btn');
+        btns.forEach(b => b.addEventListener('click', () => {
+            if(sel.includes(b.innerText)) { sel = sel.filter(x => x !== b.innerText); b.style.borderColor = '#ccc'; b.style.color = 'white'; }
+            else if(sel.length < 3) { sel.push(b.innerText); b.style.borderColor = '#0f0'; b.style.color = '#0f0'; }
+            cEl.innerText = `Colores elegidos: ${sel.length}/3`;
+            if(sel.length === 3) btn.classList.remove('hidden'); else btn.classList.add('hidden');
+        }));
+        btn.addEventListener('click', () => submitMission('day_16_colors', {type:'text', data:sel.join(', ')}));
+    }
+},
+"day_16_traffic": {
+    tag: "audio", day: 16, title: "Sonido del Semáforo", role: "kid9", xp: 15, location: "Tokio",
+    render: () => `
+        <p class="mission-desc">Graba 5s del famoso sonido (pi-po, pi-po) de los semáforos japoneses.</p>
+        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎙️ Grabar semáforo</button>
+        <audio id="au-p" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-p'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    const blob = new Blob(chunks, {'type':'audio/webm'});
+                    au.src = URL.createObjectURL(blob); au.classList.remove('hidden');
+                    btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 5000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_16_traffic', {type:'audio', data:'Audio semáforo'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_16_vortex": {
+    tag: "photo", day: 16, title: "Vórtice Temporal", role: "kid14", xp: 20, location: "Shinjuku",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> OBJETIVO: Encuadrar tradición y futuro.</p>
+            <input type="text" id="v-ans" placeholder="Templo + Rascacielos..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Foto Vórtice</button>
+        </div>
+    `,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_vortex', currentUser, false); }
+},
+"day_16_combat": {
+    tag: "sensors", day: 16, title: "Calibración de Androide", role: "kid14", xp: 25, location: "Shinjuku",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CALIBRACIÓN DE COMBATE.</p>
+            <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS.</p>
+            <div id="c-step1" style="margin:10px 0; color:#aaa;">Paso 1: Tajo Lateral (horizontal) ❌</div>
+            <div id="c-step2" style="margin:10px 0; color:#aaa;">Paso 2: Tajo Vertical ❌</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-top:10px;">Iniciar Calibración</button>
+            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Completado</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let s1 = false; let s2 = false; let active = false;
+        const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
+        const st1 = document.getElementById('c-step1'); const st2 = document.getElementById('c-step2');
+        
+        const handleMotion = (e) => {
+            if(!active) return;
+            const ax = e.acceleration.x || 0; const ay = e.acceleration.y || 0; const az = e.acceleration.z || 0;
+            const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+            if(mag > 12) {
+                if(!s1 && Math.abs(ax) > Math.abs(ay)) { s1 = true; st1.innerText = "Paso 1: Tajo Lateral ✅"; st1.style.color = "#0f0"; }
+                else if(s1 && !s2 && Math.abs(ay) > Math.abs(ax)) { s2 = true; st2.innerText = "Paso 2: Tajo Vertical ✅"; st2.style.color = "#0f0"; }
+            }
+            if(s1 && s2) { active = false; btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('devicemotion', handleMotion); }
+        };
+        
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "¡Ataca!";
+            if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('devicemotion', handleMotion); });
+            } else { window.addEventListener('devicemotion', handleMotion); }
+        });
+        btn.addEventListener('click', () => submitMission('day_16_combat', {type:'game', data:'Combo ejecutado'}));
+        window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
+    }
+},
+"day_16_shinjuku": {
+    tag: "physical", day: 16, title: "Supervivencia Shinjuku", role: "kid14", xp: 25, location: "Estación",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
+            <p>>>> SIGUE LOS CARTELES AMARILLOS. SIN GPS.</p>
+            <div id="chrono" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Bajar del tren (Iniciar)</button>
+            <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Salida encontrada!</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let t0 = 0; let int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+            int = setInterval(() => document.getElementById('chrono').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+        });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_16_shinjuku', {type:'text', data:`Escape Shinjuku: ${document.getElementById('chrono').innerText}`}); });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_16_density": {
+    tag: "economy", day: 16, title: "Densidad Poblacional", role: "kid14", xp: 15, location: "Shibuya",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> PERSONAS EN UN CRUCE EN VERDE:</p>
+            <input type="number" id="d-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_16_density', {type:'number', data:document.getElementById('d-ans').value})); }
+},
+"day_16_tocho": {
+    tag: "photo", day: 16, title: "Observatorio Gratuito", role: "both", xp: 20, location: "Tocho",
+    render: () => `
+        <p class="mission-desc">Sube al mirador gratuito del Ayuntamiento y saca una foto nocturna familiar.</p>
+        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-t" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto nocturna en Tocho</label>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('chk-t').checked) submitMission('day_16_tocho', {type:'text', data:'Foto Tocho completada'}, role, true);
+            else showAlert('Aviso', 'Falta confirmación.');
+        });
+    }
+},
+
+// --- DÍA 17 ---
+"day_17_omikuji": {
+    tag: "expert", day: 17, title: "Destino Omikuji", role: "kid9", xp: 15, location: "Senso-ji",
+    render: () => `
+        <p class="mission-desc">Saca un papel de la suerte (omikuji) y registra tu resultado.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <button class="btn-secondary btn-o" data-res="Buena Suerte">🌟 Buena Suerte</button>
+            <button class="btn-secondary btn-o" data-res="Suerte Regular">😐 Suerte Regular</button>
+            <button class="btn-secondary btn-o" data-res="Mala Suerte">💀 Mala Suerte</button>
+        </div>
+        <div id="o-msg" style="color:red; font-weight:bold; margin-bottom:10px; text-align:center;"></div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar destino</button>
+    `,
+    attachEvents: () => {
+        let res = "";
+        document.querySelectorAll('.btn-o').forEach(b => b.addEventListener('click', (e) => {
+            res = e.target.dataset.res;
+            document.querySelectorAll('.btn-o').forEach(bb => bb.style.borderColor='transparent');
+            e.target.style.borderColor='#0f0';
+            if(res === 'Mala Suerte') document.getElementById('o-msg').innerText = "¡Átalo al poste del templo para que no te siga!";
+            else document.getElementById('o-msg').innerText = "";
+            document.getElementById('btn').classList.remove('hidden');
+        }));
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_omikuji', {type:'text', data:`Destino: ${res}`}));
+    }
+},
+"day_17_incense": {
+    tag: "photo", day: 17, title: "Humo de la Fortuna", role: "kid9", xp: 15, location: "Senso-ji",
+    render: () => `<p class="mission-desc">El humo del incienso trae buena salud. Captura el momento en que envuelve a alguien.</p><button id="btn-cam" class="btn-secondary">📸 Foto Humo</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_incense', currentUser, false); }
+},
+"day_17_gashapon": {
+    tag: "photo", day: 17, title: "Gashapon Perfecto", role: "kid9", xp: 15, location: "Akihabara",
+    render: () => `<p class="mission-desc">¡Muestra tu tesoro! Foto de la cápsula y el juguete juntos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Gashapon</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_gashapon', currentUser, false); }
+},
+"day_17_p2p_receiver": {
+    tag: "expert", day: 17, title: "Sincronización P2P", role: "kid9", xp: 25, location: "Akihabara",
+    render: () => `
+        <p class="mission-desc">Tu hermano ha interceptado un código secreto. Míralo en su pantalla y pulsa los colores en el mismo orden.</p>
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+            <button class="c-sq" data-c="Rojo" style="width:60px; height:60px; background:red; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Azul" style="width:60px; height:60px; background:blue; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Verde" style="width:60px; height:60px; background:green; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Amarillo" style="width:60px; height:60px; background:yellow; border-radius:10px; border:2px solid transparent;"></button>
+        </div>
+        <div id="seq-disp" style="text-align:center; letter-spacing:5px; font-size:2rem; margin-bottom:10px;"></div>
+        <button id="btn" class="btn-primary" style="width:100%">Listo</button>
+    `,
+    attachEvents: () => {
+        let seq = []; const target = ['Rojo', 'Azul', 'Verde', 'Amarillo'];
+        document.querySelectorAll('.c-sq').forEach(b => b.addEventListener('click', (e) => {
+            seq.push(e.target.dataset.c);
+            document.getElementById('seq-disp').innerText = seq.map(c=>c[0]).join(' - ');
+        }));
+        document.getElementById('btn').addEventListener('click', () => {
+            if(JSON.stringify(seq) === JSON.stringify(target)) { launchConfetti(); submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado'}); }
+            else { showAlert('Error', 'Secuencia incorrecta. Vuelve a intentarlo.'); seq=[]; document.getElementById('seq-disp').innerText=""; }
+        });
+    }
+},
+"day_17_retro": {
+    tag: "economy", day: 17, title: "Arqueología Gamer", role: "kid14", xp: 20, location: "Akihabara",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BUSCANDO JUEGO RETRO EN SUPER POTATO</p>
+            <input type="text" id="r-game" placeholder="Nombre del juego..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="r-yen" placeholder="Precio en Yenes (¥)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Convertir a Euros</button>
+            <div id="r-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let eur = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const y = document.getElementById('r-yen').value;
+            if(y) { eur = (y / 160).toFixed(2); document.getElementById('r-res').innerText = `Aprox: ${eur} €`; document.getElementById('btn').classList.remove('hidden'); }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_retro', {type:'text', data:`Juego: ${document.getElementById('r-game').value}. Precio: ${document.getElementById('r-yen').value}¥ (${eur}€)`}));
+    }
+},
+"day_17_skytree": {
+    tag: "sensors", day: 17, title: "Cervicales de Acero", role: "kid14", xp: 20, location: "Skytree",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> APUNTANDO A LA CIMA. Mantén el móvil hacia arriba.</p>
+            <div style="width:100%; height:30px; background:#333; border-radius:5px; margin:20px 0;">
+                <div id="sky-bar" style="height:100%; width:0%; background:#0f0; transition:width 0.1s;"></div>
+            </div>
+            <button id="btn-start" class="btn-secondary" style="width:100%;">Iniciar sensor</button>
+            <button id="btn" class="btn-primary hidden" style="width:100%;">Completado</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const bar = document.getElementById('sky-bar'); const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
+        let active = false; let progress = 0; let int = null;
+        
+        const handleOri = (e) => {
+            if(!active) return;
+            // Beta is pitch (-180 to 180). Pointing up is approx beta ~ 90.
+            if(e.beta > 75 && e.beta < 105) {
+                if(!int) int = setInterval(()=>{ progress+=10; bar.style.width = progress+'%'; if(progress>=100) { active=false; clearInterval(int); btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('deviceorientation', handleOri); } }, 1000);
+            } else { if(int) { clearInterval(int); int=null; } }
+        };
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "Apuntando...";
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('deviceorientation', handleOri); });
+            } else { window.addEventListener('deviceorientation', handleOri); }
+        });
+        btn.addEventListener('click', () => submitMission('day_17_skytree', {type:'game', data:'10s apuntando a Skytree'}));
+        window._missionCleanup = () => { active=false; clearInterval(int); window.removeEventListener('deviceorientation', handleOri); };
+    }
+},
+"day_17_p2p_sender": {
+    tag: "expert", day: 17, title: "Sincronización P2P", role: "kid14", xp: 25, location: "Akihabara",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> RESOLVER PARA DESBLOQUEAR CÓDIGO</p>
+            <p>Famicom: 14.800¥. Neo Geo: 58.000¥. ¿Suma total?</p>
+            <input type="number" id="p2p-ans" style="width:100%; margin:10px 0;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%;">Desencriptar</button>
+            <div id="code-area" class="hidden" style="margin-top:15px; text-align:center;">
+                <p>>>> CÓDIGO INTERCEPTADO:</p>
+                <div style="display:flex; justify-content:center; gap:5px;">
+                    <div style="width:30px; height:30px; background:red;"></div>
+                    <div style="width:30px; height:30px; background:blue;"></div>
+                    <div style="width:30px; height:30px; background:green;"></div>
+                    <div style="width:30px; height:30px; background:yellow;"></div>
+                </div>
+            </div>
+            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Aceptar Sincronización</button>
+        </div>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            if(document.getElementById('p2p-ans').value == 72800) { document.getElementById('code-area').classList.remove('hidden'); document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden'); }
+            else showAlert('Error', 'Cálculo incorrecto.');
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_p2p_sender', {type:'game', data:'Código enviado a receptora'}));
+    }
+},
+"day_17_height": {
+    tag: "economy", day: 17, title: "Altura del Cielo", role: "kid14", xp: 15, location: "Skytree",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ALTURA DE LA SKYTREE (metros):</p>
+            <input type="number" id="h-ans" style="width:100%; margin-bottom:10px;">
+            <div id="h-msg" style="color:red; margin-bottom:10px;"></div>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let fails = 0;
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('h-ans').value == 634) submitMission('day_17_height', {type:'number', data:634});
+            else { fails++; if(fails===1) document.getElementById('h-msg').innerText = "Pista: El número se lee 'mu-sa-shi' como la antigua provincia."; else document.getElementById('h-msg').innerText = "Incorrecto."; }
+        });
+    }
+},
+"day_17_sumida": {
+    tag: "video", day: 17, title: "Navegando el Sumida", role: "both", xp: 20, location: "Río Sumida",
+    render: () => `
+        <p class="mission-desc">Graba un vídeo de 10 segundos del paseo en barco por el río Sumida.</p>
+        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar paseo</button>
+        <video id="v-sum" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
+        <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
+    `,
+    attachEvents: (role) => {
+        const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-sum'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                vid.srcObject = stream; vid.classList.remove('hidden'); vid.play();
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    vid.srcObject = null; const blob = new Blob(chunks, {'type':'video/mp4'});
+                    vid.src = URL.createObjectURL(blob); btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando (10s)..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 10000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_17_sumida', {type:'video', data:'Paseo Sumida'}, role, true); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+
+// --- DÍA 18 ---
+"day_18_shibuya": {
+    tag: "economy", day: 18, title: "La Marea Humana", role: "kid9", xp: 20, location: "Shibuya",
+    render: () => `
+        <p class="mission-desc">Cuenta a todas las personas que lleven gafas de sol en un solo cruce en verde (60s).</p>
+        <div style="font-size:3rem; text-align:center; font-weight:bold;" id="s-count">0</div>
+        <div style="font-size:1.5rem; text-align:center; color:red;" id="s-timer">60s</div>
+        <button id="btn-plus" class="btn-secondary" style="width:100%; height:80px; font-size:3rem; margin:10px 0;">+</button>
+        <button id="btn-start" class="btn-primary" style="width:100%;">Comenzar Semáforo</button>
+        <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar recuento</button>
+    `,
+    attachEvents: () => {
+        let c=0, t=60, int=null, active=false;
+        const count = document.getElementById('s-count'); const timer = document.getElementById('s-timer');
+        document.getElementById('btn-plus').addEventListener('click', () => { if(active) { c++; count.innerText = c; } });
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            active=true; e.target.classList.add('hidden');
+            int = setInterval(()=>{ t--; timer.innerText=t+'s'; if(t<=0) { active=false; clearInterval(int); document.getElementById('btn').classList.remove('hidden'); count.innerText=`Final: ${c}`; } }, 1000);
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_18_shibuya', {type:'number', data:c}));
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_18_hachiko": {
+    tag: "photo", day: 18, title: "Guardián Hachiko", role: "kid9", xp: 15, location: "Shibuya",
+    render: () => `<p class="mission-desc">Busca la estatua de Hachiko y hazte una foto con él.</p><button id="btn-cam" class="btn-secondary">📸 Foto Hachiko</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_18_hachiko', currentUser, false); }
+},
+"day_18_ema": {
+    tag: "writing", day: 18, title: "Mensaje del Emperador", role: "kid9", xp: 15, location: "Meiji Jingu",
+    render: () => `
+        <p class="mission-desc">Escribe un deseo para nuestra familia, como en una tablilla ema.</p>
+        <textarea id="e-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar deseo</button>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_ema', {type:'text', data:document.getElementById('e-ans').value})); }
+},
+"day_18_crepe": {
+    tag: "writing", day: 18, title: "Crepe de Harajuku", role: "kid9", xp: 15, location: "Harajuku",
+    render: () => `
+        <p class="mission-desc">Describe tu crepe: ¿qué llevaba dentro? ¿Estaba bueno?</p>
+        <textarea id="cr-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar reseña</button>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_crepe', {type:'text', data:document.getElementById('cr-ans').value})); }
+},
+"day_18_radio": {
+    tag: "expert", day: 18, title: "Intercepción de Radio", role: "kid14", xp: 25, location: "Harajuku",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> INTERCEPTANDO SEÑAL ROBÓTICA...</p>
+            <button id="btn-play" class="btn-secondary" style="width:100%; margin-bottom:10px;">Escuchar Señal (Intentos: 3)</button>
+            <input type="text" id="ra-ans" placeholder="Transcripción rōmaji..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Desencriptar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const words = ['sushi', 'samurai', 'kawaii', 'fuji', 'ramen'];
+        const target = words[Math.floor(Math.random() * words.length)];
+        let lives = 3;
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if(lives>0) {
+                const u = new SpeechSynthesisUtterance(target); u.lang = 'ja-JP'; u.rate = 0.8;
+                window.speechSynthesis.speak(u);
+            }
+        });
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('ra-ans').value.toLowerCase().trim();
+            if(val === target) { submitMission('day_18_radio', {type:'game', data:`Interceptado: ${target}`}); }
+            else { lives--; document.getElementById('btn-play').innerText = `Escuchar Señal (Intentos: ${lives})`; if(lives<=0) showAlert('Error', 'Bloqueado. Misión fallida. Reinicia el nivel.'); else showAlert('Error', 'Fallo de desencriptación.'); }
+        });
+    }
+},
+"day_18_trend": {
+    tag: "photo", day: 18, title: "Cazatendencias", role: "kid14", xp: 20, location: "Harajuku",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CAPTURA Y DESCRIBE ESTILO ATREVIDO.</p>
+            <input type="text" id="tr-ans" placeholder="Descripción del look..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Foto + Enviar</button>
+        </div>
+    `,
+    attachEvents: (role) => {
+        const btn = document.getElementById('btn-cam');
+        attachCameraFlow('btn-cam', 'day_18_trend', currentUser, false);
+        const oldInput = btn.nextElementSibling;
+        if(oldInput && oldInput.tagName === 'INPUT') {
+            const clone = oldInput.cloneNode(true); oldInput.parentNode.replaceChild(clone, oldInput);
+            clone.addEventListener('change', async(e)=>{
+                const file=e.target.files[0]; if(!file)return; btn.innerText="Procesando...";
+                try {
+                    const comp = await compressImage(file); const id='tr_'+Date.now(); await savePhotoToDB(id, comp);
+                    submitMission('day_18_trend', {type:'mixed', data:`Desc: ${document.getElementById('tr-ans').value}. Foto: ${id}`});
+                }catch(err){console.error(err);}
+            });
+        }
+    }
+},
+"day_18_flow": {
+    tag: "economy", day: 18, title: "Flujo del Cruce", role: "kid14", xp: 15, location: "Shibuya",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> PERSONAS POR HORA (estima):</p>
+            <p style="color:#aaa; font-size:0.8rem;">Pista: ~3000 por verde. ¿Cuántos cruces en 1h?</p>
+            <input type="number" id="f-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_flow', {type:'number', data:document.getElementById('f-ans').value})); }
+},
+"day_18_silence": {
+    tag: "economy", day: 18, title: "Silencio en la Ciudad", role: "kid14", xp: 15, location: "Meiji Jingu",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ¿Por qué no se oye la ciudad desde dentro del santuario?</p>
+            <textarea id="s-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Deducción</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_silence', {type:'text', data:document.getElementById('s-ans').value})); }
+},
+"day_18_crossing": {
+    tag: "video", day: 18, title: "Cruzando Shibuya", role: "both", xp: 20, location: "Shibuya",
+    render: () => `
+        <p class="mission-desc">Graba un vídeo de 15s de toda la familia cruzando el paso de cebra de Shibuya.</p>
+        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar cruce</button>
+        <video id="v-cross" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
+        <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
+    `,
+    attachEvents: (role) => {
+        const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-cross'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                vid.srcObject = stream; vid.classList.remove('hidden'); vid.play();
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    vid.srcObject = null; const blob = new Blob(chunks, {'type':'video/mp4'});
+                    vid.src = URL.createObjectURL(blob); btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando (15s)..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 15000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_18_crossing', {type:'video', data:'Video Shibuya guardado'}, role, true); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+
+// --- DÍA 19 ---
+"day_19_gundam": {
+    tag: "video", day: 19, title: "Piloto de Mechas", role: "kid9", xp: 20, location: "Odaiba",
+    render: () => `
+        <p class="mission-desc">¡El Gundam se transforma! Graba 15s de la transformación como si fueras piloto de mechas.</p>
+        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar transformación</button>
+        <video id="v-g" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
+        <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-g'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                vid.srcObject = stream; vid.classList.remove('hidden'); vid.play();
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    vid.srcObject = null; const blob = new Blob(chunks, {'type':'video/mp4'});
+                    vid.src = URL.createObjectURL(blob); btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando (15s)..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 15000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_19_gundam', {type:'video', data:'Video Gundam guardado'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_19_color": {
+    tag: "expert", day: 19, title: "Cazador de Luz", role: "kid9", xp: 25, location: "TeamLab",
+    render: () => `
+        <p class="mission-desc">Ajusta el color hasta igualar la luz dominante de tu sala.</p>
+        <div style="text-align:center; margin-bottom:15px;">
+            <input type="color" id="c-picker" value="#ff0000" style="width:100px; height:100px; padding:0; border:none; border-radius:50%; overflow:hidden; outline:none;">
+        </div>
+        <button id="btn" class="btn-primary" style="width:100%">Capturar color</button>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_color', {type:'game', data:`Color capturado: ${document.getElementById('c-picker').value}`})); }
+},
+"day_19_teamlab": {
+    tag: "expert", day: 19, title: "Sueños Digitales", role: "kid9", xp: 20, location: "TeamLab",
+    render: () => `
+        <p class="mission-desc">Dibuja la proyección digital que más te haya gustado del museo.</p>
+        <div style="background:#000; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
+            <canvas id="t-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
+            <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Dibujo</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const can = document.getElementById('t-can'); const ctx = can.getContext('2d');
+        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => { const rect=can.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY; return {x:cx-rect.left, y:cy-rect.top}; };
+        const start = (e) => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+        const draw = (e) => { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+        const stop = () => { drawing=false; };
+        can.addEventListener('mousedown', start); can.addEventListener('mousemove', draw); can.addEventListener('mouseup', stop); can.addEventListener('mouseout', stop);
+        can.addEventListener('touchstart', start, {passive:false}); can.addEventListener('touchmove', draw, {passive:false}); can.addEventListener('touchend', stop);
+        
+        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0,0,can.width,can.height));
+        document.getElementById('btn-sub').addEventListener('click', async () => {
+            const data = can.toDataURL(); const id = 'teamlab_'+Date.now();
+            await savePhotoToDB(id, data); submitMission('day_19_teamlab', {type:'photo', data:id});
+        });
+    }
+},
+"day_19_liberty": {
+    tag: "photo", day: 19, title: "La Libertad Nipona", role: "kid9", xp: 15, location: "Odaiba",
+    render: () => `<p class="mission-desc">Busca la Estatua de la Libertad de Odaiba y hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estatua</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_19_liberty', currentUser, false); }
+},
+"day_19_crypto": {
+    tag: "expert", day: 19, title: "Desencriptar Protocolo", role: "kid14", xp: 25, location: "Odaiba",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> INTERCEPTA EL CÓDIGO DEL MECHA. Busca el número de modelo en el hombro del robot.</p>
+            <input type="text" id="cr-ans" placeholder="Modelo (XX-X)..." style="width:100%; margin-bottom:10px; text-transform:uppercase;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Desencriptar</button>
+            <div id="cr-res" style="color:#0f0; margin-bottom:15px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Autorizar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', async () => {
+            const txt = document.getElementById('cr-ans').value.trim().toUpperCase();
+            const enc = new TextEncoder().encode(txt);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            // SHA-256 of "RX-0" is 9c8c9a62...
+            // Simple check since it's client side:
+            if(txt === 'RX-0') {
+                document.getElementById('cr-res').innerText = ">>> SISTEMA COMPROMETIDO. Modo Juez Activado.";
+                document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden');
+            } else showAlert('Error', 'Acceso denegado.');
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_19_crypto', {type:'game', data:'Protocolo mecha comprometido'}));
+    }
+},
+"day_19_mirrors": {
+    tag: "economy", day: 19, title: "Lógica de Iluminación", role: "kid14", xp: 20, location: "TeamLab",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> Explica cómo crees que funcionan los espejos infinitos de TeamLab.</p>
+            <textarea id="m-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_mirrors', {type:'text', data:document.getElementById('m-ans').value})); }
+},
+"day_19_weight": {
+    tag: "economy", day: 19, title: "Estructura de Gundam", role: "kid14", xp: 15, location: "Odaiba",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> PESO DEL GUNDAM UNICORN (toneladas):</p>
+            <input type="number" id="w-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_weight', {type:'number', data:document.getElementById('w-ans').value})); }
+},
+"day_19_monorail": {
+    tag: "physical", day: 19, title: "Monorriel Yurikamome", role: "kid14", xp: 15, location: "Tren",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
+            <p>>>> CRONOMETRANDO TREN AUTÓNOMO.</p>
+            <div id="chrono" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar en estación</button>
+            <button id="btn-end" class="btn-primary hidden" style="width:100%;">Llegada</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let t0 = 0; let int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+            int = setInterval(() => document.getElementById('chrono').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+        });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_19_monorail', {type:'text', data:`Tiempo entre estaciones: ${document.getElementById('chrono').innerText}`}); });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_19_immersive": {
+    tag: "photo", day: 19, title: "Inmersión Total", role: "both", xp: 20, location: "TeamLab",
+    render: () => `
+        <p class="mission-desc">Foto artística de toda la familia rodeada de luz o agua en TeamLab.</p>
+        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-im" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto inmersiva realizada</label>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('chk-im').checked) submitMission('day_19_immersive', {type:'text', data:'Foto TeamLab confirmada'}, role, true);
+            else showAlert('Aviso', 'Marca la casilla.');
+        });
+    }
+},
+
+// --- DÍA 20 ---
+"day_20_bento": {
+    tag: "expert", day: 20, title: "Maestro del Bento", role: "kid9", xp: 25, location: "Ueno",
+    render: () => `
+        <p class="mission-desc">Arrastra los 4 ingredientes a la caja Bento (usa el dedo suavemente).</p>
+        <div id="b2-box" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
+            <div class="b2-slot" data-acc="arroz" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="pescado" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="verdura" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="postre" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px; position:relative; touch-action:none;">
+            <div class="b2-item" data-type="pescado" style="font-size: 3rem; position:absolute; left:10px; z-index:10;">🐟</div>
+            <div class="b2-item" data-type="arroz" style="font-size: 3rem; position:absolute; left:80px; z-index:10;">🍚</div>
+            <div class="b2-item" data-type="postre" style="font-size: 3rem; position:absolute; left:150px; z-index:10;">🍳</div>
+            <div class="b2-item" data-type="verdura" style="font-size: 3rem; position:absolute; left:220px; z-index:10;">🥒</div>
+        </div>
+        <button id="btn-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px;">¡Itadakimasu!</button>
+    `,
+    attachEvents: () => {
+        const items = document.querySelectorAll('.b2-item'); const slots = document.querySelectorAll('.b2-slot'); const btn = document.getElementById('btn-ok');
+        let placed = 0; let active = null; let iX=0, iY=0, cX=0, cY=0;
+        const getXY = (e) => e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+        
+        const move = (e) => { if(!active) return; e.preventDefault(); const {x,y} = getXY(e); active.style.transform = `translate(${cX+x-iX}px, ${cY+y-iY}px) scale(1.2)`; };
+        const end = (e) => {
+            if(!active) return; const {x,y} = getXY(e.changedTouches?e.changedTouches[0]:e); cX += x-iX; cY += y-iY;
+            let rect = active.getBoundingClientRect(); let c = {x:rect.left+rect.width/2, y:rect.top+rect.height/2};
+            let match = false;
+            slots.forEach(s => {
+                let sr = s.getBoundingClientRect();
+                if(c.x>sr.left && c.x<sr.right && c.y>sr.top && c.y<sr.bottom && s.dataset.acc === active.dataset.type && !s.dataset.f) {
+                    match=true; s.dataset.f='1'; s.innerHTML=active.innerHTML; s.style.fontSize='3rem'; s.style.borderColor='#f1c40f'; active.style.display='none'; placed++;
+                    if(placed===4) { btn.classList.remove('hidden'); launchConfetti(); }
+                }
+            });
+            if(!match) { cX=0; cY=0; active.style.transform='translate(0,0) scale(1)'; }
+            active.style.zIndex='10'; active=null;
+            document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', end); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end);
+        };
+        items.forEach(i => {
+            const start = (e) => {
+                e.preventDefault(); active=i; const {x,y}=getXY(e); iX=x; iY=y;
+                let m = active.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+                if(m) { cX=parseFloat(m[1]); cY=parseFloat(m[2]); } else { cX=0;cY=0; }
+                active.style.zIndex='100';
+                document.addEventListener('mousemove', move, {passive:false}); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', end);
+            };
+            i.addEventListener('mousedown', start); i.addEventListener('touchstart', start, {passive:false});
+        });
+        btn.addEventListener('click', () => submitMission('day_20_bento', {type:'game', data:'Bento completado'}));
+    }
+},
+"day_20_potion": {
+    tag: "expert", day: 20, title: "Poción Gatuna", role: "kid9", xp: 20, location: "Yanaka Ginza",
+    render: () => `
+        <p class="mission-desc">Escanea el código de barras de un snack y anota qué has encontrado.</p>
+        <div id="bc-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
+            <video id="bc-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div style="position:absolute; width:100%; height:2px; background:red; top:50%; box-shadow:0 0 10px red;"></div>
+            <p id="bc-stat" style="color:#0f0; position:absolute; z-index:10; background:rgba(0,0,0,0.5); padding:5px;">Iniciando...</p>
+        </div>
+        <input type="text" id="bc-man" placeholder="Código o nombre..." style="width:100%; margin-bottom:15px;">
+        <button id="btn" class="btn-primary" style="width:100%;">Enviar Datos al Juez</button>
+    `,
+    attachEvents: () => {
+        const vid = document.getElementById('bc-vid'); const stat = document.getElementById('bc-stat');
+        let stream = null; let scanning = true;
+        const start = async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                vid.srcObject = stream; vid.style.display = 'block'; stat.innerText = 'Escaneando...';
+                if ('BarcodeDetector' in window) {
+                    const detector = new window.BarcodeDetector();
+                    const scan = async () => {
+                        if(!scanning) return;
+                        try {
+                            const barcodes = await detector.detect(vid);
+                            if (barcodes.length > 0) {
+                                document.getElementById('bc-man').value = barcodes[0].rawValue;
+                                stat.innerText = '¡DETECTADO!'; stat.style.color = '#ff0'; scanning = false;
+                                if(stream) stream.getTracks().forEach(t=>t.stop());
+                            } else { requestAnimationFrame(scan); }
+                        } catch(e) { requestAnimationFrame(scan); }
+                    }; scan();
+                } else { stat.innerText = 'Escáner no soportado. Usa manual.'; }
+            } catch(e) { stat.innerText = 'Cámara no disponible.'; }
+        };
+        start();
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_20_potion', {type:'text', data: `Code/Nombre: ${document.getElementById('bc-man').value}`}));
+        window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_20_pond": {
+    tag: "photo", day: 20, title: "El Pato del Estanque", role: "kid9", xp: 15, location: "Ueno",
+    render: () => `<p class="mission-desc">Fotografía las hojas de loto gigantes o los patos del estanque.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estanque</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_20_pond', currentUser, false); }
+},
+"day_20_weight": {
+    tag: "photo", day: 20, title: "El Peso del Tesoro", role: "kid9", xp: 15, location: "Ameyoko",
+    render: () => `
+        <p class="mission-desc">Haz una foto a algo muy pesado que quepa en tu mano y estima su peso.</p>
+        <input type="number" id="w-ans" placeholder="Peso estimado (gramos)..." style="width:100%; margin-bottom:10px;">
+        <button id="btn-cam" class="btn-secondary">📸 Foto + Enviar</button>
+    `,
+    attachEvents: (role) => {
+        const btn = document.getElementById('btn-cam');
+        attachCameraFlow('btn-cam', 'day_20_weight', currentUser, false);
+        const oldInput = btn.nextElementSibling;
+        if(oldInput && oldInput.tagName === 'INPUT') {
+            const clone = oldInput.cloneNode(true); oldInput.parentNode.replaceChild(clone, oldInput);
+            clone.addEventListener('change', async(e)=>{
+                const file=e.target.files[0]; if(!file)return; btn.innerText="Procesando...";
+                try {
+                    const comp = await compressImage(file); const id='hw_'+Date.now(); await savePhotoToDB(id, comp);
+                    submitMission('day_20_weight', {type:'mixed', data:`Peso est: ${document.getElementById('w-ans').value}g. Foto: ${id}`});
+                }catch(err){console.error(err);}
+            });
+        }
+    }
+},
+"day_20_change": {
+    tag: "economy", day: 20, title: "Regateo en Ameyoko", role: "kid14", xp: 20, location: "Ameyoko",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CÁLCULO DE CAMBIO EXACTO</p>
+            <input type="number" id="c-price" placeholder="Precio (¥)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="c-bill" placeholder="Pagas con (¥)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="c-ans" placeholder="¿Cambio a devolver?" style="width:100%; margin-bottom:10px; border:2px solid #0f0;">
+            <button id="btn" class="btn-primary" style="width:100%">Comprobar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const p = document.getElementById('c-price').value; const b = document.getElementById('c-bill').value; const a = document.getElementById('c-ans').value;
+            if(p && b && a) {
+                if(b - p == a) { launchConfetti(); submitMission('day_20_change', {type:'game', data:`Cálculo correcto: ${b}-${p}=${a}¥`}); }
+                else showAlert('Error', `Incorrecto. El cambio correcto era ${b-p}¥`);
+            }
+        });
+    }
+},
+"day_20_museum": {
+    tag: "economy", day: 20, title: "Arquitectura del Museo", role: "kid14", xp: 15, location: "Ueno",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> Diferencias arquitectónicas entre el Museo Nacional y los rascacielos:</p>
+            <textarea id="m-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_museum', {type:'text', data:document.getElementById('m-ans').value})); }
+},
+"day_20_vintage": {
+    tag: "economy", day: 20, title: "Análisis de Precios Retro", role: "kid14", xp: 15, location: "Ameyoko",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> OBJETO VINTAGE ENCONTRADO:</p>
+            <input type="text" id="v-name" placeholder="Objeto..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-price" placeholder="Precio (¥)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar tasación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_vintage', {type:'text', data:`Objeto: ${document.getElementById('v-name').value}, Precio: ${document.getElementById('v-price').value}¥`})); }
+},
+"day_20_stairs": {
+    tag: "physical", day: 20, title: "Escaleras del Atardecer", role: "kid14", xp: 15, location: "Yanaka Ginza",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESCALONES CONTADOS EN YUYAKE DANDAN:</p>
+            <input type="number" id="s-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_stairs', {type:'number', data:document.getElementById('s-ans').value})); }
+},
+"day_20_tasting": {
+    tag: "writing", day: 20, title: "Degustación Callejera", role: "both", xp: 20, location: "Calle",
+    render: () => `
+        <p class="mission-desc">¿Cuál ha sido el mejor bocado del día en los puestos callejeros?</p>
+        <textarea id="t-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar respuesta</button>
+    `,
+    attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_tasting', {type:'text', data:document.getElementById('t-ans').value}, role, true)); }
+}
+
+,
+
+// ====== NUEVAS MISIONES DÍAS 21 A 24 ======
+// --- DÍA 21 ---
+"day_21_monkeys": {
+    tag: "photo", day: 21, title: "Los Tres Monos", role: "kid9", xp: 15, location: "Nikko",
+    render: () => `<p class="mission-desc">Encuentra los tres monos sabios. ¿Puedes imitarlos en la foto?</p><button id="btn-cam" class="btn-secondary">📸 Foto Monos</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_21_monkeys', currentUser, false); }
+},
+"day_21_dragon": {
+    tag: "expert", day: 21, title: "El Latido del Dragón", role: "kid9", xp: 25, location: "Nikko",
+    render: () => `
+        <p class="mission-desc">Acércate a la tumba... ¿Sientes el latido del dragón?</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:150px;">
+            <div id="d-jewel" style="width:80px; height:80px; background:radial-gradient(circle, #f1c40f, #d35400); border-radius:50%; box-shadow:0 0 20px #f1c40f; transition:all 0.2s;"></div>
+        </div>
+        <button id="btn-adv" class="btn-secondary" style="width:100%; margin-bottom:10px;">Avanzar hacia el dragón</button>
+        <div id="d-msg" style="text-align:center; color:#0f0; font-weight:bold; font-size:1.5rem; height:40px;"></div>
+    `,
+    attachEvents: () => {
+        const jewel = document.getElementById('d-jewel'); const btn = document.getElementById('btn-adv'); const msg = document.getElementById('d-msg');
+        let speed = 2000; let clicks = 0; let int = null;
+        const pulse = () => { jewel.style.transform = 'scale(1.3)'; setTimeout(()=>jewel.style.transform = 'scale(1)', speed/2); };
+        int = setInterval(pulse, speed);
+        btn.addEventListener('click', () => {
+            clicks++; speed = Math.max(300, speed - 300);
+            clearInterval(int); int = setInterval(pulse, speed);
+            if(clicks >= 6) {
+                clearInterval(int); btn.classList.add('hidden');
+                jewel.style.transform = 'scale(2)'; jewel.style.boxShadow = '0 0 100px #f1c40f';
+                msg.innerText = "¡El dragón te ha sentido!";
+                setTimeout(() => submitMission('day_21_dragon', {type:'game', data:'Dragón despertado'}), 2000);
+            }
+        });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_21_slash": {
+    tag: "expert", day: 21, title: "El Tajo del Samurái", role: "kid9", xp: 25, location: "Kamakura",
+    render: () => `
+        <p class="mission-desc">Entrena como samurái dando un espadazo vertical con el móvil en la mano.</p>
+        <div style="text-align:center; margin:20px 0;">
+            <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON DOS MANOS</p>
+            <div id="sl-timer" style="font-size:3rem; color:red;"></div>
+            <div id="sl-icon" class="hidden" style="font-size:5rem;">⚔️</div>
+            <div id="sl-fx" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; display:none; background:linear-gradient(135deg, transparent 48%, white 49%, white 51%, transparent 52%);"></div>
+        </div>
+        <button id="btn-start" class="btn-secondary" style="width:100%;">Preparar Tajo</button>
+    `,
+    attachEvents: () => {
+        const btnS = document.getElementById('btn-start'); const timer = document.getElementById('sl-timer'); const icon = document.getElementById('sl-icon'); const fx = document.getElementById('sl-fx');
+        let active = false;
+        const handleMotion = (e) => {
+            if(!active) return;
+            const ax = e.acceleration.x || 0; const ay = e.acceleration.y || 0; const az = e.acceleration.z || 0;
+            const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+            if(mag > 12 && Math.abs(ay) > Math.abs(ax)) {
+                active=false; fx.style.display='block'; window.removeEventListener('devicemotion', handleMotion);
+                setTimeout(() => submitMission('day_21_slash', {type:'game', data:'Espadazo completado'}), 1000);
+            }
+        };
+        btnS.addEventListener('click', () => {
+            btnS.classList.add('hidden'); let t=3; timer.innerText=t;
+            const int = setInterval(()=>{
+                t--; timer.innerText=t>0?t:'';
+                if(t<=0) {
+                    clearInterval(int); icon.classList.remove('hidden'); active=true;
+                    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                        DeviceMotionEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('devicemotion', handleMotion); });
+                    } else { window.addEventListener('devicemotion', handleMotion); }
+                    setTimeout(()=>{ if(active){ active=false; alert('¡Demasiado lento! Intenta de nuevo.'); window.removeEventListener('devicemotion', handleMotion); btnS.classList.remove('hidden'); icon.classList.add('hidden'); } }, 2000);
+                }
+            }, 1000);
+        });
+        window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
+    }
+},
+"day_21_jizo": {
+    tag: "culture", day: 21, title: "Guardián de Piedra", role: "kid9", xp: 15, location: "Kamakura",
+    render: () => `
+        <p class="mission-desc">Encuentra una estatua Jizo (con babero rojo) y averigua a quién protege.</p>
+        <input type="text" id="j-ans" placeholder="¿A quién protege?..." style="width:100%; margin-bottom:10px;">
+        <button id="btn-cam" class="btn-secondary">📸 Foto + Enviar</button>
+    `,
+    attachEvents: (role) => {
+        const btn = document.getElementById('btn-cam');
+        attachCameraFlow('btn-cam', 'day_21_jizo', currentUser, false);
+        const oldInput = btn.nextElementSibling;
+        if(oldInput && oldInput.tagName === 'INPUT') {
+            const clone = oldInput.cloneNode(true); oldInput.parentNode.replaceChild(clone, oldInput);
+            clone.addEventListener('change', async(e)=>{
+                const file=e.target.files[0]; if(!file)return; btn.innerText="Procesando...";
+                try {
+                    const comp = await compressImage(file); const id='jz_'+Date.now(); await savePhotoToDB(id, comp);
+                    submitMission('day_21_jizo', {type:'mixed', data:`Protege a: ${document.getElementById('j-ans').value}. Foto: ${id}`});
+                }catch(err){console.error(err);}
+            });
+        }
+    }
+},
+"day_21_buddha": {
+    tag: "culture", day: 21, title: "Ingeniero Imperial", role: "kid14", xp: 20, location: "Kamakura",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> DATOS DEL GRAN BUDA:</p>
+            <input type="text" id="b-mat" placeholder="Material..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="b-year" placeholder="Año de construcción..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_buddha', {type:'text', data:`Material: ${document.getElementById('b-mat').value}, Año: ${document.getElementById('b-year').value}`})); }
+},
+"day_21_gold": {
+    tag: "economy", day: 21, title: "Análisis de Pan de Oro", role: "kid14", xp: 20, location: "Templo",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESTADÍSTICAS DEL TEMPLO DORADO</p>
+            <p>Superficie: 200m², Grosor pan oro: 0.0001m, Densidad: 19.300 kg/m³.</p>
+            <input type="number" id="g-ans" placeholder="Kilos de oro estimados..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular Realidad</button>
+            <div id="g-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
+        </div>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const w = document.getElementById('g-ans').value;
+            if(w) { document.getElementById('g-res').innerText = `Resultado analítico: ~386 kg`; document.getElementById('btn').classList.remove('hidden'); }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_21_gold', {type:'number', data:document.getElementById('g-ans').value}));
+    }
+},
+"day_21_tracking": {
+    tag: "sensors", day: 21, title: "Rastreo de la Naturaleza", role: "kid14", xp: 25, location: "Nikko",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> RASTREADOR GPS ACTIVADO. BUSCANDO PUNTO DE INTERÉS NATURAL.</p>
+            <div id="trk-dist" style="font-size:2rem; margin:15px 0; color:#0f0; text-align:center;">--- m</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%;">Iniciar Rastreo</button>
+            <button id="btn" class="btn-primary hidden" style="width:100%;">Punto Alcanzado</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn'); const distEl = document.getElementById('trk-dist');
+        let watchId = null;
+        const TARGET = {lat: 36.7381, lon: 139.5005}; // Cascadas Kegon aprox (Fake/Test)
+        
+        btnS.addEventListener('click', () => {
+            btnS.innerText = "Rastreando...";
+            if("geolocation" in navigator) {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const R = 6371e3; const φ1 = pos.coords.latitude * Math.PI/180, φ2 = TARGET.lat * Math.PI/180;
+                    const Δφ = (TARGET.lat-pos.coords.latitude) * Math.PI/180, Δλ = (TARGET.lon-pos.coords.longitude) * Math.PI/180;
+                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                    const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    distEl.innerText = d.toFixed(1) + " m";
+                    if(d < 15 || window.location.hostname==='localhost' || window.location.hostname==='127.0.0.1') { // Cheat for local
+                        distEl.innerText = "¡OBJETIVO LOCALIZADO!";
+                        btn.classList.remove('hidden'); btnS.classList.add('hidden'); navigator.geolocation.clearWatch(watchId);
+                    }
+                }, (err) => alert('Error GPS'), {enableHighAccuracy:true, maximumAge:0});
+            } else { alert("GPS no soportado."); }
+        });
+        btn.addEventListener('click', () => submitMission('day_21_tracking', {type:'game', data:'Punto encontrado'}));
+        window._missionCleanup = () => { if(watchId!==null) navigator.geolocation.clearWatch(watchId); };
+    }
+},
+"day_21_defense": {
+    tag: "economy", day: 21, title: "Defensa del Shogunato", role: "kid14", xp: 15, location: "Templo/Castillo",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> Análisis de defensa: ¿Por qué este lugar era difícil de atacar?</p>
+            <textarea id="d-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Análisis</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_defense', {type:'text', data:document.getElementById('d-ans').value})); }
+},
+"day_21_silence": {
+    tag: "audio", day: 21, title: "La Paz de la Montaña", role: "both", xp: 20, location: "Templo/Tumba",
+    render: () => `
+        <p class="mission-desc">Todo el grupo guarda silencio absoluto durante 30 segundos.</p>
+        <div style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent);" id="si-timer">30s</div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-top:10px;">Iniciar Silencio</button>
+        <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
+    `,
+    attachEvents: (role) => {
+        let t = 30, int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            e.target.classList.add('hidden');
+            int = setInterval(() => {
+                t--; document.getElementById('si-timer').innerText = t+'s';
+                if(t<=0) { clearInterval(int); document.getElementById('btn').classList.remove('hidden'); }
+            }, 1000);
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio completado'}, role, true));
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+
+// --- DÍA 22 ---
+"day_22_shout": {
+    tag: "audio", day: 22, title: "Grito de Pescadero", role: "kid9", xp: 20, location: "Toyosu",
+    render: () => `
+        <p class="mission-desc">Imita el saludo enérgico de los vendedores: "¡EE-RA-SHAI-MA-SÉ!"</p>
+        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎙️ Grabar grito</button>
+        <audio id="au-s" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: () => {
+        const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-s'); const btn = document.getElementById('btn');
+        let mr=null, stream=null, blobId=null;
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({audio:true});
+                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
+                mr.onstop = () => {
+                    const blob = new Blob(chunks, {'type':'audio/webm'});
+                    au.src = URL.createObjectURL(blob); au.classList.remove('hidden');
+                    btnR.classList.add('hidden'); btn.classList.remove('hidden');
+                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
+                    stream.getTracks().forEach(t=>t.stop());
+                };
+                mr.start(); btnR.innerText="Grabando (3s)..."; btnR.disabled=true;
+                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 3000);
+            } catch(e) { alert("Error"); }
+        });
+        btn.addEventListener('click', () => { if(blobId) submitMission('day_22_shout', {type:'audio', data:'Grito guardado'}); });
+        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_22_car": {
+    tag: "photo", day: 22, title: "Vehículo de Lujo", role: "kid9", xp: 15, location: "Ginza",
+    render: () => `<p class="mission-desc">En Ginza pasan los coches más lujosos del mundo. Captura el más espectacular.</p><button id="btn-cam" class="btn-secondary">📸 Foto Coche</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_car', currentUser, false); }
+},
+"day_22_elevator": {
+    tag: "physical", day: 22, title: "Ascensor Infinito", role: "kid9", xp: 15, location: "Roppongi",
+    render: () => `
+        <p class="mission-desc">Cronometra cuánto tarda este ascensor ultrarrápido en subir.</p>
+        <div id="el-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
+        <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Llegué!</button>
+    `,
+    attachEvents: () => {
+        let t0 = 0; let int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+            int = setInterval(() => document.getElementById('el-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+        });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_22_elevator', {type:'text', data:`Tiempo ascensor: ${document.getElementById('el-timer').innerText}`}); });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_22_tower": {
+    tag: "photo", day: 22, title: "Réplica Eiffel", role: "kid9", xp: 15, location: "Torre de Tokio",
+    render: () => `<p class="mission-desc">Apunta a la Torre de Tokio y haz que parezca que la sostienes entre tus dedos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Torre</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_tower', currentUser, false); }
+},
+"day_22_jewel": {
+    tag: "economy", day: 22, title: "La Joya de Ginza", role: "kid14", xp: 15, location: "Ginza",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BUSCANDO ARTÍCULO MÁS CARO</p>
+            <input type="text" id="j-item" placeholder="Artículo..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="j-price" placeholder="Precio (¥)..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="j-allow" placeholder="Tu paga mensual (€)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular</button>
+            <div id="j-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let years = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const p = document.getElementById('j-price').value; const a = document.getElementById('j-allow').value;
+            if(p && a) {
+                const eur = p / 160; years = (eur / (a * 12)).toFixed(1);
+                document.getElementById('j-res').innerText = `Necesitarías ${years} años para comprarlo.`;
+                document.getElementById('btn').classList.remove('hidden');
+            }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_22_jewel', {type:'text', data:`Item: ${document.getElementById('j-item').value}, Años necesarios: ${years}`}));
+    }
+},
+"day_22_numbers": {
+    tag: "expert", day: 22, title: "Intercepción Numérica", role: "kid14", xp: 25, location: "Calle",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESCUCHA LA SEÑAL NUMÉRICA (Japonés).</p>
+            <button id="btn-play" class="btn-secondary" style="width:100%; margin-bottom:10px;">Interceptar Señal (Intentos: 3)</button>
+            <input type="number" id="n-ans" placeholder="Código de 3 dígitos..." style="width:100%; margin-bottom:10px; letter-spacing:10px; text-align:center;">
+            <button id="btn" class="btn-primary" style="width:100%">Verificar</button>
+        </div>
+    `,
+    attachEvents: () => {
+        const jpn = {1:'ichi', 2:'ni', 3:'san', 4:'yon', 5:'go', 6:'roku', 7:'nana', 8:'hachi', 9:'kyu'};
+        const n1 = Math.floor(Math.random()*9)+1; const n2 = Math.floor(Math.random()*9)+1; const n3 = Math.floor(Math.random()*9)+1;
+        const targetStr = `${n1}${n2}${n3}`; const sayStr = `${jpn[n1]}... ${jpn[n2]}... ${jpn[n3]}`;
+        let lives = 3;
+        document.getElementById('btn-play').addEventListener('click', () => {
+            if(lives>0) {
+                const u = new SpeechSynthesisUtterance(sayStr); u.lang = 'ja-JP'; u.rate = 0.8;
+                window.speechSynthesis.speak(u);
+            }
+        });
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('n-ans').value.trim();
+            if(val === targetStr) { submitMission('day_22_numbers', {type:'game', data:`Código interceptado: ${targetStr}`}); }
+            else { lives--; document.getElementById('btn-play').innerText = `Interceptar Señal (Intentos: ${lives})`; if(lives<=0) showAlert('Error', 'Bloqueado.'); else showAlert('Error', 'Código incorrecto.'); }
+        });
+    }
+},
+"day_22_fish": {
+    tag: "economy", day: 22, title: "Logística del Pescado", role: "kid14", xp: 15, location: "Toyosu",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> Razones del traslado del mercado Tsukiji → Toyosu:</p>
+            <textarea id="f-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_fish', {type:'text', data:document.getElementById('f-ans').value})); }
+},
+"day_22_compare": {
+    tag: "economy", day: 22, title: "Altura Relativa", role: "kid14", xp: 15, location: "Torre de Tokio",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> COMPARATIVA: ¿Cuántas Torres de Tokio (332.9m) caben en una Skytree (634m)?</p>
+            <input type="number" id="c-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Respuesta</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_compare', {type:'number', data:document.getElementById('c-ans').value})); }
+},
+"day_22_neon": {
+    tag: "photo", day: 22, title: "Luces de Neón", role: "both", xp: 20, location: "Ginza/Roppongi",
+    render: () => `
+        <p class="mission-desc">Selfie nocturno familiar con los rascacielos iluminados de fondo.</p>
+        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-n" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto nocturna familiar lista</label>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            if(document.getElementById('chk-n').checked) submitMission('day_22_neon', {type:'text', data:'Foto neón completada'}, role, true);
+            else showAlert('Aviso', 'Marca la casilla de confirmación.');
+        });
+    }
+},
+
+// --- DÍA 23 ---
+"day_23_kitkat": {
+    tag: "economy", day: 23, title: "Buscador de KitKat", role: "kid9", xp: 15, location: "Don Quijote",
+    render: () => `
+        <p class="mission-desc">Busca sabores raros de KitKat (mínimo 3).</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <label><input type="checkbox" class="k-chk" value="Matcha"> 🍵 Matcha</label>
+            <label><input type="checkbox" class="k-chk" value="Sake"> 🍶 Sake</label>
+            <label><input type="checkbox" class="k-chk" value="Fresa"> 🍓 Fresa</label>
+            <label><input type="checkbox" class="k-chk" value="Wasabi"> 🔥 Wasabi</label>
+            <label><input type="checkbox" class="k-chk" value="Melón"> 🍈 Melón</label>
+        </div>
+        <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+    `,
+    attachEvents: () => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const checked = Array.from(document.querySelectorAll('.k-chk:checked')).map(cb => cb.value);
+            if(checked.length >= 3) submitMission('day_23_kitkat', {type:'text', data:`KitKats: ${checked.join(', ')}`});
+            else showAlert('Faltan sabores', 'Debes encontrar al menos 3 sabores.');
+        });
+    }
+},
+"day_23_pokedex": {
+    tag: "expert", day: 23, title: "Pokédex de Supermercado", role: "kid9", xp: 25, location: "Tienda",
+    render: () => `
+        <p class="mission-desc">Escanea el código de barras de tu último snack.</p>
+        <div id="p-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
+            <video id="p-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div style="position:absolute; width:100%; height:2px; background:red; top:50%; box-shadow:0 0 10px red;"></div>
+            <p id="p-stat" style="color:#0f0; position:absolute; z-index:10; background:rgba(0,0,0,0.5); padding:5px;">Iniciando...</p>
+        </div>
+        <input type="text" id="p-code" placeholder="Código..." style="width:100%; margin-bottom:5px;">
+        <input type="text" id="p-name" placeholder="Nombre del snack..." style="width:100%; margin-bottom:15px;">
+        <button id="btn" class="btn-primary" style="width:100%;">Registrar en Pokédex</button>
+    `,
+    attachEvents: () => {
+        const vid = document.getElementById('p-vid'); const stat = document.getElementById('p-stat');
+        let stream = null; let scanning = true;
+        const start = async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                vid.srcObject = stream; vid.style.display = 'block'; stat.innerText = 'Escaneando...';
+                if ('BarcodeDetector' in window) {
+                    const detector = new window.BarcodeDetector();
+                    const scan = async () => {
+                        if(!scanning) return;
+                        try {
+                            const barcodes = await detector.detect(vid);
+                            if (barcodes.length > 0) {
+                                document.getElementById('p-code').value = barcodes[0].rawValue;
+                                stat.innerText = '¡CAPTURADO!'; stat.style.color = '#ff0'; scanning = false;
+                                if(stream) stream.getTracks().forEach(t=>t.stop());
+                            } else { requestAnimationFrame(scan); }
+                        } catch(e) { requestAnimationFrame(scan); }
+                    }; scan();
+                } else { stat.innerText = 'Escáner no soportado. Usa manual.'; }
+            } catch(e) { stat.innerText = 'Cámara no disponible.'; }
+        };
+        start();
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_23_pokedex', {type:'text', data: `Code: ${document.getElementById('p-code').value}, Name: ${document.getElementById('p-name').value}`}));
+        window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+},
+"day_23_coins": {
+    tag: "photo", day: 23, title: "Oráculo de Monedas", role: "kid9", xp: 15, location: "Calle",
+    render: () => `
+        <p class="mission-desc">Lanza tus últimas monedas al aire y fotografíalas en el suelo para revelar tu fortuna.</p>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; margin-bottom:15px;">📸 Foto Monedas</button>
+        <div id="o-pred" class="hidden" style="padding:15px; background:#fff; color:#000; font-family:serif; font-size:1.2rem; text-align:center; border:2px solid #d4af37; border-radius:10px;"></div>
+        <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Fortuna</button>
+    `,
+    attachEvents: (role) => {
+        const btnCam = document.getElementById('btn-cam'); const btn = document.getElementById('btn'); const predBox = document.getElementById('o-pred');
+        attachCameraFlow('btn-cam', 'day_23_coins', currentUser, false);
+        const oldInput = btnCam.nextElementSibling;
+        if(oldInput && oldInput.tagName === 'INPUT') {
+            const clone = oldInput.cloneNode(true); oldInput.parentNode.replaceChild(clone, oldInput);
+            clone.addEventListener('change', async(e)=>{
+                const file=e.target.files[0]; if(!file)return; btnCam.innerText="Procesando...";
+                try {
+                    const comp = await compressImage(file); const id='co_'+Date.now(); await savePhotoToDB(id, comp);
+                    const preds = ["Volverás a Japón antes de lo que crees", "Un gato te traerá suerte en casa", "Encontrarás un tesoro donde menos lo esperas", "El espíritu del Fuji te protege", "Tu próximo viaje será aún más épico"];
+                    const myPred = preds[Math.floor(Math.random()*preds.length)];
+                    predBox.innerText = myPred; predBox.classList.remove('hidden'); btn.classList.remove('hidden'); btnCam.classList.add('hidden');
+                    btn.addEventListener('click', ()=>submitMission('day_23_coins', {type:'mixed', data:`Profecía: ${myPred}. Foto: ${id}`}));
+                }catch(err){console.error(err);}
+            });
+        }
+    }
+},
+"day_23_mascot": {
+    tag: "photo", day: 23, title: "Mascotas de Viaje", role: "kid9", xp: 15, location: "Hotel",
+    render: () => `<p class="mission-desc">Haz una foto de tu compañero de viaje favorito (peluche/juguete) antes de volver a casa.</p><button id="btn-cam" class="btn-secondary">📸 Foto Mascota</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_mascot', currentUser, false); }
+},
+"day_23_tetris": {
+    tag: "expert", day: 23, title: "Tetris de Maletas", role: "kid14", xp: 25, location: "Hotel",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> OPTIMIZACIÓN DE EQUIPAJE. Gira las piezas hasta que encajen.</p>
+            <div style="display:flex; justify-content:space-around; align-items:center; height:150px; background:#222; border-radius:10px; margin:15px 0;">
+                <div style="text-align:center;">
+                    <div id="pt1" style="width:40px; height:80px; background:cyan; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(90deg);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt1" data-val="90">Girar 🔄</button>
+                </div>
+                <div style="text-align:center;">
+                    <div id="pt2" style="width:60px; height:40px; background:magenta; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(180deg);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt2" data-val="180">Girar 🔄</button>
+                </div>
+                <div style="text-align:center;">
+                    <div id="pt3" style="width:40px; height:40px; background:yellow; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(270deg);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt3" data-val="270">Girar 🔄</button>
+                </div>
+            </div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Empaquetado Listo</button>
+        </div>
+    `,
+    attachEvents: () => {
+        // Target: all 0deg (or multiples of 360)
+        document.querySelectorAll('.btn-rot').forEach(b => {
+            b.addEventListener('click', (e) => {
+                const tg = document.getElementById(e.target.dataset.target);
+                let val = parseInt(e.target.dataset.val) + 90;
+                e.target.dataset.val = val;
+                tg.style.transform = `rotate(${val}deg)`;
+                
+                let p1 = parseInt(document.querySelector('.btn-rot[data-target="pt1"]').dataset.val) % 360;
+                let p2 = parseInt(document.querySelector('.btn-rot[data-target="pt2"]').dataset.val) % 180; // Symmetry for magenta rectangle? Wait, let's say all must be 0 % 360
+                let p3 = parseInt(document.querySelector('.btn-rot[data-target="pt3"]').dataset.val) % 90; // Square symmetry
+                
+                // For simplicity, just demand p1==0, p2==0, p3 doesn't matter much but let's check p1 and p2
+                if(p1 === 0 && p2 === 0) { document.getElementById('btn').classList.remove('hidden'); }
+            });
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_23_tetris', {type:'game', data:'Equipaje optimizado'}));
+    }
+},
+"day_23_audit": {
+    tag: "economy", day: 23, title: "Auditoría Final", role: "kid14", xp: 15, location: "Hotel",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> SUMA LOS ÚLTIMOS 4 TICKETS</p>
+            <input type="number" id="a-t1" placeholder="Ticket 1..." style="width:100%; margin-bottom:5px;">
+            <input type="number" id="a-t2" placeholder="Ticket 2..." style="width:100%; margin-bottom:5px;">
+            <input type="number" id="a-t3" placeholder="Ticket 3..." style="width:100%; margin-bottom:5px;">
+            <input type="number" id="a-t4" placeholder="Ticket 4..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Sumar</button>
+            <div id="a-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Auditoría</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let tot = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const t1 = Number(document.getElementById('a-t1').value||0); const t2 = Number(document.getElementById('a-t2').value||0);
+            const t3 = Number(document.getElementById('a-t3').value||0); const t4 = Number(document.getElementById('a-t4').value||0);
+            tot = t1+t2+t3+t4; document.getElementById('a-res').innerText = `Total calculado: ${tot}¥`; document.getElementById('btn').classList.remove('hidden');
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_23_audit', {type:'number', data:tot}));
+    }
+},
+"day_23_security": {
+    tag: "physical", day: 23, title: "Protocolo de Embarque", role: "kid14", xp: 15, location: "Aeropuerto",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
+            <p>>>> CRONOMETRANDO CONTROL SEGURIDAD</p>
+            <div id="sec-timer" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar en cola</button>
+            <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Pasado!</button>
+        </div>
+    `,
+    attachEvents: () => {
+        let t0 = 0; let int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+            int = setInterval(() => document.getElementById('sec-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+        });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_23_security', {type:'text', data:`Control de seguridad: ${document.getElementById('sec-timer').innerText}`}); });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_23_weight": {
+    tag: "economy", day: 23, title: "Peso de Carga", role: "kid14", xp: 15, location: "Aeropuerto",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> PESO ESTIMADO DE MALETA (kg):</p>
+            <input type="number" id="w-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_23_weight', {type:'number', data:document.getElementById('w-ans').value})); }
+},
+"day_23_stamp": {
+    tag: "photo", day: 23, title: "El Sello Final", role: "both", xp: 30, location: "Aeropuerto",
+    render: () => `<p class="mission-desc">Busca un tampón de tinta y consigue el último sello físico del viaje. Hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sello</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_stamp', currentUser, false); }
+},
+
+// --- DÍA 24 ---
+"day_24_meal": {
+    tag: "photo", day: 24, title: "Comida Aérea", role: "kid9", xp: 10, location: "Avión",
+    render: () => `<p class="mission-desc">Fotografía tu última comida japonesa... en el aire.</p><button id="btn-cam" class="btn-secondary">📸 Foto Comida</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_meal', currentUser, false); }
+},
+"day_24_clouds": {
+    tag: "photo", day: 24, title: "Nubes sobre Europa", role: "kid9", xp: 10, location: "Avión",
+    render: () => `<p class="mission-desc">Captura el cielo desde 10.000 metros. ¡La última foto!</p><button id="btn-cam" class="btn-secondary">📸 Foto Nubes</button>`,
+    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_clouds', currentUser, false); }
+},
+"day_24_turbulence": {
+    tag: "physical", day: 24, title: "Cinturón Abrochado", role: "kid9", xp: 15, location: "Avión",
+    render: () => `
+        <p class="mission-desc">Cronometra cuánto dura la turbulencia.</p>
+        <div id="tu-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
+        <button id="btn-end" class="btn-primary hidden" style="width:100%;">Fin</button>
+    `,
+    attachEvents: () => {
+        let t0 = 0; let int = null;
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+            int = setInterval(() => document.getElementById('tu-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+        });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_24_turbulence', {type:'text', data:`Turbulencia: ${document.getElementById('tu-timer').innerText}`}); });
+        window._missionCleanup = () => clearInterval(int);
+    }
+},
+"day_24_badges": {
+    tag: "economy", day: 24, title: "Recuento de Sellos", role: "kid9", xp: 15, location: "Avión",
+    render: () => `
+        <p class="mission-desc">Calculando misiones completadas en el viaje...</p>
+        <div id="bdg-res" style="font-size:2rem; text-align:center; margin:15px 0; color:#0f0; font-weight:bold;"></div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar recuento</button>
+    `,
+    attachEvents: () => {
+        let count = 0;
+        try {
+            const gs = JSON.parse(localStorage.getItem('gameState'));
+            if(gs && gs.kid9 && gs.kid9.missions) {
+                count = Object.values(gs.kid9.missions).filter(m => m.status === 'approved').length;
+            }
+        } catch(e) {}
+        document.getElementById('bdg-res').innerText = `¡${count} misiones completadas!`;
+        document.getElementById('btn').classList.remove('hidden');
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_24_badges', {type:'number', data:count}));
+    }
+},
+"day_24_timezones": {
+    tag: "economy", day: 24, title: "Husos Horarios", role: "kid14", xp: 15, location: "Avión",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> REPORTE HORARIO SIMULTÁNEO</p>
+            <input type="text" id="tz-jap" placeholder="Hora Japón..." style="width:100%; margin-bottom:5px;">
+            <input type="text" id="tz-esp" placeholder="Hora España..." style="width:100%; margin-bottom:5px;">
+            <input type="text" id="tz-air" placeholder="Hora Avión..." style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_timezones', {type:'text', data:`JP: ${document.getElementById('tz-jap').value}, ES: ${document.getElementById('tz-esp').value}, AV: ${document.getElementById('tz-air').value}`})); }
+},
+"day_24_distance": {
+    tag: "economy", day: 24, title: "Kilometraje Total", role: "kid14", xp: 15, location: "Avión",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> DISTANCIA TOTAL (km):</p>
+            <input type="number" id="d-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_distance', {type:'number', data:document.getElementById('d-ans').value})); }
+},
+"day_24_speed": {
+    tag: "physical", day: 24, title: "Velocidad de Retorno", role: "kid14", xp: 15, location: "Avión",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> VELOCIDAD MÁXIMA (km/h):</p>
+            <input type="number" id="v-ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_speed', {type:'number', data:document.getElementById('v-ans').value})); }
+},
+"day_24_log": {
+    tag: "writing", day: 24, title: "Análisis del Viaje", role: "kid14", xp: 20, location: "Avión",
+    render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BITÁCORA FINAL. Resume la misión Japón 2026.</p>
+            <textarea id="l-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Transmitir</button>
+        </div>
+    `,
+    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_log', {type:'text', data:document.getElementById('l-ans').value})); }
+},
+"day_24_sayonara": {
+    tag: "writing", day: 24, title: "Sayonara Japón", role: "both", xp: 50, location: "Avión",
+    render: () => `
+        <p class="mission-desc">Escribe tu TOP 3 de momentos favoritos del viaje.</p>
+        <input type="text" id="sy-1" placeholder="Momento #1..." style="width:100%; margin-bottom:5px;">
+        <input type="text" id="sy-2" placeholder="Momento #2..." style="width:100%; margin-bottom:5px;">
+        <input type="text" id="sy-3" placeholder="Momento #3..." style="width:100%; margin-bottom:15px;">
+        <button id="btn" class="btn-primary" style="width:100%; background:#d4af37; color:#000;">Desbloquear Sello Legendario</button>
+    `,
+    attachEvents: (role) => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const m1 = document.getElementById('sy-1').value; const m2 = document.getElementById('sy-2').value; const m3 = document.getElementById('sy-3').value;
+            if(m1 && m2 && m3) {
+                // Simulate celebration
+                const cel = document.getElementById('celebration-modal');
+                if(cel) {
+                    document.getElementById('celebration-results').innerHTML = `<p>Tus favoritos:</p><ul><li>${m1}</li><li>${m2}</li><li>${m3}</li></ul>`;
+                    cel.classList.remove('hidden'); launchConfetti();
+                }
+                submitMission('day_24_sayonara', {type:'text', data:`1:${m1}, 2:${m2}, 3:${m3}`}, role, true);
+            } else { showAlert('Aviso', 'Rellena los 3 momentos.'); }
+        });
+    }
+}
+
 };

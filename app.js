@@ -40,51 +40,22 @@ function initMissionsForDay(dayStr, missionIds) {
     saveState();
 }
 
-// --- IndexedDB para Imágenes ---
-const DB_NAME = "JapanMissionsDB";
-const STORE_NAME = "photos";
-let idbStore = null;
-
-function initIndexedDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = event => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                db.createObjectStore(STORE_NAME, { keyPath: "id" });
-            }
-        };
-        request.onsuccess = event => {
-            idbStore = event.target.result;
-            resolve();
-        };
-        request.onerror = event => reject(event.target.error);
-    });
-}
-
-function savePhotoToDB(id, base64Data) {
-    return new Promise((resolve, reject) => {
-        const tx = idbStore.transaction(STORE_NAME, "readwrite");
-        const store = tx.objectStore(STORE_NAME);
-        store.put({ id: id, data: base64Data });
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-    });
-}
-
+// IndexedDB: funciones provistas por dbHelper.js (savePhotoToDB, getMedia, saveMedia, initIndexedDB)
+// getPhotoFromDB es un alias de getMedia para compatibilidad con el panel del juez
 function getPhotoFromDB(id) {
-    return new Promise((resolve, reject) => {
-        const tx = idbStore.transaction(STORE_NAME, "readonly");
-        const store = tx.objectStore(STORE_NAME);
-        const req = store.get(id);
-        req.onsuccess = () => resolve(req.result ? req.result.data : null);
-        req.onerror = () => reject(req.error);
-    });
+    return window.getMedia ? window.getMedia(id) : Promise.resolve(null);
 }
 
 // ==========================================
 // 2. UTILIDADES
 // ==========================================
+
+const TAG_ICONS = {
+    photo: '📸', video: '🎬', audio: '🎙️', writing: '✍️',
+    expert: '⚡', economy: '💰', sensors: '📡', physical: '🏃',
+    game: '🎮', culture: '🏯', mixed: '🔀'
+};
+
 
 function compressImage(file) {
     return new Promise((resolve) => {
@@ -595,6 +566,6 @@ document.getElementById('btn-close-celebration').addEventListener('click', () =>
 // Inicialización
 window.onload = async () => {
     loadState();
-    await initIndexedDB();
+    if (window.initIndexedDB) await window.initIndexedDB();
     switchView('view-home', false);
 };
