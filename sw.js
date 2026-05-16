@@ -1,8 +1,9 @@
-const CACHE_NAME = 'japan-missions-v7';
+const CACHE_NAME = 'japan-missions-v8';
 const ASSETS = [
     './',
     './index.html',
     './styles.css',
+    './dbHelper.js',
     './missions.js',
     './app.js',
     './manifest.json'
