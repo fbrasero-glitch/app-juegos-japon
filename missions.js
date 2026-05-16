@@ -2,7 +2,7 @@
 // 3. CONFIGURACIÓN DE MISIONES
 // ==========================================
 
-const TAG_ICONS = { photo: "📷", video: "🎬", audio: "🎙️", writing: "✍️", versus: "⚔️", game: "🎮", sensors: "🧭", economy: "💰", physical: "🏃", expert: "⚡" };
+
 const MISSIONS_CONFIG = {
     // === NUEVAS MISIONES DÍAS 5, 6, 7 ===
     "day_5_gymnast": {

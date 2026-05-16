@@ -279,20 +279,14 @@ function renderMissionDetail(missionId, role) {
 
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false) {
     if (isFamily) {
-        // Lógica especial si es familia: si ambos marcaron sus checks, pasa a pending
-        if (submissionData.data.kid9 && submissionData.data.kid14) {
-            gameState['kid9'].missions[missionId].status = 'pending';
-            gameState['kid9'].missions[missionId].submission = submissionData;
-            gameState['kid14'].missions[missionId].status = 'pending';
-            gameState['kid14'].missions[missionId].submission = submissionData;
-        } else {
-            // Solo guarda estado parcial
-            gameState['kid9'].missions[missionId].data = submissionData.data;
-            gameState['kid14'].missions[missionId].data = submissionData.data;
-            saveState();
-            showAlert('Guardado', 'Esperando a que el otro explorador complete su parte.');
-            return;
-        }
+        // Misión conjunta: marcar pending para AMBOS perfiles inmediatamente
+        const submission = { ...submissionData, timestamp: new Date().toISOString() };
+        ['kid9', 'kid14'].forEach(kid => {
+            if (gameState[kid].missions[missionId]) {
+                gameState[kid].missions[missionId].status = 'pending';
+                gameState[kid].missions[missionId].submission = submission;
+            }
+        });
     } else {
         gameState[role].missions[missionId].status = 'pending';
         gameState[role].missions[missionId].submission = {
@@ -389,10 +383,13 @@ async function renderJudgePanel() {
                 <b>Elección:</b> ${p.data.submission.data.choice}
             `;
         } else if (p.data.submission.type === 'mixed') {
-            const parts = p.data.submission.data.split('. Foto ID: ');
+            let parts = p.data.submission.data.split('. Foto ID: ');
+            if (parts.length === 1) parts = p.data.submission.data.split('. Foto: ');
+            
             if (parts.length > 1) {
-                const photoData = await getPhotoFromDB(parts[1]);
-                dataHtml = `<b>${parts[0]}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-top:10px;">`;
+                const photoData = await getPhotoFromDB(parts[parts.length - 1]);
+                const textData = parts.slice(0, -1).join('. ');
+                dataHtml = `<b>${textData}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-top:10px;">`;
             } else {
                 dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
             }
