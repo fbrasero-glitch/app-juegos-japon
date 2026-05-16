@@ -436,13 +436,30 @@ async function renderJudgePanel() {
             </div>`;
         }
 
+        let actionsHtml = `
+            <button class="btn-reject" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
+            <button class="btn-approve" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
+        `;
+
+        if (p.missionId === 'day_5_gymnast') {
+            actionsHtml = `
+            <div style="width:100%; margin-bottom:10px; background:var(--color-black); border-radius:10px; padding:10px;">
+                <p style="text-align:center; font-size:0.9rem; margin-bottom:5px;">Puntuación de Estilo Extra:</p>
+                <div style="display:flex; justify-content:space-between; gap:5px;">
+                    <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#cd7f32; color:#cd7f32;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 5}, false)">🥉 +5</button>
+                    <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#c0c0c0; color:#c0c0c0;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 10}, false)">🥈 +10</button>
+                    <button class="btn-primary" style="flex:1; font-size:0.8rem; padding:5px; background:#ffd700; color:#000;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 15}, false)">🥇 +15</button>
+                </div>
+            </div>
+            ` + actionsHtml;
+        }
+
         card.innerHTML = `
             <div class="card-title">${p.config.title}</div>
             <div class="submission-meta">👤 ${kidName} | 📅 Día ${p.config.day} | 📍 ${p.config.location || 'N/A'}</div>
             <div class="submission-data">${dataHtml}</div>
-            <div class="judge-actions">
-                <button class="btn-reject" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
-                <button class="btn-approve" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
+            <div class="judge-actions" style="flex-wrap:wrap;">
+                ${actionsHtml}
             </div>
         `;
         list.appendChild(card);

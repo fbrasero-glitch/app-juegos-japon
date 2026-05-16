@@ -1,121 +1,467 @@
 📜 GUÍA DE MISIONES: PASAPORTE JAPÓN 📜
 ========================================
 
-Esta guía contiene todas las misiones que deberéis completar durante vuestro épico viaje por Japón. 
+Esta guía contiene todas las misiones que deberéis completar durante vuestro épico viaje por Japón.
 Cada misión os otorgará Puntos de Experiencia (XP) para subir de nivel en vuestro pasaporte digital.
 
---- DÍA 1: EL DESPEGUE ---
+--- DÍA 1 ---
 📍 Avión / Aeropuerto | 🏆 Apuesta del Aterrizaje (25 XP) | 👤 Ambos
-📝 ¡Bienvenidos a bordo! Antes de aterrizar en tierras niponas, escribid 3 cosas locas, raras o increíbles que creéis que veréis durante este gran viaje de 24 días.
+📝 ¡Bienvenidos a bordo! Antes de aterrizar en tierras niponas, escribid 3 cosas locas, raras o increíbles que creéis que veréis durante este gran viaje de 24 días en Japón.
 
 📍 Aeropuerto | 🏆 Bingo Aeroportuario (15 XP) | 👤 Niño 9 años
-📝 ¡Entrenamiento de observación activado! Encuentra 4 objetos típicos en el aeropuerto o trayecto y marca cada uno cuando lo localices.
+📝 ¡Entrenamiento de observación activado! Encuentra 4 objetos típicos en el aeropuerto. Toca el sello correspondiente cuando lo localices.
 
 📍 Avión | 🏆 Navegante de Altura (15 XP) | 👤 Niño 14 años
-📝 Usa la pantalla del avión para anotar la velocidad de crucero y la brújula digital para verificar el rumbo hacia Japón.
+📝 Como navegante oficial del equipo, usa la pantalla del avión para anotar la velocidad de crucero actual y utiliza la brújula digital de este dispositivo para verificar el rumbo hacia Japón.
 
---- DÍA 2: LLEGADA A OSAKA ---
+📍 Avión / Hotel | 🏆 Reloj Samurái del Sueño (15 XP) | 👤 Niño 14 años
+📝 Calcula tu hora de dormir (+7h).
+
+--- DÍA 2 ---
 📍 Calle | 🏆 Caza del Yōkai Oficial (20 XP) | 👤 Niño 9 años
-📝 ¡Alerta Yōkai! Encuentra una mascota oficial de alguna tienda o un cartel de estilo manga en las calles y captúralo con tu cámara.
+📝 ¡Alerta Yōkai! Estos espíritus se esconden en todas partes. Encuentra una mascota oficial de alguna tienda japonesa o un cartel llamativo de estilo manga en las calles y captúralo con tu cámara antes de que desaparezca.
 
 📍 Estaciones | 🏆 Coleccionista de Eki-Stamps (15 XP) | 👤 Ambos
-📝 Cada estación tiene un sello único. Busca la mesa del sello, estampa tu pasaporte físico y hazle una foto.
+📝 Busca el sello de la estación.
 
---- DÍA 3: EL CASTILLO DEL SHOGUN ---
+📍 Metro / Tren | 🏆 Protocolo Shōgun (20 XP) | 👤 Niño 14 años
+📝 Guía a la familia al hotel.
+
+--- DÍA 3 ---
 📍 Castillo Osaka | 🏆 Arquitecto del Castillo (20 XP) | 👤 Niño 14 años
-📝 Analiza la defensa del Shogun. Usa Google Maps Satélite para medir la distancia real del foso de agua que protege el castillo.
-
-📍 Dotonbori | 🏆 Glico Man (10 XP) | 👤 Niño 9 años
-📝 ¡Llegada a Dotonbori! Busca el famoso cartel de Glico. Imita su pose (brazos arriba y pierna flexionada) para un selfie épico.
+📝 Analiza la defensa del Shogun. Abre Google Maps en modo satélite y utiliza la herramienta de medida para calcular la distancia real aproximada (en metros) del foso de agua que protege el Castillo de Osaka.
 
 📍 Estación | 🏆 Jingle de Estación (15 XP) | 👤 Niño 14 años
-📝 Las estaciones tienen música propia (Hassha Melody). Graba el sonido que suena justo antes de que el tren cierre sus puertas.
+📝 Cada estación de tren en Japón tiene su propia melodía característica (Hassha Melody). Espera en el andén y graba el sonido que suena justo antes de que el tren cierre sus puertas.
 
---- DÍA 4: SABORES Y GACHAPONES ---
-📍 Tiendas | 🏆 Gachapon (10 XP) | 👤 Niño 9 años
-📝 Introduce una moneda, gira la manivela con fuerza y cuéntale al Juez qué objeto sagrado te ha tocado en la cápsula.
+📍 Umeda Sky | 🏆 Filtro Cyberpunk (10 XP) | 👤 Niño 14 años
+📝 Foto con filtro neón.
 
-📍 Calle | 🏆 Ruleta Vending (15 XP) | 👤 Niño 9 años
-📝 Encuentra una máquina expendedora con una bebida que tenga un dibujo de un animal o personaje famoso y saca una foto.
+📍 Dotonbori | 🏆 Glico Man (10 XP) | 👤 Niño 9 años
+📝 ¡Llegada a Dotonbori! Busca el famoso cartel luminoso del corredor de Glico. Debes imitar su pose clásica (brazos arriba y una pierna flexionada) y pedirle a alguien que te haga un selfie o foto de cuerpo entero.
+
+📍 Jardines | 🏆 Ninja de las Sombras (10 XP) | 👤 Niño 9 años
+📝 Foto de tu sombra ninja.
+
+📍 Castillo | 🏆 Puente del Castillo (15 XP) | 👤 Niño 9 años
+📝 Cuenta los pasos del puente.
+
+📍 Dotonbori | 🏆 Tribunal del Cartel (15 XP) | 👤 Niño 14 años
+📝 Foto del cartel más exagerado.
+
+📍 Umeda Sky | 🏆 Umeda Sky (Superhéroe) (10 XP) | 👤 Niño 9 años
+📝 Sujeta el edificio.
+
+📍 Fosos del Castillo de Osaka | 🏆 Pasos de Gigante (15 XP) | 👤 Niño 9 años
+📝 El foso de este castillo es inmenso para proteger al Shogun. Camina por el borde y cuenta cuántos pasos de gigante necesitas para cruzar el puente principal.
+
+📍 Castillo de Osaka | 🏆 El Asalto al Shogun (20 XP) | 👤 Niño 14 años
+📝 Debes llegar a las puertas del castillo antes de que den la alarma. Inicia la marcha rápida y detén el cronómetro cuando llegues a la entrada principal.
+
+📍 Dotonbori | 🏆 Visión de Flujo Vital (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >>> Escaneando flujo de energía... Apunta a los neones rojos/amarillos.
+
+--- DÍA 4 ---
+📍 Kuromon | 🏆 Bestiario Kuromon (15 XP) | 👤 Niño 9 años
+📝 Pon nombre a un animal marino alienígena.
 
 📍 Doguyasuji | 🏆 El Cuchillo Samurái (10 XP) | 👤 Niño 14 años
-📝 Localiza una tienda de cuchillos artesanales, elige tu favorito y dinos qué plato japonés cocinarías con él.
+📝 En la calle Doguyasuji se fabrican los mejores utensilios de cocina del mundo. Localiza una tienda de cuchillos artesanales, elige el que más te guste y dinos qué plato estrella japonés cocinarías con él.
 
---- DÍA 5: LOS CIERVOS DE NARA ---
-📍 Todai-ji | 🏆 Iluminación Buda (15 XP) | 👤 Niño 9 años
-📝 Pasa por el agujero del pilar (el tamaño de la fosa nasal del Buda) para tener buena suerte, o pide un deseo en silencio.
+📍 Lawson | 🏆 Reto 500 Yenes (15 XP) | 👤 Niño 14 años
+📝 Gasta max 500¥.
 
+📍 Isshinji | 🏆 Secreto Isshinji (15 XP) | 👤 Niño 14 años
+📝 ¿De qué están hechas las estatuas?
+
+📍 Tiendas | 🏆 Gachapon (10 XP) | 👤 Niño 9 años
+📝 Las máquinas Gachapon contienen tesoros impredecibles. ¡Gira la manivela virtual arrastrándola en círculo para sacar tu cápsula!
+
+📍 Restaurante | 🏆 Maestro Yakiniku (20 XP) | 👤 Ambos
+📝 Trabajo en equipo en la barbacoa.
+
+📍 Namba Parks | 🏆 Meditación Zen (15 XP) | 👤 Niño 14 años
+📝 Namba Parks es un oasis de paz en medio del caos. Encuentra un rincón tranquilo en sus jardines colgantes y haz una foto que transmita paz y silencio, intentando que no aparezca ninguna persona en el encuadre.
+
+📍 Calle | 🏆 Ruleta Vending (15 XP) | 👤 Niño 9 años
+📝 En Japón hay máquinas expendedoras en cada esquina. Tu misión es encontrar una bebida que tenga un dibujo de un animal o un personaje famoso y sacarle una foto como prueba.
+
+📍 Kuromon | 🏆 Subasta Kuromon (20 XP) | 👤 Ambos
+📝 Menú ideal 1000¥.
+
+📍 Puente Sorihashi (Sumiyoshi) | 🏆 El Paso del Cangrejo (15 XP) | 👤 Niño 9 años
+📝 Este puente es tan curvo que parece una montaña. ¡Súbelo con cuidado! Cuéntale al Juez cómo has logrado vencer la gravedad.
+
+📍 Mercado Kuromon Ichiba | 🏆 El Rastreador de Kuromon (15 XP) | 👤 Niño 14 años
+📝 Camina ágil (¡SIN CORRER!) por el mercado. Debes contar cuántos puestos de comida exótica (Carne de Kobe o Cangrejo vivo) logras detectar en tu camino.
+
+--- DÍA 5 ---
 📍 Nara | 🏆 Caligrafía Zen (15 XP) | 👤 Niño 14 años
-📝 Dibuja el Kanji de "Persona" (人) o "Montaña" (山) usando tu dedo como un pincel de bambú en el lienzo digital.
+📝 La caligrafía Shodō es un arte milenario. Usando tu dedo como si fuera un pincel de bambú, dibuja el Kanji de "Persona" (人) o "Montaña" (山) en este lienzo digital.
+
+📍 Nara | 🏆 Coreógrafo Ciervos (25 XP) | 👤 Niño 9 años
+📝 Vídeo ciervo divertido.
 
 📍 Buda | 🏆 Control Monje (20 XP) | 👤 Niño 9 años
-📝 Demuestra el control de un monje Zen: quédate totalmente quieto durante 20 segundos antes de pulsar el botón.
+📝 Demuestra el control de un monje Zen. Mantén pulsada la esfera de meditación durante 15 segundos sin soltar. Sincroniza tu respiración con la esfera.
 
---- DÍA 6: SECRETOS IMPERIALES ---
-📍 Nijo | 🏆 Suelo Ruiseñor (15 XP) | 👤 Niño 9 años
-📝 Camina con cuidado por los pasillos del Castillo Nijo y graba el sonido del chirrido de la madera (diseñado para detectar espías).
+📍 Todai-ji | 🏆 Rascacielos Madera (10 XP) | 👤 Niño 14 años
+📝 ¿Cuántos pisos modernos?
+
+📍 Nara | 🏆 Embajador Ciervos (20 XP) | 👤 Niño 9 años
+📝 Selfie con 3 ciervos.
+
+📍 Todai-ji | 🏆 Ingeniero Todai-ji (20 XP) | 👤 Niño 14 años
+📝 Cálculo área base.
+
+📍 Todai-ji | 🏆 Iluminación Buda (15 XP) | 👤 Niño 9 años
+📝 Dentro del Todai-ji hay un pilar con un agujero del mismo tamaño que la fosa nasal del Gran Buda. ¡Usa el acelerómetro inclinando tu móvil para guiar la esfera de luz a través del pilar!
+
+📍 Nara | 🏆 Nara Geographic (15 XP) | 👤 Niño 14 años
+📝 Foto ciervo con titular.
+
+📍 Parque de Nara | 🏆 La Galaxia de los Ciervos (20 XP) | 👤 Niño 9 años
+📝 ¡Hay ciervos por todas partes! Tienes 5 minutos para contar todos los que veas a tu alrededor. Usa los botones para llevar la cuenta.
+
+📍 Templo Todai-ji | 🏆 El Guardián de la Suerte (20 XP) | 👤 Niño 14 años
+📝 La arquitectura de este templo es colosal. Para entender su escala, debes medirlo con tu propio cuerpo.
+
+📍 Nara | 🏆 La Danza de la Cinta (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 ¡Hipnotiza al ciervo! Mueve el móvil haciendo círculos suaves en el aire. 🦌 10 Permitir Sensores y Empezar Enviar al Juez
+
+--- DÍA 6 ---
+📍 Palacio Imperial | 🏆 El Duelo del Decreto (25 XP) | 👤 Ambos
+📝 Escribid vuestros decretos en secreto.RevelarEnviar al Juez
 
 📍 Palacio | 🏆 Edicto Imperial (15 XP) | 👤 Niño 14 años
-📝 Escribe una ley absurda que todos los visitantes deban cumplir hoy (Ej: "Prohibido caminar sin saltar").
+📝 Imagina que eres el nuevo Emperador por un día. Escribe un decreto o ley absurda que todos los visitantes del palacio deban cumplir a partir de ahora (por ejemplo: "Prohibido caminar sin saltar").
 
 📍 Palacio | 🏆 Jardín Nubes (15 XP) | 👤 Niño 9 años
-📝 Busca un pino podado con forma de nube y descríbelo: ¿a qué animal u objeto se parece?
+📝 Los pinos del Palacio Imperial están podados para parecer nubes. Busca el que tenga la forma más extraña o divertida y descríbelo: ¿a qué animal u objeto se parece?
 
---- DÍA 11: EL RITUAL DEL RYOKAN ---
+📍 Nijo | 🏆 Suelo Ruiseñor (15 XP) | 👤 Niño 9 años
+📝 En el Castillo Nijo, los suelos fueron diseñados para "cantar" como ruiseñores cuando alguien camina sobre ellos, para detectar espías. Camina con cuidado por los pasillos y graba el sonido del chirrido real de la madera bajo tus pies.
+
+📍 Nijo | 🏆 El Espía del Suelo (20 XP) | 👤 Niño 9 años
+📝 Vídeo 10s y descripción.
+
+📍 Nijo | 🏆 Plan Infiltración Ninja (15 XP) | 👤 Niño 14 años
+📝 Escribe tu plan (2 frases).
+
+📍 Sannenzaka | 🏆 Viaje Tiempo (15 XP) | 👤 Niño 14 años
+📝 Foto época 1600.
+
+📍 Sannenzaka | 🏆 Fotógrafo de 1600 (20 XP) | 👤 Niño 14 años
+📝 🔒 Completa "Viaje Tiempo" primero.
+
+📍 Nijo | 🏆 Pasos de Ninja (20 XP) | 👤 Niño 9 años
+📝 ¡Pisa con cuidado! Para no hacer sonar el suelo ruiseñor, debes sincronizar tus pasos. Toca la pantalla en el momento exacto en el que el sello de pie llegue a la zona roja inferior.
+
+📍 Jardines del Castillo Nijo | 🏆 La Huida del Ninja (20 XP) | 👤 Niño 9 años
+📝 ¡Debes escapar del palacio sin ser visto! Elige cómo has caminado por los jardines para no hacer ruido.
+
+📍 Palacio Imperial de Kioto | 🏆 El Anillo Imperial (20 XP) | 👤 Niño 14 años
+📝 Mide tu velocidad imperial. Cronometra cuánto tardas en dar 100 pasos exactos por el recinto del palacio.
+
+📍 Castillo de Nijo | 🏆 Plan de Infiltración Ninja (15 XP) | 👤 Niño 14 años
+📝 ¿Cómo entrarías al castillo sin que te oigan los "suelos cantores"? Escribe tu plan (2 frases).
+
+--- DÍA 7 ---
+📍 Gion | 🏆 Código Geisha (15 XP) | 👤 Ambos
+📝 Explora las misteriosas callejuelas de Gion al atardecer. Tu misión es encontrar un farolillo de papel tradicional (Chōchin) que esté iluminado frente a una antigua casa de té y capturar su luz con una foto.
+
+📍 Gion | 🏆 Guía en 60s (20 XP) | 👤 Niño 14 años
+📝 60Enviar
+
+📍 Sannenzaka | 🏆 Té Shogun (15 XP) | 👤 Niño 9 años
+📝 Imagínate que llevas una bandeja con té hirviendo para el Shogun. Debes caminar 20 metros manteniendo el móvil totalmente plano (como una bandeja). Si se inclina demasiado, ¡el té se derrama!
+
+📍 Kiyomizu | 🏆 Fuerza Benkei (15 XP) | 👤 Niño 9 años
+📝 Foto levantando armas Benkei.
+
+📍 Jishu Shrine | 🏆 Piedras Destino (10 XP) | 👤 Ambos
+📝 Selfie ojos cerrados entre piedras.
+
+📍 Kiyomizu | 🏆 Reto Agua Sagrada (30 XP) | 👤 Ambos
+📝 Elegid un don en secreto.EstudiosAmorSaludEstudiosAmorSaludEnviar
+
+📍 Kiyomizu | 🏆 Chorros Destino (15 XP) | 👤 Niño 9 años
+📝 Elige SOLO UN chorro.
+
+📍 Kiyomizu | 🏆 Magia Madera (15 XP) | 👤 Niño 14 años
+📝 Explica cómo aguanta sin clavos.
+
+📍 Kiyomizu | 🏆 Anti-Sismo (20 XP) | 👤 Niño 14 años
+📝 El templo de madera de Kiyomizu-dera no usa clavos, ¡usa el peso y la gravedad para resistir terremotos! Mantén tu móvil plano como una mesa durante 15 segundos para evitar que la pagoda virtual colapse.
+
+📍 Templo Kiyomizu-dera | 🏆 El Guardián de Piedra (15 XP) | 👤 Niño 9 años
+📝 Los pilares de madera de este templo son legendarios. Intenta abrazar uno de los pilares gigantes (o imagina que lo haces si hay mucha gente). ¿Llegan tus manos a tocarse?
+
+📍 Subida a Kiyomizu-dera | 🏆 La Conquista de las Escaleras (20 XP) | 👤 Niño 14 años
+📝 Kioto está lleno de cuestas. Cuenta cuántos escalones subes desde la base de la calle Sannenzaka hasta la entrada del templo.
+
+📍 Templos de Kioto | 🏆 La Cacería de Kitsunes (15 XP) | 👤 Niño 14 años
+📝 Encuentra 3 estatuas de zorros (Kitsune) diferentes.
+
+📍 Kiyomizu-dera | 🏆 Sincronización de la Atalaya (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >>> OBJETIVO: BALCÓN DE KIYOMIZU. Distancia: Calculando...m
+
+--- DÍA 8 ---
+📍 Otagi | 🏆 Buda Gracioso (15 XP) | 👤 Niño 9 años
+📝 En el templo Otagi Nenbutsu-ji hay 1200 pequeñas estatuas de piedra y ¡todas son diferentes! Algunas ríen, otras beben sake o incluso llevan raquetas. Encuentra la que te parezca más graciosa o extraña y hazle una foto de cerca.
+
+📍 Otagi | 🏆 Gemelo Perdido (15 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Tenryu-ji | 🏆 Guardián Estanque (15 XP) | 👤 Niño 9 años
+📝 📸 Foto
+
+📍 Arashiyama | 🏆 Ingeniero Bosque (15 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Tenryu-ji | 🏆 El Código del Jardín (20 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Tenryu-ji | 🏆 Rastrillo Zen (15 XP) | 👤 Niño 9 años
+📝 Enviar
+
+📍 Arashiyama | 🏆 Silencio Competitivo (20 XP) | 👤 Ambos
+📝 Grab AGrab BVotar y Enviar
+
+📍 Arashiyama | 🏆 Tambor Bambú (15 XP) | 👤 Niño 9 años
+📝 🎤 Grabar
+
+📍 Tenryu-ji | 🏆 Maestro Haiku (15 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Arashiyama | 🏆 Sincro Ondas (20 XP) | 👤 Niño 14 años
+📝 Alinea la frecuencia de onda de tu osciloscopio cibernético con la señal ambiental del bosque de bambú. Usa el dial para modificar la amplitud hasta que ambas ondas se solapen perfectamente.
+
+📍 Templo Otagi Nenbutsu-ji | 🏆 El Trono de Piedra (20 XP) | 👤 Niño 9 años
+📝 Hay 1200 estatuas y todas son diferentes. Busca la que tenga la pose más extraña e imítala para una foto. ¡El Juez evaluará tu parecido!
+
+📍 Arashiyama | 🏆 El Bosque de 2.7km (20 XP) | 👤 Niño 14 años
+📝 Debes completar el circuito sagrado. Marca los puntos de control cuando estés físicamente en ellos.
+
+📍 Arashiyama Bamboo Grove | 🏆 El Guardián del Bambú (15 XP) | 👤 Niño 14 años
+📝 Graba el sonido del viento entre los bambúes (10 seg).
+
+📍 Arashiyama | 🏆 El Susurro del Viento (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 El bosque te escucha... Sopla suavemente como la brisa entre las cañas durante 4 segundos. Presiona Iniciar y sopla constante... Activar Atrapavientos Enviar al Juez
+
+--- DÍA 9 ---
+📍 Fushimi | 🏆 Código Torii (15 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Kinkaku | 🏆 Espejo Oro (15 XP) | 👤 Niño 9 años
+📝 📸 Foto
+
+📍 Fushimi | 🏆 Latido Montaña (15 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Fushimi | 🏆 Caza 3 Kitsune (25 XP) | 👤 Niño 9 años
+📝 📸 Fotos
+
+📍 Fushimi | 🏆 El Zorro Infiltrado (25 XP) | 👤 Niño 9 años
+📝 Enviar
+
+📍 Kinkaku | 🏆 Física Fénix (15 XP) | 👤 Niño 14 años
+📝 Responder
+
+📍 Fushimi | 🏆 Piedra Gravedad (15 XP) | 👤 Niño 14 años
+📝 MásMenos
+
+📍 Kinkaku | 🏆 Ángulo Imposible (20 XP) | 👤 Niño 14 años
+📝 Enviar
+
+📍 Kinkaku | 🏆 Limpia Reflejo (20 XP) | 👤 Niño 9 años
+📝 ¡Rasca la pantalla para limpiar el estanque y revelar el reflejo dorado perfecto del Kinkaku-ji!
+
+📍 Fushimi | 🏆 Laberinto Torii (25 XP) | 👤 Niño 14 años
+📝 Toca los caminos Torii para rotarlos y crear una ruta continua desde la base inferior izquierda hasta la cima superior derecha. ¡Ilumina el santuario!
+
+📍 Fushimi Inari-taisha | 🏆 La Escalada de los Zorros (25 XP) | 👤 Niño 9 años
+📝 Subir la montaña lleva tiempo. Tienes 10 minutos de subida intensa. Al terminar, podrás descansar y contarle al Juez tu secreto.
+
+📍 Kinkaku-ji | 🏆 La Postura del Ave Dorada (20 XP) | 👤 Niño 14 años
+📝 Imita al fénix del tejado. Ponte a la pata coja mirando el templo de oro. ¿Cuánto tiempo logras aguantar el equilibrio?
+
+--- DÍA 10 ---
+📍 Nishiki | 🏆 Dilema Chef (15 XP) | 👤 Niño 14 años
+📝 Estás en "la cocina de Kioto", el mercado de Nishiki. Como chef experto en busca de nuevos sabores, debes localizar el ingrediente más extraño o exótico que veas en los puestos y explicar brevemente para qué plato legendario lo usarías.
+
+📍 Nishiki | 🏆 Maestro Chatarra (15 XP) | 👤 Niño 9 años
+📝 Pagado
+
+📍 Despedida | 🏆 Sayonara Kioto (30 XP) | 👤 Ambos
+📝 Enviar
+
+📍 Nishiki | 🏆 Maestro Bento (20 XP) | 👤 Niño 9 años
+📝 Arrastra cada ingrediente a su compartimento correcto en la caja Bento para preparar un almuerzo perfecto.
+
+📍 Mercado Nishiki | 🏆 El Dragón del Mercado (15 XP) | 👤 Niño 9 años
+📝 Busca los puestos de encurtidos (Tsukemono). Son de colores brillantes como escamas de dragón. ¿Cuántos logras encontrar?
+
+📍 Ribera del Río Kamo | 🏆 La Milla del Samurái (20 XP) | 👤 Niño 14 años
+📝 La ribera del río Kamo es perfecta para una marcha rápida. Cronometra cuánto tardas en recorrer un tramo y anota algo curioso que veas en la orilla.
+
+📍 Hotel | 🏆 Protocolo de Enlace Cifrado (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >>> PROTOCOLO DE ENLACE CIFRADO. Base: HOTEL. Introduzca clave de acceso.
+
+--- DÍA 11 ---
 📍 Kazeya Ryokan | 🏆 El Código Onsen (15 XP) | 👤 Niño 9 años
-📝 Marca los tres protocolos obligatorios antes de entrar al agua termal (Ducha, Sin bañador, Toalla fuera).
+📝 Los Onsen son baños termales sagrados con reglas muy estrictas de etiqueta. Demuestra que eres un experto en cultura japonesa marcando los tres protocolos obligatorios que debes seguir antes de entrar al agua.
 
 📍 Kazeya Ryokan | 🏆 Catador de Kaiseki (20 XP) | 👤 Niño 14 años
-📝 Describe el plato más extraño de la cena tradicional Kaiseki usando 3 adjetivos expertos.
+📝 Describe el plato más extraño de la cena Kaiseki usando 3 adjetivos.
 
---- DÍA 12: LOS ALPES JAPONESES (EXPERTO) ---
-📍 Takayama | 🏆 El Silencio de los Kami (40 XP) | 👤 Niño 9 años ⚡ EXPERTO
-📝 Usa el sensor de sonido para mantener un silencio absoluto durante 10 segundos en el bosque sagrado. ¡Si haces ruido, el contador se reinicia!
+📍 Ryokan / Pueblo | 🏆 El Equilibrio del Yukata (20 XP) | 👤 Ambos
+📝 Camina 30 pasos con yukata y geta sin tropezar. ¡El Juez cronometra!
 
+📍 Kazeya | 🏆 El Té Intacto (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 Camina 20 segundos con el móvil perfectamente nivelado, ¡que no se derrame el té! 20 Permitir Sensores y Caminar Enviar al Juez
+
+--- DÍA 12 ---
 📍 Takayama | 🏆 La Bola de Cedro (15 XP) | 👤 Niño 9 años
-📝 Busca una "Sugidama" (bola gigante de cedro) en las fachadas de las destilerías de sake y hazle una foto.
+📝 En las antiguas destilerías de sake de Takayama, cuelgan grandes bolas hechas de agujas de cedro llamadas "Sugidama". Localiza una de estas esferas gigantes en las fachadas de madera y hazle una foto para demostrar tu hallazgo.
 
---- DÍA 14: EL MONTE FUJI (EXPERTO) ---
-📍 Fuji 5ª Estación | 🏆 Radar de Altitud Cero (40 XP) | 👤 Niño 14 años ⚡ EXPERTO
-📝 ¡Misión de Geolocalización! Debes moverte físicamente por la 5ª Estación del Fuji hasta que el radar localice el "Nodo Cero". La app emitirá sonidos de radar (bips) que se acelerarán a medida que te acerques al punto exacto. Deberás llegar a menos de 10 metros para desbloquear el éxito.
+📍 Takayama | 🏆 Talla en Madera (G) (25 XP) | 👤 Niño 14 años
+📝 Traza el Kanji de madera (木) como un artesano local.
+
+📍 Sanmachi Suji | 🏆 Patrulla del Casco Antiguo (15 XP) | 👤 Ambos
+📝 Cuenta cuántas casas tradicionales de madera oscura ves en esta calle.
+
+📍 Templos de Takayama | 🏆 El Silencio de los Kami (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 No despiertes al espíritu del bosque... 🤫 😴💤 ¡Silencio absoluto! Los espíritus Kami descansan en este bosque. Debes mantener un silencio total durante 10 segundos. Si el sensor detecta ruido, el Kami se despertará y el contador volverá a cero. Pulsa para empezar el ritual 🤫 Iniciar Ritual Enviar al Juez ✨
+
+--- DÍA 13 ---
+📍 Pagoda Chureito | 🏆 La Escalada Chureito (20 XP) | 👤 Ambos
+📝 Cuenta los casi 400 escalones. Escribe el número exacto al llegar arriba.
 
 📍 Lago Kawaguchiko | 🏆 Perspectiva del Gigante (20 XP) | 👤 Niño 14 años
-📝 Haz una foto donde parezca que estás tocando la cima del Monte Fuji con la punta de tu dedo gracias al ángulo de la cámara.
+📝 ¡Hora de jugar con la perspectiva! Sitúate en la orilla del lago Kawaguchiko y pídele a tu familia que te haga una foto donde, por el ángulo de la cámara, parezca que estás tocando la mismísima cima del Monte Fuji con la punta de tu dedo.
 
+📍 Coche | 🏆 Navegantes del Asfalto (15 XP) | 👤 Ambos
+📝 Avisad de cuántos túneles cruzáis hasta llegar al lago (usad Maps si hace falta).
+
+--- DÍA 14 ---
 📍 Monte Fuji | 🏆 Aliento de Volcán (15 XP) | 👤 Niño 9 años
-📝 Busca una piedra volcánica porosa en el suelo y hazle una foto (pero déjala allí para respetar al espíritu del monte).
+📝 ¡Estás sobre un volcán activo! Busca una piedra volcánica (oscura, ligera y con muchos agujeritos) en el suelo de la 5ª estación del Fuji. Hazle una foto como recuerdo geológico, pero recuerda dejarla donde estaba para respetar el espíritu del monte.
 
---- DÍA 17: EL CORAZÓN DE TOKIO ---
+📍 Monte Fuji | 🏆 La Ley de la Presión (20 XP) | 👤 Niño 14 años
+📝 Graba 5s de una bolsa de snacks hinchada por la altitud y explícalo.
+
+📍 5ª Estación Fuji | 🏆 Oxígeno Alpino (20 XP) | 👤 Ambos
+📝 Mantén la respiración 15 segundos. ¿Cuesta más a 2.300m?
+
+📍 Hotel / Despedida | 🏆 Tetris de Maletas (G) (25 XP) | 👤 Niño 14 años
+📝 Gira el bloque para que encaje en el hueco.
+
+📍 5ª Estación Monte Fuji | 🏆 Radar de Altitud Cero (35 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 [SISTEMA] Cargando módulo de rastreo... OBJETIVO: ¡Misión de Geolocalización! Debes moverte físicamente hasta estar a menos de 500 metros del punto exacto de la 5ª Estación del Fuji. El radar emitirá bips más rápidos y la señal se fortalecerá a medida que te acerques al nodo. > INICIANDO PROTOCOLO DE RASTREO... > OBJETIVO: NODO [35.3789°N, 138.7318°E] > Aparcamiento 5ª Estación Subaru Line > Calibrando señal GPS... ---m SEÑAL: ESPERANDO > ACTIVAR_RADAR.exe > ENVIAR_COORDENADAS_AL_JUEZ.exe
+
+--- DÍA 15 ---
+📍 Cascada / Bosque | 🏆 Melodía de Shiraito (20 XP) | 👤 Niño 9 años
+📝 Graba 10s del sonido ensordecedor de la cascada o el viento.
+
+📍 Lagos del Fuji | 🏆 Brújula al Cráter (25 XP) | 👤 Niño 14 años
+📝 Orienta el móvil exactamente hacia el pico del Fuji.
+
+📍 Lagos del Fuji | 🏆 Filtro de Yōkai (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 Pasea por el bosque y mira a través del visor. ¿Ves algún espíritu? Activar Visor Capturar Espectro Enviar al Juez
+
+--- DÍA 16 ---
+📍 Kagurazaka (Tokio) | 🏆 El Gato Oculto (15 XP) | 👤 Niño 9 años
+📝 Busca un dibujo, estatua o adorno de gato en este barrio famoso por ellos.
+
+📍 Tokio | 🏆 Vórtice Temporal (20 XP) | 👤 Niño 14 años
+📝 Foto donde se vea un templo antiguo y un rascacielos en el mismo encuadre.
+
+📍 Estación Shinjuku | 🏆 Supervivencia Shinjuku (25 XP) | 👤 Ambos
+📝 Mide el tiempo que tardas en encontrar la salida correcta.
+
+📍 Shinjuku | 🏆 Calibración Androide de Combate (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 ⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS. Busca un espacio despejado. >>> Paso 1: Tajo Lateral (corte horizontal) [ Pendiente ] >>> Paso 2: Tajo Frontal (corte vertical hacia abajo) [ Pendiente ] Activar Sensores de Combate Enviar al Juez
+
+--- DÍA 17 ---
 📍 Templo Senso-ji | 🏆 Destino Omikuji (15 XP) | 👤 Niño 9 años
-📝 Saca tu fortuna de la caja de madera. Si es buena suerte, guárdala; si es mala, átala en el soporte para dejarla atrás.
+📝 En el templo Senso-ji, agita la caja de madera y saca tu fortuna (Omikuji). Si es buena suerte, guárdala contigo. Si es mala, átala en el soporte metálico para dejar atrás la negatividad. Marca aquí qué destino te han dado los dioses hoy.
 
 📍 Akihabara | 🏆 Arqueología Gamer (20 XP) | 👤 Niño 14 años
-📝 Busca un juego retro raro en Super Potato y calcula su precio de Yenes a Euros.
+📝 Busca un juego raro en Super Potato y conviértelo a Euros.
 
---- DÍA 18: MODA Y CAOS ---
-📍 Takeshita Street | 🏆 Cazatendencias (15 XP) | 👤 Niño 14 años
-📝 Fotografía el conjunto de ropa, accesorio o peinado más extravagante y loco que veas en Harajuku.
+📍 Skytree | 🏆 Cervicales de Acero (20 XP) | 👤 Ambos
+📝 Apunta al cielo 90º durante 10 segundos bajo la torre.
 
+📍 Akihabara | 🏆 Enlace P2P (Emisor) (25 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >> ACERTIJO: Una Famicom costaba 14800¥ en 1983. Una Neo Geo costaba 58000¥ en 1990. ¿Cuánto costaban juntas?
+
+📍 Akihabara | 🏆 Enlace P2P (Receptor) (25 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 Tu contacto mayor tiene un código secreto. Míralo en su pantalla y repítelo aquí. Confirmar Enlace P2P
+
+--- DÍA 18 ---
 📍 Cruce de Shibuya | 🏆 La Marea Humana (20 XP) | 👤 Niño 9 años
-📝 Intenta contar cuántas personas con gafas de sol cruzan en un solo cambio de semáforo en el cruce más famoso del mundo.
+📝 Suma a todas las personas con gafas de sol en un solo cruce.
 
---- DÍA 19: TECNOLOGÍA PUNTA (EXPERTO) ---
-📍 Odaiba | 🏆 Desencriptar Protocolo Mecha (40 XP) | 👤 Niño 14 años ⚡ EXPERTO
-📝 Usa la Web Crypto API para descifrar un mensaje secreto. Deberás introducir la clave del modelo de Gundam (RX-0) para revelar el código.
+📍 Takeshita Street | 🏆 Cazatendencias (15 XP) | 👤 Niño 14 años
+📝 La calle Takeshita es el epicentro de la moda más loca del mundo. Tu misión como cazatendencias oficial es fotografiar el conjunto de ropa, accesorio o peinado más increíble y extravagante que veas pasar.
 
+📍 Shibuya | 🏆 Intercepción de Radio (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >> Intercepta la transmisión japonesa de la red y transcríbela (romaji).
+
+--- DÍA 19 ---
 📍 Odaiba | 🏆 Piloto de Mechas (20 XP) | 👤 Niño 9 años
-📝 Graba un vídeo del momento en el que el Gundam Unicorn gigante mueve su armadura o despliega su cuerno.
+📝 ¡Frente a ti tienes un robot gigante real! El Gundam Unicorn entra en "modo combate" a ciertas horas del día. Graba un vídeo corto del momento en el que mueve su armadura, cambia de color o despliega su cuerno de unicornio.
 
---- DÍA 21: EL LATIDO FINAL (EXPERTO) ---
-📍 Tokio | 🏆 El Latido del Dragón (40 XP) | 👤 Niño 9 años ⚡ EXPERTO
-📝 Sincroniza tus pulsaciones con el latido visual de la app para calmar al dragón mediante una técnica de respiración y feedback visual avanzado.
+📍 TeamLab Planets | 🏆 Cazador de Luz (G) (25 XP) | 👤 Niño 14 años
+📝 Iguala el color predominante de la sala usando este selector.
 
-📍 Templos | 🏆 Los Tres Monos (15 XP) | 👤 Niño 9 años
-📝 Recrea con tu familia la famosa pose de los 3 monos sabios: No ver, No oír y No decir el mal (🙊 🙉 🙈).
+📍 Odaiba — Gundam Unicorn | 🏆 Desencriptar Protocolo Mecha (35 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 [SISTEMA] Protocolo de seguridad Unicorn v3.7 OBJETIVO: Intercepta y descifra el mensaje secreto del Gundam. Debes encontrar el código del modelo (pista: está en su hombro) e introducirlo como clave AES-256 para romper la encriptación. > Se ha interceptado una transmisión cifrada: 0x9f3e11166d97ae449508ff584d9818f629a6d9a21a3b3366f7fdeb4718b29bcfc6d6bff6b1650f062eca2d8a7493ebb8809a8a9d5e9f34e0bb92f8d2653b7443 > Algoritmo detectado: AES-256-GCM > Se requiere clave de desencriptación. > PISTA: Busca el código del modelo en el hombro del Mecha. > > EJECUTAR_DESENCRIPTACION.exe > ENVIAR_AL_JUEZ.exe
 
---- DÍA 24: SAYONARA JAPÓN ---
+--- DÍA 20 ---
+📍 Ueno / Yanaka | 🏆 Maestro del Bento (G) (25 XP) | 👤 Niño 9 años
+📝 Minijuego: Pulsa los ingredientes en orden (Arroz -> Pescado -> Verdura).
+
+📍 Mercado Ameyoko | 🏆 Regateo en Ameyoko (20 XP) | 👤 Niño 14 años
+📝 Calcula el cambio exacto antes de que el vendedor te lo dé.
+
+📍 Yanaka Ginza | 🏆 Poción Gatuna (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 ¡Encuentra un snack retro y escanea su código secreto! ¡Escribe los números del código de barras! Validar Código 🧪 ¡Poción gatuna destilada! Enviar al Juez @keyframes scan2 { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } } #scan-line { animation: scan2 2s linear infinite; }
+
+--- DÍA 21 ---
+📍 Nikko o Kamakura | 🏆 Los Tres Monos (15 XP) | 👤 Niño 9 años
+📝 Recrea con tu familia la pose de los 3 monos sabios (🙊 🙉 🙈).
+
+📍 Excursión Histórica | 🏆 Ingeniero Imperial (20 XP) | 👤 Niño 14 años
+📝 Busca qué Shogun está enterrado aquí o cuánto pesa el Gran Buda.
+
+📍 Mausoleo del Shogun | 🏆 El Latido del Dragón (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 ¡El Dragón de Nikko duerme! Debes avanzar con sigilo sincronizando tus pasos con su latido. Si llegas al final sin despertarlo bruscamente, habrás completado la misión del mausoleo. Acércate al mausoleo del Shogun...¿Sientes el latido? 🐉 💎 🔥🔥🔥🔥 🔥🔥🔥🔥 Pasos hacia el dragón: 0 / 8 🐾 Avanzar hacia el dragón Enviar al Juez ✨
+
+📍 Excursión | 🏆 El Tajo del Samurái (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 Sujeta tu móvil con las dos manos. Prepara tu tajo... ⚔️ Permitir Sensores y Empezar ¡Tajo impecable! Enviar al Juez
+
+--- DÍA 22 ---
+📍 Mercado Toyosu | 🏆 Grito de Pescadero (20 XP) | 👤 Niño 9 años
+📝 Graba tu mejor "¡Irasshaimase!" con todas tus fuerzas.
+
+📍 Ginza | 🏆 La Joya de Ginza (15 XP) | 👤 Niño 14 años
+📝 Encuentra el artículo más absurdamente caro en Ginza.
+
+📍 Ginza | 🏆 Intercepción Numérica (30 XP) | 👤 Niño 14 años ⚡ EXPERTO
+📝 >>> ESCANEANDO FRECUENCIAS ENEMIGAS...
+
+--- DÍA 23 ---
+📍 Don Quijote | 🏆 Buscador de KitKat (15 XP) | 👤 Niño 9 años
+📝 Marca los sabores raros que veas (mín. 3).
+
+📍 Don Quijote | 🏆 Pokédex de Supermercado (30 XP) | 👤 Niño 9 años ⚡ EXPERTO
+📝 ¡Encuentra un snack raro y escanea su código de barras para capturarlo en tu Pokédex! Modo Offline: ¡Teclea los números del código de barras! Validar Código 🎉 ¡Snack Japonés Capturado! Enviar al Juez @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } } #scan-line { animation: scan 2s linear infinite; }
+
+--- DÍA 24 ---
 📍 Aeropuerto | 🏆 Sayonara Japón (50 XP) | 👤 Ambos
-📝 El viaje termina, pero los recuerdos quedan. Escribe tus 3 momentos o lugares favoritos de toda esta aventura antes de sellar el pasaporte final.
+📝 Esta gran aventura ha llegado a su fin, pero tus recuerdos durarán para siempre. Antes de sellar tu pasaporte por última vez en el aeropuerto, escribe aquí cuáles han sido tus 3 momentos o lugares favoritos de todo el viaje.
 
 ========================================
 ¡SUERTE EN TU MISIÓN, VIAJERO! ⛩️🏯🚅
