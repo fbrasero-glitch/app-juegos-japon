@@ -1,0 +1,1419 @@
+📜 GUÍA TÁCTICA DETALLADA: PASAPORTE DE MISIONES JAPÓN 📜
+===========================================================
+
+
+--- DÍA 1 ---
+
+[Misión 1] 📸 Formas en las Nubes
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +10 XP | Code: day_1_clouds
+📝 Instrucciones: ☁️ ¡Mira por la ventanilla del avión! Las nubes tienen formas secretas: dragones, castillos, animales... Encuentra la nube más rara y captura la foto antes de que cambie de forma. ☁️🐉✨ ¿Qué esconden las nubes? 📸 Capturar Nube Mágica
+-----------------------------------------------------------
+
+[Misión 2] 🎮 Bingo Aeroportuario
+📍 Ubicación: Aeropuerto
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_1_bingo
+📝 Instrucciones: ¡Entrenamiento de observación activado! Encuentra 4 objetos típicos en el aeropuerto. Toca el sello correspondiente cuando lo localices. ✈️ Avión Jumbo 👨‍✈️ Piloto 🧳 Maleta Roja 🛂 Pasaporte ¡Bingo Completado!
+-----------------------------------------------------------
+
+[Misión 3] 📡 Equilibrio a 10.000 Metros
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_1_balance
+📝 Instrucciones: Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 15 segundos. 15.0s Calibrar y Empezar
+-----------------------------------------------------------
+
+[Misión 4] 🎙️ El Escáner de Frecuencias
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_1_engine
+📝 Instrucciones: Acerca el móvil a la ventanilla. ¡Captura el sonido del motor! 🎤 Grabar 5s
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Infiltración en Aduanas
+📍 Ubicación: Aeropuerto
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_1_customs
+📝 Instrucciones: >>> ACCEDIENDO A PROTOCOLO DE ADUANAS... Lee el formulario de aduanas japonés. ¿Cuál es el límite legal de yenes en efectivo que puedes introducir sin declarar? EJECUTAR
+-----------------------------------------------------------
+
+[Misión 6] ✍️ Navegante de Altura
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_1_navigator
+📝 Instrucciones: >>> PROTOCOLO DE VUELO: ACTIVO ENVIAR DATOS TELEMÉTRICOS
+-----------------------------------------------------------
+
+[Misión 7] 💰 Reloj Samurái del Sueño
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_1_timezone
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> CÁLCULO DE JETLAG. Japón va 7 horas por delante (o +8 según horario de verano/invierno). Si en Madrid son las 22:00, ¿qué hora es en Tokio? VALIDAR
+-----------------------------------------------------------
+
+[Misión 8] 💰 El Precio del Yen
+📍 Ubicación: Aeropuerto
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_1_exchange
+📝 Instrucciones: >>> COTIZACIÓN EN TIEMPO REAL. Revisa la pizarra de cambio del aeropuerto. ¿Cuántos yenes te dan HOY por 1 Euro? ENVIAR AL JUEZ
+-----------------------------------------------------------
+
+[Misión 9] ✍️ Apuesta del Aterrizaje
+📍 Ubicación: Avión
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +25 XP | Code: day_1_bets
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: ¡Misión de equipo! Escribid juntos 3 cosas raras, locas o increíbles que creéis que veréis en Japón durante el viaje. Sellar Apuesta
+-----------------------------------------------------------
+
+--- DÍA 2 ---
+
+[Misión 1] 📸 El Detective de Vending
+📍 Ubicación: Calle
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_2_vending
+📝 Instrucciones: Las máquinas expendedoras en Japón venden cosas locas. Haz foto a la Vending Machine más rara que veas hoy. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 2] 📸 Caza del Yōkai Oficial
+📍 Ubicación: Calle
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_2_yokai
+📝 Instrucciones: ¡Alerta Yōkai! Encuentra una mascota oficial de alguna tienda japonesa o un cartel manga gigante en las calles y captúralo. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 3] 🏃 Equilibrio Silencioso
+📍 Ubicación: Metro
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_2_posture
+📝 Instrucciones: Regla de oro nipona: Silencio y respeto en el metro. Mantente 2 minutos totalmente inmóvil, sentado o bien sujeto, sin hablar. Iniciar Crono Zen 120s
+-----------------------------------------------------------
+
+[Misión 4] 🎙️ Melodía Subterránea
+📍 Ubicación: Metro
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_2_melody
+📝 Instrucciones: Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala! 🎤 Grabar 5s
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Mapeo del Laberinto
+📍 Ubicación: Metro
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_2_maze
+📝 Instrucciones: >>> INFILTRACIÓN SUBTERRÁNEA. Cronometra cuánto tardáis desde que bajáis del tren hasta salir a la calle pisando la acera. ENVIAR REPORTE
+-----------------------------------------------------------
+
+[Misión 6] ✍️ Kanjis de Emergencia
+📍 Ubicación: Metro
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_2_kanji
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> BUSCANDO SALIDA DE EMERGENCIA (非常口). Escribe en tu teclado exactamente la palabra en rōmaji o español que significa salida. TRANSMITIR
+-----------------------------------------------------------
+
+[Misión 7] 💰 Auditoría de Vending
+📍 Ubicación: Calle
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_2_audit
+📝 Instrucciones: >>> Observa una máquina de bebidas estándar. ¿Cuánto cuesta la botella de agua mineral estándar (normalmente Suntory o similar)? ENVIAR
+-----------------------------------------------------------
+
+[Misión 8] ⚡ Protocolo Shōgun
+📍 Ubicación: Calles
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_2_shogun
+📝 Instrucciones: >>> MODO GUÍA: ON. Guía a la familia desde la estación hasta el hotel o restaurante objetivo usando un mapa local de la estación, sin que los padres usen Google Maps. Misión Completada (El Juez confirmará)
+-----------------------------------------------------------
+
+[Misión 9] 📸 Coleccionista de Eki-Stamps
+📍 Ubicación: Estaciones
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +15 XP | Code: day_2_ekistamp
+📝 Instrucciones: Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta. 📸 Tomar Foto
+-----------------------------------------------------------
+
+--- DÍA 3 ---
+
+[Misión 1] 📸 Glico Man
+📍 Ubicación: Dotonbori
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_3_glico
+📝 Instrucciones: ¡Llegada a Dotonbori! Imita la pose clásica del Glico Man frente al gran cartel luminoso y hazte una foto. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 2] 📸 Ninja de las Sombras
+📍 Ubicación: Calles
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +10 XP | Code: day_3_ninja
+📝 Instrucciones: Busca una luz en la calle que proyecte tu sombra grande en la pared. Haz una pose ninja y fotografía la sombra. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 3] 🏃 Foso del Castillo
+📍 Ubicación: Castillo Osaka
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_3_bridge
+📝 Instrucciones: El foso es inmenso. Cruza el puente principal contando en voz alta tus pasos. ¿Cuántos pasos has dado en total para cruzar? Reportar
+-----------------------------------------------------------
+
+[Misión 4] 📸 Umeda Sky (Superhéroe)
+📍 Ubicación: Umeda Sky
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_3_umeda
+📝 Instrucciones: Juega con la perspectiva: haz que te tomen una foto donde parezca que estás sujetando o levantando el enorme edificio Umeda Sky Building. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Arquitecto del Castillo
+📍 Ubicación: Castillo Osaka
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_3_architect
+📝 Instrucciones: >>> ANÁLISIS DEFENSIVO DEL SHOGUN. Observa el foso y los enormes bloques de piedra. Estima el ancho del foso en metros basándote en tu propia visión. ENVIAR CÁLCULO
+-----------------------------------------------------------
+
+[Misión 6] 📸 Filtro Cyberpunk
+📍 Ubicación: Dotonbori
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_3_neon
+📝 Instrucciones: >>> TOMA NOCTURNA: Busca una callejuela iluminada por neones y toma una foto angular estilo cyberpunk. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 7] 🏃 El Asalto al Shogun
+📍 Ubicación: Castillo Osaka
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_3_rush
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> CRONÓMETRO TÁCTICO INICIADO. Desde la puerta exterior hasta la base de la torre principal. Mide el tiempo a pie (sin correr para no alterar a los guardias). REPORTAR TIEMPO
+-----------------------------------------------------------
+
+[Misión 8] 📡 Visión de Flujo Vital
+📍 Ubicación: Dotonbori
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +30 XP | Code: day_3_flow
+⚙️ Sensor: 📡 Utiliza los sensores físicos de movimiento del dispositivo.
+📝 Instrucciones: >>> ESCANEO DE MULTITUDES (Orientación). Apunta el dispositivo hacia el letrero más luminoso (Glico u otro) y mantenlo estable para medir el magnetismo. -- INICIAR ESCANEO
+-----------------------------------------------------------
+
+[Misión 9] 📸 El Reflejo Infinito
+📍 Ubicación: Osaka
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +25 XP | Code: day_3_reflect
+📝 Instrucciones: Buscad un espejo, cristal o charco donde se refleje la ciudad y vuestra familia junta. ¡Foto artística cooperativa! 📸 Tomar Foto
+-----------------------------------------------------------
+
+--- DÍA 4 ---
+
+[Misión 1] ✍️ Bestiario Kuromon
+📍 Ubicación: Kuromon
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_4_bestiary
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Kuromon Ichiba tiene comida muy extraña. Encuentra el pez o marisco más raro y ponle un nombre alienígena inventado. Registrar Criatura
+-----------------------------------------------------------
+
+[Misión 2] 🎮 Gachapon
+📍 Ubicación: Tiendas
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_4_gachapon
+📝 Instrucciones: Desliza el dedo en círculo sobre la ruleta virtual para abrir tu cápsula digital. Girar Manivela
+-----------------------------------------------------------
+
+[Misión 3] 📸 Ruleta Vending Anime
+📍 Ubicación: Calle
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_4_vending_roulette
+📝 Instrucciones: Encuentra una lata de bebida que tenga dibujado a un personaje de anime famoso o mascota adorable y hazle una foto. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 4] 🏃 Paso del Cangrejo
+📍 Ubicación: Puente / Calles
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_4_crab
+📝 Instrucciones: Debes cruzar el próximo paso de cebra o puente moviéndote de lado como los cangrejos gigantes de Dotonbori. Confirma cuando lo hagas. ¡Hecho, clip, clap!
+-----------------------------------------------------------
+
+[Misión 5] ✍️ El Cuchillo Samurái
+📍 Ubicación: Doguyasuji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_4_knife
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ARMERÍA LOCALIZADA. Encuentra el cuchillo de chef más caro en un escaparate. ¿Para qué crees que se usa (pescado, carne, verduras)? ENVIAR
+-----------------------------------------------------------
+
+[Misión 6] 💰 Reto 500 Yenes
+📍 Ubicación: Kombini
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_4_500yen
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> GESTIÓN DE RECURSOS. Entra en un Lawson/7-Eleven. Forma el mejor combo de snacks/bebidas sumando exactamente 500¥ (o lo más cerca posible sin pasarte). Escribe el combo. REGISTRAR COMPRA
+-----------------------------------------------------------
+
+[Misión 7] ✍️ Secreto Isshinji
+📍 Ubicación: Isshinji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_4_isshinji
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ANALIZANDO ESTRUCTURA OSÉA... El templo Isshinji tiene Budas hechos con un material único y algo tétrico. Descubre qué es y regístralo. ENVIAR
+-----------------------------------------------------------
+
+[Misión 8] 🏃 Rastreador de Kobe
+📍 Ubicación: Kuromon
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_4_tracker
+📝 Instrucciones: >>> CONTADOR DE OBJETIVOS. Cruza el mercado y anota mentalmente cuántos puestos sirven carne de Wagyu/Kobe en brochetas. TRANSMITIR CIFRA
+-----------------------------------------------------------
+
+[Misión 9] 📸 Maestro Yakiniku
+📍 Ubicación: Restaurante
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_4_yakiniku
+📝 Instrucciones: Misión conjunta: Haced una foto perfecta de la parrilla con la carne humeante mientras uno la voltea. 📸 Tomar Foto
+-----------------------------------------------------------
+
+--- DÍA 5 ---
+
+[Misión 1] 🏃 La Gimnasta del Parque
+📍 Ubicación: Parque de Nara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_5_gymnast
+📝 Instrucciones: Encuentra una zona despejada y haz tu mejor pose de gimnasia (un salto, un puente o un equilibrio) imitando la elegancia de un ciervo. ¡Que la foto quede espectacular! 📸 Foto de la Pose
+-----------------------------------------------------------
+
+[Misión 2] 🎮 Control Monje
+📍 Ubicación: Buda
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_5_monk
+📝 Instrucciones: Demuestra el control de un monje Zen. Mantén pulsada la esfera de meditación durante 15 segundos sin soltar. 15s
+-----------------------------------------------------------
+
+[Misión 3] 🏃 La Galaxia de los Ciervos
+📍 Ubicación: Parque de Nara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_5_deer_galaxy
+📝 Instrucciones: ¡Hay ciervos por todas partes! Tienes 2 minutos para contar todos los que veas a tu alrededor. Usa los botones para llevar la cuenta. - 0 + Comenzar (2m)
+-----------------------------------------------------------
+
+[Misión 4] 📡 La Danza de la Cinta
+📍 Ubicación: Nara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +30 XP | Code: day_5_ribbon
+📝 Instrucciones: ¡Hipnotiza al ciervo! Mueve el móvil haciendo círculos suaves en el aire durante 10 segundos para trazar una cinta virtual. 0 Iniciar Danza
+-----------------------------------------------------------
+
+[Misión 5] 💰 El Inversor del Daibutsu
+📍 Ubicación: Nara
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_5_investor
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ACTIVO IDENTIFICADO. ¿Cuál es el recuerdo más rentable que has visto hoy (mejor relación calidad-precio)? >>> ANÁLISIS DE ROI. Justifica por qué mantendrá su valor cuando vuelvas a casa. Enviar Análisis
+-----------------------------------------------------------
+
+[Misión 6] ✍️ Caligrafía Zen
+📍 Ubicación: Nara
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_5_zen
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> PRUEBA DE CONCENTRACIÓN. Escribe el Kanji de "Persona" (人) o "Montaña" (山) instalando el teclado japonés o usando romaji que se convierta a Kanji. VALIDAR TRAZO
+-----------------------------------------------------------
+
+[Misión 7] ⚡ Ingeniero Todai-ji
+📍 Ubicación: Todai-ji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_5_engineer
+📝 Instrucciones: >>> ANÁLISIS ESTRUCTURAL. El Todai-ji es el edificio de madera más grande del mundo. Estima cuántos pisos equivaldría su altura en un edificio moderno de España. ENVIAR CÁLCULO
+-----------------------------------------------------------
+
+[Misión 8] 🏃 El Guardián de la Suerte
+📍 Ubicación: Todai-ji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_5_guardian
+📝 Instrucciones: >>> ESCANEO BIOMÉTRICO DE PILARES. Los pilares de Todai-ji son inmensos. Intenta abrazar uno (o simúlalo si hay gente). ¿Tus manos se tocan? Sí, se tocan Faltan metros
+-----------------------------------------------------------
+
+[Misión 9] 🎮 El Ritmo del Mochi
+📍 Ubicación: Nara
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +25 XP | Code: day_5_mochi
+📝 Instrucciones: Uno golpea el mazo, el otro pone la mano. ¡Alternaos sin fallar! ⚪ Golpes: 0/15 15s Preparados... 🔨 MAZO 🤚 MANO Comenzar Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 6 ---
+
+[Misión 1] 🏃 Técnica de Evasión
+📍 Ubicación: Nijo
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_6_evasion
+📝 Instrucciones: Cruza el puente de piedra del jardín en menos de 30 segundos dando pasos completamente silenciosos y rozando el suelo. ¡He cruzado en silencio!
+-----------------------------------------------------------
+
+[Misión 2] ⚡ El Sello del Shogun
+📍 Ubicación: Castillo Nijo
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_6_seal
+📝 Instrucciones: El símbolo de la familia Tokugawa (tres hojas de malva) está escondido por todo el castillo. Encuentra el más brillante y captúralo. 📸 Foto del Sello
+-----------------------------------------------------------
+
+[Misión 3] ✍️ Jardín de Nubes
+📍 Ubicación: Palacio
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_6_clouds
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Los pinos del Palacio Imperial están podados para parecer nubes. Busca el que tenga la forma más extraña y descríbelo: ¿a qué animal se parece? Enviar
+-----------------------------------------------------------
+
+[Misión 4] 🎮 Pasos de Ninja
+📍 Ubicación: Nijo
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_6_ninja_steps
+📝 Instrucciones: Para no hacer sonar el suelo ruiseñor, debes sincronizar tus pasos. Toca la pantalla en el momento exacto en el que el sello de pie llegue a la zona roja inferior. 🥷 PISAR
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Infiltración Táctica
+📍 Ubicación: Nijo
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_6_tactical
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ANALIZANDO PERÍMETRO DEL CASTILLO. Identifica 2 puntos ciegos reales (esquinas, puertas, árboles) y describe la ruta exacta para llegar al tejado sin activar los suelos de ruiseñor. ENVIAR AL JUEZ
+-----------------------------------------------------------
+
+[Misión 6] ✍️ Edicto Imperial
+📍 Ubicación: Palacio
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_6_edict
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> REDACCIÓN DE LEYES. Eres el Emperador por un día. Escribe un decreto absurdo que todos los visitantes del palacio deban cumplir a partir de ahora. PROMULGAR
+-----------------------------------------------------------
+
+[Misión 7] 📸 Viaje en el Tiempo
+📍 Ubicación: Sannenzaka
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_6_time_travel
+📝 Instrucciones: >>> TOMA HISTÓRICA: Saca una foto de la calle Sannenzaka intentando que no salga NINGUNA persona moderna, móvil o cable de luz. Solo estética 1600. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 8] 🏃 El Anillo Imperial
+📍 Ubicación: Palacio Imperial
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_6_ring
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> CRONÓMETRO DE RECONOCIMIENTO. Mide tu velocidad imperial. Cronometra cuánto tardas en dar 100 pasos exactos por el recinto del palacio. ENVIAR TIEMPO
+-----------------------------------------------------------
+
+[Misión 9] 📸 El Retrato del Clan
+📍 Ubicación: Castillo Nijo
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_6_clan
+📝 Instrucciones: Buscad un fondo espectacular en los muros. Configurad el temporizador del móvil y posad todos con expresión seria y marcial, como un auténtico clan feudal. 📸 Tomar Foto
+-----------------------------------------------------------
+
+--- DÍA 7 ---
+
+[Misión 1] 📸 Cazadora de Kimonos
+📍 Ubicación: Sannenzaka
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_7_kimono
+📝 Instrucciones: Cuenta cuántas personas ves con kimono tradicional en Sannenzaka y cuando veas un grupo colorido pídeles hacerles una foto desde lejos. 📸 Tomar Foto
+-----------------------------------------------------------
+
+[Misión 2] 🎮 La Vasija Rota
+📍 Ubicación: Kioto
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_7_kintsugi
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Este plato está roto. Dibuja líneas doradas sobre las grietas para repararlo con la técnica Kintsugi. Completar Restauración
+-----------------------------------------------------------
+
+[Misión 3] 📡 Té del Shogun
+📍 Ubicación: Sannenzaka
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_7_tea
+📝 Instrucciones: Imagina que llevas una bandeja con té hirviendo para el Shogun. Caminarás 20 metros manteniendo el móvil totalmente plano. Si se inclina demasiado, ¡se derrama! Iniciar Transporte
+-----------------------------------------------------------
+
+[Misión 4] 🏃 El Guardián de Piedra
+📍 Ubicación: Kiyomizu-dera
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_7_stone_guardian
+📝 Instrucciones: Los pilares de madera de este templo son legendarios. Intenta abrazar uno de los pilares gigantes (o imagina que lo haces si hay mucha gente). ¿Llegan tus manos a tocarse? ¡Lo he medido!
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Cálculo de Cargas
+📍 Ubicación: Kiyomizu-dera
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_7_structural
+📝 Instrucciones: >>> ANÁLISIS ESTRUCTURAL. NÚMERO DE PILARES en la primera fila frontal de la terraza. Cuenta y multiplica por 5 (toneladas de peso que soporta aprox cada uno). ENVIAR CÁLCULO
+-----------------------------------------------------------
+
+[Misión 6] ⚡ Supervivencia al Maleficio
+📍 Ubicación: Sannenzaka
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_7_survival
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> AMENAZA DETECTADA: Maldición por caída en Sannenzaka. Revisa tu inventario actual (mochila). ¿Qué 3 objetos reales usarías para contrarrestar la maldición y sobrevivir al día? APLICAR ANTÍDOTO
+-----------------------------------------------------------
+
+[Misión 7] 🎮 Anti-Sismo
+📍 Ubicación: Kiyomizu
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_7_anti_quake
+📝 Instrucciones: >>> PROTOCOLO SÍSMICO INICIADO. Kiyomizu-dera no usa clavos para resistir sismos. Mantén tu móvil plano como una mesa durante 15 segundos para evitar que la estructura colapse. INICIAR CALIBRACIÓN
+-----------------------------------------------------------
+
+[Misión 8] 🏃 La Conquista de las Escaleras
+📍 Ubicación: Subida Kiyomizu
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_7_stairs
+📝 Instrucciones: >>> REGISTRO DE ELEVACIÓN. Kioto está lleno de cuestas. Cuenta cuántos escalones subes desde la base de Sannenzaka hasta la entrada del templo. ENVIAR INFORME
+-----------------------------------------------------------
+
+[Misión 9] 📸 Código Geisha
+📍 Ubicación: Gion
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +15 XP | Code: day_7_geisha
+📝 Instrucciones: Explora las callejuelas de Gion al atardecer. Encontrad un farolillo de papel tradicional (Chōchin) encendido frente a una casa de té y capturadlo. 📸 Tomar Foto
+-----------------------------------------------------------
+
+--- DÍA 8 ---
+
+[Misión 1] 📸 El Trono de Piedra
+📍 Ubicación: Templo Otagi Nenbutsu-ji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_8_kid9_pose
+⚙️ Sensor: 📷 Requiere captura de imagen o video con la cámara.
+📝 Instrucciones: Hay 1200 estatuas y todas son diferentes. Busca la que tenga la pose más extraña e imítala para una foto. ¡El Juez evaluará tu parecido! 📸 Foto Imitación Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] ⚡ El Susurro del Viento
+📍 Ubicación: Arashiyama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +30 XP | Code: day_8_kid9_wind
+📝 Instrucciones: El bosque te escucha... Sopla suavemente como la brisa entre las cañas durante 4 segundos. Presiona Iniciar y sopla constante... Activar Atrapavientos Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 3] 🏃 El Reloj de Bambú
+📍 Ubicación: Arashiyama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_8_kid9_bamboo_clock
+📝 Instrucciones: Cada nudo del bambú equivale a un año de vida. Encuentra un bambú alto, cuenta sus entrenudos y calcula su edad. - 0 + Escribe su edad (años): Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 4] 📸 Perspectiva de Gigantes
+📍 Ubicación: Bosque de Bambú
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_8_kid9_giants
+📝 Instrucciones: Ponte en medio del camino, apunta tu cámara directamente hacia el cielo y captura cómo los gigantes de bambú intentan tapar el sol. 📸 Foto de Gigantes
+-----------------------------------------------------------
+
+[Misión 5] 🎙️ El Mensaje del Monje
+📍 Ubicación: Tenryu-ji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_8_kid9_monk
+📝 Instrucciones: Imita el sonido de un cuenco tibetano o canta un mantra Zen relajante. Tienes 5 segundos. 🎙️ Grabar Mensaje Regrabar Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 6] ⚡ Sincronización de Frecuencias
+📍 Ubicación: Arashiyama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_8_kid14_wave_sync
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Osciloscopio cibernético: Ajusta Amplitud, Frecuencia y Fase para encajar tu onda verde con la onda roja del bosque. AMP FREQ FASE ESTADO: DESINCRONIZADO ¡Sincronización Completada!
+-----------------------------------------------------------
+
+[Misión 7] 🏃 El Bosque de 2.7km
+📍 Ubicación: Arashiyama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_8_kid14_bosque
+📝 Instrucciones: Debes completar el circuito sagrado. Marca los puntos de control cuando estés físicamente en ellos. 🎍 Entrada al Bambú 🌊 Estanque Tenryu-ji 🌉 Puente Togetsukyo Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 8] ✍️ El Guardián del Bambú
+📍 Ubicación: Arashiyama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_8_kid14_arashiyama
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> INFORME DE CAMPO: BOSQUE DE BAMBÚ Estás dentro de uno de los lugares más fotografiados del planeta. Pero tú no eres turista, eres un agente. Escribe un informe táctico: ¿cómo suena el bambú? ¿Qué altura tiene? ¿Qué sensación da? >> Informe de campo..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px; font-family:monospace;"> 📤 Transmitir Informe
+-----------------------------------------------------------
+
+[Misión 9] 📸 Escuadrón Bambú
+📍 Ubicación: Arashiyama
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_8_fam_squad
+📝 Instrucciones: Foto de todo el grupo semioculto entre los troncos de bambú (¡usa el temporizador!). ✅ Foto de escuadrón hecha Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 9 ---
+
+[Misión 1] ⚡ Limpia el Reflejo de Oro
+📍 Ubicación: Kinkaku-ji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_9_kid9_scratch
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Rasca y limpia el estanque para revelar el Pabellón Dorado. ⛩️ ⛩️ ¡Reflejo Revelado!
+-----------------------------------------------------------
+
+[Misión 2] 🏃 La Escalada de los Zorros
+📍 Ubicación: Fushimi Inari-taisha
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_9_kid9_zorros
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Subir la montaña lleva tiempo. Tienes 10 minutos de subida intensa. Al terminar, podrás descansar y contarle al Juez tu secreto. 10:00 Empezar subida 🍵 ¡Hora de descansar! Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 3] 📸 El Altar Secreto
+📍 Ubicación: Fushimi Inari
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_9_kid9_altar
+📝 Instrucciones: 🔮 En la montaña de Fushimi Inari hay altares escondidos entre los árboles que casi nadie ve. Tu misión de exploradora: encontrar uno secreto y fotografiarlo antes de que desaparezca. 🔮⛩️✨ Solo los verdaderos exploradores lo encuentran 📸 Capturar Altar Secreto
+-----------------------------------------------------------
+
+[Misión 4] ❓ Piedra Gravedad
+📍 Ubicación: Kinkaku-ji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_9_kid14_gravity
+📝 Instrucciones: >>> TEST DE GRAVEDAD TERRESTRE Encuentra una piedra del jardín zen. Déjala caer desde la altura de tu cintura y cronometra cuánto tarda en tocar el suelo. La gravedad de Japón es la misma... ¿o no? 🪨 0.00s 🫳 Soltar Piedra 💥 ¡Impacto!
+-----------------------------------------------------------
+
+[Misión 5] 📸 Ángulo Imposible
+📍 Ubicación: Fushimi Inari
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_9_kid14_angulo
+📝 Instrucciones: >>> MISIÓN FOTOGRÁFICA TÁCTICA Captura el túnel de toriis rojos desde un ángulo que nadie más haría: desde el suelo mirando hacia arriba, tumbado, en contrapicado extremo... ⛩️📐 El ángulo más creativo gana 📸 Capturar Ángulo Imposible
+-----------------------------------------------------------
+
+[Misión 6] ⚡ Laberinto de Torii
+📍 Ubicación: Fushimi Inari
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_9_kid14_torii
+📝 Instrucciones: Conecta el camino desde la entrada (abajo) hasta la cima (arriba) rotando las piezas. ¡Camino Abierto!
+-----------------------------------------------------------
+
+[Misión 7] 🏃 La Postura del Ave Dorada
+📍 Ubicación: Kinkaku-ji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_9_kid14_ave
+📝 Instrucciones: Imita al fénix del tejado. Ponte a la pata coja mirando el templo de oro. ¿Cuánto tiempo logras aguantar el equilibrio? 0s ¡Iniciar Equilibrio! Perdí el equilibrio
+-----------------------------------------------------------
+
+[Misión 8] 📸 El Túnel Infinito
+📍 Ubicación: Fushimi Inari
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_9_kid14_tunnel
+📝 Instrucciones: >>> CAPTURA DE PERSPECTIVA INFINITA Miles de toriis forman un túnel que parece no terminar nunca. Captura la foto que mejor transmita esa sensación de infinito. ⛩️⛩️⛩️ El túnel que no termina 📸 Fotografiar el Infinito
+-----------------------------------------------------------
+
+[Misión 9] 🎬 La Puerta a Otro Mundo
+📍 Ubicación: Fushimi Inari
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_9_fam_portal
+📝 Instrucciones: Grabar un vídeo de 5 segundos de todo el grupo cruzando a la vez un arco Torii gigante. 🎬 Grabar Cruce Regrabar Enviar Vídeo
+-----------------------------------------------------------
+
+--- DÍA 10 ---
+
+[Misión 1] 💰 Maestro Chatarra
+📍 Ubicación: Nishiki
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_10_kid9_nishiki
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: 🛍️ El mercado de Nishiki tiene cientos de puestos con cosas raras y maravillosas. Tu misión: encontrar el objeto más extraño que se venda y averiguar su precio. 🐙🍡🎎 ¿Qué es lo más raro que puedes encontrar? 📨 Enviar Hallazgo
+-----------------------------------------------------------
+
+[Misión 2] ⚡ El Maestro del Bento
+📍 Ubicación: Mercado Nishiki
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_10_kid9_bento
+📝 Instrucciones: Arrastra cada ingrediente a su compartimento correcto en la caja Bento para preparar un almuerzo perfecto (Usa tu dedo suavemente). 🍚 🐟 🥦 🍡 🐟 🍚 🍡 🥦 ¡Itadakimasu!
+-----------------------------------------------------------
+
+[Misión 3] 🏃 El Dragón del Mercado
+📍 Ubicación: Mercado Nishiki
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_10_kid9_dragon
+📝 Instrucciones: Busca los puestos de encurtidos (Tsukemono). Son de colores brillantes como escamas de dragón. ¿Cuántos logras encontrar? Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 4] 📸 El Snack Arcoíris
+📍 Ubicación: Nishiki
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_10_kid9_rainbow
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Foto de algo comestible con al menos 3 colores diferentes y ponle un nombre inventado divertido. 📸 Foto del Snack
+-----------------------------------------------------------
+
+[Misión 5] 📡 Poción de Matcha
+📍 Ubicación: Nishiki
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_10_kid9_matcha
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Busca un producto que contenga Matcha. Si puedes escanear su código de barras con la cámara, el Juez sabrá que es auténtico. Iniciando escáner... O escribe el código de barras / nombre manualmente si falla: Enviar Datos al Juez
+-----------------------------------------------------------
+
+[Misión 6] 🏃 La Milla del Samurái
+📍 Ubicación: Ribera del Río Kamo
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_10_kid14_milla
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: La ribera del río Kamo es perfecta para una marcha rápida. Cronometra cuánto tardas en recorrer un tramo y anota algo curioso que veas en la orilla. 00:00 Empezar Parar Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 7] ⚡ Protocolo de Enlace Cifrado
+📍 Ubicación: Hotel
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +30 XP | Code: day_10_kid14_crypto
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> PROTOCOLO DE ENLACE CIFRADO. Base: HOTEL. Introduzca clave de acceso. [Pista de Red: Nombre de la ciudad del hotel + "_ANNEX" en mayúsculas] Autenticar Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 8] ✍️ Comida Bizarra
+📍 Ubicación: Nishiki
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_10_kid14_tako
+📝 Instrucciones: Localiza el famoso Tako Tamago (un pequeño pulpo rojo con un huevo de codorniz en la cabeza). ¿A cuánto lo venden hoy? Enviar Reporte
+-----------------------------------------------------------
+
+[Misión 9] ✍️ Sayonara Kioto
+📍 Ubicación: Kioto
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_10_fam_sayonara
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: 🌸 Misión Familiar: Kioto ha sido mágico. Antes de partir, cada miembro de la familia escribe una cosa que nunca olvidará de esta ciudad. 🌸⛩️🦌 Sayonara, Kioto 🌸 Sellar Recuerdo
+-----------------------------------------------------------
+
+--- DÍA 11 ---
+
+[Misión 1] ⚡ El Código Onsen
+📍 Ubicación: Okuhida
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_11_onsen
+📝 Instrucciones: Antes de entrar al onsen, debes conocer las 3 reglas sagradas. ✅ Me duché antes de entrar ✅ No llevo bañador ✅ La toalla no toca el agua Validar reglas Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] 📡 El Té Intacto
+📍 Ubicación: Ryokan
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_11_tea
+📝 Instrucciones: Camina 20 segundos con el móvil nivelado como una bandeja de té matcha. ♨️ 20 Empezar a caminar Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 3] 💰 Cazadora de Yukatas
+📍 Ubicación: Ryokan
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_11_yukata
+📝 Instrucciones: ¿Cuántas personas con yukata has visto hoy? - 0 + Enviar recuento
+-----------------------------------------------------------
+
+[Misión 4] 📸 La Textura del Tatami
+📍 Ubicación: Ryokan
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_11_tatami
+📝 Instrucciones: 🟫 El tatami huele a hierba fresca y tiene una textura única. Acerca la cámara al máximo y captura los detalles que nadie más ve: las fibras, los bordados, las sombras... 🔍🟫✨ Macro-fotografía de explorador 📸 Foto Macro del Tatami
+-----------------------------------------------------------
+
+[Misión 5] ✍️ Catador de Kaiseki
+📍 Ubicación: Ryokan
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_11_kaiseki
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> CATA GASTRONÓMICA: Prueba el plato más extraño. Enviar cata
+-----------------------------------------------------------
+
+[Misión 6] 📡 Rastreador de Manantiales
+📍 Ubicación: Okuhida
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_11_spring
+⚙️ Sensor: 🗺️ Misión basada en geolocalización GPS activa.
+📝 Instrucciones: >>> RASTREANDO MANANTIAL. Objetivo: Nodo Termal. -- m Buscando señal GPS... Marcar posición
+-----------------------------------------------------------
+
+[Misión 7] ⚡ Arquitectura Termal
+📍 Ubicación: Ryokan
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_11_architecture
+📝 Instrucciones: >>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN Calcular Enviar Medidas
+-----------------------------------------------------------
+
+[Misión 8] 💰 Economía Alpina
+📍 Ubicación: Ryokan
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_11_economy
+📝 Instrucciones: >>> ¿Cuánto cuesta mantener este ryokan un día entero? Enviar Estimación
+-----------------------------------------------------------
+
+[Misión 9] 🏃 Equilibrio del Yukata
+📍 Ubicación: Ryokan
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_11_geta
+📝 Instrucciones: Camina 30 pasos en línea recta con zapatillas de madera sin tropezar. 0/30 👣 ¡Terminé sin caer!
+-----------------------------------------------------------
+
+--- DÍA 12 ---
+
+[Misión 1] ⚡ Silencio de los Kami
+📍 Ubicación: Takayama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_12_silence
+📝 Instrucciones: No despiertes al Kami... guarda silencio absoluto durante 10 segundos. 😴💤 Iniciar Silencio Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] 📸 La Bola de Cedro
+📍 Ubicación: Takayama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_12_sugidama
+📝 Instrucciones: 🟤 Las sugidama son bolas gigantes de ramas de cedro que cuelgan en las puertas de las fábricas de sake. Cuando están verdes el sake es nuevo; cuando marrones, está listo. ¡Encuentra una y descubre su estado! 🟤🌿🍶 ¿Verde (nueva) o marrón (lista)? 📸 Capturar Sugidama
+-----------------------------------------------------------
+
+[Misión 3] 📸 Detective de Madera
+📍 Ubicación: Takayama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_12_wood
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Busca una talla de madera divertida en una fachada. 📸 Foto Talla
+-----------------------------------------------------------
+
+[Misión 4] 💰 Degustadora de Hida
+📍 Ubicación: Takayama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_12_hida
+📝 Instrucciones: Puntúa el sabor de la famosa carne de Hida. ☆ ☆ ☆ ☆ ☆ Enviar Puntuación
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Talla en Madera
+📍 Ubicación: Takayama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_12_carving
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: >>> REPLICA LA TALLA DEL KANJI (Árbol): 木 木 Borrar Enviar Trazo
+-----------------------------------------------------------
+
+[Misión 6] 💰 Maestro Destilador
+📍 Ubicación: Takayama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_12_sake
+📝 Instrucciones: >>> DESTILERÍA FUNASAKA. Desencriptar
+-----------------------------------------------------------
+
+[Misión 7] 🏃 Patrulla Sanmachi Suji
+📍 Ubicación: Takayama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_12_patrol
+📝 Instrucciones: >>> CASAS TRADICIONALES DETECTADAS: - 0 + Enviar Recuento
+-----------------------------------------------------------
+
+[Misión 8] 💰 Tasador Feudal
+📍 Ubicación: Takayama
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_12_appraisal
+📝 Instrucciones: >>> ESTIMACIÓN INMOBILIARIA (CALLE HISTÓRICA) Enviar Tasación
+-----------------------------------------------------------
+
+[Misión 9] 📸 Cruzando el Miyagawa
+📍 Ubicación: Takayama
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_12_bridge
+📝 Instrucciones: Selfie familiar en el puente rojo sobre el río Miyagawa. ✅ Foto en el puente rojo hecha Enviar
+-----------------------------------------------------------
+
+--- DÍA 13 ---
+
+[Misión 1] 🏃 La Escalada Chureito
+📍 Ubicación: Kawaguchiko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_13_stairs
+📝 Instrucciones: Sube los escalones hasta la pagoda y escribe el número exacto. Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] 📸 El Sello del Lago
+📍 Ubicación: Kawaguchiko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_13_manhole
+📝 Instrucciones: 🎨 En Japón, las tapas de alcantarilla son obras de arte. Cada ciudad tiene su propio diseño único. Busca la más bonita cerca del lago y captúrala. 🎨🔵⭕ Arte bajo tus pies 📸 Capturar Tapa Artística
+-----------------------------------------------------------
+
+[Misión 3] ✍️ Sabores del Fuji
+📍 Ubicación: Kawaguchiko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_13_icecream
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Prueba un helado de un sabor raro y elige su color. Enviar sabor
+-----------------------------------------------------------
+
+[Misión 4] ⚡ Filtro de Yōkai
+📍 Ubicación: Bosque
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_13_yokai
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Usa el visor espectral para revelar espíritus ocultos (colores invertidos). Capturar espectro
+-----------------------------------------------------------
+
+[Misión 5] 📸 Perspectiva del Gigante
+📍 Ubicación: Monte Fuji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_13_perspective
+📝 Instrucciones: >>> CAPTURA DE ESCALA HUMANA Fotografía el Monte Fuji con una persona en primer plano para demostrar su escala descomunal. La diferencia de tamaño debe ser impactante. 🗻🧍‍♂️ Humano vs. Montaña 📸 Capturar Perspectiva
+-----------------------------------------------------------
+
+[Misión 6] 💰 Navegantes del Asfalto
+📍 Ubicación: Coche
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_13_tunnels
+📝 Instrucciones: >>> TÚNELES ATRAVESADOS: Enviar Recuento
+-----------------------------------------------------------
+
+[Misión 7] ✍️ Análisis Vulcanológico
+📍 Ubicación: Fuji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_13_volcano
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> BUSCANDO REGISTROS DE ERUPCIÓN... Enviar
+-----------------------------------------------------------
+
+[Misión 8] ⚡ Triangulación del Fuji
+📍 Ubicación: Lago
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_13_triangulation
+📝 Instrucciones: >>> Estimación visual de distancia. Enviar Estimación
+-----------------------------------------------------------
+
+[Misión 9] 📸 Oishi Park en Flor
+📍 Ubicación: Oishi Park
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_13_oishi
+📝 Instrucciones: Foto familiar con flores en primer plano y el Fuji al fondo. ✅ Foto en Oishi Park confirmada Enviar
+-----------------------------------------------------------
+
+--- DÍA 14 ---
+
+[Misión 1] 📸 Aliento de Volcán
+📍 Ubicación: Hakone
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_14_rock
+📝 Instrucciones: 🌋 Las rocas volcánicas de Hakone huelen a azufre y tienen colores extraños: amarillo, naranja, gris... Encuentra la roca más rara y fotografíala de cerca. ¡Cuidado, huele fatal! 🌋🪨💨 ¡Huele a huevo podrido! 📸 Capturar Roca Volcánica
+-----------------------------------------------------------
+
+[Misión 2] 🎙️ El Sonido que Muere
+📍 Ubicación: Aokigahara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_14_kid9_echo
+📝 Instrucciones: Da una palmada fuerte. ¿Escuchas cómo el sonido muere al instante? Graba 5 segundos. 🎙️ Grabar Palmada Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 3] 📸 Guardián del Bosque
+📍 Ubicación: Hakone
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_14_root
+📝 Instrucciones: 🌳 En el bosque de Hakone, las raíces de los árboles gigantes salen de la tierra como tentáculos. Encuentra el árbol con las raíces más impresionantes y posa junto a él como su guardiana. 🌳🧝‍♀️✨ El bosque tiene guardianes secretos 📸 Foto con el Árbol Guardián
+-----------------------------------------------------------
+
+[Misión 4] ⚡ Brújula al Cráter
+📍 Ubicación: Fuji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_14_compass
+📝 Instrucciones: Apunta con el móvil exactamente hacia la cima del Fuji. ⬆️ 🗻 Activar Brújula ¡Acertaste! Enviar
+-----------------------------------------------------------
+
+[Misión 5] 📡 Radar de Altitud Cero
+📍 Ubicación: Fuji 5ª Estación
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_14_radar
+📝 Instrucciones: >>> BUSCANDO NODO CIEGO. -- m Misión Completada
+-----------------------------------------------------------
+
+[Misión 6] 🎬 Ley de la Presión
+📍 Ubicación: Fuji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_14_pressure
+📝 Instrucciones: >>> La bolsa de snacks está hinchada. Graba 5s explicando por qué. 🎬 Grabar explicación Enviar Vídeo
+-----------------------------------------------------------
+
+[Misión 7] 💰 Altímetro Hacker
+📍 Ubicación: Fuji
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_14_altimeter
+📝 Instrucciones: >>> METROS HASTA LA CIMA (3776 - 2300): Enviar
+-----------------------------------------------------------
+
+[Misión 8] ✍️ Densidad de Aokigahara
+📍 Ubicación: Aokigahara
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_14_kid14_echo
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ¿Por qué en este bosque no hay eco? Enviar
+-----------------------------------------------------------
+
+[Misión 9] 🏃 Oxígeno Alpino
+📍 Ubicación: Fuji
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_14_oxygen
+📝 Instrucciones: A 2300m hay menos oxígeno. Todos aguantad la respiración 15s a la vez. 15 Iniciar apnea familiar Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 15 ---
+
+[Misión 1] 🎙️ Melodía de Shiraito
+📍 Ubicación: Shiraito Falls
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_15_waterfall
+📝 Instrucciones: Graba 5 segundos del atronador sonido de la cascada Shiraito. 🎙️ Grabar cascada Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] 📸 La Aldea de Paja
+📍 Ubicación: Shirakawa-go
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_15_thatch
+📝 Instrucciones: 🏠 Las casas de Shirakawa-go tienen techos de paja tan gruesos que parecen sombreros gigantes. Algunos tienen más de 60cm de grosor. ¡Fotografía el techo más impresionante! 🏠❄️🌾 Casas que resisten 2 metros de nieve 📸 Capturar Techo de Paja
+-----------------------------------------------------------
+
+[Misión 3] ⚡ Pez de Cristal
+📍 Ubicación: Estanques
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_15_fish
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Dibuja el pez más bonito que hayas visto en el agua cristalina. Borrar Enviar Pez
+-----------------------------------------------------------
+
+[Misión 4] 🏃 El Trono del Shogun
+📍 Ubicación: Takayama
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_15_shogun
+📝 Instrucciones: 👑 Encuentra el lugar con la mejor vista de la aldea y siéntate como si fueras la Shogun que gobierna todo lo que ve. Mantén la postura real durante 10 segundos. 👑🏯⚔️ 10 👑 Adoptar Postura Real 📨 Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 5] ✍️ Santuario Escondido
+📍 Ubicación: Sengen Taisha
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_15_deity
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> BÚSQUEDA OSINT: Deidad del Santuario Sengen Taisha: Enviar
+-----------------------------------------------------------
+
+[Misión 6] 📸 Perspectiva Honcho
+📍 Ubicación: Honcho St
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_15_honcho
+📝 Instrucciones: >>> ENCUADRE PERFECTO: Alinea la calle con el Fuji. 📸 Capturar encuadre
+-----------------------------------------------------------
+
+[Misión 7] 💰 Aforo de la Cascada
+📍 Ubicación: Shiraito
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_15_flow
+📝 Instrucciones: >>> LITROS POR SEGUNDO ESTIMADOS: Enviar Estimación
+-----------------------------------------------------------
+
+[Misión 8] 💰 Ingeniería Tradicional
+📍 Ubicación: Iyashi no Sato
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_15_roof
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ¿Por qué los techos de paja son tan empinados? Enviar Explicación
+-----------------------------------------------------------
+
+[Misión 9] ✍️ La Leyenda del Dragón
+📍 Ubicación: Lago
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_15_dragon
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Escribid entre los dos un cuento corto sobre un dragón en el lago. Enviar leyenda
+-----------------------------------------------------------
+
+--- DÍA 16 ---
+
+[Misión 1] 📸 El Gato Oculto
+📍 Ubicación: Kagurazaka
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_16_cat
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Kagurazaka es el barrio de los gatos. ¡Busca uno (real o estatua) y ponle nombre! 📸 Foto del Gato
+-----------------------------------------------------------
+
+[Misión 2] 💰 Escalada Urbana
+📍 Ubicación: Shinjuku
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_16_skyscraper
+📝 Instrucciones: Cuenta los pisos del rascacielos más alto y multiplicaremos por 3 metros para saber su altura. Calcular Altura Enviar cálculo
+-----------------------------------------------------------
+
+[Misión 3] ⚡ Colores de Shinjuku
+📍 Ubicación: Shinjuku
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_16_colors
+📝 Instrucciones: Observa las luces de neón y elige los 3 colores que más te llamen la atención. Rojo Naranja Amarillo Verde Azul Morado Rosa Blanco Dorado Plata Colores elegidos: 0/3 Enviar colores
+-----------------------------------------------------------
+
+[Misión 4] 🎙️ Sonido del Semáforo
+📍 Ubicación: Tokio
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_16_traffic
+📝 Instrucciones: Graba 5s del famoso sonido (pi-po, pi-po) de los semáforos japoneses. 🎙️ Grabar semáforo Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 5] 📸 Vórtice Temporal
+📍 Ubicación: Shinjuku
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_16_vortex
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> OBJETIVO: Encuadrar tradición y futuro. 📸 Foto Vórtice
+-----------------------------------------------------------
+
+[Misión 6] 📡 Calibración de Androide
+📍 Ubicación: Shinjuku
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_16_combat
+📝 Instrucciones: >>> CALIBRACIÓN DE COMBATE. ⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS. Paso 1: Tajo Lateral (horizontal) ❌ Paso 2: Tajo Vertical ❌ Iniciar Calibración Completado
+-----------------------------------------------------------
+
+[Misión 7] 🏃 Supervivencia Shinjuku
+📍 Ubicación: Estación
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_16_shinjuku
+⚙️ Sensor: 🗺️ Misión basada en geolocalización GPS activa.
+📝 Instrucciones: >>> SIGUE LOS CARTELES AMARILLOS. SIN GPS. 0.0s Bajar del tren (Iniciar) ¡Salida encontrada!
+-----------------------------------------------------------
+
+[Misión 8] 💰 Densidad Poblacional
+📍 Ubicación: Shibuya
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_16_density
+📝 Instrucciones: >>> PERSONAS EN UN CRUCE EN VERDE: Enviar Recuento
+-----------------------------------------------------------
+
+[Misión 9] 📸 Observatorio Gratuito
+📍 Ubicación: Tocho
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_16_tocho
+📝 Instrucciones: Sube al mirador gratuito del Ayuntamiento y saca una foto nocturna familiar. ✅ Foto nocturna en Tocho Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 17 ---
+
+[Misión 1] ⚡ Destino Omikuji
+📍 Ubicación: Senso-ji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_17_omikuji
+📝 Instrucciones: Saca un papel de la suerte (omikuji) y registra tu resultado. 🌟 Buena Suerte 😐 Suerte Regular 💀 Mala Suerte Enviar destino
+-----------------------------------------------------------
+
+[Misión 2] 📸 Humo de la Fortuna
+📍 Ubicación: Senso-ji
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_17_incense
+📝 Instrucciones: 💨 En Senso-ji hay un enorme incensario del que sale humo sagrado. Los japoneses se lo echan por encima para atraer la suerte. ¡Haz lo mismo y captura el momento! 🏯💨✨ El humo que trae buena suerte 📸 Capturar el Humo Sagrado
+-----------------------------------------------------------
+
+[Misión 3] 📸 Gashapon Perfecto
+📍 Ubicación: Akihabara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_17_gashapon
+📝 Instrucciones: 🎰 Los gashapon son máquinas de cápsulas sorpresa que están POR TODAS PARTES en Japón. Encuentra la máquina más rara o la cápsula más extraña y fotografíala. 🎰🔮🎁 ¿Qué misterio esconde la cápsula? 📸 Capturar Gashapon
+-----------------------------------------------------------
+
+[Misión 4] ⚡ Sincronización P2P
+📍 Ubicación: Akihabara
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_17_p2p_receiver
+📝 Instrucciones: Tu hermano ha interceptado un código secreto. Míralo en su pantalla y pulsa los colores en el mismo orden. Listo
+-----------------------------------------------------------
+
+[Misión 5] 💰 Arqueología Gamer
+📍 Ubicación: Akihabara
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_17_retro
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> BUSCANDO JUEGO RETRO EN SUPER POTATO Convertir a Euros Enviar tasación
+-----------------------------------------------------------
+
+[Misión 6] 📡 Cervicales de Acero
+📍 Ubicación: Skytree
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_17_skytree
+⚙️ Sensor: 📡 Utiliza los sensores físicos de movimiento del dispositivo.
+📝 Instrucciones: >>> APUNTANDO A LA CIMA. Mantén el móvil hacia arriba. Iniciar sensor Completado
+-----------------------------------------------------------
+
+[Misión 7] ⚡ Sincronización P2P
+📍 Ubicación: Akihabara
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_17_p2p_sender
+⚙️ Sensor: 🎙️ Requiere grabación de audio o detección de sonido ambiente.
+📝 Instrucciones: >>> RESOLVER PARA DESBLOQUEAR CÓDIGO Famicom: 14.800¥. Neo Geo: 58.000¥. ¿Suma total? Desencriptar >>> CÓDIGO INTERCEPTADO: Aceptar Sincronización
+-----------------------------------------------------------
+
+[Misión 8] 💰 Altura del Cielo
+📍 Ubicación: Skytree
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_17_height
+📝 Instrucciones: >>> ALTURA DE LA SKYTREE (metros): Enviar
+-----------------------------------------------------------
+
+[Misión 9] 🎬 Navegando el Sumida
+📍 Ubicación: Río Sumida
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_17_sumida
+📝 Instrucciones: Graba un vídeo de 10 segundos del paseo en barco por el río Sumida. 🎬 Grabar paseo Enviar Vídeo
+-----------------------------------------------------------
+
+--- DÍA 18 ---
+
+[Misión 1] 💰 La Marea Humana
+📍 Ubicación: Shibuya
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_18_shibuya
+📝 Instrucciones: Cuenta a todas las personas que lleven gafas de sol en un solo cruce en verde (60s). 0 60s + Comenzar Semáforo Enviar recuento
+-----------------------------------------------------------
+
+[Misión 2] 📸 Guardián Hachiko
+📍 Ubicación: Shibuya
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_18_hachiko
+📝 Instrucciones: 🐕 Hachiko esperó a su dueño durante 9 AÑOS en esta estación. Es el perro más fiel de la historia de Japón. Hazte una foto con su estatua y demuéstrale que alguien sigue viniendo a verle. 🐕💛🌸 9 años esperando... El perro más fiel 📸 Foto con Hachiko
+-----------------------------------------------------------
+
+[Misión 3] ✍️ Mensaje del Emperador
+📍 Ubicación: Meiji Jingu
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_18_ema
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Escribe un deseo para nuestra familia, como en una tablilla ema. Enviar deseo
+-----------------------------------------------------------
+
+[Misión 4] ✍️ Crepe de Harajuku
+📍 Ubicación: Harajuku
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_18_crepe
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Describe tu crepe: ¿qué llevaba dentro? ¿Estaba bueno? Enviar reseña
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Intercepción de Radio
+📍 Ubicación: Harajuku
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_18_radio
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> INTERCEPTANDO SEÑAL ROBÓTICA... Escuchar Señal (Intentos: 3) Desencriptar
+-----------------------------------------------------------
+
+[Misión 6] 📸 Cazatendencias
+📍 Ubicación: Harajuku
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_18_trend
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> CAPTURA Y DESCRIBE ESTILO ATREVIDO. 📸 Foto + Enviar
+-----------------------------------------------------------
+
+[Misión 7] 💰 Flujo del Cruce
+📍 Ubicación: Shibuya
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_18_flow
+📝 Instrucciones: >>> PERSONAS POR HORA (estima): Pista: ~3000 por verde. ¿Cuántos cruces en 1h? Enviar Estimación
+-----------------------------------------------------------
+
+[Misión 8] 💰 Silencio en la Ciudad
+📍 Ubicación: Meiji Jingu
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_18_silence
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ¿Por qué no se oye la ciudad desde dentro del santuario? Enviar Deducción
+-----------------------------------------------------------
+
+[Misión 9] 🎬 Cruzando Shibuya
+📍 Ubicación: Shibuya
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_18_crossing
+📝 Instrucciones: Graba un vídeo de 15s de toda la familia cruzando el paso de cebra de Shibuya. 🎬 Grabar cruce Enviar Vídeo
+-----------------------------------------------------------
+
+--- DÍA 19 ---
+
+[Misión 1] 🎬 Piloto de Mechas
+📍 Ubicación: Odaiba
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_19_gundam
+📝 Instrucciones: ¡El Gundam se transforma! Graba 15s de la transformación como si fueras piloto de mechas. 🎬 Grabar transformación Enviar Vídeo
+-----------------------------------------------------------
+
+[Misión 2] ⚡ Cazador de Luz
+📍 Ubicación: TeamLab
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_19_color
+📝 Instrucciones: Ajusta el color hasta igualar la luz dominante de tu sala. Capturar color
+-----------------------------------------------------------
+
+[Misión 3] ⚡ Sueños Digitales
+📍 Ubicación: TeamLab
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_19_teamlab
+⚙️ Sensor: 🎨 Requiere dibujo táctil interactivo en pantalla.
+📝 Instrucciones: Dibuja la proyección digital que más te haya gustado del museo. Borrar Enviar Dibujo
+-----------------------------------------------------------
+
+[Misión 4] 📸 La Libertad Nipona
+📍 Ubicación: Odaiba
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_19_liberty
+📝 Instrucciones: 🗽 ¡Japón tiene su propia Estatua de la Libertad en Odaiba! Es más pequeña que la de Nueva York, pero está junto al mar con el Rainbow Bridge de fondo. ¡Ilusión óptica: haz que parezca que la tocas! 🗽🌉✨ La libertad brilla en la bahía de Tokio 📸 Foto Estatua de la Libertad
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Desencriptar Protocolo
+📍 Ubicación: Odaiba
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_19_crypto
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> INTERCEPTA EL CÓDIGO DEL MECHA. Busca el número de modelo en el hombro del robot. Desencriptar Autorizar
+-----------------------------------------------------------
+
+[Misión 6] 💰 Lógica de Iluminación
+📍 Ubicación: TeamLab
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_19_mirrors
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> Explica cómo crees que funcionan los espejos infinitos de TeamLab. Enviar Explicación
+-----------------------------------------------------------
+
+[Misión 7] 💰 Estructura de Gundam
+📍 Ubicación: Odaiba
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_19_weight
+📝 Instrucciones: >>> PESO DEL GUNDAM UNICORN (toneladas): Enviar
+-----------------------------------------------------------
+
+[Misión 8] 🏃 Monorriel Yurikamome
+📍 Ubicación: Tren
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_19_monorail
+📝 Instrucciones: >>> CRONOMETRANDO TREN AUTÓNOMO. 0.0s Iniciar en estación Llegada
+-----------------------------------------------------------
+
+[Misión 9] 📸 Inmersión Total
+📍 Ubicación: TeamLab
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_19_immersive
+📝 Instrucciones: Foto artística de toda la familia rodeada de luz o agua en TeamLab. ✅ Foto inmersiva realizada Enviar
+-----------------------------------------------------------
+
+--- DÍA 20 ---
+
+[Misión 1] ⚡ Maestro del Bento
+📍 Ubicación: Ueno
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_20_bento
+📝 Instrucciones: Arrastra los 4 ingredientes a la caja Bento (usa el dedo suavemente). 🐟 🍚 🍳 🥒 ¡Itadakimasu!
+-----------------------------------------------------------
+
+[Misión 2] ⚡ Poción Gatuna
+📍 Ubicación: Yanaka Ginza
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_20_potion
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Escanea el código de barras de un snack y anota qué has encontrado. Iniciando... Enviar Datos al Juez
+-----------------------------------------------------------
+
+[Misión 3] 📸 El Pato del Estanque
+📍 Ubicación: Ueno
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_20_pond
+📝 Instrucciones: 🦆 El parque de Ueno tiene un enorme estanque lleno de lotos y patos. Tu misión de exploradora: fotografiar el pato más gracioso o el loto más bonito que encuentres. 🦆🪷💚 La naturaleza en medio de la ciudad 📸 Capturar Vida del Estanque
+-----------------------------------------------------------
+
+[Misión 4] 📸 El Peso del Tesoro
+📍 Ubicación: Ameyoko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_20_weight
+📝 Instrucciones: Haz una foto a algo muy pesado que quepa en tu mano y estima su peso. 📸 Foto + Enviar
+-----------------------------------------------------------
+
+[Misión 5] 💰 Regateo en Ameyoko
+📍 Ubicación: Ameyoko
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_20_change
+📝 Instrucciones: >>> CÁLCULO DE CAMBIO EXACTO Comprobar
+-----------------------------------------------------------
+
+[Misión 6] 💰 Arquitectura del Museo
+📍 Ubicación: Ueno
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_20_museum
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> Diferencias arquitectónicas entre el Museo Nacional y los rascacielos: Enviar Explicación
+-----------------------------------------------------------
+
+[Misión 7] 💰 Análisis de Precios Retro
+📍 Ubicación: Ameyoko
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_20_vintage
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> OBJETO VINTAGE ENCONTRADO: Enviar tasación
+-----------------------------------------------------------
+
+[Misión 8] 🏃 Escaleras del Atardecer
+📍 Ubicación: Yanaka Ginza
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_20_stairs
+📝 Instrucciones: >>> ESCALONES CONTADOS EN YUYAKE DANDAN: Enviar Recuento
+-----------------------------------------------------------
+
+[Misión 9] ✍️ Degustación Callejera
+📍 Ubicación: Calle
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_20_tasting
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: ¿Cuál ha sido el mejor bocado del día en los puestos callejeros? Enviar respuesta
+-----------------------------------------------------------
+
+--- DÍA 21 ---
+
+[Misión 1] 📸 Los Tres Monos
+📍 Ubicación: Nikko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_21_monkeys
+📝 Instrucciones: 🙈🙉🙊 En el templo de Nikko se esconde la talla más famosa de Japón: los tres monos sabios. Uno no ve, otro no oye, y el tercero no habla. ¡Encuéntralos e imita sus poses en la foto! 🙈🙉🙊 No ver, no oír, no hablar 📸 Foto Imitando a los Monos
+-----------------------------------------------------------
+
+[Misión 2] ⚡ El Latido del Dragón
+📍 Ubicación: Nikko
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_21_dragon
+📝 Instrucciones: Acércate a la tumba... ¿Sientes el latido del dragón? Avanzar hacia el dragón
+-----------------------------------------------------------
+
+[Misión 3] ⚡ El Tajo del Samurái
+📍 Ubicación: Kamakura
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_21_slash
+📝 Instrucciones: Entrena como samurái dando un espadazo vertical con el móvil en la mano. ⚠️ SUJETA EL MÓVIL CON DOS MANOS ⚔️ Preparar Tajo
+-----------------------------------------------------------
+
+[Misión 4] 🏯 Guardián de Piedra
+📍 Ubicación: Kamakura
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_21_jizo
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Encuentra una estatua Jizo (con babero rojo) y averigua a quién protege. 📸 Foto + Enviar
+-----------------------------------------------------------
+
+[Misión 5] 🏯 Ingeniero Imperial
+📍 Ubicación: Kamakura
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_21_buddha
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> DATOS DEL GRAN BUDA: Enviar
+-----------------------------------------------------------
+
+[Misión 6] 💰 Análisis de Pan de Oro
+📍 Ubicación: Templo
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_21_gold
+📝 Instrucciones: >>> ESTADÍSTICAS DEL TEMPLO DORADO Superficie: 200m², Grosor pan oro: 0.0001m, Densidad: 19.300 kg/m³. Calcular Realidad Enviar tasación
+-----------------------------------------------------------
+
+[Misión 7] 📡 Rastreo de la Naturaleza
+📍 Ubicación: Nikko
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_21_tracking
+⚙️ Sensor: 🗺️ Misión basada en geolocalización GPS activa.
+📝 Instrucciones: >>> RASTREADOR GPS ACTIVADO. BUSCANDO PUNTO DE INTERÉS NATURAL. --- m Iniciar Rastreo Punto Alcanzado
+-----------------------------------------------------------
+
+[Misión 8] 💰 Defensa del Shogunato
+📍 Ubicación: Templo/Castillo
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_21_defense
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> Análisis de defensa: ¿Por qué este lugar era difícil de atacar? Enviar Análisis
+-----------------------------------------------------------
+
+[Misión 9] 🎙️ La Paz de la Montaña
+📍 Ubicación: Templo/Tumba
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_21_silence
+📝 Instrucciones: Todo el grupo guarda silencio absoluto durante 30 segundos. 30s Iniciar Silencio Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 22 ---
+
+[Misión 1] 🎙️ Grito de Pescadero
+📍 Ubicación: Toyosu
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_22_shout
+📝 Instrucciones: 🐟 En el mercado de Toyosu, los vendedores saludan a pleno pulmón a cada cliente que pasa. Tu misión: imitar su grito legendario con toda tu energía. ¡EE-RA-SHAI-MA-SÉ! Pronunciación: Irasshaimase = ¡Bienvenido! 🎙️ ¡GRABAR MI GRITO! 📨 Enviar al Juez
+-----------------------------------------------------------
+
+[Misión 2] 📸 Vehículo de Lujo
+📍 Ubicación: Ginza
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_22_car
+📝 Instrucciones: 🏎️ La milla de oro de Ginza es el desfile de coches más exclusivo del planeta: Lamborghinis, Rolls-Royce, Ferrari... Tu misión de espía: capturar el más impresionante antes de que desaparezca. 🏎️✨ Objetivo: el coche que haga girar más cabezas 📸 Capturar Vehículo de Lujo
+-----------------------------------------------------------
+
+[Misión 3] 🏃 Ascensor Infinito
+📍 Ubicación: Roppongi
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_22_elevator
+📝 Instrucciones: 🏢 El ascensor de Roppongi Hills sube 52 pisos en segundos. ¡Es como un cohete! Cronometra cuánto tarda en llegar arriba. ⏱️ CRONÓMETRO DE ASCENSOR 0.0s Planta: 0 🚀 Puertas cerradas ¡SUBIMOS! 🏁 ¡Hemos llegado!
+-----------------------------------------------------------
+
+[Misión 4] 📸 Réplica Eiffel
+📍 Ubicación: Torre de Tokio
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_22_tower
+📝 Instrucciones: 🗼 ¡Ilusión óptica! Colócate lejos de la Torre de Tokio, extiende la mano y haz que parezca que la sostienes entre tus dedos como si fuera un juguete. 🤏 Truco: aléjate, extiende el brazo, junta pulgar e índice 🗼🤏 ¡Que parezca que la torre cabe entre tus dedos! 📸 Capturar Ilusión Óptica
+-----------------------------------------------------------
+
+[Misión 5] 💰 La Joya de Ginza
+📍 Ubicación: Ginza
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_22_jewel
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ESCÁNER DE MERCADO ACTIVO Objetivo: localizar el artículo más absurdamente caro en los escaparates de Ginza. Calcular cuántos años de tu paga necesitarías. ARTÍCULO IDENTIFICADO: PRECIO DETECTADO (¥): TU PAGA MENSUAL (€): ⚡ Ejecutar Análisis Financiero 📤 Transmitir Informe
+-----------------------------------------------------------
+
+[Misión 6] ⚡ Intercepción Numérica
+📍 Ubicación: Calle
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_22_numbers
+📝 Instrucciones: >>> ESCUCHA LA SEÑAL NUMÉRICA (Japonés). Interceptar Señal (Intentos: 3) Verificar
+-----------------------------------------------------------
+
+[Misión 7] 💰 Logística del Pescado
+📍 Ubicación: Toyosu
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_22_fish
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> INFORME LOGÍSTICO REQUERIDO El mercado mayorista de pescado más grande del mundo se trasladó de Tsukiji a Toyosu en 2018. Estás pisando las nuevas instalaciones. 📋 MISIÓN: Analiza el entorno. ¿Por qué crees que movieron el mercado? Busca pistas visuales: la limpieza, el tamaño, la tecnología... >> Escribe tu análisis aquí..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px; font-family:monospace;"> 📤 Transmitir Informe
+-----------------------------------------------------------
+
+[Misión 8] 💰 Altura Relativa
+📍 Ubicación: Torre de Tokio
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_22_compare
+📝 Instrucciones: >>> ANÁLISIS COMPARATIVO DE ESTRUCTURAS Torre Tokio 332.9m Skytree 634m ¿Cuántas Torres de Tokio necesitarías apilar para igualar la Skytree? >> Respuesta..." style="width:100%; margin-bottom:10px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.2rem; text-align:center;"> ⚡ Verificar Cálculo
+-----------------------------------------------------------
+
+[Misión 9] 📸 Luces de Neón
+📍 Ubicación: Ginza/Roppongi
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +20 XP | Code: day_22_neon
+📝 Instrucciones: 🌃 Misión Familiar: Tokio de noche es un espectáculo de luces. Buscad el fondo más espectacular de neón y haceos la foto más épica del viaje. 🌃👨‍👩‍👧‍👦✨ La noche de Tokio os espera ✅ ¡Foto nocturna familiar lista! 📨 Enviar al Juez
+-----------------------------------------------------------
+
+--- DÍA 23 ---
+
+[Misión 1] 💰 Buscador de KitKat
+📍 Ubicación: Don Quijote
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_23_kitkat
+📝 Instrucciones: 🍫 ¡Misión de reconocimiento en Don Quijote! Japón tiene sabores de KitKat que no existen en ningún otro país del mundo. Explora las estanterías y marca cada sabor raro que encuentres. 🔍 Sabores Detectados (mínimo 3) 🍵 Matcha (Té Verde) 🍶 Sake (Licor de Arroz) 🍓 Fresa (Ichigo) 🔥 Wasabi (¡Picante!) 🍈 Melón (Yūbari) Encontrados: 0/5 📨 Enviar Informe de Sabores
+-----------------------------------------------------------
+
+[Misión 2] ⚡ Pokédex de Supermercado
+📍 Ubicación: Tienda
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_23_pokedex
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: Escanea el código de barras de tu último snack. Iniciando... Registrar en Pokédex
+-----------------------------------------------------------
+
+[Misión 3] 📸 Oráculo de Monedas
+📍 Ubicación: Calle
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_23_coins
+📝 Instrucciones: Lanza tus últimas monedas al aire y fotografíalas en el suelo para revelar tu fortuna. 📸 Foto Monedas Enviar Fortuna
+-----------------------------------------------------------
+
+[Misión 4] 📸 Mascotas de Viaje
+📍 Ubicación: Hotel
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_23_mascot
+📝 Instrucciones: 🧸 Tu compañero de viaje favorito (peluche, llavero o juguete) ha estado contigo en TODA la aventura. Antes de volver a casa, hazle un retrato de despedida de Japón. ¡Se lo merece! 🧸✨🗾 Gracias por acompañarme, pequeño viajero 📸 Retrato de Despedida
+-----------------------------------------------------------
+
+[Misión 5] ⚡ Tetris de Maletas
+📍 Ubicación: Hotel
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_23_tetris
+📝 Instrucciones: >>> SISTEMA DE OPTIMIZACIÓN DE EQUIPAJE v2.0 Gira cada pieza hasta que todas encajen en posición vertical. Las piezas correctas brillarán en verde. CAMISA Girar 🔄 PANTALÓN Girar 🔄 SOUVENIRS Girar 🔄 ✅ Empaquetado Perfecto
+-----------------------------------------------------------
+
+[Misión 6] 💰 Auditoría Final
+📍 Ubicación: Hotel
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_23_audit
+📝 Instrucciones: >>> MÓDULO DE AUDITORÍA FINANCIERA Recopila los últimos 4 tickets de compra del viaje. Introduce cada importe y ejecuta el cálculo total. TICKET #1 TICKET #2 TICKET #3 TICKET #4 ⚡ Ejecutar Suma 📤 Transmitir Auditoría
+-----------------------------------------------------------
+
+[Misión 7] 🏃 Protocolo de Embarque
+📍 Ubicación: Aeropuerto
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_23_security
+📝 Instrucciones: >>> CRONÓMETRO DE INFILTRACIÓN ¿Cuánto tarda un agente en cruzar el control de seguridad del aeropuerto? Inicia al entrar en la cola y para al recoger tu bandeja. 0.0s 🚶 Entrar en cola ✅ ¡Control superado!
+-----------------------------------------------------------
+
+[Misión 8] 💰 Peso de Carga
+📍 Ubicación: Aeropuerto
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_23_weight
+📝 Instrucciones: >>> ESTIMACIÓN DE PESO DE EQUIPAJE Antes de poner la maleta en la báscula de facturación, adivina su peso exacto. Después comprueba si acertaste. 🧳 Límite máximo: 23 kg TU ESTIMACIÓN (kg): 📤 Registrar Estimación
+-----------------------------------------------------------
+
+[Misión 9] 📸 El Sello Final
+📍 Ubicación: Aeropuerto
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +30 XP | Code: day_23_stamp
+📝 Instrucciones: 🔴 Misión Legendaria Conjunta: En las estaciones y aeropuertos de Japón hay tampones de tinta para sellar recuerdos. Buscad uno y conseguid el ÚLTIMO SELLO de vuestro Pasaporte de Misiones. ¡Esto es historia! 🔴✨📜 El Sello que cierra la aventura 30 XP por jugador • Misión Familiar 📸 Capturar el Sello Final
+-----------------------------------------------------------
+
+--- DÍA 24 ---
+
+[Misión 1] 📸 Comida Aérea
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +10 XP | Code: day_24_meal
+📝 Instrucciones: 🍱 ¡Tu última comida japonesa! Pero esta vez... ¡estás volando a 10.000 metros de altura! Fotografía la bandeja del avión antes de devorarla. ¿Qué lleva? ✈️🍱☁️ Última comida del cielo nipón 📸 Fotografiar Bandeja Aérea
+-----------------------------------------------------------
+
+[Misión 2] 📸 Nubes sobre Europa
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +10 XP | Code: day_24_clouds
+📝 Instrucciones: ☁️ Mira por la ventanilla. Estás cruzando el cielo entre dos mundos: Japón queda atrás, Europa se acerca. Captura la foto más bonita del cielo desde las nubes. ¡La última foto del viaje! 🌅✨☁️ El cielo entre dos mundos 📸 Capturar el Cielo
+-----------------------------------------------------------
+
+[Misión 3] 🏃 Cinturón Abrochado
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_24_turbulence
+📝 Instrucciones: ⚠️ ¡TURBULENCIAS! Cuando el avión empiece a temblar, inicia el cronómetro. ¿Cuánto dura el zarandeo? ¡Agárrate fuerte! ⚠️✈️💨 0.0s Esperando turbulencia... 💺 ¡Empieza a temblar! ✅ ¡Ya pasó!
+-----------------------------------------------------------
+
+[Misión 4] 💰 Recuento de Sellos
+📍 Ubicación: Avión
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +15 XP | Code: day_24_badges
+📝 Instrucciones: 🏆 Es hora de contar tus victorias. La app revisará todas las misiones que has completado durante los 24 días. ¿Cuántas has superado? 🏆 ... Calculando... 📨 Enviar Recuento al Juez
+-----------------------------------------------------------
+
+[Misión 5] 💰 Husos Horarios
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_24_timezones
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> ANÁLISIS DE SINCRONIZACIÓN TEMPORAL En este momento, tres relojes del mundo marcan horas distintas. Investiga y registra la hora simultánea en cada zona. 🗼 JAPÓN UTC+9 🇪🇸 ESPAÑA UTC+2 ✈️ AVIÓN ¿? HORA EN JAPÓN: HORA EN ESPAÑA: HORA EN EL AVIÓN: 📤 Transmitir Sincronización
+-----------------------------------------------------------
+
+[Misión 6] 💰 Kilometraje Total
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_24_distance
+📝 Instrucciones: >>> REGISTRO DE DISTANCIA DE VUELO Consulta la pantalla del asiento. ¿Cuántos kilómetros separan Tokio de casa? 🗼 ✈️ 🏠 Tokio → Madrid ≈ 10.500 km DISTANCIA TOTAL (km): 📤 Registrar Distancia
+-----------------------------------------------------------
+
+[Misión 7] 🏃 Velocidad de Retorno
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_24_speed
+📝 Instrucciones: >>> LECTURA DE VELOCÍMETRO AÉREO La pantalla del entretenimiento muestra la velocidad en tiempo real. Anota la velocidad máxima que alcance el avión. 🛩️💨 --- km/h Velocidad crucero típica: 850-920 km/h VELOCIDAD MÁXIMA REGISTRADA (km/h): 📤 Registrar Velocidad
+-----------------------------------------------------------
+
+[Misión 8] ✍️ Análisis del Viaje
+📍 Ubicación: Avión
+👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_24_log
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: >>> BITÁCORA FINAL DEL AGENTE Misión: JAPÓN 2026 • Estado: COMPLETADA Redacta tu informe final como agente operativo. Resume la misión, evalúa su éxito y destaca los momentos clave de la operación. Plantilla: "La operación Japón 2026 ha sido [ÉXITO/PARCIAL]. Los objetivos principales [se cumplieron/superaron]. Destaco..." >> Escribe tu informe final aquí..." style="width:100%; height:120px; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-family:monospace; font-size:0.95rem;"> 0 caracteres 📤 Transmitir Bitácora Final
+-----------------------------------------------------------
+
+[Misión 9] ✍️ Sayonara Japón
+📍 Ubicación: Avión
+👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +50 XP | Code: day_24_sayonara
+⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
+📝 Instrucciones: 🏆✨🗾✨🏆 MISIÓN FINAL 50 XP por jugador 🌸 Ha llegado el momento. 24 días de aventuras, risas, descubrimientos y misiones épicas. Antes de cerrar este Pasaporte para siempre, escribe tus 3 momentos favoritos de todo el viaje. 🥇 Momento #1 (el mejor de todos) 🥈 Momento #2 🥉 Momento #3 🏆 DESBLOQUEAR SELLO LEGENDARIO
+-----------------------------------------------------------
+
+
+===========================================================
+FIN DE LA GUÍA - ¡BUEN VIAJE A JAPÓN! 🌸 Torre de Tokio / Monte Fuji / Templos de Kioto
