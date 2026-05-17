@@ -866,7 +866,7 @@ document.getElementById('btn-debug-unlock').addEventListener('click', () => {
     const btn = document.getElementById('btn-debug-unlock');
     if (debugUnlockAll) {
         btn.style.backgroundColor = 'var(--color-accent)';
-        btn.style.color = 'var(--color-white)';
+        btn.style.color = 'var(--color-bg)';
     } else {
         btn.style.backgroundColor = 'transparent';
         btn.style.color = 'var(--color-accent)';
