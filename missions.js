@@ -6006,10 +6006,17 @@ const MISSIONS_CONFIG = {
         xp: 20,
         location: "Toyosu",
         render: () => `
-        <p class="mission-desc">Imita el saludo enérgico de los vendedores: "¡EE-RA-SHAI-MA-SÉ!"</p>
-        <button id="btn-rec" class="btn-secondary" style="width:100%;">🎙️ Grabar grito</button>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🐟 En el mercado de Toyosu, los vendedores saludan a pleno pulmón a cada cliente que pasa. Tu misión: imitar su grito legendario con toda tu energía.</p>
+        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e); border-radius:15px; padding:20px; margin:15px 0; text-align:center;">
+            <p style="font-size:2rem; font-weight:bold; color:#ff6b6b; text-shadow:0 0 10px rgba(255,107,107,0.5); letter-spacing:4px;">¡EE-RA-SHAI-MA-SÉ!</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">Pronunciación: <em>Irasshaimase</em> = ¡Bienvenido!</p>
+            <div id="vol-meter" style="width:80%; height:12px; background:#333; border-radius:6px; margin:15px auto; overflow:hidden;">
+                <div id="vol-fill" style="width:0%; height:100%; background:linear-gradient(90deg,#00ff87,#60efff); border-radius:6px; transition:width 0.1s;"></div>
+            </div>
+        </div>
+        <button id="btn-rec" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">🎙️ ¡GRABAR MI GRITO!</button>
         <audio id="au-s" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
-        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
+        <button id="btn" class="btn-primary hidden" style="width:100%">📨 Enviar al Juez</button>
     `,
         attachEvents: () => {
         const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-s'); const btn = document.getElementById('btn');
@@ -6041,7 +6048,14 @@ const MISSIONS_CONFIG = {
         role: "kid9",
         xp: 15,
         location: "Ginza",
-        render: () => `<p class="mission-desc">En Ginza pasan los coches más lujosos del mundo. Captura el más espectacular.</p><button id="btn-cam" class="btn-secondary">📸 Foto Coche</button>`,
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏎️ La milla de oro de Ginza es el desfile de coches más exclusivo del planeta: Lamborghinis, Rolls-Royce, Ferrari... Tu misión de espía: capturar el más impresionante antes de que desaparezca.</p>
+        <div style="text-align:center; margin:15px 0; padding:15px; background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); border-radius:15px;">
+            <p style="font-size:3rem;">🏎️✨</p>
+            <p style="color:#d4af37; font-style:italic;">Objetivo: el coche que haga girar más cabezas</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Vehículo de Lujo</button>
+    `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_car', currentUser, false); }
     },
 
@@ -6053,16 +6067,27 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Roppongi",
         render: () => `
-        <p class="mission-desc">Cronometra cuánto tarda este ascensor ultrarrápido en subir.</p>
-        <div id="el-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
-        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
-        <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Llegué!</button>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏢 El ascensor de Roppongi Hills sube 52 pisos en segundos. ¡Es como un cohete! Cronometra cuánto tarda en llegar arriba.</p>
+        <div style="background:linear-gradient(180deg,#0a0a2e,#1a1a3e); border-radius:15px; padding:20px; margin:15px 0; text-align:center; position:relative; overflow:hidden;">
+            <div id="el-bg" style="position:absolute; bottom:0; left:0; width:100%; height:0%; background:linear-gradient(180deg,#00ff87,#60efff); opacity:0.15; transition:height 0.3s;"></div>
+            <p style="font-size:1rem; color:#888; margin-bottom:5px;">⏱️ CRONÓMETRO DE ASCENSOR</p>
+            <div id="el-timer" style="font-size:3.5rem; font-weight:bold; color:#00ff87; text-shadow:0 0 20px rgba(0,255,135,0.4); font-family:monospace;">0.0s</div>
+            <div id="el-floor" style="font-size:1rem; color:#60efff; margin-top:5px;">Planta: 0</div>
+        </div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">🚀 Puertas cerradas ¡SUBIMOS!</button>
+        <button id="btn-end" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">🏁 ¡Hemos llegado!</button>
     `,
         attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-            int = setInterval(() => document.getElementById('el-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+            int = setInterval(() => {
+                const elapsed = (Date.now()-t0)/1000;
+                document.getElementById('el-timer').innerText = elapsed.toFixed(1)+'s';
+                const floor = Math.min(52, Math.floor(elapsed * 4));
+                document.getElementById('el-floor').innerText = 'Planta: ' + floor;
+                document.getElementById('el-bg').style.height = Math.min(100, floor/52*100) + '%';
+            }, 100);
         });
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_22_elevator', {type:'text', data:`Tiempo ascensor: ${document.getElementById('el-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
@@ -6076,7 +6101,15 @@ const MISSIONS_CONFIG = {
         role: "kid9",
         xp: 15,
         location: "Torre de Tokio",
-        render: () => `<p class="mission-desc">Apunta a la Torre de Tokio y haz que parezca que la sostienes entre tus dedos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Torre</button>`,
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🗼 ¡Ilusión óptica! Colócate lejos de la Torre de Tokio, extiende la mano y haz que parezca que la sostienes entre tus dedos como si fuera un juguete.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#ff6b35,#f7c948); border-radius:15px;">
+            <p style="font-size:1rem; color:#fff;">🤏 Truco: aléjate, extiende el brazo, junta pulgar e índice</p>
+            <p style="font-size:4rem; margin:10px 0;">🗼🤏</p>
+            <p style="color:rgba(255,255,255,0.8); font-size:0.85rem;">¡Que parezca que la torre cabe entre tus dedos!</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Ilusión Óptica</button>
+    `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_tower', currentUser, false); }
     },
 
@@ -6088,14 +6121,18 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Ginza",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> BUSCANDO ARTÍCULO MÁS CARO</p>
-            <input type="text" id="j-item" placeholder="Artículo..." style="width:100%; margin-bottom:10px;">
-            <input type="number" id="j-price" placeholder="Precio (¥)..." style="width:100%; margin-bottom:10px;">
-            <input type="number" id="j-allow" placeholder="Tu paga mensual (€)..." style="width:100%; margin-bottom:10px;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular</button>
-            <div id="j-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0; margin-bottom:5px;">>>> ESCÁNER DE MERCADO ACTIVO</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Objetivo: localizar el artículo más absurdamente caro en los escaparates de Ginza. Calcular cuántos años de tu paga necesitarías.</p>
+            <label style="color:#0f0; font-size:0.8rem;">ARTÍCULO IDENTIFICADO:</label>
+            <input type="text" id="j-item" placeholder="Ej: Reloj Rolex Submariner..." style="width:100%; margin-bottom:10px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <label style="color:#0f0; font-size:0.8rem;">PRECIO DETECTADO (¥):</label>
+            <input type="number" id="j-price" placeholder="Ej: 2500000" style="width:100%; margin-bottom:10px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <label style="color:#0f0; font-size:0.8rem;">TU PAGA MENSUAL (€):</label>
+            <input type="number" id="j-allow" placeholder="Ej: 30" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">⚡ Ejecutar Análisis Financiero</button>
+            <div id="j-res" style="color:#ff0; margin-bottom:15px; font-weight:bold; font-size:1.1rem; text-align:center; min-height:24px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">📤 Transmitir Informe</button>
         </div>
     `,
         attachEvents: () => {
@@ -6153,14 +6190,23 @@ const MISSIONS_CONFIG = {
         role: "kid14",
         xp: 15,
         location: "Toyosu",
+        correctAnswer: "Instalaciones modernas, mejor cadena de frío, higiene, más espacio",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> Razones del traslado del mercado Tsukiji → Toyosu:</p>
-            <textarea id="f-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
-            <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> INFORME LOGÍSTICO REQUERIDO</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:10px;">El mercado mayorista de pescado más grande del mundo se trasladó de Tsukiji a Toyosu en 2018. Estás pisando las nuevas instalaciones.</p>
+            <div style="background:#0a0a0a; border-left:3px solid #0f0; padding:10px; margin:10px 0; border-radius:0 6px 6px 0;">
+                <p style="color:#888; font-size:0.85rem;">📋 MISIÓN: Analiza el entorno. ¿Por qué crees que movieron el mercado? Busca pistas visuales: la limpieza, el tamaño, la tecnología...</p>
+            </div>
+            <textarea id="f-ans" placeholder=">>> Escribe tu análisis aquí..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px; font-family:monospace;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">📤 Transmitir Informe</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_fish', {type:'text', data:document.getElementById('f-ans').value})); }
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('f-ans').value;
+            if(val.length < 15) { showAlert('Incompleto', 'Tu análisis necesita más detalle. Mínimo 2-3 razones.'); return; }
+            submitMission('day_22_fish', {type:'text', data:val});
+        }); }
     },
 
     "day_22_compare": {
@@ -6170,14 +6216,44 @@ const MISSIONS_CONFIG = {
         role: "kid14",
         xp: 15,
         location: "Torre de Tokio",
+        correctAnswer: "Aprox. 1.9 (redondeando: 2)",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> COMPARATIVA: ¿Cuántas Torres de Tokio (332.9m) caben en una Skytree (634m)?</p>
-            <input type="number" id="c-ans" style="width:100%; margin-bottom:10px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar Respuesta</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> ANÁLISIS COMPARATIVO DE ESTRUCTURAS</p>
+            <div style="display:flex; justify-content:center; align-items:flex-end; gap:30px; margin:20px 0; height:180px;">
+                <div style="text-align:center;">
+                    <div style="width:20px; height:120px; background:linear-gradient(180deg,#ff6b35,#ff4500); margin:0 auto; border-radius:4px 4px 0 0; box-shadow:0 0 10px rgba(255,69,0,0.3);"></div>
+                    <p style="color:#ff6b35; font-size:0.8rem; margin-top:5px;">Torre Tokio</p>
+                    <p style="color:#ff6b35; font-weight:bold;">332.9m</p>
+                </div>
+                <div style="text-align:center;">
+                    <div style="width:14px; height:170px; background:linear-gradient(180deg,#60efff,#00b4d8); margin:0 auto; border-radius:4px 4px 0 0; box-shadow:0 0 10px rgba(96,239,255,0.3);"></div>
+                    <p style="color:#60efff; font-size:0.8rem; margin-top:5px;">Skytree</p>
+                    <p style="color:#60efff; font-weight:bold;">634m</p>
+                </div>
+            </div>
+            <p style="color:#0a0; font-size:0.9rem; margin-bottom:10px;">¿Cuántas Torres de Tokio necesitarías apilar para igualar la Skytree?</p>
+            <input type="number" id="c-ans" step="0.1" placeholder=">>> Respuesta..." style="width:100%; margin-bottom:10px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.2rem; text-align:center;">
+            <div id="c-res" style="color:#ff0; text-align:center; min-height:20px; margin-bottom:10px;"></div>
+            <button id="btn" class="btn-primary" style="width:100%">⚡ Verificar Cálculo</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_compare', {type:'number', data:document.getElementById('c-ans').value})); }
+        attachEvents: () => {
+            document.getElementById('btn').addEventListener('click', () => {
+                const val = parseFloat(document.getElementById('c-ans').value);
+                if(!val) { showAlert('Error', 'Introduce un número.'); return; }
+                const correct = 634/332.9;
+                const diff = Math.abs(val - correct);
+                if(diff < 0.3) {
+                    document.getElementById('c-res').innerText = '>>> CÁLCULO CORRECTO. Resultado: ' + correct.toFixed(2);
+                    document.getElementById('c-res').style.color = '#0f0';
+                    setTimeout(() => submitMission('day_22_compare', {type:'number', data:val}), 1000);
+                } else {
+                    document.getElementById('c-res').innerText = '>>> ERROR. Revisa: 634 ÷ 332.9 = ?';
+                    document.getElementById('c-res').style.color = '#f00';
+                }
+            });
+        }
     },
 
     "day_22_neon": {
@@ -6188,9 +6264,13 @@ const MISSIONS_CONFIG = {
         xp: 20,
         location: "Ginza/Roppongi",
         render: () => `
-        <p class="mission-desc">Selfie nocturno familiar con los rascacielos iluminados de fondo.</p>
-        <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-n" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto nocturna familiar lista</label>
-        <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌃 Misión Familiar: Tokio de noche es un espectáculo de luces. Buscad el fondo más espectacular de neón y haceos la foto más épica del viaje.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); border-radius:15px; border:1px solid rgba(100,100,255,0.2);">
+            <p style="font-size:3rem;">🌃👨‍👩‍👧‍👦✨</p>
+            <p style="color:#a78bfa; font-style:italic; margin-top:10px;">La noche de Tokio os espera</p>
+        </div>
+        <label style="display:flex; align-items:center; gap:15px; margin:20px 0; font-size:1.1rem; background:var(--color-gray-light); padding:18px; border-radius:12px; cursor:pointer;"><input type="checkbox" id="chk-n" style="transform:scale(1.8); accent-color:#a78bfa;"> ✅ ¡Foto nocturna familiar lista!</label>
+        <button id="btn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar al Juez</button>
     `,
         attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
@@ -6208,21 +6288,32 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Don Quijote",
         render: () => `
-        <p class="mission-desc">Busca sabores raros de KitKat (mínimo 3).</p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
-            <label><input type="checkbox" class="k-chk" value="Matcha"> 🍵 Matcha</label>
-            <label><input type="checkbox" class="k-chk" value="Sake"> 🍶 Sake</label>
-            <label><input type="checkbox" class="k-chk" value="Fresa"> 🍓 Fresa</label>
-            <label><input type="checkbox" class="k-chk" value="Wasabi"> 🔥 Wasabi</label>
-            <label><input type="checkbox" class="k-chk" value="Melón"> 🍈 Melón</label>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🍫 ¡Misión de reconocimiento en Don Quijote! Japón tiene sabores de KitKat que no existen en ningún otro país del mundo. Explora las estanterías y marca cada sabor raro que encuentres.</p>
+        <div style="background:linear-gradient(135deg,#8B0000,#cc0000); border-radius:15px; padding:15px; margin:15px 0;">
+            <p style="color:#fff; text-align:center; font-weight:bold; margin-bottom:10px;">🔍 Sabores Detectados (mínimo 3)</p>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <label style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.15); padding:12px; border-radius:10px; color:#fff; font-size:1.05rem; cursor:pointer;"><input type="checkbox" class="k-chk" value="Matcha" style="transform:scale(1.5); accent-color:#4ade80;"> 🍵 Matcha (Té Verde)</label>
+                <label style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.15); padding:12px; border-radius:10px; color:#fff; font-size:1.05rem; cursor:pointer;"><input type="checkbox" class="k-chk" value="Sake" style="transform:scale(1.5); accent-color:#4ade80;"> 🍶 Sake (Licor de Arroz)</label>
+                <label style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.15); padding:12px; border-radius:10px; color:#fff; font-size:1.05rem; cursor:pointer;"><input type="checkbox" class="k-chk" value="Fresa" style="transform:scale(1.5); accent-color:#4ade80;"> 🍓 Fresa (Ichigo)</label>
+                <label style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.15); padding:12px; border-radius:10px; color:#fff; font-size:1.05rem; cursor:pointer;"><input type="checkbox" class="k-chk" value="Wasabi" style="transform:scale(1.5); accent-color:#4ade80;"> 🔥 Wasabi (¡Picante!)</label>
+                <label style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.15); padding:12px; border-radius:10px; color:#fff; font-size:1.05rem; cursor:pointer;"><input type="checkbox" class="k-chk" value="Melón" style="transform:scale(1.5); accent-color:#4ade80;"> 🍈 Melón (Yūbari)</label>
+            </div>
+            <div id="k-count" style="text-align:center; color:#ffd700; font-weight:bold; margin-top:10px;">Encontrados: 0/5</div>
         </div>
-        <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        <button id="btn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar Informe de Sabores</button>
     `,
         attachEvents: () => {
+        document.querySelectorAll('.k-chk').forEach(cb => {
+            cb.addEventListener('change', () => {
+                const count = document.querySelectorAll('.k-chk:checked').length;
+                document.getElementById('k-count').innerText = 'Encontrados: ' + count + '/5';
+                document.getElementById('k-count').style.color = count >= 3 ? '#4ade80' : '#ffd700';
+            });
+        });
         document.getElementById('btn').addEventListener('click', () => {
             const checked = Array.from(document.querySelectorAll('.k-chk:checked')).map(cb => cb.value);
             if(checked.length >= 3) submitMission('day_23_kitkat', {type:'text', data:`KitKats: ${checked.join(', ')}`});
-            else showAlert('Faltan sabores', 'Debes encontrar al menos 3 sabores.');
+            else showAlert('¡Sigue buscando!', 'Necesitas encontrar al menos 3 sabores raros.');
         });
     }
     },
@@ -6314,7 +6405,14 @@ const MISSIONS_CONFIG = {
         role: "kid9",
         xp: 15,
         location: "Hotel",
-        render: () => `<p class="mission-desc">Haz una foto de tu compañero de viaje favorito (peluche/juguete) antes de volver a casa.</p><button id="btn-cam" class="btn-secondary">📸 Foto Mascota</button>`,
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🧸 Tu compañero de viaje favorito (peluche, llavero o juguete) ha estado contigo en TODA la aventura. Antes de volver a casa, hazle un retrato de despedida de Japón. ¡Se lo merece!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#ffecd2,#fcb69f); border-radius:15px;">
+            <p style="font-size:4rem;">🧸✨🗾</p>
+            <p style="color:#8B4513; font-style:italic; margin-top:10px;">Gracias por acompañarme, pequeño viajero</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Retrato de Despedida</button>
+    `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_mascot', currentUser, false); }
     },
 
@@ -6326,40 +6424,59 @@ const MISSIONS_CONFIG = {
         xp: 25,
         location: "Hotel",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> OPTIMIZACIÓN DE EQUIPAJE. Gira las piezas hasta que encajen.</p>
-            <div style="display:flex; justify-content:space-around; align-items:center; height:150px; background:#222; border-radius:10px; margin:15px 0;">
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> SISTEMA DE OPTIMIZACIÓN DE EQUIPAJE v2.0</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Gira cada pieza hasta que todas encajen en posición vertical. Las piezas correctas brillarán en verde.</p>
+            <div style="display:flex; justify-content:space-around; align-items:center; padding:20px; background:linear-gradient(180deg,#0a0a1a,#1a1a2e); border-radius:12px; margin:15px 0; min-height:200px; border:1px solid #0f02;">
                 <div style="text-align:center;">
-                    <div id="pt1" style="width:40px; height:80px; background:cyan; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(90deg);"></div>
-                    <button class="btn-secondary btn-rot" data-target="pt1" data-val="90">Girar 🔄</button>
+                    <p style="color:#0f0; font-size:0.75rem; margin-bottom:8px;">CAMISA</p>
+                    <div id="pt1" style="width:35px; height:70px; background:linear-gradient(135deg,#00ffff,#0088aa); margin:0 auto 12px; border-radius:4px; transition:all 0.4s cubic-bezier(.4,0,.2,1); transform:rotate(90deg); box-shadow:0 0 10px rgba(0,255,255,0.3);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt1" data-val="90" style="font-size:0.9rem; padding:8px 16px;">Girar 🔄</button>
                 </div>
                 <div style="text-align:center;">
-                    <div id="pt2" style="width:60px; height:40px; background:magenta; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(180deg);"></div>
-                    <button class="btn-secondary btn-rot" data-target="pt2" data-val="180">Girar 🔄</button>
+                    <p style="color:#0f0; font-size:0.75rem; margin-bottom:8px;">PANTALÓN</p>
+                    <div id="pt2" style="width:55px; height:35px; background:linear-gradient(135deg,#ff00ff,#aa0088); margin:0 auto 12px; border-radius:4px; transition:all 0.4s cubic-bezier(.4,0,.2,1); transform:rotate(180deg); box-shadow:0 0 10px rgba(255,0,255,0.3);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt2" data-val="180" style="font-size:0.9rem; padding:8px 16px;">Girar 🔄</button>
                 </div>
                 <div style="text-align:center;">
-                    <div id="pt3" style="width:40px; height:40px; background:yellow; margin:0 auto 10px; transition:transform 0.3s; transform:rotate(270deg);"></div>
-                    <button class="btn-secondary btn-rot" data-target="pt3" data-val="270">Girar 🔄</button>
+                    <p style="color:#0f0; font-size:0.75rem; margin-bottom:8px;">SOUVENIRS</p>
+                    <div id="pt3" style="width:40px; height:40px; background:linear-gradient(135deg,#ffff00,#aa8800); margin:0 auto 12px; border-radius:4px; transition:all 0.4s cubic-bezier(.4,0,.2,1); transform:rotate(270deg); box-shadow:0 0 10px rgba(255,255,0,0.3);"></div>
+                    <button class="btn-secondary btn-rot" data-target="pt3" data-val="270" style="font-size:0.9rem; padding:8px 16px;">Girar 🔄</button>
                 </div>
             </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Empaquetado Listo</button>
+            <div id="tet-status" style="text-align:center; color:#ff0; font-weight:bold; margin-bottom:10px; min-height:20px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">✅ Empaquetado Perfecto</button>
         </div>
     `,
         attachEvents: () => {
-        // Target: all 0deg (or multiples of 360)
+        const checkWin = () => {
+            let p1 = parseInt(document.querySelector('.btn-rot[data-target="pt1"]').dataset.val) % 360;
+            let p2 = parseInt(document.querySelector('.btn-rot[data-target="pt2"]').dataset.val) % 360;
+            let p3 = parseInt(document.querySelector('.btn-rot[data-target="pt3"]').dataset.val) % 360;
+            // Check each piece
+            const el1 = document.getElementById('pt1');
+            const el2 = document.getElementById('pt2');
+            const el3 = document.getElementById('pt3');
+            el1.style.boxShadow = (p1===0) ? '0 0 20px #0f0' : '0 0 10px rgba(0,255,255,0.3)';
+            el2.style.boxShadow = (p2===0||p2===180) ? '0 0 20px #0f0' : '0 0 10px rgba(255,0,255,0.3)';
+            el3.style.boxShadow = '0 0 20px #0f0'; // square always ok
+            if(p1 === 0 && (p2 === 0 || p2 === 180)) {
+                document.getElementById('tet-status').innerText = '>>> CONFIGURACIÓN ÓPTIMA DETECTADA';
+                document.getElementById('tet-status').style.color = '#0f0';
+                document.getElementById('btn').classList.remove('hidden');
+            } else {
+                document.getElementById('tet-status').innerText = '>>> Ajustando piezas...';
+                document.getElementById('tet-status').style.color = '#ff0';
+                document.getElementById('btn').classList.add('hidden');
+            }
+        };
         document.querySelectorAll('.btn-rot').forEach(b => {
             b.addEventListener('click', (e) => {
                 const tg = document.getElementById(e.target.dataset.target);
                 let val = parseInt(e.target.dataset.val) + 90;
                 e.target.dataset.val = val;
                 tg.style.transform = `rotate(${val}deg)`;
-                
-                let p1 = parseInt(document.querySelector('.btn-rot[data-target="pt1"]').dataset.val) % 360;
-                let p2 = parseInt(document.querySelector('.btn-rot[data-target="pt2"]').dataset.val) % 180; // Symmetry for magenta rectangle? Wait, let's say all must be 0 % 360
-                let p3 = parseInt(document.querySelector('.btn-rot[data-target="pt3"]').dataset.val) % 90; // Square symmetry
-                
-                // For simplicity, just demand p1==0, p2==0, p3 doesn't matter much but let's check p1 and p2
-                if(p1 === 0 && p2 === 0) { document.getElementById('btn').classList.remove('hidden'); }
+                checkWin();
             });
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_23_tetris', {type:'game', data:'Equipaje optimizado'}));
@@ -6374,23 +6491,31 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Hotel",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> SUMA LOS ÚLTIMOS 4 TICKETS</p>
-            <input type="number" id="a-t1" placeholder="Ticket 1..." style="width:100%; margin-bottom:5px;">
-            <input type="number" id="a-t2" placeholder="Ticket 2..." style="width:100%; margin-bottom:5px;">
-            <input type="number" id="a-t3" placeholder="Ticket 3..." style="width:100%; margin-bottom:5px;">
-            <input type="number" id="a-t4" placeholder="Ticket 4..." style="width:100%; margin-bottom:10px;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Sumar</button>
-            <div id="a-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Auditoría</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> MÓDULO DE AUDITORÍA FINANCIERA</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Recopila los últimos 4 tickets de compra del viaje. Introduce cada importe y ejecuta el cálculo total.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">
+                <div><label style="color:#0f0; font-size:0.75rem;">TICKET #1</label><input type="number" id="a-t1" placeholder="¥..." style="width:100%; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;"></div>
+                <div><label style="color:#0f0; font-size:0.75rem;">TICKET #2</label><input type="number" id="a-t2" placeholder="¥..." style="width:100%; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;"></div>
+                <div><label style="color:#0f0; font-size:0.75rem;">TICKET #3</label><input type="number" id="a-t3" placeholder="¥..." style="width:100%; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;"></div>
+                <div><label style="color:#0f0; font-size:0.75rem;">TICKET #4</label><input type="number" id="a-t4" placeholder="¥..." style="width:100%; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;"></div>
+            </div>
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">⚡ Ejecutar Suma</button>
+            <div id="a-res" style="color:#ff0; margin-bottom:15px; font-weight:bold; font-size:1.2rem; text-align:center; min-height:24px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">📤 Transmitir Auditoría</button>
         </div>
     `,
         attachEvents: () => {
         let tot = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
-            const t1 = Number(document.getElementById('a-t1').value||0); const t2 = Number(document.getElementById('a-t2').value||0);
-            const t3 = Number(document.getElementById('a-t3').value||0); const t4 = Number(document.getElementById('a-t4').value||0);
-            tot = t1+t2+t3+t4; document.getElementById('a-res').innerText = `Total calculado: ${tot}¥`; document.getElementById('btn').classList.remove('hidden');
+            const t1 = Number(document.getElementById('a-t1').value||0);
+            const t2 = Number(document.getElementById('a-t2').value||0);
+            const t3 = Number(document.getElementById('a-t3').value||0);
+            const t4 = Number(document.getElementById('a-t4').value||0);
+            tot = t1+t2+t3+t4;
+            const eur = (tot/160).toFixed(2);
+            document.getElementById('a-res').innerText = `>>> TOTAL: ${tot}¥ (≈${eur}€)`;
+            document.getElementById('btn').classList.remove('hidden');
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_23_audit', {type:'number', data:tot}));
     }
@@ -6404,18 +6529,28 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Aeropuerto",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
-            <p>>>> CRONOMETRANDO CONTROL SEGURIDAD</p>
-            <div id="sec-timer" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
-            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar en cola</button>
-            <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Pasado!</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03; text-align:center;">
+            <p style="color:#0f0;">>>> CRONÓMETRO DE INFILTRACIÓN</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">¿Cuánto tarda un agente en cruzar el control de seguridad del aeropuerto? Inicia al entrar en la cola y para al recoger tu bandeja.</p>
+            <div style="background:#0a0a1a; border-radius:12px; padding:20px; margin:10px 0;">
+                <div id="sec-timer" style="font-size:3.5rem; font-weight:bold; color:#00ff87; text-shadow:0 0 20px rgba(0,255,135,0.4); font-family:monospace;">0.0s</div>
+                <div id="sec-bar" style="width:100%; height:4px; background:#222; border-radius:2px; margin-top:10px; overflow:hidden;">
+                    <div id="sec-fill" style="width:0%; height:100%; background:linear-gradient(90deg,#0f0,#ff0,#f00); transition:width 0.5s;"></div>
+                </div>
+            </div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">🚶 Entrar en cola</button>
+            <button id="btn-end" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">✅ ¡Control superado!</button>
         </div>
     `,
         attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-            int = setInterval(() => document.getElementById('sec-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+            int = setInterval(() => {
+                const elapsed = (Date.now()-t0)/1000;
+                document.getElementById('sec-timer').innerText = elapsed.toFixed(1)+'s';
+                document.getElementById('sec-fill').style.width = Math.min(100, elapsed/300*100) + '%';
+            }, 100);
         });
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_23_security', {type:'text', data:`Control de seguridad: ${document.getElementById('sec-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
@@ -6430,13 +6565,35 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Aeropuerto",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> PESO ESTIMADO DE MALETA (kg):</p>
-            <input type="number" id="w-ans" style="width:100%; margin-bottom:10px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> ESTIMACIÓN DE PESO DE EQUIPAJE</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Antes de poner la maleta en la báscula de facturación, adivina su peso exacto. Después comprueba si acertaste.</p>
+            <div style="text-align:center; margin:15px 0;">
+                <div style="font-size:4rem;">🧳</div>
+                <div style="width:120px; height:8px; background:#333; border-radius:4px; margin:10px auto; position:relative;">
+                    <div id="w-needle" style="width:4px; height:20px; background:#0f0; border-radius:2px; position:absolute; top:-6px; left:50%; transition:left 0.5s;"></div>
+                </div>
+                <p style="color:#888; font-size:0.8rem;">Límite máximo: 23 kg</p>
+            </div>
+            <label style="color:#0f0; font-size:0.8rem;">TU ESTIMACIÓN (kg):</label>
+            <input type="number" id="w-ans" placeholder="Ej: 18.5" step="0.1" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.3rem; text-align:center;">
+            <button id="btn" class="btn-primary" style="width:100%">📤 Registrar Estimación</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_23_weight', {type:'number', data:document.getElementById('w-ans').value})); }
+        attachEvents: () => {
+        const input = document.getElementById('w-ans');
+        input.addEventListener('input', () => {
+            const val = parseFloat(input.value) || 0;
+            const pct = Math.min(100, Math.max(0, (val/30)*100));
+            document.getElementById('w-needle').style.left = pct + '%';
+            document.getElementById('w-needle').style.background = val > 23 ? '#f00' : '#0f0';
+        });
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('w-ans').value;
+            if(!val) { showAlert('Error', 'Introduce tu estimación.'); return; }
+            submitMission('day_23_weight', {type:'number', data:val});
+        });
+    }
     },
 
     "day_23_stamp": {
@@ -6446,8 +6603,16 @@ const MISSIONS_CONFIG = {
         role: "both",
         xp: 30,
         location: "Aeropuerto",
-        render: () => `<p class="mission-desc">Busca un tampón de tinta y consigue el último sello físico del viaje. Hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sello</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_stamp', currentUser, false); }
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🔴 Misión Legendaria Conjunta: En las estaciones y aeropuertos de Japón hay tampones de tinta para sellar recuerdos. Buscad uno y conseguid el <strong>ÚLTIMO SELLO</strong> de vuestro Pasaporte de Misiones. ¡Esto es historia!</p>
+        <div style="text-align:center; margin:15px 0; padding:25px; background:linear-gradient(135deg,#1a0a0a,#3d0a0a); border-radius:15px; border:2px solid #d4af37;">
+            <p style="font-size:4rem;">🔴✨📜</p>
+            <p style="color:#d4af37; font-weight:bold; font-size:1.2rem; margin-top:10px;">El Sello que cierra la aventura</p>
+            <p style="color:#888; font-size:0.85rem; margin-top:5px;">30 XP por jugador • Misión Familiar</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar el Sello Final</button>
+    `,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_stamp', currentUser, true); }
     },
 
     "day_24_meal": {
@@ -6457,7 +6622,14 @@ const MISSIONS_CONFIG = {
         role: "kid9",
         xp: 10,
         location: "Avión",
-        render: () => `<p class="mission-desc">Fotografía tu última comida japonesa... en el aire.</p><button id="btn-cam" class="btn-secondary">📸 Foto Comida</button>`,
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🍱 ¡Tu última comida japonesa! Pero esta vez... ¡estás volando a 10.000 metros de altura! Fotografía la bandeja del avión antes de devorarla. ¿Qué lleva?</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#87CEEB,#4682B4); border-radius:15px;">
+            <p style="font-size:3rem;">✈️🍱☁️</p>
+            <p style="color:#fff; font-style:italic; margin-top:10px;">Última comida del cielo nipón</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Fotografiar Bandeja Aérea</button>
+    `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_meal', currentUser, false); }
     },
 
@@ -6468,7 +6640,14 @@ const MISSIONS_CONFIG = {
         role: "kid9",
         xp: 10,
         location: "Avión",
-        render: () => `<p class="mission-desc">Captura el cielo desde 10.000 metros. ¡La última foto!</p><button id="btn-cam" class="btn-secondary">📸 Foto Nubes</button>`,
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">☁️ Mira por la ventanilla. Estás cruzando el cielo entre dos mundos: Japón queda atrás, Europa se acerca. Captura la foto más bonita del cielo desde las nubes. ¡La última foto del viaje!</p>
+        <div style="text-align:center; margin:15px 0; padding:25px; background:linear-gradient(180deg,#1a1a2e,#e94560,#f7c948); border-radius:15px;">
+            <p style="font-size:3rem;">🌅✨☁️</p>
+            <p style="color:#fff; font-weight:bold; margin-top:10px;">El cielo entre dos mundos</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar el Cielo</button>
+    `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_clouds', currentUser, false); }
     },
 
@@ -6480,18 +6659,30 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Avión",
         render: () => `
-        <p class="mission-desc">Cronometra cuánto dura la turbulencia.</p>
-        <div id="tu-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
-        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
-        <button id="btn-end" class="btn-primary hidden" style="width:100%;">Fin</button>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">⚠️ ¡TURBULENCIAS! Cuando el avión empiece a temblar, inicia el cronómetro. ¿Cuánto dura el zarandeo? ¡Agárrate fuerte!</p>
+        <div style="background:linear-gradient(135deg,#1a0a0a,#2a1a1a); border-radius:15px; padding:20px; margin:15px 0; text-align:center; border:1px solid rgba(255,0,0,0.2);">
+            <p style="font-size:2rem; margin-bottom:5px;">⚠️✈️💨</p>
+            <div id="tu-timer" style="font-size:3.5rem; font-weight:bold; color:#ff6b6b; text-shadow:0 0 20px rgba(255,107,107,0.4); font-family:monospace;">0.0s</div>
+            <div id="tu-shake" style="font-size:0.9rem; color:#888; margin-top:5px;">Esperando turbulencia...</div>
+        </div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">💺 ¡Empieza a temblar!</button>
+        <button id="btn-end" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">✅ ¡Ya pasó!</button>
     `,
         attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-            int = setInterval(() => document.getElementById('tu-timer').innerText = ((Date.now()-t0)/1000).toFixed(1)+'s', 100);
+            document.getElementById('tu-shake').innerText = '¡¡TEMBLANDO!!';
+            document.getElementById('tu-shake').style.color = '#ff6b6b';
+            int = setInterval(() => {
+                const el = (Date.now()-t0)/1000;
+                document.getElementById('tu-timer').innerText = el.toFixed(1)+'s';
+            }, 100);
         });
-        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_24_turbulence', {type:'text', data:`Turbulencia: ${document.getElementById('tu-timer').innerText}`}); });
+        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int);
+            document.getElementById('tu-shake').innerText = '¡Superviviente!';
+            document.getElementById('tu-shake').style.color = '#4ade80';
+            submitMission('day_24_turbulence', {type:'text', data:`Turbulencia: ${document.getElementById('tu-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
     },
@@ -6504,19 +6695,25 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Avión",
         render: () => `
-        <p class="mission-desc">Calculando misiones completadas en el viaje...</p>
-        <div id="bdg-res" style="font-size:2rem; text-align:center; margin:15px 0; color:#0f0; font-weight:bold;"></div>
-        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar recuento</button>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏆 Es hora de contar tus victorias. La app revisará todas las misiones que has completado durante los 24 días. ¿Cuántas has superado?</p>
+        <div style="text-align:center; margin:15px 0; padding:25px; background:linear-gradient(135deg,#1a1a2e,#2a1a3e); border-radius:15px; border:1px solid rgba(212,175,55,0.3);">
+            <div id="bdg-icon" style="font-size:4rem;">🏆</div>
+            <div id="bdg-res" style="font-size:2.5rem; font-weight:bold; color:#d4af37; text-shadow:0 0 15px rgba(212,175,55,0.4); margin:10px 0;">...</div>
+            <div id="bdg-label" style="color:#888; font-size:0.9rem;">Calculando...</div>
+        </div>
+        <button id="btn" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar Recuento al Juez</button>
     `,
         attachEvents: () => {
         let count = 0;
         try {
-            const gs = JSON.parse(localStorage.getItem('gameState'));
+            const gs = JSON.parse(localStorage.getItem('japanMissionsState'));
             if(gs && gs.kid9 && gs.kid9.missions) {
                 count = Object.values(gs.kid9.missions).filter(m => m.status === 'approved').length;
             }
         } catch(e) {}
-        document.getElementById('bdg-res').innerText = `¡${count} misiones completadas!`;
+        const total = Object.keys(MISSIONS_CONFIG).filter(k => MISSIONS_CONFIG[k].role === 'kid9' || MISSIONS_CONFIG[k].role === 'both').length;
+        document.getElementById('bdg-res').innerText = count + ' misiones';
+        document.getElementById('bdg-label').innerText = `de ${total} posibles • ¡${count > total*0.8 ? 'LEYENDA' : count > total*0.5 ? 'Increíble' : 'Bien hecho'}!`;
         document.getElementById('btn').classList.remove('hidden');
         document.getElementById('btn').addEventListener('click', () => submitMission('day_24_badges', {type:'number', data:count}));
     }
@@ -6530,15 +6727,40 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Avión",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> REPORTE HORARIO SIMULTÁNEO</p>
-            <input type="text" id="tz-jap" placeholder="Hora Japón..." style="width:100%; margin-bottom:5px;">
-            <input type="text" id="tz-esp" placeholder="Hora España..." style="width:100%; margin-bottom:5px;">
-            <input type="text" id="tz-air" placeholder="Hora Avión..." style="width:100%; margin-bottom:10px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> ANÁLISIS DE SINCRONIZACIÓN TEMPORAL</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">En este momento, tres relojes del mundo marcan horas distintas. Investiga y registra la hora simultánea en cada zona.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:15px 0;">
+                <div style="text-align:center; background:#0a0a1a; padding:12px; border-radius:10px; border:1px solid #0f02;">
+                    <p style="font-size:2rem;">🗼</p>
+                    <p style="color:#ff6b35; font-size:0.8rem; font-weight:bold;">JAPÓN</p>
+                    <p style="color:#666; font-size:0.7rem;">UTC+9</p>
+                </div>
+                <div style="text-align:center; background:#0a0a1a; padding:12px; border-radius:10px; border:1px solid #0f02;">
+                    <p style="font-size:2rem;">🇪🇸</p>
+                    <p style="color:#ff6b35; font-size:0.8rem; font-weight:bold;">ESPAÑA</p>
+                    <p style="color:#666; font-size:0.7rem;">UTC+2</p>
+                </div>
+                <div style="text-align:center; background:#0a0a1a; padding:12px; border-radius:10px; border:1px solid #0f02;">
+                    <p style="font-size:2rem;">✈️</p>
+                    <p style="color:#ff6b35; font-size:0.8rem; font-weight:bold;">AVIÓN</p>
+                    <p style="color:#666; font-size:0.7rem;">¿?</p>
+                </div>
+            </div>
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN JAPÓN:</label>
+            <input type="text" id="tz-jap" placeholder="Ej: 23:30" style="width:100%; margin-bottom:8px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN ESPAÑA:</label>
+            <input type="text" id="tz-esp" placeholder="Ej: 16:30" style="width:100%; margin-bottom:8px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN EL AVIÓN:</label>
+            <input type="text" id="tz-air" placeholder="Ej: 19:30" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
+            <button id="btn" class="btn-primary" style="width:100%">📤 Transmitir Sincronización</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_timezones', {type:'text', data:`JP: ${document.getElementById('tz-jap').value}, ES: ${document.getElementById('tz-esp').value}, AV: ${document.getElementById('tz-air').value}`})); }
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
+            const j=document.getElementById('tz-jap').value, e=document.getElementById('tz-esp').value, a=document.getElementById('tz-air').value;
+            if(!j||!e||!a) { showAlert('Incompleto','Rellena las 3 horas.'); return; }
+            submitMission('day_24_timezones', {type:'text', data:`JP: ${j}, ES: ${e}, AV: ${a}`});
+        }); }
     },
 
     "day_24_distance": {
@@ -6549,13 +6771,29 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Avión",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> DISTANCIA TOTAL (km):</p>
-            <input type="number" id="d-ans" style="width:100%; margin-bottom:10px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> REGISTRO DE DISTANCIA DE VUELO</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Consulta la pantalla del asiento. ¿Cuántos kilómetros separan Tokio de casa?</p>
+            <div style="text-align:center; margin:15px 0; position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:1.5rem;">🗼</span>
+                    <div style="flex:1; height:3px; background:linear-gradient(90deg,#ff6b35,#0f0); margin:0 10px; border-radius:2px; position:relative;">
+                        <span style="position:absolute; top:-12px; left:50%; transform:translateX(-50%);">✈️</span>
+                    </div>
+                    <span style="font-size:1.5rem;">🏠</span>
+                </div>
+                <p style="color:#888; font-size:0.8rem; margin-top:8px;">Tokio → Madrid ≈ 10.500 km</p>
+            </div>
+            <label style="color:#0f0; font-size:0.8rem;">DISTANCIA TOTAL (km):</label>
+            <input type="number" id="d-ans" placeholder="Ej: 10764" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.3rem; text-align:center;">
+            <button id="btn" class="btn-primary" style="width:100%">📤 Registrar Distancia</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_distance', {type:'number', data:document.getElementById('d-ans').value})); }
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('d-ans').value;
+            if(!val) { showAlert('Error','Introduce la distancia.'); return; }
+            submitMission('day_24_distance', {type:'number', data:val});
+        }); }
     },
 
     "day_24_speed": {
@@ -6566,13 +6804,31 @@ const MISSIONS_CONFIG = {
         xp: 15,
         location: "Avión",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> VELOCIDAD MÁXIMA (km/h):</p>
-            <input type="number" id="v-ans" style="width:100%; margin-bottom:10px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> LECTURA DE VELOCÍMETRO AÉREO</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">La pantalla del entretenimiento muestra la velocidad en tiempo real. Anota la velocidad máxima que alcance el avión.</p>
+            <div style="text-align:center; margin:15px 0; background:#0a0a1a; border-radius:12px; padding:20px; border:1px solid #0f02;">
+                <p style="font-size:3rem;">🛩️💨</p>
+                <div id="sp-display" style="font-size:2rem; color:#60efff; font-weight:bold; margin:10px 0; font-family:monospace;">--- km/h</div>
+                <p style="color:#666; font-size:0.8rem;">Velocidad crucero típica: 850-920 km/h</p>
+            </div>
+            <label style="color:#0f0; font-size:0.8rem;">VELOCIDAD MÁXIMA REGISTRADA (km/h):</label>
+            <input type="number" id="v-ans" placeholder="Ej: 912" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.3rem; text-align:center;">
+            <button id="btn" class="btn-primary" style="width:100%">📤 Registrar Velocidad</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_speed', {type:'number', data:document.getElementById('v-ans').value})); }
+        attachEvents: () => {
+        document.getElementById('v-ans').addEventListener('input', (e) => {
+            const v = e.target.value;
+            document.getElementById('sp-display').innerText = v ? v + ' km/h' : '--- km/h';
+            document.getElementById('sp-display').style.color = v > 900 ? '#4ade80' : '#60efff';
+        });
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('v-ans').value;
+            if(!val) { showAlert('Error','Introduce la velocidad.'); return; }
+            submitMission('day_24_speed', {type:'number', data:val});
+        });
+    }
     },
 
     "day_24_log": {
@@ -6583,13 +6839,28 @@ const MISSIONS_CONFIG = {
         xp: 20,
         location: "Avión",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> BITÁCORA FINAL. Resume la misión Japón 2026.</p>
-            <textarea id="l-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
-            <button id="btn" class="btn-primary" style="width:100%">Transmitir</button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> BITÁCORA FINAL DEL AGENTE</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:5px;">Misión: JAPÓN 2026 • Estado: COMPLETADA</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Redacta tu informe final como agente operativo. Resume la misión, evalúa su éxito y destaca los momentos clave de la operación.</p>
+            <div style="background:#0a0a0a; border-left:3px solid #0f0; padding:10px; margin-bottom:15px; border-radius:0 6px 6px 0;">
+                <p style="color:#666; font-size:0.8rem; font-family:monospace;">Plantilla: "La operación Japón 2026 ha sido [ÉXITO/PARCIAL]. Los objetivos principales [se cumplieron/superaron]. Destaco..."</p>
+            </div>
+            <textarea id="l-ans" placeholder=">>> Escribe tu informe final aquí..." style="width:100%; height:120px; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-family:monospace; font-size:0.95rem;"></textarea>
+            <div id="l-count" style="color:#666; font-size:0.8rem; text-align:right; margin-bottom:10px;">0 caracteres</div>
+            <button id="btn" class="btn-primary" style="width:100%">📤 Transmitir Bitácora Final</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_log', {type:'text', data:document.getElementById('l-ans').value})); }
+        attachEvents: () => {
+        document.getElementById('l-ans').addEventListener('input', (e) => {
+            document.getElementById('l-count').innerText = e.target.value.length + ' caracteres';
+        });
+        document.getElementById('btn').addEventListener('click', () => {
+            const val = document.getElementById('l-ans').value;
+            if(val.length < 30) { showAlert('Incompleto', 'Tu informe final merece al menos un párrafo completo.'); return; }
+            submitMission('day_24_log', {type:'text', data:val});
+        });
+    }
     },
 
     "day_24_sayonara": {
@@ -6600,24 +6871,35 @@ const MISSIONS_CONFIG = {
         xp: 50,
         location: "Avión",
         render: () => `
-        <p class="mission-desc">Escribe tu TOP 3 de momentos favoritos del viaje.</p>
-        <input type="text" id="sy-1" placeholder="Momento #1..." style="width:100%; margin-bottom:5px;">
-        <input type="text" id="sy-2" placeholder="Momento #2..." style="width:100%; margin-bottom:5px;">
-        <input type="text" id="sy-3" placeholder="Momento #3..." style="width:100%; margin-bottom:15px;">
-        <button id="btn" class="btn-primary" style="width:100%; background:#d4af37; color:#000;">Desbloquear Sello Legendario</button>
+        <div style="text-align:center; margin-bottom:15px;">
+            <p style="font-size:3rem; margin-bottom:5px;">🏆✨🗾✨🏆</p>
+            <h2 style="color:var(--color-accent); font-size:1.5rem; margin-bottom:5px;">MISIÓN FINAL</h2>
+            <p style="color:#d4af37; font-weight:bold; font-size:1.1rem;">50 XP por jugador</p>
+        </div>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌸 Ha llegado el momento. 24 días de aventuras, risas, descubrimientos y misiones épicas. Antes de cerrar este Pasaporte para siempre, escribe tus <strong>3 momentos favoritos</strong> de todo el viaje.</p>
+        <div style="background:linear-gradient(135deg,#1a1a2e,#2a1a3e); border-radius:15px; padding:20px; margin:15px 0; border:2px solid #d4af37;">
+            <label style="color:#d4af37; font-size:0.9rem; font-weight:bold;">🥇 Momento #1 (el mejor de todos)</label>
+            <input type="text" id="sy-1" placeholder="El momento que nunca olvidaré..." style="width:100%; margin-bottom:12px; background:#111; color:#fff; border:1px solid #d4af3744; padding:12px; border-radius:8px; font-size:1rem;">
+            <label style="color:#c0c0c0; font-size:0.9rem; font-weight:bold;">🥈 Momento #2</label>
+            <input type="text" id="sy-2" placeholder="Otro momento increíble..." style="width:100%; margin-bottom:12px; background:#111; color:#fff; border:1px solid #c0c0c044; padding:12px; border-radius:8px; font-size:1rem;">
+            <label style="color:#cd7f32; font-size:0.9rem; font-weight:bold;">🥉 Momento #3</label>
+            <input type="text" id="sy-3" placeholder="Un recuerdo especial..." style="width:100%; margin-bottom:5px; background:#111; color:#fff; border:1px solid #cd7f3244; padding:12px; border-radius:8px; font-size:1rem;">
+        </div>
+        <button id="btn" class="btn-primary" style="width:100%; background:linear-gradient(135deg,#d4af37,#f7c948); color:#000; font-size:1.2rem; padding:18px; font-weight:bold; border:none; border-radius:12px;">🏆 DESBLOQUEAR SELLO LEGENDARIO</button>
     `,
         attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
-            const m1 = document.getElementById('sy-1').value; const m2 = document.getElementById('sy-2').value; const m3 = document.getElementById('sy-3').value;
+            const m1 = document.getElementById('sy-1').value;
+            const m2 = document.getElementById('sy-2').value;
+            const m3 = document.getElementById('sy-3').value;
             if(m1 && m2 && m3) {
-                // Simulate celebration
                 const cel = document.getElementById('celebration-modal');
                 if(cel) {
-                    document.getElementById('celebration-results').innerHTML = `<p>Tus favoritos:</p><ul><li>${m1}</li><li>${m2}</li><li>${m3}</li></ul>`;
+                    document.getElementById('celebration-results').innerHTML = `<p style="font-size:1.1rem; margin-bottom:10px;">Tus momentos favoritos:</p><ul style="text-align:left; line-height:2;"><li>🥇 ${m1}</li><li>🥈 ${m2}</li><li>🥉 ${m3}</li></ul><p style="margin-top:15px; color:#d4af37; font-weight:bold;">¡Sois LEYENDAS de Japón!</p>`;
                     cel.classList.remove('hidden'); launchConfetti();
                 }
                 submitMission('day_24_sayonara', {type:'text', data:`1:${m1}, 2:${m2}, 3:${m3}`}, role, true);
-            } else { showAlert('Aviso', 'Rellena los 3 momentos.'); }
+            } else { showAlert('¡Espera!', 'Los 3 momentos son obligatorios. ¡Piénsalo bien!'); }
         });
     }
     },
