@@ -9,6 +9,10 @@
     <!-- Iconos para iOS -->
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="stylesheet" href="styles.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- CONTENEDOR DE CONFETI -->
@@ -54,7 +58,7 @@
     <header id="main-header" class="hidden">
         <button id="btn-back" class="btn-icon">⬅️ Volver</button>
         <h2 id="header-title">Misiones</h2>
-        <button id="btn-switch-user" class="btn-icon">🏠 Cambiar</button>
+        <div style="width: 48px;"></div> <!-- Spacer para mantener centrado el título -->
     </header>
 
     <!-- LISTA DE DÍAS (NIÑOS) -->
@@ -130,6 +134,23 @@
             <button id="btn-close-celebration" class="btn-primary" style="width: 100%; background: #d4af37;">¡Siguiente Etapa!</button>
         </div>
     </div>
+
+
+    <!-- NAVEGACIÓN INFERIOR (BOTTOM NAV) -->
+    <nav id="bottom-nav" class="bottom-nav hidden">
+        <button id="nav-btn-home" class="nav-item">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Inicio</span>
+        </button>
+        <button id="nav-btn-missions" class="nav-item">
+            <span class="nav-icon">📜</span>
+            <span class="nav-label">Misiones</span>
+        </button>
+        <button id="nav-btn-passport" class="nav-item">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-label">Pasaporte</span>
+        </button>
+    </nav>
 
     <script>
         if ('serviceWorker' in navigator && location.protocol !== 'file:') {

@@ -297,6 +297,18 @@ function switchView(viewId, showHeader = true, headerTitle = "Misiones") {
     } else {
         header.classList.add('hidden');
     }
+
+    // Lógica Bottom Nav
+    const bottomNav = document.getElementById('bottom-nav');
+    if (viewId === 'view-days' || viewId === 'view-passport') {
+        bottomNav.classList.remove('hidden');
+        // Actualizar tabs activas
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if (viewId === 'view-days') document.getElementById('nav-btn-missions').classList.add('active');
+        if (viewId === 'view-passport') document.getElementById('nav-btn-passport').classList.add('active');
+    } else {
+        bottomNav.classList.add('hidden');
+    }
 }
 
 function renderDaysList(role) {
@@ -728,9 +740,16 @@ document.querySelectorAll('.btn-profile').forEach(btn => {
     });
 });
 
-document.getElementById('btn-switch-user').addEventListener('click', () => {
+document.getElementById('nav-btn-home').addEventListener('click', () => {
     switchView('view-home', false);
     currentUser = null;
+    document.body.className = ''; // Limpiar tema
+});
+
+document.getElementById('nav-btn-missions').addEventListener('click', () => {
+    if (currentUser && currentUser !== 'judge') {
+        renderDaysList(currentUser);
+    }
 });
 
 document.getElementById('btn-back').addEventListener('click', () => {
@@ -766,8 +785,11 @@ document.getElementById('btn-back').addEventListener('click', () => {
     }
 });
 
-document.getElementById('btn-passport').addEventListener('click', () => {
-    // Simple render para el pasaporte
+document.getElementById('nav-btn-passport').addEventListener('click', () => {
+    if (!currentUser || currentUser === 'judge') {
+        showAlert('Atención', 'Selecciona un explorador primero para ver el pasaporte.');
+        return;
+    }
     const gallery = document.getElementById('passport-gallery');
     gallery.innerHTML = `
         <div class="card">
