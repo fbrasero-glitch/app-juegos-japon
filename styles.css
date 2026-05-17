@@ -619,3 +619,78 @@ body.theme-ivan input:focus {
 
 .btn-approve { background-color: #4cd137; color: white; border:none; }
 .btn-reject { background-color: #e84118; color: white; border:none; }
+
+/* =========================================
+   ÁLBUM DEL COLECCIONISTA
+   ========================================= */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 16px;
+    padding-bottom: 80px; /* Espacio para bottom nav */
+}
+
+.album-slot {
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius-main);
+    background-color: var(--color-card-bg);
+    border: 2px dashed var(--color-gray-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 5px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    position: relative;
+    overflow: hidden;
+}
+
+.album-slot:active {
+    transform: scale(0.95);
+}
+
+.album-slot.filled {
+    border: var(--card-border);
+    border-style: solid;
+    padding: 0;
+    box-shadow: var(--shadow-soft);
+}
+
+.album-slot img, .album-slot video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-main);
+}
+
+.album-slot.filled.audio-slot {
+    background-color: var(--color-accent);
+    color: var(--color-text-invert);
+    font-size: 2rem;
+}
+
+.album-hint {
+    font-size: 0.65rem;
+    color: var(--color-gray-dark);
+    margin-top: 5px;
+    font-weight: bold;
+    word-break: break-word;
+}
+
+.album-icon {
+    font-size: 1.8rem;
+    opacity: 0.5;
+}
+
+body.theme-ivan .album-slot {
+    border-radius: 0;
+    border-color: var(--color-primary);
+}
+
+body.theme-ivan .album-slot img {
+    border-radius: 0;
+    filter: contrast(1.2) saturate(0.8);
+}

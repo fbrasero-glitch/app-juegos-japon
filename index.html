@@ -72,9 +72,34 @@
                 </div>
             </div>
         </div>
+        <div style="padding: 0 16px; margin-bottom: 16px;">
+            <button id="btn-open-album" class="btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                📸 Álbum del Coleccionista
+            </button>
+        </div>
         <div id="days-list" class="list-container">
             <!-- Los días se inyectan dinámicamente aquí -->
         </div>
+    </div>
+
+    <!-- ÁLBUM: LISTA DE CATEGORÍAS -->
+    <div id="view-album" class="view hidden">
+        <div id="album-categories-list" class="list-container" style="margin-top: 20px;">
+            <!-- Categorías inyectadas dinámicamente -->
+        </div>
+    </div>
+
+    <!-- ÁLBUM: CUADRÍCULA DE FOTOS -->
+    <div id="view-album-category" class="view hidden">
+        <div class="album-category-header" style="text-align:center; padding: 20px;">
+            <h3 id="album-category-title"></h3>
+            <p id="album-category-desc" style="font-size:0.9rem; color:var(--color-gray-dark);"></p>
+        </div>
+        <div id="album-grid" class="album-grid">
+            <!-- Cuadrícula inyectada dinámicamente -->
+        </div>
+        <!-- Input de cámara oculto -->
+        <input type="file" id="album-camera-input" accept="image/*,video/*,audio/*" capture="environment" style="display:none;">
     </div>
 
     <!-- DETALLE DE MISIÓN (NIÑOS) -->

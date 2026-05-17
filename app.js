@@ -5,7 +5,7 @@
 const DEFAULT_STATE = {
     kid9: { 
         name: "Laura", xp: 0, level: 0, missions: {}, 
-        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true } 
+        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, album: {} 
     },
     kid14: { 
         name: "Iván", xp: 0, level: 0, missions: {},
@@ -46,6 +46,62 @@ let currentDay = null; // Día que se está visualizando
 let currentDayMissions = []; // Misiones del día actual
 let debugUnlockAll = false; // Flag para pruebas
 
+
+// ==========================================
+// CONFIGURACIÓN DEL ÁLBUM DEL COLECCIONISTA
+// ==========================================
+const ALBUM_CONFIG = {
+    "sellos": {
+        id: "sellos", title: "Herbario de Sellos", emoji: "💮",
+        description: "Encuentra y fotografía los sellos de tinta de estaciones y templos.",
+        roles: ["kid9", "kid14"],
+        slots: 9,
+        hints: ["Estación de Tokio", "Templo Senso-ji", "Aeropuerto", "Estación de Kioto", "Santuario Fushimi", "Castillo Nijo"]
+    },
+    "tecnologia": {
+        id: "tecnologia", title: "Catálogo de Tecnología", emoji: "🤖",
+        description: "Documenta máquinas expendedoras raras, robots y consolas retro.",
+        roles: ["kid14"],
+        slots: 9,
+        hints: ["Vending machine rara", "Lata con diseño anime", "Gundam en Odaiba", "Consola en Akihabara", "Gadget absurdo"]
+    },
+    "bestiario": {
+        id: "bestiario", title: "Bestiario Mágico", emoji: "🦊",
+        description: "Fotografía criaturas reales o mitológicas que te encuentres.",
+        roles: ["kid9"],
+        slots: 9,
+        hints: ["Ciervo de Nara", "Zorro Kitsune", "Guardián Jizo", "Monos de Nikko", "Gato callejero", "Mascota de tienda"]
+    },
+    "arte_urbano": {
+        id: "arte_urbano", title: "Galería de Arte Urbano", emoji: "🕳️",
+        description: "En Japón, las tapas de alcantarilla son obras de arte. ¡Encuentra las mejores!",
+        roles: ["kid9", "kid14"],
+        slots: 9,
+        hints: ["Alcantarilla de Osaka", "Alcantarilla de Kioto", "Alcantarilla de Fuji", "Alcantarilla de Nara", "Alcantarilla de Tokio"]
+    },
+    "sabores": {
+        id: "sabores", title: "Almacén de Sabores Extraños", emoji: "🍡",
+        description: "Una checklist visual de las comidas más raras y únicas que pruebes.",
+        roles: ["kid9", "kid14"],
+        slots: 9,
+        hints: ["KitKat Raro", "Tako Tamago", "Marisco extraño", "Crepe de Harajuku", "Dulce tradicional"]
+    },
+    "simbolismo": {
+        id: "simbolismo", title: "Archivo de Simbolismo", emoji: "⛩️",
+        description: "Documenta amuletos, tablillas de deseos y símbolos de las familias.",
+        roles: ["kid9", "kid14"],
+        slots: 9,
+        hints: ["Omikuji (Papel suerte)", "Tablilla Ema", "Gran Buda", "Amuleto Omamori", "Escudo Tokugawa"]
+    },
+    "texturas_sonidos": {
+        id: "texturas_sonidos", title: "Auditoría de Texturas y Sonidos", emoji: "🎋",
+        description: "Guarda texturas interesantes (fotos macro) y graba sonidos típicos.",
+        roles: ["kid9", "kid14"],
+        slots: 9,
+        hints: ["Sonido de estación", "Textura de Tatami", "Madera tallada", "Sonido de cascada", "Textura de Bambú"]
+    }
+};
+
 function loadState() {
     const saved = localStorage.getItem('japanMissionsState');
     if (saved) {
@@ -55,6 +111,7 @@ function loadState() {
             if (gameState[kid].level === 1 && gameState[kid].xp === 0) gameState[kid].level = 0; // Ajustar a nivel 0 (0-9)
             if (!gameState[kid].badges) gameState[kid].badges = [];
             if (!gameState[kid].counters) gameState[kid].counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
+            if (!gameState[kid].album) gameState[kid].album = {};
         });
     } else {
         gameState = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -300,7 +357,7 @@ function switchView(viewId, showHeader = true, headerTitle = "Misiones") {
 
     // Lógica Bottom Nav
     const bottomNav = document.getElementById('bottom-nav');
-    if (viewId === 'view-days' || viewId === 'view-passport') {
+    if (viewId === 'view-days' || viewId === 'view-passport' || viewId === 'view-album' || viewId === 'view-album-category') {
         bottomNav.classList.remove('hidden');
         // Actualizar tabs activas
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -828,3 +885,145 @@ window.onload = async () => {
     if (window.initIndexedDB) await window.initIndexedDB();
     switchView('view-home', false);
 };
+
+// ==========================================
+// LÓGICA DEL ÁLBUM DEL COLECCIONISTA
+// ==========================================
+let currentAlbumCategory = null;
+
+document.getElementById('btn-open-album').addEventListener('click', () => {
+    if (!currentUser || currentUser === 'judge') return;
+    renderAlbumList();
+});
+
+function renderAlbumList() {
+    const listContainer = document.getElementById('album-categories-list');
+    listContainer.innerHTML = '';
+    
+    // Filtramos las categorías disponibles para el usuario activo
+    const availableCategories = Object.values(ALBUM_CONFIG).filter(cat => cat.roles.includes(currentUser));
+    
+    availableCategories.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="card-title">${cat.emoji} ${cat.title}</div>
+            <p style="font-size:0.9rem; color:var(--color-gray-dark)">${cat.description}</p>
+        `;
+        card.addEventListener('click', () => renderAlbumCategory(cat.id));
+        listContainer.appendChild(card);
+    });
+    
+    switchView('view-album', true, "Álbum del Coleccionista");
+}
+
+async function renderAlbumCategory(categoryId) {
+    currentAlbumCategory = categoryId;
+    const cat = ALBUM_CONFIG[categoryId];
+    
+    document.getElementById('album-category-title').innerText = cat.emoji + " " + cat.title;
+    document.getElementById('album-category-desc').innerText = cat.description;
+    
+    const grid = document.getElementById('album-grid');
+    grid.innerHTML = ''; // Limpiar
+    
+    for (let i = 0; i < cat.slots; i++) {
+        const slotId = `album_${currentUser}_${categoryId}_${i}`;
+        
+        const div = document.createElement('div');
+        div.className = 'album-slot';
+        
+        // Cargar imagen de la base de datos IndexedDB si existe
+        let dataUrl = null;
+        if (window.getMedia) {
+            dataUrl = await window.getMedia(slotId);
+        }
+        
+        if (dataUrl) {
+            div.classList.add('filled');
+            if (dataUrl.startsWith('data:audio')) {
+                div.classList.add('audio-slot');
+                div.innerText = '🔊';
+                div.addEventListener('click', () => {
+                    const audio = new Audio(dataUrl);
+                    audio.play();
+                });
+            } else {
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                div.appendChild(img);
+                
+                div.addEventListener('click', () => {
+                    if (confirm('¿Quieres borrar esta foto del álbum?')) {
+                        if(window.deleteMedia) window.deleteMedia(slotId).then(() => renderAlbumCategory(categoryId));
+                    }
+                });
+            }
+        } else {
+            // Slot vacío
+            const hint = cat.hints[i] || 'Buscar...';
+            const isAudioCat = categoryId === 'texturas_sonidos';
+            
+            div.innerHTML = `
+                <div class="album-icon">${categoryId === 'texturas_sonidos' ? '📸/🎙️' : '📸'}</div>
+                <div class="album-hint">${hint}</div>
+            `;
+            
+            div.addEventListener('click', () => {
+                const input = document.getElementById('album-camera-input');
+                // Si es sonido, forzar accept audio
+                if (categoryId === 'texturas_sonidos' && confirm('¿Quieres grabar un Sonido en lugar de tomar una Foto?')) {
+                    input.accept = 'audio/*';
+                    input.removeAttribute('capture'); 
+                } else {
+                    input.accept = 'image/*';
+                    input.setAttribute('capture', 'environment');
+                }
+                
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        let resultDataUrl = "";
+                        if (file.type.startsWith('audio/')) {
+                            // Audio no se comprime con canvas
+                            const reader = new FileReader();
+                            reader.onload = async (re) => {
+                                await window.saveMedia(slotId, re.target.result);
+                                renderAlbumCategory(categoryId);
+                            };
+                            reader.readAsDataURL(file);
+                            return;
+                        } else {
+                            // Es imagen, comprimir
+                            const bmp = await createImageBitmap(file);
+                            const canvas = document.createElement('canvas');
+                            const MAX = 800;
+                            let w = bmp.width;
+                            let h = bmp.height;
+                            if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } 
+                            else { if (h > MAX) { w *= MAX/h; h = MAX; } }
+                            canvas.width = w; canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(bmp, 0, 0, w, h);
+                            resultDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                            
+                            await window.saveMedia(slotId, resultDataUrl);
+                            renderAlbumCategory(categoryId);
+                        }
+                    } catch (err) {
+                        showAlert('Error', 'No se pudo guardar la captura.');
+                        console.error(err);
+                    }
+                };
+                
+                input.click();
+            });
+        }
+        
+        grid.appendChild(div);
+    }
+    
+    switchView('view-album-category', true, cat.title);
+}
