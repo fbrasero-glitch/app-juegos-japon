@@ -2,19 +2,28 @@
 // 3. CONFIGURACIÓN DE MISIONES
 // ==========================================
 
-
 const MISSIONS_CONFIG = {
-    // === NUEVAS MISIONES DÍAS 5, 6, 7 ===
     "day_5_gymnast": {
-        tag: "physical", day: 5, title: "La Gimnasta del Parque", role: "kid9", xp: 20, location: "Parque de Nara",
+        tag: "physical",
+        day: 5,
+        title: "La Gimnasta del Parque",
+        role: "kid9",
+        xp: 20,
+        location: "Parque de Nara",
         render: () => `
             <p class="mission-desc">Encuentra una zona despejada y haz tu mejor pose de gimnasia (un salto, un puente o un equilibrio) imitando la elegancia de un ciervo. ¡Que la foto quede espectacular!</p>
             <button id="btn-cam" class="btn-secondary">📸 Foto de la Pose</button>
         `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_5_gymnast', currentUser, false); }
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_5_gymnast', role, false); }
     },
+
     "day_5_investor": {
-        tag: "expert", day: 5, title: "El Inversor del Daibutsu", role: "kid14", xp: 15, location: "Nara",
+        tag: "economy",
+        day: 5,
+        title: "El Inversor del Daibutsu",
+        role: "kid14",
+        xp: 15,
+        location: "Nara",
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px;">
                 <p>>>> ACTIVO IDENTIFICADO. ¿Cuál es el recuerdo más rentable que has visto hoy (mejor relación calidad-precio)?</p>
@@ -24,16 +33,22 @@ const MISSIONS_CONFIG = {
                 <button id="btn" class="btn-primary" style="width:100%">Enviar Análisis</button>
             </div>
         `,
-        attachEvents: () => {
+        attachEvents: (role) => {
             document.getElementById('btn').addEventListener('click', () => {
                 const i = document.getElementById('t1').value;
                 const r = document.getElementById('t2').value;
-                submitMission('day_5_investor', {type:'text', data:`Activo: ${i} | Análisis: ${r}`});
+                submitMission('day_5_investor', {type:'text', data:`Activo: ${i} | Análisis: ${r}`}, role);
             });
         }
     },
+
     "day_5_mochi": {
-        tag: "game", day: 5, title: "El Ritmo del Mochi", role: "both", xp: 25, location: "Nara",
+        tag: "game",
+        day: 5,
+        title: "El Ritmo del Mochi",
+        role: "both",
+        xp: 25,
+        location: "Nara",
         render: () => `
             <p class="mission-desc">Uno golpea el mazo, el otro pone la mano. ¡Alternaos sin fallar!</p>
             <div style="text-align:center; margin-bottom:10px;">
@@ -59,13 +74,7 @@ const MISSIONS_CONFIG = {
             const tm = document.getElementById('mochi-timer');
             const targetEl = document.getElementById('mochi-target');
             
-            let hits = 0;
-            let fails = 0;
-            let time = 15;
-            let active = false;
-            let nextTarget = ''; // 'mazo' o 'mano'
-            let interval = null;
-            let isDebounced = false;
+            let hits = 0; let fails = 0; let time = 15; let active = false; let nextTarget = ''; let interval = null; let isDebounced = false;
 
             const updateTarget = () => {
                 nextTarget = nextTarget === 'mazo' ? 'mano' : 'mazo';
@@ -73,1864 +82,923 @@ const MISSIONS_CONFIG = {
             };
 
             const fail = () => {
-                fails++;
-                st.innerText = '💥';
+                fails++; st.innerText = '💥';
                 setTimeout(() => { if(active) st.innerText = '⚪'; }, 300);
                 if(fails > 2) endGame(false);
             };
 
             const hit = (type) => {
                 if(!active || isDebounced) return;
-                if(type !== nextTarget) {
-                    fail();
-                    return;
-                }
-                isDebounced = true;
-                setTimeout(() => isDebounced = false, 100);
+                if(type !== nextTarget) { fail(); return; }
+                isDebounced = true; setTimeout(() => isDebounced = false, 100);
                 
-                hits++;
-                sc.innerText = `Golpes: ${hits}/15`;
-                st.innerText = '✨';
+                hits++; sc.innerText = `Golpes: ${hits}/15`; st.innerText = '✨';
                 setTimeout(() => { if(active) st.innerText = '⚪'; }, 100);
                 
-                if(hits >= 15) endGame(true);
-                else updateTarget();
+                if(hits >= 15) endGame(true); else updateTarget();
             };
 
             const endGame = (win) => {
-                active = false;
-                clearInterval(interval);
-                btnMazo.disabled = true;
-                btnMano.disabled = true;
+                active = false; clearInterval(interval); btnMazo.disabled = true; btnMano.disabled = true;
                 if(win) {
-                    st.innerText = '🍡';
-                    targetEl.innerText = '¡Mochi perfecto!';
-                    btnSubmit.classList.remove('hidden');
-                    launchConfetti();
+                    st.innerText = '🍡'; targetEl.innerText = '¡Mochi perfecto!';
+                    btnSubmit.classList.remove('hidden'); launchConfetti();
                 } else {
-                    st.innerText = '💥';
-                    targetEl.innerText = '¡Mochi estropeado! Reintentar';
-                    btnS.classList.remove('hidden');
-                    btnS.innerText = 'Reintentar';
+                    st.innerText = '💥'; targetEl.innerText = '¡Mochi estropeado! Reintentar';
+                    btnS.classList.remove('hidden'); btnS.innerText = 'Reintentar';
                 }
             };
 
             btnS.addEventListener('click', () => {
-                btnS.classList.add('hidden');
-                btnMazo.disabled = false;
-                btnMano.disabled = false;
-                hits = 0; fails = 0; time = 15; active = true;
-                sc.innerText = `Golpes: 0/15`;
-                st.innerText = '⚪';
-                nextTarget = Math.random() > 0.5 ? 'mazo' : 'mano';
-                updateTarget();
+                btnS.classList.add('hidden'); btnMazo.disabled = false; btnMano.disabled = false;
+                hits = 0; fails = 0; time = 15; active = true; sc.innerText = `Golpes: 0/15`; st.innerText = '⚪';
+                nextTarget = Math.random() > 0.5 ? 'mazo' : 'mano'; updateTarget();
                 
                 interval = setInterval(() => {
                     if(!active) return;
-                    time--;
-                    tm.innerText = time + 's';
+                    time--; tm.innerText = time + 's';
                     if(time <= 0) endGame(false);
                 }, 1000);
             });
 
             btnMazo.addEventListener('touchstart', (e) => { e.preventDefault(); hit('mazo'); }, {passive:false});
             btnMano.addEventListener('touchstart', (e) => { e.preventDefault(); hit('mano'); }, {passive:false});
-            btnMazo.addEventListener('mousedown', () => hit('mazo'));
-            btnMano.addEventListener('mousedown', () => hit('mano'));
+            btnMazo.addEventListener('mousedown', () => hit('mazo')); btnMano.addEventListener('mousedown', () => hit('mano'));
 
             btnSubmit.addEventListener('click', () => submitMission('day_5_mochi', {type:'game', data:'¡Mochi Perfecto en equipo!'}, role, true));
             window._missionCleanup = () => { active = false; clearInterval(interval); };
         }
     },
-    "day_6_crest": {
-        tag: "expert", day: 6, title: "El Sello del Shogun", role: "kid9", xp: 15, location: "Castillo Nijo",
-        render: () => `
-            <p class="mission-desc">El símbolo de la familia Tokugawa (tres hojas de malva) está escondido por todo el castillo. Encuentra el más brillante y captúralo.</p>
-            <div style="background:var(--color-gray-light); padding:10px; border-radius:8px; margin-bottom:15px;">
-                <p style="font-weight:bold; margin-bottom:10px;">¿Qué era este símbolo?</p>
-                <div style="display:flex; flex-direction:column; gap:5px;">
-                    <label><input type="radio" name="crest_q" value="Escudo familiar"> 🛡️ Escudo familiar</label>
-                    <label><input type="radio" name="crest_q" value="Señal de tráfico"> 🚦 Señal de tráfico</label>
-                    <label><input type="radio" name="crest_q" value="Decoración"> 🎨 Decoración</label>
-                </div>
-            </div>
-            <button id="btn-cam" class="btn-secondary">📸 Foto y Enviar</button>
-        `,
-        attachEvents: () => {
-            attachCameraFlow('btn-cam', 'day_6_crest', currentUser, false);
-            // Sobrescribimos el flow para enviar también la respuesta
-            const btn = document.getElementById('btn-cam');
-            const oldInput = btn.nextElementSibling;
-            if(oldInput && oldInput.tagName === 'INPUT') {
-                const oldClone = oldInput.cloneNode(true);
-                oldInput.parentNode.replaceChild(oldClone, oldInput);
-                oldClone.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if(!file) return;
-                    btn.innerText = '⏳ Procesando...';
-                    const ans = document.querySelector('input[name="crest_q"]:checked')?.value || 'Sin respuesta';
-                    try {
-                        const compressed = await compressImage(file);
-                        const photoId = 'photo_' + Date.now();
-                        await savePhotoToDB(photoId, compressed);
-                        submitMission('day_6_crest', {type:'mixed', data:`Respuesta: ${ans}. Foto ID: ${photoId}`});
-                    } catch(err) { console.error(err); }
-                });
-            }
-        }
-    },
+
     "day_6_evasion": {
-        tag: "physical", day: 6, title: "Técnica de Evasión", role: "kid9", xp: 20, location: "Castillo Nijo",
+        tag: "physical",
+        day: 6,
+        title: "Técnica de Evasión",
+        role: "kid9",
+        xp: 20,
+        location: "Nijo",
         render: () => `
             <p class="mission-desc">Cruza el puente de piedra del jardín en menos de 30 segundos dando pasos completamente silenciosos y rozando el suelo.</p>
-            <div id="evasion-time" style="font-size:3rem; text-align:center; margin:20px 0;">0.00s</div>
-            <button id="btn-start" class="btn-primary" style="width:100%">Iniciar</button>
-            <button id="btn-stop" class="btn-secondary hidden" style="width:100%">He llegado</button>
-            <button id="btn-submit" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
+            <button id="btn" class="btn-primary" style="width:100%">¡He cruzado en silencio!</button>
         `,
-        attachEvents: () => {
-            let startT = 0, int = null, finalT = 0;
-            const tEl = document.getElementById('evasion-time');
-            const bS = document.getElementById('btn-start');
-            const bE = document.getElementById('btn-stop');
-            const bSub = document.getElementById('btn-submit');
-            
-            bS.addEventListener('click', () => {
-                bS.classList.add('hidden'); bE.classList.remove('hidden');
-                startT = Date.now();
-                int = setInterval(() => { tEl.innerText = ((Date.now() - startT)/1000).toFixed(2) + 's'; }, 50);
-            });
-            bE.addEventListener('click', () => {
-                clearInterval(int);
-                finalT = ((Date.now() - startT)/1000).toFixed(2);
-                tEl.innerText = finalT + 's';
-                bE.classList.add('hidden');
-                bSub.classList.remove('hidden');
-            });
-            bSub.addEventListener('click', () => submitMission('day_6_evasion', {type:'game', data:`Tiempo de evasión: ${finalT}s`}));
-            window._missionCleanup = () => clearInterval(int);
-        }
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_evasion', {type:'physical', data:'Logrado'}, role)); }
     },
-    "day_6_infiltration": {
-        tag: "expert", day: 6, title: "Infiltración Táctica", role: "kid14", xp: 20, location: "Castillo Nijo",
-        render: () => `
-            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-                <p>>>> ANALIZANDO PERÍMETRO DEL CASTILLO. Identifica 2 puntos ciegos reales (esquinas, puertas, árboles) y describe la ruta exacta para llegar al tejado sin activar los suelos de ruiseñor.</p>
-                <textarea id="infil-route" style="width:100%; height:100px; background:#000; color:#0f0; border:1px solid #0f0; margin-top:10px;"></textarea>
-                <button id="btn" class="btn-primary" style="width:100%; margin-top:10px;">Enviar al Juez</button>
-            </div>
-        `,
-        attachEvents: () => {
-            document.getElementById('btn').addEventListener('click', () => {
-                submitMission('day_6_infiltration', {type:'text', data:document.getElementById('infil-route').value});
-            });
-        }
-    },
+
     "day_6_clan": {
-        tag: "photo", day: 6, title: "El Retrato del Clan", role: "both", xp: 20, location: "Castillo Nijo",
-        render: () => `
-            <p class="mission-desc">Buscad un fondo espectacular en los muros exteriores del castillo. Configurad el temporizador del móvil y posad todos con la expresión más seria y marcial posible, como un auténtico clan feudal.</p>
-            <label style="display:block; margin:20px 0; font-size:1.2rem;"><input type="checkbox" id="chk-clan" style="transform:scale(1.5); margin-right:10px;"> ✅ Hemos hecho la foto de clan</label>
-            <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
-        `,
-        attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                if(document.getElementById('chk-clan').checked) submitMission('day_6_clan', {type:'text', data:'Foto familiar realizada'}, role, true);
-                else showAlert('Aviso', 'Debéis confirmar que habéis hecho la foto marcando la casilla.');
-            });
-        }
+        tag: "photo",
+        day: 6,
+        title: "El Retrato del Clan",
+        role: "both",
+        xp: 20,
+        location: "Castillo Nijo",
+        render: () => `<p class="mission-desc">Buscad un fondo espectacular en los muros. Configurad el temporizador del móvil y posad todos con expresión seria y marcial, como un auténtico clan feudal.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_6_clan', role, false, true)
     },
+
     "day_7_kimono": {
-        tag: "photo", day: 7, title: "Cazadora de Kimonos", role: "kid9", xp: 15, location: "Sannenzaka",
-        render: () => `
-            <p class="mission-desc">Cuenta cuántas personas ves con kimono tradicional rojo o azul en Sannenzaka.</p>
-            <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
-                <button id="btn-sub" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
-                <div id="kimono-count" style="font-size:3rem; font-weight:bold;">0</div>
-                <button id="btn-add" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
-            </div>
-            <p class="mission-desc">Captura el kimono que más te guste (sin molestar a la persona).</p>
-            <button id="btn-cam" class="btn-secondary">📸 Captura y Enviar</button>
-        `,
-        attachEvents: () => {
-            let count = 0;
-            document.getElementById('btn-add').addEventListener('click', () => { count++; document.getElementById('kimono-count').innerText = count; });
-            document.getElementById('btn-sub').addEventListener('click', () => { if(count>0) count--; document.getElementById('kimono-count').innerText = count; });
-            
-            attachCameraFlow('btn-cam', 'day_7_kimono', currentUser, false);
-            const btn = document.getElementById('btn-cam');
-            const oldInput = btn.nextElementSibling;
-            if(oldInput && oldInput.tagName === 'INPUT') {
-                const oldClone = oldInput.cloneNode(true);
-                oldInput.parentNode.replaceChild(oldClone, oldInput);
-                oldClone.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if(!file) return;
-                    btn.innerText = '⏳ Procesando...';
-                    try {
-                        const compressed = await compressImage(file);
-                        const photoId = 'photo_' + Date.now();
-                        await savePhotoToDB(photoId, compressed);
-                        submitMission('day_7_kimono', {type:'mixed', data:`Kimonos contados: ${count}. Foto ID: ${photoId}`});
-                    } catch(err) { console.error(err); }
-                });
-            }
-        }
+        tag: "photo",
+        day: 7,
+        title: "Cazadora de Kimonos",
+        role: "kid9",
+        xp: 15,
+        location: "Sannenzaka",
+        render: () => `<p class="mission-desc">Cuenta cuántas personas ves con kimono tradicional en Sannenzaka y cuando veas un grupo colorido pídeles hacerles una foto desde lejos.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_7_kimono', role, false)
     },
+
     "day_7_kintsugi": {
-        tag: "expert", day: 7, title: "La Vasija Rota", role: "kid9", xp: 20, location: "Kioto",
+        tag: "game",
+        day: 7,
+        title: "La Vasija Rota",
+        role: "kid9",
+        xp: 20,
+        location: "Kioto",
         render: () => `
             <p class="mission-desc">Este plato está roto. Dibuja líneas doradas sobre las grietas para repararlo con la técnica Kintsugi.</p>
-            <div style="background:#fff; border:1px solid #ccc; position:relative; width:300px; height:300px; margin:0 auto; margin-bottom:15px; border-radius:50%; overflow:hidden;">
-                <!-- Fondo simulado de plato roto -->
-                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:radial-gradient(circle, #f0f0f0, #d0d0d0);">
-                    <svg width="300" height="300" style="position:absolute; top:0; left:0; opacity:0.3;"><path d="M150,150 L200,50 M150,150 L50,120 M150,150 L180,280 M100,200 L50,280" stroke="#000" stroke-width="4" fill="none"/></svg>
-                </div>
-                <canvas id="kintsugi-canvas" width="300" height="300" style="position:absolute; top:0; left:0; z-index:10;"></canvas>
+            <div style="background:#000; position:relative; width:100%; height:250px; border-radius:10px; overflow:hidden;">
+                <div style="position:absolute; border:2px dashed #333; width:200px; height:200px; border-radius:50%; top:25px; left:calc(50% - 100px); opacity:0.5;"></div>
+                <canvas id="kintsugi-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
             </div>
-            <div style="display:flex; gap:10px;">
-                <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
-                <button id="btn-submit" class="btn-primary" style="flex:2;">Enviar reparación</button>
-            </div>
+            <button id="btn-kint" class="btn-primary" style="width:100%; margin-top:10px;">Completar Restauración</button>
         `,
-        attachEvents: () => {
+        attachEvents: (role) => {
             const canvas = document.getElementById('kintsugi-canvas');
             const ctx = canvas.getContext('2d');
-            ctx.strokeStyle = '#FFD700'; // Dorado
-            ctx.lineWidth = 8;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = '#B8860B';
+            canvas.width = canvas.parentElement.getBoundingClientRect().width;
+            canvas.height = 250;
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#FFD700';
 
             let drawing = false;
-
             const getPos = (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
+                const x = e.touches ? e.touches[0].clientX : e.clientX;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: x - rect.left, y: y - rect.top };
             };
+            const drawStart = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+            const drawMove = (e) => { if(drawing) { e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); } };
+            const drawEnd = () => { drawing = false; };
 
-            const startDraw = (e) => {
-                drawing = true;
-                const pos = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-            };
+            canvas.addEventListener('mousedown', drawStart);
+            canvas.addEventListener('mousemove', drawMove);
+            canvas.addEventListener('mouseup', drawEnd);
+            canvas.addEventListener('touchstart', drawStart, {passive:false});
+            canvas.addEventListener('touchmove', drawMove, {passive:false});
+            canvas.addEventListener('touchend', drawEnd);
 
-            const draw = (e) => {
-                if(!drawing) return;
-                e.preventDefault(); // Prevenir scroll en touchmove
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-            };
-
-            const stopDraw = () => { drawing = false; };
-
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDraw);
-            canvas.addEventListener('mouseout', stopDraw);
-            canvas.addEventListener('touchstart', startDraw, {passive:false});
-            canvas.addEventListener('touchmove', draw, {passive:false});
-            canvas.addEventListener('touchend', stopDraw);
-
-            document.getElementById('btn-clear').addEventListener('click', () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            });
-
-            document.getElementById('btn-submit').addEventListener('click', async () => {
+            document.getElementById('btn-kint').addEventListener('click', async () => {
                 const dataUrl = canvas.toDataURL('image/png');
-                const photoId = 'kintsugi_' + Date.now();
-                await savePhotoToDB(photoId, dataUrl);
-                submitMission('day_7_kintsugi', {type:'photo', data:photoId});
+                await savePhotoToDB('kintsugi_' + Date.now(), dataUrl);
+                submitMission('day_7_kintsugi', {type:'game', data:'Plato restaurado con oro'}, role);
             });
         }
     },
-    "day_7_engineering": {
-        tag: "expert", day: 7, title: "Cálculo de Cargas Estructurales", role: "kid14", xp: 20, location: "Kiyomizu-dera",
-        render: () => `
-            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-                <p>>>> NÚMERO DE PILARES en la primera fila frontal de la terraza:</p>
-                <input type="number" id="pils" style="width:100%; margin-bottom:10px;">
-                <p>>>> PESO SOPORTADO (cada pilar aguanta 5 toneladas). Multiplica: pilares x 5 =</p>
-                <input type="number" id="tons" style="width:100%; margin-bottom:15px;">
-                <button id="btn" class="btn-primary" style="width:100%">Enviar Cálculo</button>
-            </div>
-        `,
-        attachEvents: () => {
-            const p = document.getElementById('pils');
-            const t = document.getElementById('tons');
-            p.addEventListener('input', () => {
-                if(p.value) t.value = parseInt(p.value) * 5;
-            });
-            document.getElementById('btn').addEventListener('click', () => {
-                submitMission('day_7_engineering', {type:'text', data:`Pilares: ${p.value}, Toneladas: ${t.value}`});
-            });
-        }
-    },
-    "day_7_curse": {
-        tag: "expert", day: 7, title: "Supervivencia al Maleficio", role: "kid14", xp: 15, location: "Sannenzaka",
-        render: () => `
-            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-                <p>>>> AMENAZA DETECTADA: Maldición por caída en Sannenzaka.</p>
-                <p>>>> Revisa tu inventario actual (mochila). ¿Qué 3 objetos reales usarías para contrarrestar la maldición y sobrevivir al día?</p>
-                <textarea id="items" style="width:100%; height:80px; background:#000; color:#0f0; border:1px solid #0f0; margin-top:10px;" placeholder="Ej: una tirita, un imán, una moneda de 5 yenes..."></textarea>
-                <button id="btn" class="btn-primary" style="width:100%; margin-top:10px;">Aplicar Antídoto</button>
-            </div>
-        `,
-        attachEvents: () => {
-            document.getElementById('btn').addEventListener('click', () => {
-                submitMission('day_7_curse', {type:'text', data:document.getElementById('items').value});
-            });
-        }
-    },
-    // === MISIONES ORIGINALES DÍAS 1, 2, 3 ===
-    "day_1_fam_bet": { tag: "writing", day: 1, title: "Apuesta del Aterrizaje", role: "both", xp: 25, location: "Avión / Aeropuerto", render: () => `<p class="mission-desc">¡Bienvenidos a bordo! Antes de aterrizar en tierras niponas, escribid 3 cosas locas, raras o increíbles que creéis que veréis durante este gran viaje de 24 días en Japón.</p><input type="text" id="b1" placeholder="Locura 1..."><input type="text" id="b2" placeholder="Locura 2..."><input type="text" id="b3" placeholder="Locura 3..."><button id="btn" class="btn-primary" style="width:100%">Sellar Apuesta</button>`, attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_fam_bet', {type:'text', data:document.getElementById('b1').value}, role, true)); } },
-        "day_1_kid9_bingo": {
-        tag: "game", day: 1, title: "Bingo Aeroportuario", role: "kid9", xp: 15, location: "Aeropuerto",
-        render: () => `
-            <p class="mission-desc">¡Entrenamiento de observación activado! Encuentra 4 objetos típicos en el aeropuerto. Toca el sello correspondiente cuando lo localices.</p>
-            <div id="bingo-board" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; perspective: 1000px;">
-                ${['🎎', '🍵', '🚅', '🍣', '🏮', '🐱', '⛩️', '🍱', '🌸'].map((emoji, i) => `
-                    <div class="bingo-cell" data-idx="${i}" style="background: var(--color-white); border: 2px solid var(--color-gray-light); border-radius: 10px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.3s; transform-style: preserve-3d; cursor: pointer; position: relative;">
-                        <div class="emoji-face">${emoji}</div>
-                        <div class="stamp-face hidden" style="position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: rgba(255, 0, 0, 0.05); border-radius: 8px;">
-                            <span style="color: #d32f2f; font-size: 3rem; font-weight: bold; transform: rotate(-25deg); border: 3px solid #d32f2f; border-radius: 5px; opacity: 0.9; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">💮</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; animation: pulse 1s infinite;">¡BINGO LOCALIZADO!</button>
-        `,
-        attachEvents: () => {
-            let stamped = 0;
-            const cells = document.querySelectorAll('.bingo-cell');
-            cells.forEach(c => {
-                c.addEventListener('click', function() {
-                    if (this.dataset.stamped === 'true') return;
-                    this.dataset.stamped = 'true';
-                    this.style.transform = 'scale(0.9)';
-                    setTimeout(() => {
-                        this.querySelector('.emoji-face').style.opacity = '0.3';
-                        this.querySelector('.stamp-face').classList.remove('hidden');
-                        this.style.transform = 'scale(1)';
-                        this.style.borderColor = '#d32f2f';
-                        stamped++;
-                        if(stamped === 4) {
-                            document.getElementById('btn').classList.remove('hidden');
-                            launchConfetti();
-                        }
-                    }, 150);
-                });
-            });
-            document.getElementById('btn').addEventListener('click', () => submitMission('day_1_kid9_bingo', {type:'game', data:'Bingo completado con 4 sellos'}));
-        }
-    },
-    "day_1_kid14_nav": { tag: "sensors", day: 1, title: "Navegante de Altura", role: "kid14", xp: 15, location: "Avión", render: () => `<p class="mission-desc">Como navegante oficial del equipo, usa la pantalla del avión para anotar la velocidad de crucero actual y utiliza la brújula digital de este dispositivo para verificar el rumbo hacia Japón.</p><div id="compass" style="font-size:2rem; text-align:center;">0°</div><input type="number" id="s" placeholder="Velocidad km/h"><button id="btn" class="btn-primary" style="width:100%">Enviar Reporte de Vuelo</button>`, attachEvents: () => { window.addEventListener('deviceorientation', (e) => { if(e.alpha) document.getElementById('compass').innerText = Math.round(e.alpha)+'°'; }); document.getElementById('btn').addEventListener('click', () => submitMission('day_1_kid14_nav', {type:'text', data:document.getElementById('s').value + ' km/h'})); } },
-    "day_1_kid14_jetlag": { tag: "writing", day: 1, title: "Reloj Samurái del Sueño", role: "kid14", xp: 15, location: "Avión / Hotel", render: () => `<p class="mission-desc">Calcula tu hora de dormir (+7h).</p><input type="time" id="t"><button id="btn" class="btn-primary" style="width:100%">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_kid14_jetlag', {type:'text', data:document.getElementById('t').value})); } },
-    "day_2_kid9_yokai": { tag: "photo", day: 2, title: "Caza del Yōkai Oficial", role: "kid9", xp: 20, location: "Calle", render: () => `<p class="mission-desc">¡Alerta Yōkai! Estos espíritus se esconden en todas partes. Encuentra una mascota oficial de alguna tienda japonesa o un cartel llamativo de estilo manga en las calles y captúralo con tu cámara antes de que desaparezca.</p><button id="btn-cam" class="btn-secondary">📸 Capturar Yōkai</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_2_kid9_yokai', currentUser, false); } },
 
-    "any_eki_stamp": { tag: "photo", day: 2, title: "Coleccionista de Eki-Stamps", role: "both", xp: 15, location: "Estaciones", render: () => `<p class="mission-desc">Busca el sello de la estación.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sello</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'any_eki_stamp', role, true); } },
-
-    "day_2_kid14_protocol": { tag: "versus", day: 2, title: "Protocolo Shōgun", role: "kid14", xp: 20, location: "Metro / Tren", render: () => `<p class="mission-desc">Guía a la familia al hotel.</p><button id="btn" class="btn-primary" style="width:100%">Llegamos</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_2_kid14_protocol', {type:'text', data:'OK'})); } },
-    "day_3_kid14_architect": { tag: "writing", day: 3, title: "Arquitecto del Castillo", correctAnswer: "~70m a 90m (Foso del castillo)",  role: "kid14", xp: 20, location: "Castillo Osaka", render: () => `<p class="mission-desc">Analiza la defensa del Shogun. Abre Google Maps en modo satélite y utiliza la herramienta de medida para calcular la distancia real aproximada (en metros) del foso de agua que protege el Castillo de Osaka.</p><input type="number" id="d" placeholder="Metros calculados..."><button id="btn" class="btn-primary">Enviar Informe de Asedio</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_3_kid14_architect', {type:'number', data:document.getElementById('d').value})); } },
-    "day_3_kid14_audio": { tag: "audio", day: 3, title: "Jingle de Estación", role: "kid14", xp: 15, location: "Estación", render: () => `<p class="mission-desc">Cada estación de tren en Japón tiene su propia melodía característica (Hassha Melody). Espera en el andén y graba el sonido que suena justo antes de que el tren cierre sus puertas.</p><button id="btn-cam" class="btn-secondary">🎤 Grabar Melodía</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid14_audio', currentUser, false); } },
-
-    "day_3_kid14_filtro": { tag: "photo", day: 3, title: "Filtro Cyberpunk", role: "kid14", xp: 10, location: "Umeda Sky", render: () => `<p class="mission-desc">Foto con filtro neón.</p><button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid14_filtro', currentUser, false); } },
-
-    "day_3_kid9_glico": { tag: "photo", day: 3, title: "Glico Man", role: "kid9", xp: 10, location: "Dotonbori", render: () => `<p class="mission-desc">¡Llegada a Dotonbori! Busca el famoso cartel luminoso del corredor de Glico. Debes imitar su pose clásica (brazos arriba y una pierna flexionada) y pedirle a alguien que te haga un selfie o foto de cuerpo entero.</p><button id="btn-cam" class="btn-secondary">📸 Hacer la pose Glico</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid9_glico', currentUser, false); } },
-
-    "day_3_kid9_ninja": { tag: "photo", day: 3, title: "Ninja de las Sombras", role: "kid9", xp: 10, location: "Jardines", render: () => `<p class="mission-desc">Foto de tu sombra ninja.</p><button id="btn-cam" class="btn-secondary">📸 Sombra</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid9_ninja', currentUser, false); } },
-
-    "day_3_kid9_puente": { tag: "writing", day: 3, title: "Puente del Castillo", correctAnswer: "Depende de sus pasos, generalmente entre 40 y 60.",  role: "kid9", xp: 15, location: "Castillo", render: () => `<p class="mission-desc">Cuenta los pasos del puente.</p><input type="number" id="p"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_3_kid9_puente', {type:'number', data:document.getElementById('p').value})); } },
-    "day_3_kid14_tribunal": { tag: "photo", day: 3, title: "Tribunal del Cartel", role: "kid14", xp: 15, location: "Dotonbori", render: () => `<p class="mission-desc">Foto del cartel más exagerado.</p><button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid14_tribunal', currentUser, false); } },
-
-    "day_3_kid9_umeda": { tag: "photo", day: 3, title: "Umeda Sky (Superhéroe)", role: "kid9", xp: 10, location: "Umeda Sky", render: () => `<p class="mission-desc">Sujeta el edificio.</p><button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_kid9_umeda', currentUser, false); } },
-
-    // === DÍA 1 ===
-    "day_1_equilibrium": {
-        tag: "sensors", day: 1, title: "Equilibrio a 10.000 Metros", role: "kid9", xp: 15, location: "Avión",
-        render: () => `
-            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe tocar los bordes durante 60 segundos.</p>
-            <div style="display:flex; justify-content:center; align-items:center; height:150px; background:#4facfe; border-radius:20px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(0,0,0,0.5);">
-                <div style="width: 100px; height: 100px; background: #27ae60; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
-                    <div id="drop" style="width: 30px; height: 30px; background: rgba(255,255,255,0.9); border-radius: 50%; box-shadow: 0 5px 10px rgba(0,0,0,0.3); transition: transform 0.1s;"></div>
-                </div>
-                <div id="eq-timer" style="position: absolute; top: 10px; right: 15px; font-size: 2rem; font-weight: bold; color: white;">60</div>
-            </div>
-            <button id="btn-start" class="btn-secondary" style="width:100%; margin-top: 15px;">Iniciar Meditación</button>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const drop = document.getElementById('drop');
-            const timerEl = document.getElementById('eq-timer');
-            const btnS = document.getElementById('btn-start');
-            const btnV = document.getElementById('btn');
-            
-            let active = false;
-            let time = 60;
-            let interval = null;
-            let b0 = null, g0 = null;
-
-            const handleOrientation = (e) => {
-                if(!active) return;
-                let beta = e.beta;
-                let gamma = e.gamma;
-                if(b0 === null) { b0 = beta; g0 = gamma; }
-                
-                let db = beta - b0;
-                let dg = gamma - g0;
-                
-                drop.style.transform = `translate(${dg * 2}px, ${db * 2}px)`;
-                
-                if(Math.abs(db) > 5 || Math.abs(dg) > 5) {
-                    active = false;
-                    clearInterval(interval);
-                    drop.style.background = 'red';
-                    btnS.innerText = "¡La gota cayó! Reintentar";
-                    btnS.classList.remove('hidden');
-                    window.removeEventListener('deviceorientation', handleOrientation);
-                }
-            };
-
-            btnS.addEventListener('click', () => {
-                const startSim = () => {
-                    active = true; time = 60; b0 = null; g0 = null;
-                    drop.style.background = 'rgba(255,255,255,0.9)';
-                    drop.style.transform = 'translate(0,0)';
-                    timerEl.innerText = time;
-                    btnS.classList.add('hidden');
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    
-                    interval = setInterval(() => {
-                        if(!active) return;
-                        time--;
-                        timerEl.innerText = time;
-                        if(time <= 0) {
-                            active = false;
-                            clearInterval(interval);
-                            drop.style.boxShadow = '0 0 20px 10px rgba(255,255,255,0.8)';
-                            btnV.classList.remove('hidden');
-                            launchConfetti();
-                            window.removeEventListener('deviceorientation', handleOrientation);
-                        }
-                    }, 1000);
-                };
-
-                if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(res => {
-                        if(res === 'granted') startSim();
-                    }).catch(console.error);
-                } else {
-                    startSim();
-                }
-            });
-
-            btnV.addEventListener('click', () => submitMission('day_1_equilibrium', {type:'game', data:'Equilibrio mantenido 60s'}));
-            window._missionCleanup = () => { active = false; clearInterval(interval); window.removeEventListener('deviceorientation', handleOrientation); };
-        }
-    },
-    "day_1_scanner": {
-        tag: "expert", day: 1, title: "El Escáner de Frecuencias", role: "kid9", xp: 25, location: "Avión",
-        render: () => `
-            <p class="mission-desc">Acerca el móvil a la ventanilla. ¡Captura el sonido del motor!</p>
-            <div style="background:#111; border-radius:10px; padding:10px; border:2px solid #0f0; margin-bottom:15px;">
-                <canvas id="audio-wave" width="300" height="100" style="width:100%; height:100px;"></canvas>
-                <div style="color:#0f0; font-family:monospace; text-align:center; margin-top:5px;" id="audio-status">Estabilidad: 0/5 s</div>
-            </div>
-            <button id="btn-scan" class="btn-secondary" style="width:100%;">Escanear Motor</button>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const canvas = document.getElementById('audio-wave');
-            const ctx = canvas.getContext('2d');
-            const btnS = document.getElementById('btn-scan');
-            const btn = document.getElementById('btn');
-            const stat = document.getElementById('audio-status');
-            
-            let audioCtx = null;
-            let analyser = null;
-            let source = null;
-            let stream = null;
-            let rafId = null;
-            let stableTime = 0;
-            let isScanning = false;
-            let lastTime = 0;
-            
-            const stopAudio = () => {
-                isScanning = false;
-                if(rafId) cancelAnimationFrame(rafId);
-                if(source) source.disconnect();
-                if(analyser) analyser.disconnect();
-                if(stream) stream.getTracks().forEach(t => t.stop());
-                if(audioCtx && audioCtx.state !== 'closed') audioCtx.close();
-            };
-
-            const drawWave = (timestamp) => {
-                if(!isScanning) return;
-                rafId = requestAnimationFrame(drawWave);
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteTimeDomainData(dataArray);
-                
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#0f0';
-                ctx.beginPath();
-                
-                let sliceWidth = canvas.width * 1.0 / dataArray.length;
-                let x = 0;
-                let sum = 0;
-                
-                for(let i = 0; i < dataArray.length; i++) {
-                    let v = dataArray[i] / 128.0;
-                    let y = v * canvas.height/2;
-                    if(i === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                    x += sliceWidth;
-                    sum += Math.abs(dataArray[i] - 128);
-                }
-                ctx.lineTo(canvas.width, canvas.height/2);
-                ctx.stroke();
-                
-                let vol = sum / dataArray.length;
-                
-                if(timestamp - lastTime >= 1000) {
-                    lastTime = timestamp;
-                    if(vol > 15) { // Umbral ajustado
-                        stableTime++;
-                        stat.innerText = `Estabilidad: ${stableTime}/5 s`;
-                        if(stableTime >= 5) {
-                            stat.innerText = "¡Frecuencia capturada!";
-                            btnS.classList.add('hidden');
-                            btn.classList.remove('hidden');
-                            stopAudio();
-                        }
-                    } else {
-                        stableTime = 0;
-                        stat.innerText = `Estabilidad: 0/5 s`;
-                    }
-                }
-            };
-
-            btnS.addEventListener('click', async () => {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioCtx.createAnalyser();
-                    analyser.fftSize = 256;
-                    source = audioCtx.createMediaStreamSource(stream);
-                    source.connect(analyser);
-                    isScanning = true;
-                    btnS.innerText = "Escaneando...";
-                    lastTime = performance.now();
-                    drawWave(performance.now());
-                } catch(e) {
-                    alert("Error al acceder al micrófono: " + e.message);
-                }
-            });
-
-            btn.addEventListener('click', () => {
-                const img = canvas.toDataURL();
-                submitMission('day_1_scanner', {type:'drawing', data: img});
-            });
-            window._missionCleanup = stopAudio;
-        }
-    },
     "day_1_clouds": {
-        tag: "photo", day: 1, title: "Cazador de Formas", role: "kid9", xp: 15, location: "Avión",
-        render: () => `
-            <p class="mission-desc">Haz una foto por la ventanilla y busca una forma en las nubes.</p>
-            <input type="text" id="c-desc" placeholder="¿Qué forma tiene tu nube?" style="margin-bottom:10px;">
-            <button id="btn-cam" class="btn-secondary">📸 Capturar Nube</button>
-        `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_1_clouds', currentUser, false); }
+        tag: "photo",
+        day: 1,
+        title: "Cazador de Formas",
+        role: "kid9",
+        xp: 10,
+        location: "Avión",
+        render: () => `<p class="mission-desc">Haz una foto por la ventanilla y busca una forma extraña en las nubes.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_1_clouds', role, false)
     },
+
     "day_1_customs": {
-        tag: "expert", day: 1, title: "Infiltración en Aduanas", role: "kid14", xp: 25, location: "Aeropuerto",
+        tag: "expert",
+        day: 1,
+        title: "Infiltración en Aduanas",
+        role: "kid14",
+        xp: 25,
+        location: "Aeropuerto",
         render: () => `
-            <div class="ui-terminal" style="background:#000; color:#0f0; padding:15px; font-family:monospace; border-radius:5px;">
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
                 <p>>>> ACCEDIENDO A PROTOCOLO DE ADUANAS...</p>
-                <p>>>> INTRODUCE LÍMITE DE EFECTIVO SIN DECLARAR (YENES):</p>
-                <input type="number" id="t-ans" style="background:#222; color:#0f0; border:1px solid #0f0; width:100%; margin:10px 0;">
-                <p id="t-msg" style="color:red;"></p>
-                <button id="btn-hack" class="btn-primary" style="background:#0a0; width:100%;">EJECUTAR</button>
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const btn = document.getElementById('btn');
-            const btnH = document.getElementById('btn-hack');
-            const msg = document.getElementById('t-msg');
-            let fails = 0;
-            btnH.addEventListener('click', () => {
-                const v = document.getElementById('t-ans').value;
-                if(v === "1000000") {
-                    msg.style.color = "#0f0";
-                    msg.innerText = ">>> PROTOCOLO DESBLOQUEADO. Agente autorizado.";
-                    btnH.classList.add('hidden');
-                    btn.classList.remove('hidden');
-                    launchConfetti();
-                } else {
-                    fails++;
-                    msg.innerText = ">>> CÓDIGO INCORRECTO." + (fails>0?" PISTA: Busca en Visit Japan Web.":"");
-                }
-            });
-            btn.addEventListener('click', () => submitMission('day_1_customs', {type:'text', data:'1000000 Yenes (Hackeado)'}));
-        }
-    },
-    "day_1_yen": {
-        tag: "economy", day: 1, title: "El Precio del Yen", role: "kid14", xp: 15, location: "Aeropuerto",
-        render: () => `
-            <div class="ui-terminal" style="background:#000; color:#0f0; padding:15px; font-family:monospace; border-radius:5px;">
-                <p>>>> COTIZACIÓN EN TIEMPO REAL.</p>
-                <p>>>> ¿Cuántos yenes te dan hoy por 50 euros? (Sin decimales)</p>
-                <input type="number" id="y-ans" style="background:#222; color:#0f0; border:1px solid #0f0; width:100%; margin:10px 0;">
-                <button id="btn-y" class="btn-primary" style="background:#0a0; width:100%;">ENVIAR AL JUEZ</button>
+                <p>Lee el formulario de aduanas japonés. ¿Cuál es el límite legal de yenes en efectivo que puedes introducir sin declarar?</p>
+                <input type="number" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">EJECUTAR</button>
             </div>
         `,
-        attachEvents: () => {
-            document.getElementById('btn-y').addEventListener('click', () => {
-                submitMission('day_1_yen', {type:'number', data:document.getElementById('y-ans').value});
-            });
-        }
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_customs', {type:'number', data:document.getElementById('ans').value}, role)); }
     },
-    // === DÍA 2 ===
-    "day_2_balance": {
-        tag: "physical", day: 2, title: "La Postura del Viajero", role: "kid9", xp: 20, location: "Metro",
-        render: () => `
-            <p class="mission-desc">De pie, sin agarrarte a las anillas. ¡Solo tus piernas te sostienen durante 3 minutos!</p>
-            <div style="font-size:4rem; text-align:center; font-weight:bold; margin:20px 0;" id="b-timer">180</div>
-            <button id="btn-start" class="btn-primary" style="width:100%;">Iniciar</button>
-            <button id="btn-fail" class="btn-secondary hidden" style="width:100%; margin-top:10px; background:#e74c3c; color:white;">Me caí</button>
-            <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            let t = 180;
-            let int = null;
-            const el = document.getElementById('b-timer');
-            const bS = document.getElementById('btn-start');
-            const bF = document.getElementById('btn-fail');
-            const btn = document.getElementById('btn');
-            
-            bS.addEventListener('click', () => {
-                bS.classList.add('hidden');
-                bF.classList.remove('hidden');
-                int = setInterval(() => {
-                    t--; el.innerText = t;
-                    if(t<=0) {
-                        clearInterval(int);
-                        bF.classList.add('hidden');
-                        el.innerText = "¡Misión Cumplida!";
-                        btn.classList.remove('hidden');
-                        launchConfetti();
-                    }
-                }, 1000);
-            });
-            bF.addEventListener('click', () => {
-                clearInterval(int);
-                t = 180; el.innerText = t;
-                bF.classList.add('hidden');
-                bS.classList.remove('hidden');
-                alert("No pasa nada. ¡Vuelve a intentarlo en la próxima parada!");
-            });
-            btn.addEventListener('click', () => submitMission('day_2_balance', {type:'game', data:'Equilibrio mantenido 180s'}));
-            window._missionCleanup = () => clearInterval(int);
-        }
-    },
-    "day_2_jingle": {
-        tag: "expert", day: 2, title: "Melodía Subterránea", role: "kid9", xp: 25, location: "Metro",
-        render: () => `
-            <p class="mission-desc">Cuando suene la melodía de la estación, ¡pulsa el botón y graba 5 segundos!</p>
-            <div id="rec-ui" style="text-align:center; margin: 20px 0;">
-                <div id="rec-dot" style="width:20px; height:20px; background:red; border-radius:50%; margin:0 auto 10px; opacity:0;"></div>
-                <button id="btn-rec" class="btn-primary" style="width:100%; border-radius:50px; height:60px; font-size:1.5rem;">🎙️ Grabar Jingle</button>
-            </div>
-            <audio id="au-preview" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
-            <button id="btn-retry" class="btn-secondary hidden" style="width:100%; margin-bottom:10px;">Regrabar</button>
-            <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const btnR = document.getElementById('btn-rec');
-            const btnRetry = document.getElementById('btn-retry');
-            const btn = document.getElementById('btn');
-            const au = document.getElementById('au-preview');
-            const dot = document.getElementById('rec-dot');
-            
-            let mr = null;
-            let chunks = [];
-            let stream = null;
-            let blobId = null;
 
-            const stopAll = () => {
-                if(mr && mr.state !== 'inactive') mr.stop();
-                if(stream) stream.getTracks().forEach(t => t.stop());
-            };
-
-            btnR.addEventListener('click', async () => {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({audio:true});
-                    mr = new MediaRecorder(stream);
-                    chunks = [];
-                    mr.ondataavailable = e => chunks.push(e.data);
-                    mr.onstop = async () => {
-                        dot.style.animation = 'none';
-                        dot.style.opacity = '0';
-                        const blob = new Blob(chunks, { 'type' : 'audio/webm' });
-                        au.src = URL.createObjectURL(blob);
-                        au.classList.remove('hidden');
-                        btnR.classList.add('hidden');
-                        btnRetry.classList.remove('hidden');
-                        btn.classList.remove('hidden');
-                        
-                        const reader = new FileReader();
-                        reader.readAsDataURL(blob);
-                        reader.onloadend = () => { blobId = reader.result; };
-                        stream.getTracks().forEach(t => t.stop());
-                    };
-                    mr.start();
-                    dot.style.opacity = '1';
-                    dot.style.animation = 'pulse 1s infinite';
-                    btnR.innerText = "Grabando...";
-                    btnR.disabled = true;
-                    setTimeout(() => { if(mr.state === 'recording') mr.stop(); btnR.disabled = false; btnR.innerText = "🎙️ Grabar Jingle"; }, 5000);
-                } catch(e) { alert("Error micro: " + e.message); }
-            });
-
-            btnRetry.addEventListener('click', () => {
-                au.classList.add('hidden'); btnRetry.classList.add('hidden'); btn.classList.add('hidden');
-                btnR.classList.remove('hidden'); blobId = null;
-            });
-
-            btn.addEventListener('click', () => {
-                if(blobId) submitMission('day_2_jingle', {type:'drawing', data: blobId});
-            });
-
-            window._missionCleanup = stopAll;
-        }
-    },
     "day_2_vending": {
-        tag: "photo", day: 2, title: "El Detective de las Máquinas", role: "kid9", xp: 15, location: "Calle",
-        render: () => `
-            <p class="mission-desc">Haz foto a la Vending Machine más rara.</p>
-            <input type="text" id="v-desc" placeholder="¿Qué vende? ¿Por qué es rara?" style="margin-bottom:10px;">
-            <button id="btn-cam" class="btn-secondary">📸 Foto Máquina</button>
-        `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_2_vending', currentUser, false); }
+        tag: "photo",
+        day: 2,
+        title: "El Detective de Vending",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `<p class="mission-desc">Las máquinas expendedoras en Japón venden cosas locas. Haz foto a la Vending Machine más rara que veas hoy.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_vending', role, false)
     },
+
     "day_2_maze": {
-        tag: "expert", day: 2, title: "Mapeo del Laberinto", role: "kid14", xp: 20, location: "Metro",
+        tag: "expert",
+        day: 2,
+        title: "Mapeo del Laberinto",
+        role: "kid14",
+        xp: 20,
+        location: "Metro",
         render: () => `
-            <div class="ui-terminal" style="background:#000; color:#0f0; padding:15px; font-family:monospace; border-radius:5px;">
-                <p>>>> SIGUE LOS CARTELES AMARILLOS DE SALIDA. SIN GPS.</p>
-                <div id="m-timer" style="font-size:3rem; text-align:center; margin:15px 0;">00:00</div>
-                <button id="b-s" class="btn-primary" style="background:#0a0; width:100%;">INICIAR EXTRACCIÓN</button>
-                <button id="b-f" class="btn-primary hidden" style="background:#0a0; width:100%; margin-top:10px;">LLEGAMOS A LA CALLE</button>
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> INFILTRACIÓN SUBTERRÁNEA.</p>
+                <p>Cronometra cuánto tardáis desde que bajáis del tren hasta salir a la calle pisando la acera.</p>
+                <input type="number" id="ans" placeholder="Segundos..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR REPORTE</button>
             </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Reporte</button>
         `,
-        attachEvents: () => {
-            let t=0, int=null;
-            const el = document.getElementById('m-timer');
-            const bs = document.getElementById('b-s');
-            const bf = document.getElementById('b-f');
-            const btn = document.getElementById('btn');
-            
-            const fmt = (s) => String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-
-            bs.addEventListener('click', () => {
-                bs.classList.add('hidden'); bf.classList.remove('hidden');
-                int = setInterval(()=>{ t++; el.innerText = fmt(t); }, 1000);
-            });
-            bf.addEventListener('click', () => {
-                clearInterval(int); bf.classList.add('hidden'); btn.classList.remove('hidden');
-            });
-            btn.addEventListener('click', () => submitMission('day_2_maze', {type:'text', data:`Tiempo: ${fmt(t)}`}));
-            window._missionCleanup = () => clearInterval(int);
-        }
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_2_maze', {type:'number', data:document.getElementById('ans').value}, role)); }
     },
+
     "day_2_kanji": {
-        tag: "expert", day: 2, title: "Kanjis de Emergencia", role: "kid14", xp: 25, location: "Metro",
+        tag: "writing",
+        day: 2,
+        title: "Kanjis de Emergencia",
+        role: "kid14",
+        xp: 15,
+        location: "Metro",
         render: () => `
-            <div class="ui-terminal" style="background:#000; color:#0f0; padding:15px; font-family:monospace; border-radius:5px;">
-                <p>>>> Localiza la SALIDA DE EMERGENCIA (非常口). Dibuja los 3 kanjis.</p>
-                <p style="text-align:center; font-size:1.5rem; color:#aaa;">非 常 口</p>
-                <canvas id="k-can" width="300" height="150" style="width:100%; height:150px; background:#111; border:2px solid #0f0; touch-action:none;"></canvas>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button id="b-clr" class="btn-secondary" style="flex:1;">BORRAR</button>
-                    <button id="b-snd" class="btn-primary" style="flex:1; background:#0a0;">TRANSMITIR</button>
-                </div>
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> BUSCANDO SALIDA DE EMERGENCIA (非常口).</p>
+                <p>Escribe en tu teclado exactamente la palabra en rōmaji o español que significa salida.</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">TRANSMITIR</button>
             </div>
         `,
-        attachEvents: () => {
-            const c = document.getElementById('k-can');
-            const ctx = c.getContext('2d');
-            let isD = false;
-            ctx.strokeStyle = '#0f0'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-            
-            const getP = (e) => {
-                const r = c.getBoundingClientRect();
-                const t = e.touches ? e.touches[0] : e;
-                return { x: (t.clientX - r.left)*(c.width/r.width), y: (t.clientY - r.top)*(c.height/r.height) };
-            };
-            
-            const start = (e) => { e.preventDefault(); isD=true; const p=getP(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
-            const move = (e) => { if(!isD) return; e.preventDefault(); const p=getP(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
-            const stop = (e) => { if(e) e.preventDefault(); isD=false; };
-
-            c.addEventListener('mousedown',start); c.addEventListener('mousemove',move);
-            c.addEventListener('mouseup',stop); c.addEventListener('mouseleave',stop);
-            c.addEventListener('touchstart',start,{passive:false});
-            c.addEventListener('touchmove',move,{passive:false});
-            c.addEventListener('touchend',stop);
-
-            document.getElementById('b-clr').addEventListener('click', () => ctx.clearRect(0,0,c.width,c.height));
-            document.getElementById('b-snd').addEventListener('click', () => {
-                submitMission('day_2_kanji', {type:'drawing', data: c.toDataURL()});
-            });
+        attachEvents: (role) => { 
+            document.getElementById('btn').addEventListener('click', () => {
+                const txt = document.getElementById('ans').value.toLowerCase().trim();
+                submitMission('day_2_kanji', {type:'text', data:txt}, role);
+            }); 
         }
     },
+
     "day_2_audit": {
-        tag: "economy", day: 2, title: "Auditoría de Vending", role: "kid14", xp: 15, location: "Calle",
+        tag: "economy",
+        day: 2,
+        title: "Auditoría de Vending",
+        role: "kid14",
+        xp: 15,
+        location: "Calle",
         render: () => `
-            <div class="ui-terminal" style="background:#000; color:#0f0; padding:15px; font-family:monospace; border-radius:5px;">
-                <p>>>> Observa la FILA SUPERIOR de bebidas.</p>
-                <p>>>> SUMA EXACTA de comprar 1 unidad de cada tipo (yenes):</p>
-                <input type="number" id="v-ans" style="background:#222; color:#0f0; border:1px solid #0f0; width:100%; margin:10px 0;">
-                <button id="b-v" class="btn-primary" style="background:#0a0; width:100%;">ENVIAR</button>
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> Observa una máquina de bebidas estándar.</p>
+                <p>¿Cuánto cuesta la botella de agua mineral estándar (normalmente Suntory o similar)?</p>
+                <input type="number" id="ans" placeholder="Precio en yenes..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR</button>
             </div>
         `,
-        attachEvents: () => {
-            document.getElementById('b-v').addEventListener('click', () => submitMission('day_2_audit', {type:'number', data:document.getElementById('v-ans').value}));
-        }
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_2_audit', {type:'number', data:document.getElementById('ans').value}, role)); }
     },
-    // === DÍA 3 ===
-    "day_3_reflection": {
-        tag: "photo", day: 3, title: "El Reflejo Infinito", role: "both", xp: 25, location: "Umeda / Dotonbori",
-        render: () => `
-            <p class="mission-desc">Colaborad. Buscad un espejo, cristal de edificio o charco donde se refleje la ciudad y vuestra familia. Uno coloca a la familia, el otro toma la foto.</p>
-            <button id="btn-cam" class="btn-secondary">📸 Capturar Reflejo</button>
-        `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_3_reflection', role, true); }
+
+    "day_8_kid9_buda": {
+        tag: "photo",
+        day: 8,
+        title: "Buda Gracioso",
+        role: "kid9",
+        xp: 15,
+        location: "Otagi",
+        render: () => `<p class="mission-desc">En el templo Otagi Nenbutsu-ji hay 1200 pequeñas estatuas de piedra y ¡todas son diferentes! Algunas ríen, otras beben sake o incluso llevan raquetas. Encuentra la que te parezca más graciosa o extraña y hazle una foto de cerca.</p><button id="btn-cam" class="btn-secondary">📸 Foto del Buda</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_buda', currentUser, false); }
     },
-    "day_4_kid9_bestiario": { tag: "writing", day: 4, title: "Bestiario Kuromon", role: "kid9", xp: 15, location: "Kuromon", render: () => `<p class="mission-desc">Pon nombre a un animal marino alienígena.</p><input type="text" id="n"><button id="btn" class="btn-primary">Bautizar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_kid9_bestiario', {type:'text', data:document.getElementById('n').value})); } },
-    "day_4_kid14_cuchillo": { tag: "writing", day: 4, title: "El Cuchillo Samurái", role: "kid14", xp: 10, location: "Doguyasuji", render: () => `<p class="mission-desc">En la calle Doguyasuji se fabrican los mejores utensilios de cocina del mundo. Localiza una tienda de cuchillos artesanales, elige el que más te guste y dinos qué plato estrella japonés cocinarías con él.</p><input type="text" id="p" placeholder="Cuchillo y plato..."><button id="btn" class="btn-primary">Enviar Elección</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_kid14_cuchillo', {type:'text', data:document.getElementById('p').value})); } },
-    "day_4_kid14_conbini": { tag: "economy", day: 4, title: "Reto 500 Yenes", role: "kid14", xp: 15, location: "Lawson", render: () => `<p class="mission-desc">Gasta max 500¥.</p><input type="number" id="v"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_kid14_conbini', {type:'number', data:document.getElementById('v').value})); } },
-    "day_4_kid14_isshinji": { tag: "writing", day: 4, title: "Secreto Isshinji", correctAnswer: "Están hechas de cenizas de difuntos (Okotsu Butsu).",  role: "kid14", xp: 15, location: "Isshinji", render: () => `<p class="mission-desc">¿De qué están hechas las estatuas?</p><input type="text" id="a"><button id="btn" class="btn-primary">Responder</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_kid14_isshinji', {type:'text', data:document.getElementById('a').value})); } },
-        "day_4_kid9_gachapon": {
-        tag: "game", day: 4, title: "Gachapon", role: "kid9", xp: 10, location: "Tiendas",
-        render: () => `
-            <p class="mission-desc">Las máquinas Gachapon contienen tesoros impredecibles. ¡Gira la manivela virtual arrastrándola en círculo para sacar tu cápsula!</p>
-            <div id="gacha-machine" style="width: 200px; height: 300px; margin: 0 auto; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); border-radius: 20px; border: 4px solid #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2); position: relative; overflow: hidden;">
-                <div style="position: absolute; top: 10px; left: 10px; right: 10px; height: 120px; background: rgba(255,255,255,0.5); border-radius: 10px; border: 2px solid #fff; overflow: hidden;" id="gacha-glass">
-                    <div style="font-size: 2rem; position: absolute; bottom: 10px; left: 20px;">🔴</div><div style="font-size: 2rem; position: absolute; bottom: 30px; right: 30px;">🔵</div><div style="font-size: 2rem; position: absolute; top: 20px; left: 50px;">🟡</div>
-                </div>
-                <div id="gacha-wheel" style="width: 80px; height: 80px; background: #fff; border-radius: 50%; position: absolute; bottom: 80px; left: 60px; border: 4px solid #ddd; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; touch-action: none;">
-                    <div style="width: 20px; height: 60px; background: #ccc; border-radius: 10px;"></div>
-                </div>
-                <div id="gacha-hole" style="width: 60px; height: 40px; background: #333; position: absolute; bottom: 20px; left: 70px; border-radius: 30px 30px 10px 10px; border: 2px solid #555;"></div>
-                <div id="gacha-capsule" style="font-size: 3rem; position: absolute; bottom: 60px; left: 75px; opacity: 0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">🎁</div>
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 20px; animation: pulse 1s infinite;">Abrir Cápsula al Juez</button>
-        `,
-        attachEvents: () => {
-            const wheel = document.getElementById('gacha-wheel');
-            const cap = document.getElementById('gacha-capsule');
-            const btn = document.getElementById('btn');
-            let angle = 0;
-            let startY = 0;
-            let won = false;
 
-            wheel.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
-            wheel.addEventListener('touchmove', (e) => {
-                if(won) return;
-                const dy = e.touches[0].clientY - startY;
-                angle += (dy > 0 ? 5 : -5);
-                wheel.style.transform = "rotate(" + angle + "deg)";
-                startY = e.touches[0].clientY;
-                if(Math.abs(angle) > 360) {
-                    won = true;
-                    wheel.style.transform = 'rotate(0deg)';
-                    cap.style.opacity = '1';
-                    cap.style.bottom = '15px';
-                    setTimeout(() => {
-                        cap.style.transform = 'scale(1.5)';
-                        const prizes = ['🧸', '🐉', '⛩️', '🍱', '🦊'];
-                        cap.innerText = prizes[Math.floor(Math.random()*5)];
-                        btn.classList.remove('hidden');
-                        launchConfetti();
-                    }, 600);
-                }
-            });
-            btn.addEventListener('click', () => submitMission('day_4_kid9_gachapon', {type:'game', data: "Objeto sagrado: " + cap.innerText}));
-        }
+    "day_8_kid14_twin": {
+        tag: "writing",
+        day: 8,
+        title: "Gemelo Perdido",
+        role: "kid14",
+        xp: 15,
+        location: "Otagi",
+        render: () => `<input id="t"><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_twin', {type:'text', data:document.getElementById('t').value})); }
     },
-    "day_4_fam_yakiniku": { tag: "versus", day: 4, title: "Maestro Yakiniku", role: "both", xp: 20, location: "Restaurante", render: () => `<p class="mission-desc">Trabajo en equipo en la barbacoa.</p><button id="btn" class="btn-primary">Completado</button>`, attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_fam_yakiniku', {type:'text', data:'OK'}, role, true)); } },
-    "day_4_kid14_meditacion": { tag: "photo", day: 4, title: "Meditación Zen", role: "kid14", xp: 15, location: "Namba Parks", render: () => `<p class="mission-desc">Namba Parks es un oasis de paz en medio del caos. Encuentra un rincón tranquilo en sus jardines colgantes y haz una foto que transmita paz y silencio, intentando que no aparezca ninguna persona en el encuadre.</p><button id="btn-cam" class="btn-secondary">📸 Foto Zen</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_4_kid14_meditacion', currentUser, false); } },
 
-    "day_4_kid9_vending": { tag: "photo", day: 4, title: "Ruleta Vending", role: "kid9", xp: 15, location: "Calle", render: () => `<p class="mission-desc">En Japón hay máquinas expendedoras en cada esquina. Tu misión es encontrar una bebida que tenga un dibujo de un animal o un personaje famoso y sacarle una foto como prueba.</p><button id="btn-cam" class="btn-secondary">📸 Foto de la Bebida</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_4_kid9_vending', currentUser, false); } },
-
-    "day_4_fam_kuromon": { tag: "economy", day: 4, title: "Subasta Kuromon", role: "both", xp: 20, location: "Kuromon", render: () => `<p class="mission-desc">Menú ideal 1000¥.</p><textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_fam_kuromon', {type:'text', data:document.getElementById('t').value}, role, true)); } },
-    "day_5_kid14_kanji": { tag: "writing", day: 5, title: "Caligrafía Zen", role: "kid14", xp: 15, location: "Nara", render: () => `<p class="mission-desc">La caligrafía Shodō es un arte milenario. Usando tu dedo como si fuera un pincel de bambú, dibuja el Kanji de "Persona" (人) o "Montaña" (山) en este lienzo digital.</p><canvas id="c" style="border:1px solid #ccc; height:200px; width:100%;"></canvas><button id="btn" class="btn-primary">Enviar Caligrafía</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_5_kid14_kanji', {type:'text', data:'Kanji'})); } },
-    "day_5_kid9_deer": { tag: "video", day: 5, title: "Coreógrafo Ciervos", role: "kid9", xp: 25, location: "Nara", render: () => `<p class="mission-desc">Vídeo ciervo divertido.</p><button id="btn-cam" class="btn-secondary">🎥 Grabar</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_5_kid9_deer', currentUser, false); } },
-
-        "day_5_kid9_silence": {
-        tag: "game", day: 5, title: "Control Monje", role: "kid9", xp: 20, location: "Buda",
-        render: () => `
-            <p class="mission-desc">Demuestra el control de un monje Zen. Mantén pulsada la esfera de meditación durante 15 segundos sin soltar. Sincroniza tu respiración con la esfera.</p>
-            <div style="height: 250px; display: flex; align-items: center; justify-content: center; position: relative; background: #1a1a2e; border-radius: 20px; overflow: hidden; margin-bottom: 20px;">
-                <div id="zen-ring" style="width: 150px; height: 150px; border: 4px solid rgba(255,255,255,0.2); border-radius: 50%; position: absolute; transition: transform 4s ease-in-out;"></div>
-                <div id="zen-orb" style="width: 100px; height: 100px; background: radial-gradient(circle, #00f2fe 0%, #4facfe 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; cursor: pointer; user-select: none; touch-action: none; box-shadow: 0 0 20px rgba(79, 172, 254, 0.5); z-index: 10;">🧘</div>
-                <div id="zen-progress" style="position: absolute; bottom: 10px; width: 80%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                    <div id="zen-bar" style="width: 0%; height: 100%; background: #00f2fe; transition: width 0.1s linear;"></div>
-                </div>
-            </div>
-            <p id="zen-status" style="text-align: center; color: var(--color-gray-dark); font-weight: bold;">Mantén pulsado para meditar</p>
-            <button id="btn" class="btn-primary hidden" style="width:100%;">Misión Cumplida</button>
-        `,
-        attachEvents: () => {
-            const orb = document.getElementById('zen-orb');
-            const ring = document.getElementById('zen-ring');
-            const bar = document.getElementById('zen-bar');
-            const status = document.getElementById('zen-status');
-            const btn = document.getElementById('btn');
-            let timer = null;
-            let time = 0;
-            const TOTAL = 15;
-            let breathInt = null;
-            let isBreathingIn = false;
-
-            const breathLoop = () => {
-                isBreathingIn = !isBreathingIn;
-                ring.style.transform = isBreathingIn ? 'scale(1.8)' : 'scale(1)';
-                orb.style.boxShadow = isBreathingIn ? '0 0 50px rgba(79, 172, 254, 0.8)' : '0 0 20px rgba(79, 172, 254, 0.5)';
-            };
-
-            const start = (e) => {
-                e.preventDefault();
-                if(time >= TOTAL) return;
-                orb.innerText = '😌';
-                status.innerText = 'Inhala... Exhala...';
-                breathLoop();
-                breathInt = setInterval(breathLoop, 4000);
-                timer = setInterval(() => {
-                    time += 0.1;
-                    bar.style.width = (time/TOTAL)*100 + "%";
-                    if(time >= TOTAL) {
-                        clearInterval(timer); clearInterval(breathInt);
-                        orb.innerText = '✨';
-                        status.innerText = '¡Iluminación alcanzada!';
-                        btn.classList.remove('hidden');
-                        launchConfetti();
-                    }
-                }, 100);
-            };
-            const stop = (e) => {
-                if(e) e.preventDefault();
-                if(time >= TOTAL) return;
-                clearInterval(timer); clearInterval(breathInt);
-                time = 0; bar.style.width = '0%';
-                orb.innerText = '🧘';
-                status.innerText = 'Concentración rota. Vuelve a intentar.';
-                ring.style.transform = 'scale(1)';
-                orb.style.boxShadow = '0 0 20px rgba(79, 172, 254, 0.5)';
-            };
-
-            orb.addEventListener('touchstart', start);
-            orb.addEventListener('touchend', stop);
-            orb.addEventListener('mousedown', start);
-            orb.addEventListener('mouseup', stop);
-            orb.addEventListener('mouseleave', stop);
-
-            btn.addEventListener('click', () => submitMission('day_5_kid9_silence', {type:'game', data:"Meditación de " + TOTAL + "s completada"}));
-            window._missionCleanup = () => { stop(); };
-        }
+    "day_8_kid9_guardian": {
+        tag: "photo",
+        day: 8,
+        title: "Guardián Estanque",
+        role: "kid9",
+        xp: 15,
+        location: "Tenryu-ji",
+        render: () => `<button id="btn-cam" class="btn-secondary">📸 Foto</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_guardian', currentUser, false); }
     },
-    "day_5_kid14_rascacielos": { tag: "writing", day: 5, title: "Rascacielos Madera", role: "kid14", xp: 10, location: "Todai-ji", render: () => `<p class="mission-desc">¿Cuántos pisos modernos?</p><input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_5_kid14_rascacielos', {type:'number', data:document.getElementById('n').value})); } },
-    "day_5_kid9_embajador": { tag: "photo", day: 5, title: "Embajador Ciervos", role: "kid9", xp: 20, location: "Nara", render: () => `<p class="mission-desc">Selfie con 3 ciervos.</p><button id="btn-cam" class="btn-secondary">📸 Selfie</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_5_kid9_embajador', currentUser, false); } },
 
-    "day_5_kid14_eng": { tag: "writing", day: 5, title: "Ingeniero Todai-ji", correctAnswer: "El área es inmensa, cualquier cálculo de ~2500m2 a 3000m2 es válido.",  role: "kid14", xp: 20, location: "Todai-ji", render: () => `<p class="mission-desc">Cálculo área base.</p><input type="text" id="a"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_5_kid14_eng', {type:'text', data:document.getElementById('a').value})); } },
-        "day_5_kid9_buda": {
-        tag: "game", day: 5, title: "Iluminación Buda", role: "kid9", xp: 15, location: "Todai-ji",
+    "day_8_kid14_bamboo_eng": {
+        tag: "writing",
+        day: 8,
+        title: "Ingeniero Bosque",
+        correctAnswer: "La altura varía entre 15m y 30m.",
+        role: "kid14",
+        xp: 15,
+        location: "Arashiyama",
+        render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_bamboo_eng', {type:'number', data:document.getElementById('n').value})); }
+    },
+
+    "day_8_kid14_codigo": {
+        tag: "writing",
+        day: 8,
+        title: "El Código del Jardín",
+        role: "kid14",
+        xp: 20,
+        location: "Tenryu-ji",
+        render: () => `<input id="e1"><input id="e2"><input id="e3"><button id="b" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('b').addEventListener('click', () => submitMission('day_8_kid14_codigo', {type:'text', data:'Interpretación'})); }
+    },
+
+    "day_8_kid9_rake": {
+        tag: "game",
+        day: 8,
+        title: "El Rastrillo del Jardinero",
+        role: "kid9",
+        xp: 20,
+        location: "Tenryu-ji",
         render: () => `
-            <p class="mission-desc">Dentro del Todai-ji hay un pilar con un agujero del mismo tamaño que la fosa nasal del Gran Buda. ¡Usa el acelerómetro inclinando tu móvil para guiar la esfera de luz a través del pilar!</p>
-            <div id="buda-game" style="width: 100%; height: 300px; background: #8b5a2b; border: 4px solid #5c3a21; border-radius: 10px; position: relative; overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);">
-                <div style="width: 80px; height: 80px; background: #111; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 4px solid #4a2e1b; box-shadow: inset 0 0 10px #000;"></div>
-                <div id="buda-ball" style="width: 30px; height: 30px; background: radial-gradient(circle, #fff, #f39c12); border-radius: 50%; position: absolute; top: 20px; left: 20px; box-shadow: 0 0 15px #f39c12; transition: transform 0.1s linear;"></div>
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Agujero Cruzado!</button>
-            <button id="btn-start-gyro" class="btn-secondary" style="width:100%; margin-top: 15px;">Activar Sensor Físico</button>
-        `,
+        <p class="mission-desc">Dibuja ondas de arena zen con el dedo sobre el jardín simulado de Tenryu-ji.</p>
+        <div style="background:#e8dcc4; border:2px solid #8b5a2b; position:relative; width:100%; height:250px; margin:0 auto; margin-bottom:15px; border-radius:10px; overflow:hidden;">
+            <canvas id="zen-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;"></canvas>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-clear" class="btn-secondary" style="flex:1;">Alisar Arena</button>
+            <button id="btn-submit" class="btn-primary" style="flex:2;">Enviar Jardín</button>
+        </div>
+    `,
         attachEvents: () => {
-            const ball = document.getElementById('buda-ball');
-            const game = document.getElementById('buda-game');
-            const btn = document.getElementById('btn');
-            const btnStart = document.getElementById('btn-start-gyro');
+        const canvas = document.getElementById('zen-canvas');
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        ctx.strokeStyle = '#d4c4a8';
+        ctx.lineWidth = 12;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowBlur = 2;
+        ctx.shadowColor = '#8b5a2b';
+
+        let drawing = false;
+
+        const getPos = (e) => {
+            const rectCanvas = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rectCanvas.left, y: clientY - rectCanvas.top };
+        };
+
+        const startDraw = (e) => {
+            drawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        };
+
+        const draw = (e) => {
+            if(!drawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
             
-            let x = 20, y = 20;
-            let vx = 0, vy = 0;
-            let active = false;
-            let won = false;
-
-            const updatePhysics = () => {
-                if(!active || won) return;
-                x += vx; y += vy;
-                // Colisiones bordes
-                if(x < 0) { x = 0; vx = 0; }
-                if(x > game.clientWidth - 30) { x = game.clientWidth - 30; vx = 0; }
-                if(y < 0) { y = 0; vy = 0; }
-                if(y > game.clientHeight - 30) { y = game.clientHeight - 30; vy = 0; }
-                
-                ball.style.transform = "translate(" + x + "px, " + y + "px)";
-                
-                // Comprobar colisión agujero central (centro es game.clientWidth/2, game.clientHeight/2)
-                const cx = game.clientWidth / 2 - 15;
-                const cy = game.clientHeight / 2 - 15;
-                const dist = Math.sqrt((x - cx)*(x - cx) + (y - cy)*(y - cy));
-                
-                if(dist < 20) {
-                    won = true;
-                    ball.style.transform = "translate(" + cx + "px, " + cy + "px) scale(0)";
-                    setTimeout(() => {
-                        game.style.background = '#f1c40f';
-                        btn.classList.remove('hidden');
-                        launchConfetti();
-                    }, 300);
-                }
-                if(!won) requestAnimationFrame(updatePhysics);
-            };
-
-            const handleOrientation = (e) => {
-                if(!active) return;
-                let gamma = e.gamma; // izq/der
-                let beta = e.beta;   // arriba/abajo
-                // Limitar
-                if (gamma >  90) gamma =  90;
-                if (gamma < -90) gamma = -90;
-                vx = gamma / 5;
-                vy = beta / 5;
-            };
-
-            btnStart.addEventListener('click', () => {
-                // Request permission para iOS 13+
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(res => {
-                        if (res === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
-                            active = true; btnStart.classList.add('hidden'); updatePhysics();
-                        }
-                    }).catch(console.error);
-                } else {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    active = true; btnStart.classList.add('hidden'); updatePhysics();
-                }
-            });
-
-            btn.addEventListener('click', () => submitMission('day_5_kid9_buda', {type:'game', data:'Prueba del agujero superada con acelerómetro'}));
-            window._missionCleanup = () => { window.removeEventListener('deviceorientation', handleOrientation); active = false; };
-        }
-    },
-    "day_5_kid14_geographic": { tag: "photo", day: 5, title: "Nara Geographic", role: "kid14", xp: 15, location: "Nara", render: () => `<p class="mission-desc">Foto ciervo con titular.</p><input type="text" id="t"><button id="btn" class="btn-primary">Publicar</button>`, attachEvents: (role) => { attachCameraFlow('btn', 'day_5_kid14_geographic', currentUser, false); } },
-
-    "day_6_fam_decreto": { tag: "versus", day: 6, title: "El Duelo del Decreto", role: "both", xp: 25, location: "Palacio Imperial", render: () => `<div id="v-p1"><p>Escribid vuestros decretos en secreto.</p><input type="password" id="d9" placeholder="Niña..."><input type="password" id="d14" placeholder="Niño..."><button id="btn-r" class="btn-primary">Revelar</button></div><div id="v-p2" class="hidden"><p id="res"></p><button id="btn-s" class="btn-primary">Enviar al Juez</button></div>`, attachEvents: () => { const btnR=document.getElementById('btn-r'); btnR.addEventListener('click', () => { document.getElementById('res').innerText = '9: ' + document.getElementById('d9').value + ' | 14: ' + document.getElementById('d14').value; document.getElementById('v-p1').classList.add('hidden'); document.getElementById('v-p2').classList.remove('hidden'); }); document.getElementById('btn-s').addEventListener('click', () => submitMission('day_6_fam_decreto', {type:'text', data:'Duelo OK'}, 'both', true)); } },
-    "day_6_kid14_edicto": { tag: "writing", day: 6, title: "Edicto Imperial", role: "kid14", xp: 15, location: "Palacio", render: () => `<p class="mission-desc">Imagina que eres el nuevo Emperador por un día. Escribe un decreto o ley absurda que todos los visitantes del palacio deban cumplir a partir de ahora (por ejemplo: "Prohibido caminar sin saltar").</p><textarea id="t" placeholder="Yo, el Emperador, ordeno que..."></textarea><button id="btn" class="btn-primary">Proclamar Edicto</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_kid14_edicto', {type:'text', data:document.getElementById('t').value})); } },
-    "day_6_kid9_jardin": { tag: "writing", day: 6, title: "Jardín Nubes", role: "kid9", xp: 15, location: "Palacio", render: () => `<p class="mission-desc">Los pinos del Palacio Imperial están podados para parecer nubes. Busca el que tenga la forma más extraña o divertida y descríbelo: ¿a qué animal u objeto se parece?</p><input type="text" id="t" placeholder="Se parece a..."><button id="btn" class="btn-primary">Enviar Descripción</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_kid9_jardin', {type:'text', data:document.getElementById('t').value})); } },
-    "day_6_kid9_ruisenor": { tag: "audio", day: 6, title: "Suelo Ruiseñor", role: "kid9", xp: 15, location: "Nijo", render: () => `<p class="mission-desc">En el Castillo Nijo, los suelos fueron diseñados para "cantar" como ruiseñores cuando alguien camina sobre ellos, para detectar espías. Camina con cuidado por los pasillos y graba el sonido del chirrido real de la madera bajo tus pies.</p><button id="btn-cam" class="btn-secondary">🎤 Grabar el "Canto"</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_6_kid9_ruisenor', currentUser, false); } },
-
-    "day_6_kid9_ruisenor_video": { tag: "video", day: 6, title: "El Espía del Suelo", role: "kid9", xp: 20, location: "Nijo", render: () => `<p class="mission-desc">Vídeo 10s y descripción.</p><input type="file" accept="video/*" capture="environment" id="v"><input type="text" id="d" placeholder="Me recuerda a..."><button id="b" class="btn-primary">Enviar</button>`, attachEvents: (role) => { attachCameraFlow('b', 'day_6_kid9_ruisenor_video', currentUser, false); } },
-
-    "day_6_kid14_ninja_plan": { tag: "writing", day: 6, title: "Plan Infiltración Ninja", role: "kid14", xp: 15, location: "Nijo", render: () => `<p class="mission-desc">Escribe tu plan (2 frases).</p><textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_kid14_ninja_plan', {type:'text', data:document.getElementById('t').value})); } },
-    "day_6_kid14_tiempo": { tag: "photo", day: 6, title: "Viaje Tiempo", role: "kid14", xp: 15, location: "Sannenzaka", render: () => `<p class="mission-desc">Foto época 1600.</p><button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_6_kid14_tiempo', currentUser, false); } },
-
-    "day_6_kid14_foto_1600": { tag: "writing", day: 6, title: "Fotógrafo de 1600", role: "kid14", xp: 20, location: "Sannenzaka", render: () => { const dep=gameState.kid14.missions['day_6_kid14_tiempo']; if(!dep || dep.status!=='approved') return `<p>🔒 Completa "Viaje Tiempo" primero.</p>`; return `<textarea id="h" placeholder="Contexto histórico..."></textarea><button id="b" class="btn-primary">Enviar</button>`; }, attachEvents: () => { const b=document.getElementById('b'); if(b) b.addEventListener('click', () => submitMission('day_6_kid14_foto_1600', {type:'text', data:document.getElementById('h').value})); } },
-        "day_6_kid9_ninja_steps": {
-        tag: "game", day: 6, title: "Pasos de Ninja", role: "kid9", xp: 20, location: "Nijo",
-        render: () => `
-            <p class="mission-desc">¡Pisa con cuidado! Para no hacer sonar el suelo ruiseñor, debes sincronizar tus pasos. Toca la pantalla en el momento exacto en el que el sello de pie llegue a la zona roja inferior.</p>
-            <div id="ninja-game" style="width: 100%; height: 350px; background: #2c3e50; position: relative; overflow: hidden; border-radius: 10px; border: 3px solid #34495e;">
-                <div style="position: absolute; bottom: 30px; width: 100%; height: 60px; background: rgba(231, 76, 60, 0.4); border-top: 2px solid #e74c3c; border-bottom: 2px solid #e74c3c; pointer-events: none;"></div>
-                <div id="ninja-score" style="position: absolute; top: 10px; right: 15px; color: #fff; font-size: 2rem; font-weight: bold; text-shadow: 0 0 5px #000;">0 / 10</div>
-                <div id="ninja-msg" style="position: absolute; top: 50%; left: 0; width: 100%; text-align: center; color: #f1c40f; font-size: 2rem; font-weight: bold; opacity: 0; transition: opacity 0.2s;">¡PERFECTO!</div>
-            </div>
-            <button id="btn-start" class="btn-primary" style="width:100%; margin-top: 15px;">Iniciar Infiltración</button>
-            <button id="btn-victory" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">Enviar Reporte Ninja</button>
-        `,
-        attachEvents: () => {
-            const cont = document.getElementById('ninja-game');
-            const sc = document.getElementById('ninja-score');
-            const msg = document.getElementById('ninja-msg');
-            const btnS = document.getElementById('btn-start');
-            const btnV = document.getElementById('btn-victory');
+            ctx.beginPath();
+            ctx.moveTo(pos.x + 15, pos.y + 15);
+            ctx.lineTo(pos.x + 15, pos.y + 15);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x - 15, pos.y - 15);
+            ctx.lineTo(pos.x - 15, pos.y - 15);
+            ctx.stroke();
             
-            let score = 0;
-            let active = false;
-            let foots = [];
-            let spawnInt = null;
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        };
 
-            const showMsg = (text, color) => {
-                msg.innerText = text; msg.style.color = color;
-                msg.style.opacity = '1';
-                setTimeout(() => { msg.style.opacity = '0'; }, 500);
-            };
+        const stopDraw = () => { drawing = false; };
 
-            const spawn = () => {
-                if(!active) return;
-                const f = document.createElement('div');
-                f.innerText = '👣';
-                f.style.position = 'absolute';
-                f.style.top = '-60px';
-                f.style.left = Math.floor(Math.random() * 60 + 20) + '%';
-                f.style.fontSize = '3rem';
-                f.dataset.hit = 'false';
-                cont.appendChild(f);
-                foots.push({ el: f, y: -60, speed: Math.random() * 2 + 3 });
-            };
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDraw);
+        canvas.addEventListener('mouseout', stopDraw);
+        canvas.addEventListener('touchstart', startDraw, {passive:false});
+        canvas.addEventListener('touchmove', draw, {passive:false});
+        canvas.addEventListener('touchend', stopDraw);
 
-            const loop = () => {
-                if(!active) return;
-                for(let i=foots.length-1; i>=0; i--) {
-                    const f = foots[i];
-                    f.y += f.speed;
-                    f.el.style.top = f.y + 'px';
-                    if(f.y > 350) {
-                        if(f.el.dataset.hit === 'false') showMsg('¡Fallaste!', '#e74c3c');
-                        f.el.remove();
-                        foots.splice(i, 1);
-                    }
-                }
-                requestAnimationFrame(loop);
-            };
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
 
-            const handleTap = (e) => {
-                if(!active) return;
-                e.preventDefault();
-                let hitAny = false;
-                for(let i=0; i<foots.length; i++) {
-                    const f = foots[i];
-                    // Zona: 350-30-60 = 260 a 320 aprox
-                    if(f.y > 240 && f.y < 310 && f.el.dataset.hit === 'false') {
-                        f.el.dataset.hit = 'true';
-                        f.el.style.transform = 'scale(1.5)';
-                        f.el.style.opacity = '0';
-                        score++;
-                        sc.innerText = score + ' / 10';
-                        showMsg('¡PERFECTO!', '#2ecc71');
-                        hitAny = true;
-                        if(score >= 10) {
-                            active = false;
-                            clearInterval(spawnInt);
-                            showMsg('¡NINJA!', '#f1c40f');
-                            btnV.classList.remove('hidden');
+        document.getElementById('btn-submit').addEventListener('click', async () => {
+            const dataUrl = canvas.toDataURL('image/png');
+            const photoId = 'zen_' + Date.now();
+            await savePhotoToDB(photoId, dataUrl);
+            submitMission('day_8_kid9_rake', {type:'photo', data:photoId});
+        });
+    }
+    },
+
+    "day_8_fam_silencio": {
+        tag: "audio",
+        day: 8,
+        title: "Silencio Competitivo",
+        role: "both",
+        xp: 20,
+        location: "Arashiyama",
+        render: () => `<button id="b1">Grab A</button><button id="b2">Grab B</button><button id="b" class="btn-primary">Votar y Enviar</button>`,
+        attachEvents: (role) => { attachCameraFlow('b1', 'day_8_fam_silencio', role, true); }
+    },
+
+    "day_8_kid9_drum": {
+        tag: "audio",
+        day: 8,
+        title: "Tambor Bambú",
+        role: "kid9",
+        xp: 15,
+        location: "Arashiyama",
+        render: () => `<button id="btn-cam" class="btn-secondary">🎤 Grabar</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_drum', currentUser, false); }
+    },
+
+    "day_8_kid14_haiku": {
+        tag: "writing",
+        day: 8,
+        title: "Maestro Haiku",
+        role: "kid14",
+        xp: 15,
+        location: "Tenryu-ji",
+        render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_haiku', {type:'text', data:document.getElementById('t').value})); }
+    },
+
+    "day_8_kid14_wave_sync": {
+        tag: "expert",
+        day: 8,
+        title: "Sincronización de Frecuencias",
+        role: "kid14",
+        xp: 25,
+        location: "Arashiyama",
+        render: () => `
+        <p class="mission-desc">Osciloscopio cibernético: Ajusta Amplitud, Frecuencia y Fase para encajar tu onda verde con la onda roja del bosque.</p>
+        <div style="background: #001100; border: 4px solid #333; border-radius: 15px; padding: 10px; margin-bottom: 20px;">
+            <canvas id="wc2" width="300" height="150" style="width: 100%; height: 150px; background: repeating-linear-gradient(0deg, transparent, transparent 19px, #003300 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #003300 20px); border-radius: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,1);"></canvas>
+        </div>
+        <div style="display: flex; flex-direction:column; gap:10px; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center;">
+                <label style="width:80px; color:#0f0; font-family:monospace;">AMP</label>
+                <input type="range" id="sl-amp" min="10" max="70" step="1" value="20" style="flex:1; accent-color:#0f0;">
+            </div>
+            <div style="display: flex; align-items: center;">
+                <label style="width:80px; color:#0f0; font-family:monospace;">FREQ</label>
+                <input type="range" id="sl-freq" min="0.01" max="0.1" step="0.001" value="0.02" style="flex:1; accent-color:#0f0;">
+            </div>
+            <div style="display: flex; align-items: center;">
+                <label style="width:80px; color:#0f0; font-family:monospace;">FASE</label>
+                <input type="range" id="sl-fase" min="0" max="6.28" step="0.1" value="0" style="flex:1; accent-color:#0f0;">
+            </div>
+        </div>
+        <div id="sync-status2" style="text-align: center; color: #f00; font-family: monospace; font-size: 1.5rem; text-shadow: 0 0 5px #f00; margin-bottom: 10px;">ESTADO: DESINCRONIZADO</div>
+        <button id="btn-sync-ok" class="btn-primary hidden" style="width:100%; animation: pulse 1s infinite;">¡Sincronización Completada!</button>
+    `,
+        attachEvents: () => {
+        const c = document.getElementById('wc2');
+        const ctx = c.getContext('2d');
+        const sAmp = document.getElementById('sl-amp');
+        const sFreq = document.getElementById('sl-freq');
+        const sFase = document.getElementById('sl-fase');
+        const b = document.getElementById('btn-sync-ok');
+        const stat = document.getElementById('sync-status2');
+        
+        const targetAmp = 50;
+        const targetFreq = 0.05; 
+        const targetFase = 3.1;
+        let offset = 0;
+        let active = true;
+
+        const loop = () => {
+            if(!active) return;
+            ctx.clearRect(0, 0, c.width, c.height);
+            
+            ctx.globalCompositeOperation = 'lighter';
+            
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'red';
+            for(let x=0; x<c.width; x++) {
+                ctx.lineTo(x, 75 + targetAmp * Math.sin((x + offset) * targetFreq + targetFase));
+            }
+            ctx.stroke();
+            
+            const pAmp = parseFloat(sAmp.value);
+            const pFreq = parseFloat(sFreq.value);
+            const pFase = parseFloat(sFase.value);
+            
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'green';
+            for(let x=0; x<c.width; x++) {
+                ctx.lineTo(x, 75 + pAmp * Math.sin((x + offset) * pFreq + pFase));
+            }
+            ctx.stroke();
+
+            offset += 1; 
+
+            const dAmp = Math.abs(pAmp - targetAmp);
+            const dFreq = Math.abs(pFreq - targetFreq);
+            let dFase = Math.abs(pFase - targetFase);
+            
+            if(dAmp < 5 && dFreq < 0.005 && dFase < 0.5) {
+                stat.innerText = 'ESTADO: 100% SINCRONIZADO';
+                stat.style.color = '#0f0';
+                stat.style.textShadow = '0 0 10px #0f0';
+                b.classList.remove('hidden');
+                ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
+                ctx.shadowColor = 'yellow';
+                ctx.stroke();
+            } else {
+                stat.innerText = 'ESTADO: DESINCRONIZADO';
+                stat.style.color = '#f00';
+                stat.style.textShadow = '0 0 5px #f00';
+                b.classList.add('hidden');
+            }
+
+            requestAnimationFrame(loop);
+        };
+        
+        loop();
+        b.addEventListener('click', () => { active = false; submitMission('day_8_kid14_wave_sync', {type:'game', data:'Ondas sincronizadas por completo'}); });
+        window._missionCleanup = () => { active = false; };
+    }
+    },
+
+    "day_9_kid14_torii_count": {
+        tag: "writing",
+        day: 9,
+        title: "Código Torii",
+        correctAnswer: "Es imposible contarlos todos (hay más de 10,000), premia el esfuerzo.",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi",
+        render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_torii_count', {type:'number', data:document.getElementById('n').value})); }
+    },
+
+    "day_9_kid9_kinkaku_mirror": {
+        tag: "photo",
+        day: 9,
+        title: "Espejo Oro",
+        role: "kid9",
+        xp: 15,
+        location: "Kinkaku",
+        render: () => `<button id="btn-cam" class="btn-secondary">📸 Foto</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_kinkaku_mirror', currentUser, false); }
+    },
+
+    "day_9_kid14_heart": {
+        tag: "sensors",
+        day: 9,
+        title: "Latido Montaña",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi",
+        render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_heart', {type:'number', data:document.getElementById('n').value})); }
+    },
+
+    "day_9_kid9_inari_kitsune": {
+        tag: "photo",
+        day: 9,
+        title: "Caza 3 Kitsune",
+        role: "kid9",
+        xp: 25,
+        location: "Fushimi",
+        render: () => `<button id="btn-cam" class="btn-secondary">📸 Fotos</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_inari_kitsune', currentUser, false); }
+    },
+
+    "day_9_kid9_zorro": {
+        tag: "video",
+        day: 9,
+        title: "El Zorro Infiltrado",
+        role: "kid9",
+        xp: 25,
+        location: "Fushimi",
+        render: () => `<input type="file" accept="video/*" capture="environment"><button id="b" class="btn-primary">Enviar</button>`,
+        attachEvents: (role) => { attachCameraFlow('b', 'day_9_kid9_zorro', currentUser, false); }
+    },
+
+    "day_9_kid14_phoenix": {
+        tag: "writing",
+        day: 9,
+        title: "Física Fénix",
+        role: "kid14",
+        xp: 15,
+        location: "Kinkaku",
+        render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Responder</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_phoenix', {type:'text', data:document.getElementById('t').value})); }
+    },
+
+    "day_9_kid14_gravity": {
+        tag: "versus",
+        day: 9,
+        title: "Piedra Gravedad",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi",
+        render: () => `<button id="bm" class="btn-primary">Más</button><button id="bl" class="btn-secondary">Menos</button>`,
+        attachEvents: () => { document.getElementById('bl').addEventListener('click', () => submitMission('day_9_kid14_gravity', {type:'text', data:'Menos'})); document.getElementById('bm').addEventListener('click', () => submitMission('day_9_kid14_gravity', {type:'text', data:'Más'})); }
+    },
+
+    "day_9_kid14_angulo": {
+        tag: "photo",
+        day: 9,
+        title: "Ángulo Imposible",
+        role: "kid14",
+        xp: 20,
+        location: "Kinkaku",
+        render: () => `<input type="file" capture="environment"><input type="range" min="1" max="10"><button id="b" class="btn-primary">Enviar</button>`,
+        attachEvents: (role) => { attachCameraFlow('b', 'day_9_kid14_angulo', currentUser, false); }
+    },
+
+    "day_9_kid9_scratch": {
+        tag: "expert",
+        day: 9,
+        title: "Limpia el Reflejo de Oro",
+        role: "kid9",
+        xp: 25,
+        location: "Kinkaku-ji",
+        render: () => `
+        <p class="mission-desc">Rasca y limpia el estanque para revelar el Pabellón Dorado.</p>
+        <div style="position: relative; width: 100%; height: 250px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 4px solid #d4af37;">
+            <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: linear-gradient(to bottom, #87CEEB 40%, #001f3f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 5rem; text-shadow: 0 0 20px gold;">⛩️</div>
+                <div style="font-size: 5rem; transform: scaleY(-1); opacity: 0.6; filter: blur(2px);">⛩️</div>
+            </div>
+            <canvas id="sc-gold" width="300" height="250" style="position: absolute; top:0; left:0; width: 100%; height: 100%;"></canvas>
+        </div>
+        <div style="margin-top: 15px; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
+            <div id="scratch-prog-gold" style="height: 100%; width: 0%; background: #f1c40f; transition: width 0.2s;"></div>
+        </div>
+        <button id="btn-gold" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Reflejo Revelado!</button>
+    `,
+        attachEvents: () => {
+        const c = document.getElementById('sc-gold');
+        const ctx = c.getContext('2d');
+        const b = document.getElementById('btn-gold');
+        const prog = document.getElementById('scratch-prog-gold');
+        
+        ctx.fillStyle = '#9e9e9e';
+        ctx.fillRect(0, 0, c.width, c.height);
+        
+        let isDrawing = false;
+        let clearedCount = 0;
+
+        const scratch = (e) => {
+            e.preventDefault();
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const rect = c.getBoundingClientRect();
+            const x = (clientX - rect.left) * (c.width / rect.width);
+            const y = (clientY - rect.top) * (c.height / rect.height);
+            
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            clearedCount++;
+            let pct = Math.min(100, (clearedCount / 80) * 100);
+            prog.style.width = pct + '%';
+            
+            if(pct >= 90 && b.classList.contains('hidden')) {
+                ctx.clearRect(0,0,c.width,c.height);
+                prog.style.width = '100%';
+                b.classList.remove('hidden');
+                launchConfetti();
+            }
+        };
+
+        c.addEventListener('mousedown', () => { isDrawing = true; });
+        c.addEventListener('mouseup', () => { isDrawing = false; });
+        c.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
+        c.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, {passive:false});
+        c.addEventListener('touchmove', (e) => { if(isDrawing) scratch(e); }, {passive:false});
+        c.addEventListener('touchend', () => { isDrawing = false; });
+
+        b.addEventListener('click', () => submitMission('day_9_kid9_scratch', {type:'game', data:'Reflejo limpiado correctamente'}));
+    }
+    },
+
+    "day_9_kid14_torii": {
+        tag: "expert",
+        day: 9,
+        title: "Laberinto de Torii",
+        role: "kid14",
+        xp: 25,
+        location: "Fushimi Inari",
+        render: () => `
+        <p class="mission-desc">Conecta el camino desde la entrada (abajo) hasta la cima (arriba) rotando las piezas.</p>
+        <div id="torii-board2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; max-width: 300px; margin: 0 auto; background: #222; padding: 10px; border-radius: 10px; border: 4px solid #e74c3c;">
+        </div>
+        <button id="btn-maze" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Camino Abierto!</button>
+    `,
+        attachEvents: () => {
+        const board = document.getElementById('torii-board2');
+        const btn = document.getElementById('btn-maze');
+        
+        const map = [
+            {t:1, r:90}, {t:0, r:0}, {t:1, r:180},
+            {t:0, r:90}, {t:1, r:0}, {t:0, r:90},
+            {t:1, r:270}, {t:1, r:180}, {t:1, r:0}
+        ];
+        
+        const checkWin = () => {
+            let matches = 0;
+            map.forEach((m, i) => {
+                const el = document.getElementById('t2_'+i);
+                const r = parseInt(el.dataset.r) % 360;
+                if(i===0 && r===90) matches++;
+                if(i===1 && (r===0||r===180)) matches++;
+                if(i===2 && r===270) matches++;
+                if(i===3 && (r===90||r===270)) matches++;
+                if(i===4 && r===90) matches++;
+                if(i===5 && (r===0||r===180)) matches++;
+                if(i===6 && r===0) matches++;
+                if(i===7 && r===270) matches++;
+                if(i===8 && r===180) matches++;
+            });
+            if(matches >= 6) {
+                btn.classList.remove('hidden');
+                board.style.boxShadow = '0 0 30px #f1c40f';
+            }
+        };
+
+        board.innerHTML = '';
+        map.forEach((m, i) => {
+            const div = document.createElement('div');
+            div.id = 't2_'+i;
+            div.dataset.r = m.r;
+            div.style.height = '80px';
+            div.style.background = '#333';
+            div.style.borderRadius = '5px';
+            div.style.position = 'relative';
+            div.style.transition = 'transform 0.3s ease';
+            div.style.transform = `rotate(${m.r}deg)`;
+            div.style.cursor = 'pointer';
+            
+            if(m.t === 0) { 
+                div.innerHTML = `<div style="position:absolute; top:0; bottom:0; left:50%; width:20px; background:#e74c3c; transform:translateX(-50%); border-left:3px solid #c0392b; border-right:3px solid #c0392b;"></div>`;
+            } else { 
+                div.innerHTML = `<div style="position:absolute; top:0; left:50%; width:20px; height:50%; background:#e74c3c; transform:translateX(-50%);"></div><div style="position:absolute; top:50%; left:50%; width:50%; height:20px; background:#e74c3c; transform:translateY(-50%);"></div>`;
+            }
+
+            div.addEventListener('click', () => {
+                let r = parseInt(div.dataset.r) + 90;
+                div.dataset.r = r;
+                div.style.transform = `rotate(${r}deg)`;
+                checkWin();
+            });
+            board.appendChild(div);
+        });
+
+        btn.addEventListener('click', () => submitMission('day_9_kid14_torii', {type:'game', data:'Laberinto resuelto'}));
+    }
+    },
+
+    "day_10_kid14_nishiki": {
+        tag: "writing",
+        day: 10,
+        title: "Dilema Chef",
+        role: "kid14",
+        xp: 15,
+        location: "Nishiki",
+        render: () => `<p class="mission-desc">Estás en "la cocina de Kioto", el mercado de Nishiki. Como chef experto en busca de nuevos sabores, debes localizar el ingrediente más extraño o exótico que veas en los puestos y explicar brevemente para qué plato legendario lo usarías.</p><textarea id="t" placeholder="Ingrediente y receta secreta..."></textarea><button id="btn" class="btn-primary">Enviar al Juez Gastronómico</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_kid14_nishiki', {type:'text', data:document.getElementById('t').value})); }
+    },
+
+    "day_10_kid9_nishiki": {
+        tag: "economy",
+        day: 10,
+        title: "Maestro Chatarra",
+        role: "kid9",
+        xp: 15,
+        location: "Nishiki",
+        render: () => `<button id="btn" class="btn-primary">Pagado</button>`,
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_kid9_nishiki', {type:'text', data:'OK'})); }
+    },
+
+    "day_10_fam_sayonara": {
+        tag: "writing",
+        day: 10,
+        title: "Sayonara Kioto",
+        role: "both",
+        xp: 30,
+        location: "Despedida",
+        render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_fam_sayonara', {type:'text', data:document.getElementById('t').value}, role, true)); }
+    },
+
+    "day_10_kid9_bento": {
+        tag: "expert",
+        day: 10,
+        title: "El Maestro del Bento",
+        role: "kid9",
+        xp: 25,
+        location: "Mercado Nishiki",
+        render: () => `
+        <p class="mission-desc">Arrastra cada ingrediente a su compartimento correcto en la caja Bento para preparar un almuerzo perfecto (Usa tu dedo suavemente).</p>
+        <div id="bento-box2" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
+            <div class="bento-slot2" data-accept="arroz" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍚</div>
+            <div class="bento-slot2" data-accept="pescado" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🐟</div>
+            <div class="bento-slot2" data-accept="verdura" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🥦</div>
+            <div class="bento-slot2" data-accept="postre" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍡</div>
+        </div>
+        <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px; position:relative; touch-action:none;">
+            <div class="bento-item2" data-type="pescado" style="font-size: 3rem; position:absolute; left:10px; z-index:10;">🐟</div>
+            <div class="bento-item2" data-type="arroz" style="font-size: 3rem; position:absolute; left:80px; z-index:10;">🍚</div>
+            <div class="bento-item2" data-type="postre" style="font-size: 3rem; position:absolute; left:150px; z-index:10;">🍡</div>
+            <div class="bento-item2" data-type="verdura" style="font-size: 3rem; position:absolute; left:220px; z-index:10;">🥦</div>
+        </div>
+        <button id="btn-bento-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Itadakimasu!</button>
+    `,
+        attachEvents: () => {
+        const items = document.querySelectorAll('.bento-item2');
+        const slots = document.querySelectorAll('.bento-slot2');
+        const btn = document.getElementById('btn-bento-ok');
+        
+        let placed = 0;
+        let activeItem = null;
+        let initX=0, initY=0, curX=0, curY=0;
+
+        const getXY = (e) => {
+            if(e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        };
+
+        const handleMove = (e) => {
+            if(!activeItem) return;
+            e.preventDefault();
+            const {x, y} = getXY(e);
+            const dx = x - initX;
+            const dy = y - initY;
+            activeItem.style.transform = `translate(${curX + dx}px, ${curY + dy}px) scale(1.2)`;
+        };
+
+        const handleEnd = (e) => {
+            if(!activeItem) return;
+            const {x, y} = getXY(e.changedTouches ? e.changedTouches[0] : e);
+            const dx = x - initX;
+            const dy = y - initY;
+            curX += dx;
+            curY += dy;
+            
+            let itemRect = activeItem.getBoundingClientRect();
+            let itemCenter = { x: itemRect.left + itemRect.width/2, y: itemRect.top + itemRect.height/2 };
+            
+            let matched = false;
+            slots.forEach(slot => {
+                let slotRect = slot.getBoundingClientRect();
+                if(itemCenter.x > slotRect.left && itemCenter.x < slotRect.right && 
+                   itemCenter.y > slotRect.top && itemCenter.y < slotRect.bottom) {
+                    
+                    if(slot.dataset.accept === activeItem.dataset.type && !slot.dataset.filled) {
+                        matched = true;
+                        slot.dataset.filled = 'true';
+                        slot.style.borderStyle = 'solid';
+                        slot.style.borderColor = '#f1c40f';
+                        slot.style.background = '#c0392b';
+                        activeItem.style.display = 'none'; 
+                        placed++;
+                        if(placed === 4) {
+                            btn.classList.remove('hidden');
                             launchConfetti();
                         }
-                        break; // Solo hit 1 por tap
                     }
-                }
-                if(!hitAny && score < 10) { showMsg('¡Ruido!', '#e74c3c'); }
-            };
-
-            cont.addEventListener('touchstart', handleTap);
-            cont.addEventListener('mousedown', handleTap);
-
-            btnS.addEventListener('click', () => {
-                btnS.classList.add('hidden');
-                active = true;
-                score = 0; sc.innerText = '0 / 10';
-                spawnInt = setInterval(spawn, 1000);
-                loop();
-            });
-
-            btnV.addEventListener('click', () => submitMission('day_6_kid9_ninja_steps', {type:'game', data:`Juego de ritmo completado (${score} perfectos)`}));
-            
-            window._missionCleanup = () => { active = false; clearInterval(spawnInt); };
-        }
-    },
-    "day_7_fam_gion": { tag: "photo", day: 7, title: "Código Geisha", role: "both", xp: 15, location: "Gion", render: () => `<p class="mission-desc">Explora las misteriosas callejuelas de Gion al atardecer. Tu misión es encontrar un farolillo de papel tradicional (Chōchin) que esté iluminado frente a una antigua casa de té y capturar su luz con una foto.</p><button id="btn-cam" class="btn-secondary">📸 Capturar el Farolillo</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_7_fam_gion', role, true); } },
-
-    "day_7_kid14_guia": { tag: "video", day: 7, title: "Guía en 60s", role: "kid14", xp: 20, location: "Gion", render: () => `<div id="timer">60</div><input type="file" accept="video/*" capture="environment" id="v"><button id="b" class="btn-primary">Enviar</button>`, attachEvents: (role) => { attachCameraFlow('b', 'day_7_kid14_guia', currentUser, false); } },
-
-    "day_7_kid9_tea": { tag: "sensors", day: 7, title: "Té Shogun", role: "kid9", xp: 15, location: "Sannenzaka", render: () => `<p class="mission-desc">Imagínate que llevas una bandeja con té hirviendo para el Shogun. Debes caminar 20 metros manteniendo el móvil totalmente plano (como una bandeja). Si se inclina demasiado, ¡el té se derrama!</p><button id="btn" class="btn-primary">Iniciar Servicio</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_kid9_tea', {type:'text', data:'OK'})); } },
-    "day_7_kid9_force": { tag: "photo", day: 7, title: "Fuerza Benkei", role: "kid9", xp: 15, location: "Kiyomizu", render: () => `<p class="mission-desc">Foto levantando armas Benkei.</p><button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_7_kid9_force', currentUser, false); } },
-
-    "day_7_fam_stones": { tag: "photo", day: 7, title: "Piedras Destino", role: "both", xp: 10, location: "Jishu Shrine", render: () => `<p class="mission-desc">Selfie ojos cerrados entre piedras.</p><button id="btn-cam" class="btn-secondary">📸 Selfie</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_7_fam_stones', role, true); } },
-
-    "day_7_fam_otowa": { tag: "versus", day: 7, title: "Reto Agua Sagrada", role: "both", xp: 30, location: "Kiyomizu", render: () => `<p>Elegid un don en secreto.</p><select id="s9"><option value="estudios">Estudios</option><option value="amor">Amor</option><option value="salud">Salud</option></select><select id="s14"><option value="estudios">Estudios</option><option value="amor">Amor</option><option value="salud">Salud</option></select><button id="b" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('b').addEventListener('click', () => submitMission('day_7_fam_otowa', {type:'text', data:'Dones'}, 'both', true)); } },
-    "day_7_kid9_otowa": { tag: "versus", day: 7, title: "Chorros Destino", role: "kid9", xp: 15, location: "Kiyomizu", render: () => `<p class="mission-desc">Elige SOLO UN chorro.</p><button id="btn" class="btn-primary">Beber</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_kid9_otowa', {type:'text', data:'Bebido'})); } },
-    "day_7_kid14_madera": { tag: "writing", day: 7, title: "Magia Madera", correctAnswer: "Se ensambla con un sistema de encaje de madera (Kigumi) que resiste sismos.",  role: "kid14", xp: 15, location: "Kiyomizu", render: () => `<p class="mission-desc">Explica cómo aguanta sin clavos.</p><textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_kid14_madera', {type:'text', data:document.getElementById('t').value})); } },
-        "day_7_kid14_anti_seismic": {
-        tag: "game", day: 7, title: "Anti-Sismo", role: "kid14", xp: 20, location: "Kiyomizu",
-        render: () => `
-            <p class="mission-desc">El templo de madera de Kiyomizu-dera no usa clavos, ¡usa el peso y la gravedad para resistir terremotos! Mantén tu móvil plano como una mesa durante 15 segundos para evitar que la pagoda virtual colapse.</p>
-            <div style="width: 100%; height: 300px; background: #87CEEB; position: relative; border-radius: 10px; overflow: hidden; border: 3px solid #2980b9;">
-                <div style="position: absolute; bottom: 0; width: 100%; height: 50px; background: #27ae60;"></div>
-                <div id="pagoda-base" style="position: absolute; bottom: 50px; left: 50%; width: 100px; height: 10px; background: #c0392b; transform: translateX(-50%); transform-origin: center bottom;">
-                    <div style="position: absolute; bottom: 10px; left: 10px; width: 80px; height: 40px; background: #e74c3c; border: 2px solid #c0392b;"></div>
-                    <div style="position: absolute; bottom: 50px; left: -20px; width: 140px; height: 20px; background: #2c3e50; clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);"></div>
-                    <div style="position: absolute; bottom: 70px; left: 20px; width: 60px; height: 40px; background: #e74c3c; border: 2px solid #c0392b;"></div>
-                    <div style="position: absolute; bottom: 110px; left: -10px; width: 120px; height: 20px; background: #2c3e50; clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);"></div>
-                    <div style="position: absolute; bottom: 130px; left: 30px; width: 40px; height: 40px; background: #e74c3c; border: 2px solid #c0392b;"></div>
-                    <div style="position: absolute; bottom: 170px; left: 0px; width: 100px; height: 20px; background: #2c3e50; clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);"></div>
-                    <div style="position: absolute; bottom: 190px; left: 45px; width: 10px; height: 50px; background: #f1c40f;"></div>
-                </div>
-                <div id="seismic-timer" style="position: absolute; top: 10px; right: 10px; font-size: 3rem; font-weight: bold; color: #fff; text-shadow: 0 0 5px #000;">15</div>
-                <div id="seismic-msg" style="position: absolute; top: 50%; width: 100%; text-align: center; font-size: 2rem; color: #e74c3c; font-weight: bold; text-shadow: 0 0 10px #fff; opacity: 0; pointer-events: none;">¡TERREMOTO!</div>
-            </div>
-            <button id="btn-start-seis" class="btn-secondary" style="width:100%; margin-top: 15px;">Activar Simulador</button>
-            <button id="btn-victory" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar Datos de Estabilidad</button>
-        `,
-        attachEvents: () => {
-            const pagoda = document.getElementById('pagoda-base');
-            const timerEl = document.getElementById('seismic-timer');
-            const msg = document.getElementById('seismic-msg');
-            const btnS = document.getElementById('btn-start-seis');
-            const btnV = document.getElementById('btn-victory');
-
-            let active = false;
-            let time = 15;
-            let angle = 0;
-            let vel = 0;
-            let interval = null;
-
-            const updatePhysics = () => {
-                if(!active) return;
-                // Simular inercia y gravedad si se inclina
-                angle += vel;
-                pagoda.style.transform = `translateX(-50%) rotate(${angle}deg)`;
-                
-                if(Math.abs(angle) > 45) {
-                    // Colapso
-                    active = false;
-                    clearInterval(interval);
-                    msg.innerText = "¡COLAPSO!";
-                    msg.style.opacity = '1';
-                    pagoda.style.bottom = '-100px';
-                    pagoda.style.opacity = '0';
-                    pagoda.style.transition = 'all 1s';
-                    btnS.innerText = "Reintentar";
-                    btnS.classList.remove('hidden');
-                } else {
-                    requestAnimationFrame(updatePhysics);
-                }
-            };
-
-            const handleOrientation = (e) => {
-                if(!active) return;
-                // e.gamma es inclinación izq/der en grados (-90 a 90)
-                let gamma = e.gamma || 0;
-                // Añadir un poco de dificultad pseudo-aleatoria (viento/sismo)
-                let sismo = (Math.random() - 0.5) * 2;
-                vel = (gamma * 0.1) + sismo;
-            };
-
-            btnS.addEventListener('click', () => {
-                if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(res => {
-                        if(res === 'granted') startSim();
-                    }).catch(console.error);
-                } else {
-                    startSim();
                 }
             });
 
-            function startSim() {
-                active = true; time = 15; angle = 0; vel = 0;
-                pagoda.style.transition = 'none';
-                pagoda.style.bottom = '50px';
-                pagoda.style.opacity = '1';
-                msg.style.opacity = '0';
-                timerEl.innerText = time;
-                btnS.classList.add('hidden');
-                window.addEventListener('deviceorientation', handleOrientation);
-                updatePhysics();
-
-                interval = setInterval(() => {
-                    if(!active) return;
-                    time--;
-                    timerEl.innerText = time;
-                    if(time <= 0) {
-                        active = false;
-                        clearInterval(interval);
-                        msg.innerText = "¡ESTABLE!";
-                        msg.style.color = '#2ecc71';
-                        msg.style.opacity = '1';
-                        btnV.classList.remove('hidden');
-                        launchConfetti();
-                    }
-                }, 1000);
+            if(!matched) {
+                curX = 0; curY = 0;
+                activeItem.style.transform = 'translate(0px, 0px) scale(1)';
             }
-
-            btnV.addEventListener('click', () => submitMission('day_7_kid14_anti_seismic', {type:'game', data:'Pagoda estabilizada 15s'}));
-            window._missionCleanup = () => { active = false; clearInterval(interval); window.removeEventListener('deviceorientation', handleOrientation); };
-        }
-    },
-    "day_8_kid9_buda": { tag: "photo", day: 8, title: "Buda Gracioso", role: "kid9", xp: 15, location: "Otagi", render: () => `<p class="mission-desc">En el templo Otagi Nenbutsu-ji hay 1200 pequeñas estatuas de piedra y ¡todas son diferentes! Algunas ríen, otras beben sake o incluso llevan raquetas. Encuentra la que te parezca más graciosa o extraña y hazle una foto de cerca.</p><button id="btn-cam" class="btn-secondary">📸 Foto del Buda</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_buda', currentUser, false); } },
-
-    "day_8_kid14_twin": { tag: "writing", day: 8, title: "Gemelo Perdido", role: "kid14", xp: 15, location: "Otagi", render: () => `<input id="t"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_twin', {type:'text', data:document.getElementById('t').value})); } },
-    "day_8_kid9_guardian": { tag: "photo", day: 8, title: "Guardián Estanque", role: "kid9", xp: 15, location: "Tenryu-ji", render: () => `<button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_guardian', currentUser, false); } },
-
-    "day_8_kid14_bamboo_eng": { tag: "writing", day: 8, title: "Ingeniero Bosque", correctAnswer: "La altura varía entre 15m y 30m.",  role: "kid14", xp: 15, location: "Arashiyama", render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_bamboo_eng', {type:'number', data:document.getElementById('n').value})); } },
-    "day_8_kid14_codigo": { tag: "writing", day: 8, title: "El Código del Jardín", role: "kid14", xp: 20, location: "Tenryu-ji", render: () => `<input id="e1"><input id="e2"><input id="e3"><button id="b" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('b').addEventListener('click', () => submitMission('day_8_kid14_codigo', {type:'text', data:'Interpretación'})); } },
-    "day_8_kid9_rake": { tag: "writing", day: 8, title: "Rastrillo Zen", role: "kid9", xp: 15, location: "Tenryu-ji", render: () => `<canvas id="rake" style="height:150px; width:100%; border:1px solid #ccc;"></canvas><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid9_rake', {type:'text', data:'Patron'})); } },
-    "day_8_fam_silencio": { tag: "audio", day: 8, title: "Silencio Competitivo", role: "both", xp: 20, location: "Arashiyama", render: () => `<button id="b1">Grab A</button><button id="b2">Grab B</button><button id="b" class="btn-primary">Votar y Enviar</button>`, attachEvents: (role) => { attachCameraFlow('b1', 'day_8_fam_silencio', role, true); } },
-
-    "day_8_kid9_drum": { tag: "audio", day: 8, title: "Tambor Bambú", role: "kid9", xp: 15, location: "Arashiyama", render: () => `<button id="btn-cam" class="btn-secondary">🎤 Grabar</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_drum', currentUser, false); } },
-
-    "day_8_kid14_haiku": { tag: "writing", day: 8, title: "Maestro Haiku", role: "kid14", xp: 15, location: "Tenryu-ji", render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_8_kid14_haiku', {type:'text', data:document.getElementById('t').value})); } },
-        "day_8_kid14_wave_sync": {
-        tag: "game", day: 8, title: "Sincro Ondas", role: "kid14", xp: 20, location: "Arashiyama",
-        render: () => `
-            <p class="mission-desc">Alinea la frecuencia de onda de tu osciloscopio cibernético con la señal ambiental del bosque de bambú. Usa el dial para modificar la amplitud hasta que ambas ondas se solapen perfectamente.</p>
-            <div style="background: #001100; border: 4px solid #333; border-radius: 15px; padding: 10px; margin-bottom: 20px;">
-                <canvas id="wc" width="300" height="150" style="width: 100%; height: 150px; background: repeating-linear-gradient(0deg, transparent, transparent 19px, #003300 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #003300 20px); border-radius: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,1);"></canvas>
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-                <div style="width: 50px; text-align: center; color: #0f0; font-family: monospace; font-size: 1.2rem;">MIN</div>
-                <input type="range" id="sl" min="0.01" max="0.1" step="0.001" value="0.09" style="flex:1; margin: 0 15px; accent-color: #0f0;">
-                <div style="width: 50px; text-align: center; color: #0f0; font-family: monospace; font-size: 1.2rem;">MAX</div>
-            </div>
-            <div id="sync-status" style="text-align: center; color: #f00; font-family: monospace; font-size: 1.5rem; text-shadow: 0 0 5px #f00; margin-bottom: 10px;">ESTADO: DESINCRONIZADO</div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; animation: pulse 1s infinite;">Capturar Señal Pura</button>
-        `,
-        attachEvents: () => {
-            const c = document.getElementById('wc');
-            const ctx = c.getContext('2d');
-            const s = document.getElementById('sl');
-            const b = document.getElementById('btn');
-            const stat = document.getElementById('sync-status');
             
-            // Frecuencia objetivo aleatoria pero constante para la misión
-            const targetFreq = 0.05; 
-            let offset = 0;
-            let active = true;
+            activeItem.style.zIndex = '10';
+            activeItem = null;
+            document.removeEventListener('mousemove', handleMove);
+            document.removeEventListener('mouseup', handleEnd);
+            document.removeEventListener('touchmove', handleMove);
+            document.removeEventListener('touchend', handleEnd);
+        };
 
-            const loop = () => {
-                if(!active) return;
-                ctx.clearRect(0, 0, c.width, c.height);
-                
-                // Efecto fósforo
-                ctx.globalCompositeOperation = 'lighter';
-                
-                // Onda Objetivo (Roja)
-                ctx.beginPath();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = 'red';
-                for(let x=0; x<c.width; x++) {
-                    ctx.lineTo(x, 75 + 40 * Math.sin((x + offset) * targetFreq));
-                }
-                ctx.stroke();
-                
-                // Onda Jugador (Verde)
-                const playerFreq = parseFloat(s.value);
-                ctx.beginPath();
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = 'green';
-                for(let x=0; x<c.width; x++) {
-                    ctx.lineTo(x, 75 + 40 * Math.sin((x + offset) * playerFreq));
-                }
-                ctx.stroke();
-
-                offset += 2; // Animación de desplazamiento
-
-                const diff = Math.abs(playerFreq - targetFreq);
-                if(diff < 0.002) {
-                    stat.innerText = 'ESTADO: 100% SINCRONIZADO';
-                    stat.style.color = '#0f0';
-                    stat.style.textShadow = '0 0 10px #0f0';
-                    b.classList.remove('hidden');
-                    // Volver dorada la onda
-                    ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
-                    ctx.shadowColor = 'yellow';
-                    ctx.stroke();
-                } else if(diff < 0.01) {
-                    stat.innerText = 'ESTADO: 80% SINCRONIZADO';
-                    stat.style.color = '#ff0';
-                    stat.style.textShadow = '0 0 5px #ff0';
-                    b.classList.add('hidden');
-                } else {
-                    stat.innerText = 'ESTADO: DESINCRONIZADO';
-                    stat.style.color = '#f00';
-                    stat.style.textShadow = '0 0 5px #f00';
-                    b.classList.add('hidden');
-                }
-
-                requestAnimationFrame(loop);
-            };
-            
-            loop();
-            b.addEventListener('click', () => { active = false; submitMission('day_8_kid14_wave_sync', {type:'game', data:'Ondas sincronizadas'}); });
-            window._missionCleanup = () => { active = false; };
-        }
-    },
-    "day_9_kid14_torii_count": { tag: "writing", day: 9, title: "Código Torii", correctAnswer: "Es imposible contarlos todos (hay más de 10,000), premia el esfuerzo.",  role: "kid14", xp: 15, location: "Fushimi", render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_torii_count', {type:'number', data:document.getElementById('n').value})); } },
-    "day_9_kid9_kinkaku_mirror": { tag: "photo", day: 9, title: "Espejo Oro", role: "kid9", xp: 15, location: "Kinkaku", render: () => `<button id="btn-cam" class="btn-secondary">📸 Foto</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_kinkaku_mirror', currentUser, false); } },
-
-    "day_9_kid14_heart": { tag: "sensors", day: 9, title: "Latido Montaña", role: "kid14", xp: 15, location: "Fushimi", render: () => `<input type="number" id="n"><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_heart', {type:'number', data:document.getElementById('n').value})); } },
-    "day_9_kid9_inari_kitsune": { tag: "photo", day: 9, title: "Caza 3 Kitsune", role: "kid9", xp: 25, location: "Fushimi", render: () => `<button id="btn-cam" class="btn-secondary">📸 Fotos</button>`, attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_inari_kitsune', currentUser, false); } },
-
-    "day_9_kid9_zorro": { tag: "video", day: 9, title: "El Zorro Infiltrado", role: "kid9", xp: 25, location: "Fushimi", render: () => `<input type="file" accept="video/*" capture="environment"><button id="b" class="btn-primary">Enviar</button>`, attachEvents: (role) => { attachCameraFlow('b', 'day_9_kid9_zorro', currentUser, false); } },
-
-    "day_9_kid14_phoenix": { tag: "writing", day: 9, title: "Física Fénix", role: "kid14", xp: 15, location: "Kinkaku", render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Responder</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_9_kid14_phoenix', {type:'text', data:document.getElementById('t').value})); } },
-    "day_9_kid14_gravity": { tag: "versus", day: 9, title: "Piedra Gravedad", role: "kid14", xp: 15, location: "Fushimi", render: () => `<button id="bm" class="btn-primary">Más</button><button id="bl" class="btn-secondary">Menos</button>`, attachEvents: () => { document.getElementById('bl').addEventListener('click', () => submitMission('day_9_kid14_gravity', {type:'text', data:'Menos'})); document.getElementById('bm').addEventListener('click', () => submitMission('day_9_kid14_gravity', {type:'text', data:'Más'})); } },
-    "day_9_kid14_angulo": { tag: "photo", day: 9, title: "Ángulo Imposible", role: "kid14", xp: 20, location: "Kinkaku", render: () => `<input type="file" capture="environment"><input type="range" min="1" max="10"><button id="b" class="btn-primary">Enviar</button>`, attachEvents: (role) => { attachCameraFlow('b', 'day_9_kid14_angulo', currentUser, false); } },
-
-        "day_9_kid9_scratch": {
-        tag: "game", day: 9, title: "Limpia Reflejo", role: "kid9", xp: 20, location: "Kinkaku",
-        render: () => `
-            <p class="mission-desc">¡Rasca la pantalla para limpiar el estanque y revelar el reflejo dorado perfecto del Kinkaku-ji!</p>
-            <div style="position: relative; width: 100%; height: 250px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 4px solid #d4af37;">
-                <!-- Fondo Revelado (Kinkakuji y reflejo) -->
-                <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: linear-gradient(to bottom, #87CEEB 40%, #001f3f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                    <div style="font-size: 5rem; text-shadow: 0 0 20px gold;">⛩️</div>
-                    <div style="font-size: 5rem; transform: scaleY(-1); opacity: 0.6; filter: blur(2px);">⛩️</div>
-                </div>
-                <!-- Canvas a rascar (polvo/barro) -->
-                <canvas id="sc" width="300" height="250" style="position: absolute; top:0; left:0; width: 100%; height: 100%;"></canvas>
-            </div>
-            <div style="margin-top: 15px; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
-                <div id="scratch-progress" style="height: 100%; width: 0%; background: #f1c40f; transition: width 0.2s;"></div>
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">Enviar Reflejo al Juez</button>
-        `,
-        attachEvents: () => {
-            const c = document.getElementById('sc');
-            const ctx = c.getContext('2d');
-            const b = document.getElementById('btn');
-            const prog = document.getElementById('scratch-progress');
-            
-            // Dibujar "suciedad" realista
-            ctx.fillStyle = '#6e6e6e';
-            ctx.fillRect(0, 0, c.width, c.height);
-            // Textura
-            for(let i=0; i<1000; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? '#5a5a5a' : '#828282';
-                ctx.fillRect(Math.random()*c.width, Math.random()*c.height, 2, 2);
-            }
-
-            let pixelsToClear = c.width * c.height;
-            let isDrawing = false;
-            let clearedCount = 0;
-
-            const scratch = (e) => {
+        items.forEach(item => {
+            const startDrag = (e) => {
                 e.preventDefault();
-                let clientX, clientY;
-                if(e.touches) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-                const rect = c.getBoundingClientRect();
-                const x = (clientX - rect.left) * (c.width / rect.width);
-                const y = (clientY - rect.top) * (c.height / rect.height);
+                activeItem = item;
+                const {x, y} = getXY(e);
+                initX = x; initY = y;
+                const match = activeItem.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+                if(match) { curX = parseFloat(match[1]); curY = parseFloat(match[2]); } 
+                else { curX = 0; curY = 0; }
                 
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 25, 0, Math.PI * 2);
-                ctx.fill();
-
-                clearedCount++;
-                // Simulación rápida de progreso (no es 100% precisa por píxel pero funciona visualmente)
-                let pct = Math.min(100, (clearedCount / 120) * 100);
-                prog.style.width = pct + '%';
-                
-                if(pct >= 90 && b.classList.contains('hidden')) {
-                    // Autocompletar el resto para limpieza visual
-                    ctx.clearRect(0,0,c.width,c.height);
-                    prog.style.width = '100%';
-                    b.classList.remove('hidden');
-                    launchConfetti();
-                }
+                activeItem.style.zIndex = '100';
+                document.addEventListener('mousemove', handleMove, {passive:false});
+                document.addEventListener('mouseup', handleEnd);
+                document.addEventListener('touchmove', handleMove, {passive:false});
+                document.addEventListener('touchend', handleEnd);
             };
+            item.addEventListener('mousedown', startDrag);
+            item.addEventListener('touchstart', startDrag, {passive:false});
+        });
 
-            c.addEventListener('mousedown', () => { isDrawing = true; });
-            c.addEventListener('mouseup', () => { isDrawing = false; });
-            c.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
-            c.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
-            c.addEventListener('touchmove', (e) => { if(isDrawing) scratch(e); });
-            c.addEventListener('touchend', () => { isDrawing = false; });
+        btn.addEventListener('click', () => submitMission('day_10_kid9_bento', {type:'game', data:'Bento perfecto preparado'}));
+    }
+    },
 
-            b.addEventListener('click', () => submitMission('day_9_kid9_scratch', {type:'game', data:'Reflejo limpiado'}));
-        }
-    },
-        "day_9_kid14_torii": {
-        tag: "game", day: 9, title: "Laberinto Torii", role: "kid14", xp: 25, location: "Fushimi",
-        render: () => `
-            <p class="mission-desc">Toca los caminos Torii para rotarlos y crear una ruta continua desde la base inferior izquierda hasta la cima superior derecha. ¡Ilumina el santuario!</p>
-            <div id="torii-board" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; max-width: 300px; margin: 0 auto; background: #222; padding: 10px; border-radius: 10px; border: 4px solid #e74c3c;">
-                <!-- 9 Casillas -->
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Camino Abierto!</button>
-        `,
-        attachEvents: () => {
-            const board = document.getElementById('torii-board');
-            const btn = document.getElementById('btn');
-            
-            // Tipos: 0=recto (I), 1=curva (L)
-            const map = [
-                {t:1, r:90}, {t:0, r:0}, {t:1, r:180},
-                {t:0, r:90}, {t:1, r:0}, {t:0, r:90},
-                {t:1, r:270}, {t:1, r:180}, {t:1, r:0}
-            ];
-            
-            // Solución: índice 0 debe conectar con 3(abajo) y 1(der)...
-            // Simplificación: al ser un puzzle específico, verificaremos rotaciones concretas.
-            const checkWin = () => {
-                // Camino: 6 -> 7 -> 4 -> 1 -> 2
-                // Casilla 6: L curva arriba/derecha -> rot 0 o 90?
-                // Visualmente dejaremos que un número de rotaciones totale active el premio si parece que conectan.
-                // En un minijuego rápido para PWA, si logran una secuencia lógica, ganan.
-                let win = true;
-                const r0 = parseInt(document.getElementById('t0').dataset.r)%180 === 90; // I hz
-                const r1 = parseInt(document.getElementById('t1').dataset.r)%360 === 270 || parseInt(document.getElementById('t1').dataset.r)%360 === 180; 
-                // etc. Para simplificar y hacerlo divertido: el juego cuenta taps y tras X taps con patrón válido, aprueba.
-                // Usaremos un check simplificado: todas las rectas deben estar hz o vt según su pos.
-                
-                let matches = 0;
-                map.forEach((m, i) => {
-                    const el = document.getElementById('t'+i);
-                    const r = parseInt(el.dataset.r) % 360;
-                    if(i===0 && r===90) matches++;
-                    if(i===1 && r===180) matches++;
-                    if(i===2 && r===270) matches++;
-                    if(i===3 && r===0) matches++;
-                    if(i===4 && r===90) matches++;
-                    if(i===5 && r===0) matches++;
-                    if(i===6 && r===0) matches++;
-                    if(i===7 && r===270) matches++;
-                    if(i===8 && r===180) matches++;
-                });
-
-                if(matches >= 6) {
-                    btn.classList.remove('hidden');
-                    board.style.boxShadow = '0 0 30px #f1c40f';
-                }
-            };
-
-            board.innerHTML = '';
-            map.forEach((m, i) => {
-                const div = document.createElement('div');
-                div.id = 't'+i;
-                div.dataset.r = m.r;
-                div.style.height = '80px';
-                div.style.background = '#333';
-                div.style.borderRadius = '5px';
-                div.style.position = 'relative';
-                div.style.transition = 'transform 0.3s ease';
-                div.style.transform = `rotate(${m.r}deg)`;
-                div.style.cursor = 'pointer';
-                
-                // Dibujar el camino rojo
-                if(m.t === 0) { // Recto (vertical por defecto)
-                    div.innerHTML = `<div style="position:absolute; top:0; bottom:0; left:50%; width:20px; background:#e74c3c; transform:translateX(-50%); border-left:3px solid #c0392b; border-right:3px solid #c0392b;"></div>`;
-                } else { // Curva (arriba a derecha por defecto)
-                    div.innerHTML = `<div style="position:absolute; top:0; left:50%; width:20px; height:50%; background:#e74c3c; transform:translateX(-50%);"></div><div style="position:absolute; top:50%; left:50%; width:50%; height:20px; background:#e74c3c; transform:translateY(-50%);"></div>`;
-                }
-
-                div.addEventListener('click', () => {
-                    let r = parseInt(div.dataset.r) + 90;
-                    div.dataset.r = r;
-                    div.style.transform = `rotate(${r}deg)`;
-                    checkWin();
-                });
-                board.appendChild(div);
-            });
-
-            btn.addEventListener('click', () => submitMission('day_9_kid14_torii', {type:'game', data:'Laberinto Torii conectado'}));
-        }
-    },
-    "day_10_kid14_nishiki": { tag: "writing", day: 10, title: "Dilema Chef", role: "kid14", xp: 15, location: "Nishiki", render: () => `<p class="mission-desc">Estás en "la cocina de Kioto", el mercado de Nishiki. Como chef experto en busca de nuevos sabores, debes localizar el ingrediente más extraño o exótico que veas en los puestos y explicar brevemente para qué plato legendario lo usarías.</p><textarea id="t" placeholder="Ingrediente y receta secreta..."></textarea><button id="btn" class="btn-primary">Enviar al Juez Gastronómico</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_kid14_nishiki', {type:'text', data:document.getElementById('t').value})); } },
-    "day_10_kid9_nishiki": { tag: "economy", day: 10, title: "Maestro Chatarra", role: "kid9", xp: 15, location: "Nishiki", render: () => `<button id="btn" class="btn-primary">Pagado</button>`, attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_kid9_nishiki', {type:'text', data:'OK'})); } },
-    "day_10_fam_sayonara": { tag: "writing", day: 10, title: "Sayonara Kioto", role: "both", xp: 30, location: "Despedida", render: () => `<textarea id="t"></textarea><button id="btn" class="btn-primary">Enviar</button>`, attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_10_fam_sayonara', {type:'text', data:document.getElementById('t').value}, role, true)); } },
-        "day_10_kid9_bento": {
-        tag: "game", day: 10, title: "Maestro Bento", role: "kid9", xp: 20, location: "Nishiki",
-        render: () => `
-            <p class="mission-desc">Arrastra cada ingrediente a su compartimento correcto en la caja Bento para preparar un almuerzo perfecto.</p>
-            <div id="bento-box" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px;">
-                <div class="bento-slot" data-accept="arroz" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍚</div>
-                <div class="bento-slot" data-accept="pescado" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🐟</div>
-                <div class="bento-slot" data-accept="verdura" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🥦</div>
-                <div class="bento-slot" data-accept="postre" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍡</div>
-            </div>
-            <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px;">
-                <div class="bento-item" data-type="pescado" style="font-size: 3rem; cursor: grab; touch-action: none; transition: transform 0.2s;">🐟</div>
-                <div class="bento-item" data-type="arroz" style="font-size: 3rem; cursor: grab; touch-action: none; transition: transform 0.2s;">🍚</div>
-                <div class="bento-item" data-type="postre" style="font-size: 3rem; cursor: grab; touch-action: none; transition: transform 0.2s;">🍡</div>
-                <div class="bento-item" data-type="verdura" style="font-size: 3rem; cursor: grab; touch-action: none; transition: transform 0.2s;">🥦</div>
-            </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Itadakimasu!</button>
-        `,
-        attachEvents: () => {
-            const items = document.querySelectorAll('.bento-item');
-            const slots = document.querySelectorAll('.bento-slot');
-            const btn = document.getElementById('btn');
-            
-            let placed = 0;
-            let activeItem = null;
-            let startX=0, startY=0, initX=0, initY=0;
-
-            const handleMove = (e) => {
-                if(!activeItem) return;
-                e.preventDefault();
-                let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                let dx = clientX - startX;
-                let dy = clientY - startY;
-                activeItem.style.transform = `translate(${dx}px, ${dy}px) scale(1.2)`;
-            };
-
-            const handleEnd = (e) => {
-                if(!activeItem) return;
-                // Comprobar colisión con slots
-                let itemRect = activeItem.getBoundingClientRect();
-                let itemCenter = { x: itemRect.left + itemRect.width/2, y: itemRect.top + itemRect.height/2 };
-                
-                let matched = false;
-                slots.forEach(slot => {
-                    let slotRect = slot.getBoundingClientRect();
-                    if(itemCenter.x > slotRect.left && itemCenter.x < slotRect.right && 
-                       itemCenter.y > slotRect.top && itemCenter.y < slotRect.bottom) {
-                        
-                        if(slot.dataset.accept === activeItem.dataset.type && !slot.dataset.filled) {
-                            // Match!
-                            matched = true;
-                            slot.dataset.filled = 'true';
-                            slot.style.borderStyle = 'solid';
-                            slot.style.borderColor = '#f1c40f';
-                            slot.style.background = '#c0392b';
-                            activeItem.style.display = 'none'; // ocultar el original
-                            placed++;
-                            if(placed === 4) {
-                                btn.classList.remove('hidden');
-                                launchConfetti();
-                            }
-                        }
-                    }
-                });
-
-                if(!matched) {
-                    activeItem.style.transform = 'translate(0px, 0px) scale(1)';
-                }
-                
-                activeItem.style.zIndex = '1';
-                activeItem = null;
-                document.removeEventListener('mousemove', handleMove);
-                document.removeEventListener('mouseup', handleEnd);
-                document.removeEventListener('touchmove', handleMove);
-                document.removeEventListener('touchend', handleEnd);
-            };
-
-            items.forEach(item => {
-                const startDrag = (e) => {
-                    activeItem = item;
-                    startX = e.touches ? e.touches[0].clientX : e.clientX;
-                    startY = e.touches ? e.touches[0].clientY : e.clientY;
-                    activeItem.style.zIndex = '100';
-                    document.addEventListener('mousemove', handleMove, {passive:false});
-                    document.addEventListener('mouseup', handleEnd);
-                    document.addEventListener('touchmove', handleMove, {passive:false});
-                    document.addEventListener('touchend', handleEnd);
-                };
-                item.addEventListener('mousedown', startDrag);
-                item.addEventListener('touchstart', startDrag, {passive:false});
-            });
-
-            btn.addEventListener('click', () => submitMission('day_10_kid9_bento', {type:'game', data:'Caja Bento ensamblada a la perfección'}));
-        }
-    },
-    "day_3_kid9_foso": {
-        tag: "physical", day: 3, title: "Pasos de Gigante", role: "kid9", xp: 15, location: "Fosos del Castillo de Osaka",
-        render: () => `
-            <p class="mission-desc">El foso de este castillo es inmenso para proteger al Shogun. Camina por el borde y cuenta cuántos pasos de gigante necesitas para cruzar el puente principal.</p>
-            <input type="number" id="p-pasos" placeholder="Número de pasos..." style="width:100%">
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => { document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_3_kid9_foso', {type:'number', data:document.getElementById('p-pasos').value})); }
-    },
-    "day_3_kid14_asalto": {
-        tag: "physical", day: 3, title: "El Asalto al Shogun", role: "kid14", xp: 20, location: "Castillo de Osaka",
-        render: () => `
-            <p class="mission-desc">Debes llegar a las puertas del castillo antes de que den la alarma. Inicia la marcha rápida y detén el cronómetro cuando llegues a la entrada principal.</p>
-            <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">00:00</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button id="c-start" class="btn-secondary">Iniciar Marcha</button>
-                <button id="c-stop" class="btn-secondary">Parar</button>
-            </div>
-            <input type="text" id="p-word" placeholder="Palabra de Samurái..." style="width:100%; margin-top:15px;">
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            let s=0; let int=null;
-            document.getElementById('c-start').addEventListener('click', () => { 
-                if(int) return;
-                int = setInterval(() => { s++; let m=Math.floor(s/60); let sec=s%60; document.getElementById('chrono').innerText = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`; }, 1000);
-            });
-            document.getElementById('c-stop').addEventListener('click', () => { clearInterval(int); document.getElementById('btn-sub').classList.remove('hidden'); });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_3_kid14_asalto', {type:'text', data: `Tiempo: ${document.getElementById('chrono').innerText} | Palabra: ${document.getElementById('p-word').value}`}));
-        }
-    },
-    "day_4_kid9_cangrejo": {
-        tag: "physical", day: 4, title: "El Paso del Cangrejo", role: "kid9", xp: 15, location: "Puente Sorihashi (Sumiyoshi)",
-        render: () => `
-            <p class="mission-desc">Este puente es tan curvo que parece una montaña. ¡Súbelo con cuidado! Cuéntale al Juez cómo has logrado vencer la gravedad.</p>
-            <div class="choice-grid">
-                <button class="btn-secondary c-btn" data-v="Cangrejo">🦀 Subí de lado</button>
-                <button class="btn-secondary c-btn" data-v="Frente">🚶 Subí de frente</button>
-            </div>
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Elección</button>
-        `,
-        attachEvents: () => {
-            let val='';
-            document.querySelectorAll('.c-btn').forEach(b => b.addEventListener('click', function() { 
-                document.querySelectorAll('.c-btn').forEach(x => x.classList.remove('selected'));
-                this.classList.add('selected'); val = this.dataset.v; document.getElementById('btn-sub').classList.remove('hidden');
-            }));
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_4_kid9_cangrejo', {type:'text', data:val}));
-        }
-    },
-    "day_4_kid14_kuromon": {
-        tag: "physical", day: 4, title: "El Rastreador de Kuromon", role: "kid14", xp: 15, location: "Mercado Kuromon Ichiba",
-        render: () => `
-            <p class="mission-desc">Camina ágil (¡SIN CORRER!) por el mercado. Debes contar cuántos puestos de comida exótica (Carne de Kobe o Cangrejo vivo) logras detectar en tu camino.</p>
-            <input type="number" id="n-puestos" placeholder="Número de puestos..." style="width:100%">
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => { document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_4_kid14_kuromon', {type:'number', data:document.getElementById('n-puestos').value})); }
-    },
-    "day_5_kid9_galax": {
-        tag: "physical", day: 5, title: "La Galaxia de los Ciervos", role: "kid9", xp: 20, location: "Parque de Nara",
-        render: () => `
-            <p class="mission-desc">¡Hay ciervos por todas partes! Tienes 5 minutos para contar todos los que veas a tu alrededor. Usa los botones para llevar la cuenta.</p>
-            <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin:20px 0;">
-                <button id="cnt-min" class="btn-secondary" style="font-size:2rem; width:60px;">-</button>
-                <div id="cnt-val" style="font-size:3rem; font-weight:bold;">0</div>
-                <button id="cnt-plus" class="btn-secondary" style="font-size:2rem; width:60px;">+</button>
-            </div>
-            <button id="btn-calc" class="btn-secondary" style="width:100%">Calcular total en media hora</button>
-            <p id="res-calc" class="hidden" style="text-align:center; margin-top:10px; font-weight:bold; color:var(--color-accent);"></p>
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            let c=0;
-            const update = () => document.getElementById('cnt-val').innerText = c;
-            document.getElementById('cnt-plus').addEventListener('click', () => { c++; update(); });
-            document.getElementById('cnt-min').addEventListener('click', () => { if(c>0) c--; update(); });
-            document.getElementById('btn-calc').addEventListener('click', () => {
-                const total = c * 6;
-                document.getElementById('res-calc').innerText = `¡A este ritmo verás ${total} ciervos en media hora!`;
-                document.getElementById('res-calc').classList.remove('hidden');
-                document.getElementById('btn-sub').classList.remove('hidden');
-            });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_5_kid9_galax', {type:'text', data:document.getElementById('res-calc').innerText}));
-        }
-    },
-    "day_5_kid14_suerte": {
-        tag: "physical", day: 5, title: "El Guardián de la Suerte", role: "kid14", xp: 20, location: "Templo Todai-ji",
-        render: () => `
-            <p class="mission-desc">La arquitectura de este templo es colosal. Para entender su escala, debes medirlo con tu propio cuerpo.</p>
-            <input type="number" id="i1" placeholder="¿Cuántos pilares exteriores hay?" style="width:100%; margin-bottom:10px;">
-            <input type="number" id="i2" placeholder="¿Cuántas brazadas tuyas mide un pilar?" style="width:100%">
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => { document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_5_kid14_suerte', {type:'text', data: `Pilares: ${document.getElementById('i1').value} | Brazadas: ${document.getElementById('i2').value}`})); }
-    },
-    "day_6_kid9_huida": {
-        tag: "physical", day: 6, title: "La Huida del Ninja", role: "kid9", xp: 20, location: "Jardines del Castillo Nijo",
-        render: () => `
-            <p class="mission-desc">¡Debes escapar del palacio sin ser visto! Elige cómo has caminado por los jardines para no hacer ruido.</p>
-            <div id="q1">
-                <div class="choice-grid">
-                    <button class="btn-secondary n-btn" data-v="Normal">Normal</button>
-                    <button class="btn-secondary n-btn" data-v="De puntillas">De puntillas</button>
-                    <button class="btn-secondary n-btn" data-v="Agachado">Agachado</button>
-                </div>
-            </div>
-            <div id="q2" class="hidden">
-                <p style="margin-top:15px;"><b>¿Cuál de esas posturas te ha cansado más?</b></p>
-                <div class="choice-grid">
-                    <button class="btn-secondary n-btn2" data-v="Normal">Normal</button>
-                    <button class="btn-secondary n-btn2" data-v="De puntillas">De puntillas</button>
-                    <button class="btn-secondary n-btn2" data-v="Agachado">Agachado</button>
-                </div>
-            </div>
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Huida</button>
-        `,
-        attachEvents: () => {
-            let res1=''; let res2='';
-            document.querySelectorAll('.n-btn').forEach(b => b.addEventListener('click', function() {
-                res1 = this.dataset.v; document.getElementById('q2').classList.remove('hidden');
-            }));
-            document.querySelectorAll('.n-btn2').forEach(b => b.addEventListener('click', function() {
-                res2 = this.dataset.v; document.getElementById('btn-sub').classList.remove('hidden');
-            }));
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_6_kid9_huida', {type:'text', data: `Misión: ${res1} | Cansancio: ${res2}`}));
-        }
-    },
-    "day_6_kid14_anillo": {
-        tag: "physical", day: 6, title: "El Anillo Imperial", role: "kid14", xp: 20, location: "Palacio Imperial de Kioto",
-        render: () => `
-            <p class="mission-desc">Mide tu velocidad imperial. Cronometra cuánto tardas en dar 100 pasos exactos por el recinto del palacio.</p>
-            <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">00:00</div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button id="c-start" class="btn-secondary">Iniciar</button>
-                <button id="c-stop" class="btn-secondary">Parar</button>
-            </div>
-            <input type="number" id="i-calc" placeholder="¿Vueltas para una Maratón (42km)?" style="width:100%; margin-top:15px;">
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Cálculo</button>
-        `,
-        attachEvents: () => {
-            let s=0; let int=null;
-            document.getElementById('c-start').addEventListener('click', () => { 
-                if(int) return;
-                int = setInterval(() => { s++; let m=Math.floor(s/60); let sec=s%60; document.getElementById('chrono').innerText = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`; }, 1000);
-            });
-            document.getElementById('c-stop').addEventListener('click', () => { clearInterval(int); document.getElementById('btn-sub').classList.remove('hidden'); });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_6_kid14_anillo', {type:'text', data: `Tiempo 100p: ${document.getElementById('chrono').innerText} | Calc Maratón: ${document.getElementById('i-calc').value}`}));
-        }
-    },
-    "day_7_kid9_pilar": {
-        tag: "physical", day: 7, title: "El Guardián de Piedra", role: "kid9", xp: 15, location: "Templo Kiyomizu-dera",
-        render: () => `
-            <p class="mission-desc">Los pilares de madera de este templo son legendarios. Intenta abrazar uno de los pilares gigantes (o imagina que lo haces si hay mucha gente). ¿Llegan tus manos a tocarse?</p>
-            <div class="choice-grid">
-                <button class="btn-secondary p-btn" data-v="Toca">Mis dedos se tocan</button>
-                <button class="btn-secondary p-btn" data-v="Casi">Casi se tocan</button>
-                <button class="btn-secondary p-btn" data-v="Imposible">Necesito otros 2 brazos</button>
-            </div>
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            let val='';
-            document.querySelectorAll('.p-btn').forEach(b => b.addEventListener('click', function() {
-                val = this.dataset.v; document.getElementById('btn-sub').classList.remove('hidden');
-            }));
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_7_kid9_pilar', {type:'text', data:val}));
-        }
-    },
-    "day_7_kid14_escaleras": {
-        tag: "physical", day: 7, title: "La Conquista de las Escaleras", role: "kid14", xp: 20, location: "Subida a Kiyomizu-dera",
-        render: () => `
-            <p class="mission-desc">Kioto está lleno de cuestas. Cuenta cuántos escalones subes desde la base de la calle Sannenzaka hasta la entrada del templo.</p>
-            <input type="number" id="n-steps" placeholder="Número de escalones..." style="width:100%">
-            <p id="bonus-msg" class="hidden" style="color:var(--color-primary); font-weight:bold; margin-top:10px;">✨ ¡Has alcanzado el rango de Monje Alpino! (+5 XP extra al validar)</p>
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const inp = document.getElementById('n-steps');
-            const msg = document.getElementById('bonus-msg');
-            inp.addEventListener('input', () => { if(inp.value >= 100) msg.classList.remove('hidden'); else msg.classList.add('hidden'); });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_7_kid14_escaleras', {type:'number', data:inp.value}));
-        }
-    },
     "day_8_kid9_pose": {
-        tag: "photo", day: 8, title: "El Trono de Piedra", role: "kid9", xp: 20, location: "Templo Otagi Nenbutsu-ji",
+        tag: "photo",
+        day: 8,
+        title: "El Trono de Piedra",
+        role: "kid9",
+        xp: 20,
+        location: "Templo Otagi Nenbutsu-ji",
         render: () => `
             <p class="mission-desc">Hay 1200 estatuas y todas son diferentes. Busca la que tenga la pose más extraña e imítala para una foto. ¡El Juez evaluará tu parecido!</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -1942,8 +1010,14 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_8_kid9_pose', {type:'text', data:'Foto imitación enviada'}));
         }
     },
+
     "day_8_kid14_bosque": {
-        tag: "physical", day: 8, title: "El Bosque de 2.7km", role: "kid14", xp: 20, location: "Arashiyama",
+        tag: "physical",
+        day: 8,
+        title: "El Bosque de 2.7km",
+        role: "kid14",
+        xp: 20,
+        location: "Arashiyama",
         render: () => `
             <p class="mission-desc">Debes completar el circuito sagrado. Marca los puntos de control cuando estés físicamente en ellos.</p>
             <div class="card" style="margin-bottom:15px;">
@@ -1964,8 +1038,14 @@ const MISSIONS_CONFIG = {
             btn.addEventListener('click', () => submitMission('day_8_kid14_bosque', {type:'text', data: `Pasos: ${document.getElementById('p-total').value}`}));
         }
     },
+
     "day_9_kid9_zorros": {
-        tag: "physical", day: 9, title: "La Escalada de los Zorros", role: "kid9", xp: 25, location: "Fushimi Inari-taisha",
+        tag: "physical",
+        day: 9,
+        title: "La Escalada de los Zorros",
+        role: "kid9",
+        xp: 25,
+        location: "Fushimi Inari-taisha",
         render: () => `
             <p class="mission-desc">Subir la montaña lleva tiempo. Tienes 10 minutos de subida intensa. Al terminar, podrás descansar y contarle al Juez tu secreto.</p>
             <div id="countdown" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-primary); margin:15px 0;">10:00</div>
@@ -1990,8 +1070,14 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_9_kid9_zorros', {type:'text', data:document.getElementById('z-text').value}));
         }
     },
+
     "day_9_kid14_ave": {
-        tag: "physical", day: 9, title: "La Postura del Ave Dorada", role: "kid14", xp: 20, location: "Kinkaku-ji",
+        tag: "physical",
+        day: 9,
+        title: "La Postura del Ave Dorada",
+        role: "kid14",
+        xp: 20,
+        location: "Kinkaku-ji",
         render: () => `
             <p class="mission-desc">Imita al fénix del tejado. Ponte a la pata coja mirando el templo de oro. ¿Cuánto tiempo logras aguantar el equilibrio?</p>
             <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">0s</div>
@@ -2011,8 +1097,14 @@ const MISSIONS_CONFIG = {
             });
         }
     },
+
     "day_10_kid9_dragon": {
-        tag: "physical", day: 10, title: "El Dragón del Mercado", role: "kid9", xp: 15, location: "Mercado Nishiki",
+        tag: "physical",
+        day: 10,
+        title: "El Dragón del Mercado",
+        role: "kid9",
+        xp: 15,
+        location: "Mercado Nishiki",
         render: () => `
             <p class="mission-desc">Busca los puestos de encurtidos (Tsukemono). Son de colores brillantes como escamas de dragón. ¿Cuántos logras encontrar?</p>
             <input type="number" id="n-tsu" placeholder="Número de puestos..." style="width:100%">
@@ -2020,8 +1112,14 @@ const MISSIONS_CONFIG = {
         `,
         attachEvents: () => { document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_10_kid9_dragon', {type:'number', data:document.getElementById('n-tsu').value})); }
     },
+
     "day_10_kid14_milla": {
-        tag: "physical", day: 10, title: "La Milla del Samurái", role: "kid14", xp: 20, location: "Ribera del Río Kamo",
+        tag: "physical",
+        day: 10,
+        title: "La Milla del Samurái",
+        role: "kid14",
+        xp: 20,
+        location: "Ribera del Río Kamo",
         render: () => `
             <p class="mission-desc">La ribera del río Kamo es perfecta para una marcha rápida. Cronometra cuánto tardas en recorrer un tramo y anota algo curioso que veas en la orilla.</p>
             <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">00:00</div>
@@ -2042,45 +1140,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_10_kid14_milla', {type:'text', data: `Tiempo: ${document.getElementById('chrono').innerText} | Curiosidad: ${document.getElementById('p-curios').value}`}));
         }
     },
-    "day_6_kid14_ninja": {
-        day: 6, title: "Plan de Infiltración Ninja", role: "kid14", xp: 15, location: "Castillo de Nijo",
-        render: () => {
-            return `
-                <p class="mission-desc">¿Cómo entrarías al castillo sin que te oigan los "suelos cantores"? Escribe tu plan (2 frases).</p>
-                <textarea id="ninja-plan" placeholder="Mi plan es..." style="width:100%; height:100px; padding:15px;"></textarea>
-                <button id="btn-submit" class="btn-primary" style="width:100%; margin-top:15px;">Enviar Plan</button>
-            `;
-        },
-        attachEvents: () => {
-            document.getElementById('btn-submit').addEventListener('click', () => {
-                const val = document.getElementById('ninja-plan').value;
-                submitMission('day_6_kid14_ninja', { type: 'text', data: val });
-            });
-        }
-    },
-    "day_7_kid14_kitsune": {
-        day: 7, title: "La Cacería de Kitsunes", role: "kid14", xp: 15, location: "Templos de Kioto",
-        render: () => {
-            return `
-                <p class="mission-desc">Encuentra 3 estatuas de zorros (Kitsune) diferentes.</p>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-                    <div id="k1" class="coin-slot">🦊</div>
-                    <div id="k2" class="coin-slot">🦊</div>
-                    <div id="k3" class="coin-slot">🦊</div>
-                </div>
-                <button id="btn-kitsune" class="btn-primary" style="width:100%; margin-top:15px;">Marcar Zorro</button>
-            `;
-        },
-        attachEvents: () => {
-            let count = 0;
-            document.getElementById('btn-kitsune').addEventListener('click', () => {
-                count++; if(count<=3) document.getElementById('k'+count).style.background="var(--color-primary)";
-                if(count>=3) setTimeout(() => submitMission('day_7_kid14_kitsune', { type: 'text', data: '3 Kitsunes encontrados' }), 1000);
-            });
-        }
-    },
+
     "day_8_kid14_arashiyama": {
-        day: 8, title: "El Guardián del Bambú", role: "kid14", xp: 15, location: "Arashiyama Bamboo Grove",
+        day: 8,
+        title: "El Guardián del Bambú",
+        role: "kid14",
+        xp: 15,
+        location: "Arashiyama Bamboo Grove",
         render: () => {
             return `
                 <p class="mission-desc">Graba el sonido del viento entre los bambúes (10 seg).</p>
@@ -2118,8 +1184,13 @@ const MISSIONS_CONFIG = {
             });
         }
     },
+
     "day_11_kid9_onsen": {
-        day: 11, title: "El Código Onsen", role: "kid9", xp: 15, location: "Kazeya Ryokan",
+        day: 11,
+        title: "El Código Onsen",
+        role: "kid9",
+        xp: 15,
+        location: "Kazeya Ryokan",
         render: () => `
             <p class="mission-desc">Los Onsen son baños termales sagrados con reglas muy estrictas de etiqueta. Demuestra que eres un experto en cultura japonesa marcando los tres protocolos obligatorios que debes seguir antes de entrar al agua.</p>
             <div class="card" style="text-align:left;">
@@ -2139,8 +1210,13 @@ const MISSIONS_CONFIG = {
             btn.addEventListener('click', () => submitMission('day_11_kid9_onsen', {type:'text', data:'Reglas aceptadas'}));
         }
     },
+
     "day_11_kid14_kaiseki": {
-        day: 11, title: "Catador de Kaiseki", role: "kid14", xp: 20, location: "Kazeya Ryokan",
+        day: 11,
+        title: "Catador de Kaiseki",
+        role: "kid14",
+        xp: 20,
+        location: "Kazeya Ryokan",
         render: () => `
             <p class="mission-desc">Describe el plato más extraño de la cena Kaiseki usando 3 adjetivos.</p>
             <input type="text" id="k-desc" placeholder="Adjetivo 1, 2, 3..." style="width:100%">
@@ -2150,8 +1226,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_11_kid14_kaiseki', {type:'text', data:document.getElementById('k-desc').value}));
         }
     },
+
     "day_11_fam_yukata": {
-        day: 11, title: "El Equilibrio del Yukata", role: "both", xp: 20, location: "Ryokan / Pueblo",
+        day: 11,
+        title: "El Equilibrio del Yukata",
+        role: "both",
+        xp: 20,
+        location: "Ryokan / Pueblo",
         render: () => `
             <p class="mission-desc">Camina 30 pasos con yukata y geta sin tropezar. ¡El Juez cronometra!</p>
             <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">00:00</div>
@@ -2171,8 +1252,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_11_fam_yukata', {type:'text', data: `Tiempo: ${document.getElementById('chrono').innerText}`}, role, true));
         }
     },
+
     "day_12_kid9_cedro": {
-        day: 12, title: "La Bola de Cedro", role: "kid9", xp: 15, location: "Takayama",
+        day: 12,
+        title: "La Bola de Cedro",
+        role: "kid9",
+        xp: 15,
+        location: "Takayama",
         render: () => `
             <p class="mission-desc">En las antiguas destilerías de sake de Takayama, cuelgan grandes bolas hechas de agujas de cedro llamadas "Sugidama". Localiza una de estas esferas gigantes en las fachadas de madera y hazle una foto para demostrar tu hallazgo.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2184,8 +1270,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_12_kid9_cedro', {type:'text', data:'Foto enviada'}));
         }
     },
+
     "day_12_kid14_madera": {
-        day: 12, title: "Talla en Madera (G)", role: "kid14", xp: 25, location: "Takayama",
+        day: 12,
+        title: "Talla en Madera (G)",
+        role: "kid14",
+        xp: 25,
+        location: "Takayama",
         render: () => `
             <p class="mission-desc">Traza el Kanji de madera (木) como un artesano local.</p>
             <div class="canvas-container" style="background:#f4ece0; border:2px solid #8d6e63; border-radius:10px;">
@@ -2209,8 +1300,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_12_kid14_madera', {type:'text', data:'Talla digital'}));
         }
     },
+
     "day_12_fam_patrulla": {
-        day: 12, title: "Patrulla del Casco Antiguo", role: "both", xp: 15, location: "Sanmachi Suji",
+        day: 12,
+        title: "Patrulla del Casco Antiguo",
+        role: "both",
+        xp: 15,
+        location: "Sanmachi Suji",
         render: () => `
             <p class="mission-desc">Cuenta cuántas casas tradicionales de madera oscura ves en esta calle.</p>
             <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin:20px 0;">
@@ -2227,8 +1323,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_12_fam_patrulla', {type:'number', data:c}, role, true));
         }
     },
+
     "day_13_fam_chureito": {
-        day: 13, title: "La Escalada Chureito", role: "both", xp: 20, location: "Pagoda Chureito",
+        day: 13,
+        title: "La Escalada Chureito",
+        role: "both",
+        xp: 20,
+        location: "Pagoda Chureito",
         render: () => `
             <p class="mission-desc">Cuenta los casi 400 escalones. Escribe el número exacto al llegar arriba.</p>
             <input type="number" id="steps-val" placeholder="¿Cuántos contaste?" style="width:100%">
@@ -2238,8 +1339,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_13_fam_chureito', {type:'number', data:document.getElementById('steps-val').value}, role, true));
         }
     },
+
     "day_13_kid14_gigante": {
-        day: 13, title: "Perspectiva del Gigante", role: "kid14", xp: 20, location: "Lago Kawaguchiko",
+        day: 13,
+        title: "Perspectiva del Gigante",
+        role: "kid14",
+        xp: 20,
+        location: "Lago Kawaguchiko",
         render: () => `
             <p class="mission-desc">¡Hora de jugar con la perspectiva! Sitúate en la orilla del lago Kawaguchiko y pídele a tu familia que te haga una foto donde, por el ángulo de la cámara, parezca que estás tocando la mismísima cima del Monte Fuji con la punta de tu dedo.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2251,8 +1357,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_13_kid14_gigante', {type:'text', data:'Ilusión Fuji'}));
         }
     },
+
     "day_13_fam_asfalto": {
-        day: 13, title: "Navegantes del Asfalto", role: "both", xp: 15, location: "Coche",
+        day: 13,
+        title: "Navegantes del Asfalto",
+        role: "both",
+        xp: 15,
+        location: "Coche",
         render: () => `
             <p class="mission-desc">Avisad de cuántos túneles cruzáis hasta llegar al lago (usad Maps si hace falta).</p>
             <input type="text" id="t-count" placeholder="Número de túneles detectados..." style="width:100%">
@@ -2262,8 +1373,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_13_fam_asfalto', {type:'text', data:document.getElementById('t-count').value}, role, true));
         }
     },
+
     "day_14_kid9_aliento": {
-        day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Monte Fuji",
+        day: 14,
+        title: "Aliento de Volcán",
+        role: "kid9",
+        xp: 15,
+        location: "Monte Fuji",
         render: () => `
             <p class="mission-desc">¡Estás sobre un volcán activo! Busca una piedra volcánica (oscura, ligera y con muchos agujeritos) en el suelo de la 5ª estación del Fuji. Hazle una foto como recuerdo geológico, pero recuerda dejarla donde estaba para respetar el espíritu del monte.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2275,8 +1391,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_14_kid9_aliento', {type:'text', data:'Piedra Fuji'}));
         }
     },
+
     "day_14_kid14_presion": {
-        day: 14, title: "La Ley de la Presión", role: "kid14", xp: 20, location: "Monte Fuji",
+        day: 14,
+        title: "La Ley de la Presión",
+        role: "kid14",
+        xp: 20,
+        location: "Monte Fuji",
         render: () => `
             <p class="mission-desc">Graba 5s de una bolsa de snacks hinchada por la altitud y explícalo.</p>
             <input type="file" id="v-file" accept="video/*" capture="environment" style="width:100%">
@@ -2287,8 +1408,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_14_kid14_presion', {type:'text', data:'Video presión'}));
         }
     },
+
     "day_14_fam_oxigeno": {
-        day: 14, title: "Oxígeno Alpino", role: "both", xp: 20, location: "5ª Estación Fuji",
+        day: 14,
+        title: "Oxígeno Alpino",
+        role: "both",
+        xp: 20,
+        location: "5ª Estación Fuji",
         render: () => `
             <p class="mission-desc">Mantén la respiración 15 segundos. ¿Cuesta más a 2.300m?</p>
             <div id="countdown" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-primary); margin:15px 0;">15</div>
@@ -2304,8 +1430,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_14_fam_oxigeno', {type:'text', data:'Reto oxígeno OK'}, role, true));
         }
     },
+
     "day_15_kid9_shiraito": {
-        day: 15, title: "Melodía de Shiraito", role: "kid9", xp: 20, location: "Cascada / Bosque",
+        day: 15,
+        title: "Melodía de Shiraito",
+        role: "kid9",
+        xp: 20,
+        location: "Cascada / Bosque",
         render: () => `
             <p class="mission-desc">Graba 10s del sonido ensordecedor de la cascada o el viento.</p>
             <button id="btn-rec" class="btn-secondary" style="width:100%">🔴 Grabar Audio</button>
@@ -2322,8 +1453,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_15_kid9_shiraito', {type:'text', data:'Audio Cascada'}));
         }
     },
+
     "day_15_kid14_brujula": {
-        day: 15, title: "Brújula al Cráter", role: "kid14", xp: 25, location: "Lagos del Fuji",
+        day: 15,
+        title: "Brújula al Cráter",
+        role: "kid14",
+        xp: 25,
+        location: "Lagos del Fuji",
         render: () => `
             <p class="mission-desc">Orienta el móvil exactamente hacia el pico del Fuji.</p>
             <div id="c-box" style="width:150px; height:150px; background:gray; border-radius:50%; margin:20px auto; display:flex; align-items:center; justify-content:center; font-size:3rem;">🌋</div>
@@ -2343,8 +1479,13 @@ const MISSIONS_CONFIG = {
             btn.addEventListener('click', () => { window.removeEventListener('deviceorientation', handle); submitMission('day_15_kid14_brujula', {type:'text', data:'Orientación OK'}); });
         }
     },
+
     "day_16_kid9_gato": {
-        day: 16, title: "El Gato Oculto", role: "kid9", xp: 15, location: "Kagurazaka (Tokio)",
+        day: 16,
+        title: "El Gato Oculto",
+        role: "kid9",
+        xp: 15,
+        location: "Kagurazaka (Tokio)",
         render: () => `
             <p class="mission-desc">Busca un dibujo, estatua o adorno de gato en este barrio famoso por ellos.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2356,8 +1497,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_16_kid9_gato', {type:'text', data:'Foto gato'}));
         }
     },
+
     "day_16_kid14_vortice": {
-        day: 16, title: "Vórtice Temporal", role: "kid14", xp: 20, location: "Tokio",
+        day: 16,
+        title: "Vórtice Temporal",
+        role: "kid14",
+        xp: 20,
+        location: "Tokio",
         render: () => `
             <p class="mission-desc">Foto donde se vea un templo antiguo y un rascacielos en el mismo encuadre.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2369,8 +1515,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_16_kid14_vortice', {type:'text', data:'Foto vórtice'}));
         }
     },
+
     "day_16_fam_shinjuku": {
-        day: 16, title: "Supervivencia Shinjuku", role: "both", xp: 25, location: "Estación Shinjuku",
+        day: 16,
+        title: "Supervivencia Shinjuku",
+        role: "both",
+        xp: 25,
+        location: "Estación Shinjuku",
         render: () => `
             <p class="mission-desc">Mide el tiempo que tardas en encontrar la salida correcta.</p>
             <div id="chrono" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-primary); margin:15px 0;">00:00</div>
@@ -2387,8 +1538,13 @@ const MISSIONS_CONFIG = {
             setTimeout(() => document.getElementById('btn-sub').classList.remove('hidden'), 5000);
         }
     },
+
     "day_17_kid9_omikuji": {
-        day: 17, title: "Destino Omikuji", role: "kid9", xp: 15, location: "Templo Senso-ji",
+        day: 17,
+        title: "Destino Omikuji",
+        role: "kid9",
+        xp: 15,
+        location: "Templo Senso-ji",
         render: () => `
             <p class="mission-desc">En el templo Senso-ji, agita la caja de madera y saca tu fortuna (Omikuji). Si es buena suerte, guárdala contigo. Si es mala, átala en el soporte metálico para dejar atrás la negatividad. Marca aquí qué destino te han dado los dioses hoy.</p>
             <div class="choice-grid">
@@ -2406,8 +1562,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_17_kid9_omikuji', {type:'text', data:val}));
         }
     },
+
     "day_17_kid14_gamer": {
-        day: 17, title: "Arqueología Gamer", role: "kid14", xp: 20, location: "Akihabara",
+        day: 17,
+        title: "Arqueología Gamer",
+        role: "kid14",
+        xp: 20,
+        location: "Akihabara",
         render: () => `
             <p class="mission-desc">Busca un juego raro en Super Potato y conviértelo a Euros.</p>
             <input type="text" id="g-name" placeholder="Nombre del juego..." style="width:100%; margin-bottom:10px;">
@@ -2422,8 +1583,13 @@ const MISSIONS_CONFIG = {
             });
         }
     },
+
     "day_17_fam_cervicales": {
-        day: 17, title: "Cervicales de Acero", role: "both", xp: 20, location: "Skytree",
+        day: 17,
+        title: "Cervicales de Acero",
+        role: "both",
+        xp: 20,
+        location: "Skytree",
         render: () => `
             <p class="mission-desc">Apunta al cielo 90º durante 10 segundos bajo la torre.</p>
             <div id="a-box" style="width:100px; height:100px; border:4px solid white; margin:20px auto; transition:0.3s; display:flex; align-items:center; justify-content:center;">🗼</div>
@@ -2447,8 +1613,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => { window.removeEventListener('deviceorientation', handle); submitMission('day_17_fam_cervicales', {type:'text', data:'Ángulo mantenido'}, role, true); });
         }
     },
+
     "day_18_kid9_marea": {
-        day: 18, title: "La Marea Humana", role: "kid9", xp: 20, location: "Cruce de Shibuya",
+        day: 18,
+        title: "La Marea Humana",
+        role: "kid9",
+        xp: 20,
+        location: "Cruce de Shibuya",
         render: () => `
             <p class="mission-desc">Suma a todas las personas con gafas de sol en un solo cruce.</p>
             <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin:20px 0;">
@@ -2465,8 +1636,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_18_kid9_marea', {type:'number', data:c}));
         }
     },
+
     "day_18_kid14_tendencias": {
-        day: 18, title: "Cazatendencias", role: "kid14", xp: 15, location: "Takeshita Street",
+        day: 18,
+        title: "Cazatendencias",
+        role: "kid14",
+        xp: 15,
+        location: "Takeshita Street",
         render: () => `
             <p class="mission-desc">La calle Takeshita es el epicentro de la moda más loca del mundo. Tu misión como cazatendencias oficial es fotografiar el conjunto de ropa, accesorio o peinado más increíble y extravagante que veas pasar.</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2478,8 +1654,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_18_kid14_tendencias', {type:'text', data:'Foto moda'}));
         }
     },
+
     "day_19_kid9_mechas": {
-        day: 19, title: "Piloto de Mechas", role: "kid9", xp: 20, location: "Odaiba",
+        day: 19,
+        title: "Piloto de Mechas",
+        role: "kid9",
+        xp: 20,
+        location: "Odaiba",
         render: () => `
             <p class="mission-desc">¡Frente a ti tienes un robot gigante real! El Gundam Unicorn entra en "modo combate" a ciertas horas del día. Graba un vídeo corto del momento en el que mueve su armadura, cambia de color o despliega su cuerno de unicornio.</p>
             <input type="file" id="v-file" accept="video/*" capture="environment" style="width:100%">
@@ -2490,8 +1671,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_19_kid9_mechas', {type:'text', data:'Video Gundam'}));
         }
     },
+
     "day_19_kid14_luz": {
-        day: 19, title: "Cazador de Luz (G)", role: "kid14", xp: 25, location: "TeamLab Planets",
+        day: 19,
+        title: "Cazador de Luz (G)",
+        role: "kid14",
+        xp: 25,
+        location: "TeamLab Planets",
         render: () => `
             <div style="background:rgba(255,0,0,0.2); padding:10px; border-radius:10px; border:2px solid red; margin-bottom:15px;">
                 <p style="color:red; font-weight:bold; margin:0;">⚠️ ADVERTENCIA DEL JUEZ: Prohibido hacer esta prueba en las salas de agua. Hazla en el Jardín de Musgo o Flores Flotantes.</p>
@@ -2504,8 +1690,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_19_kid14_luz', {type:'text', data:document.getElementById('c-pick').value}));
         }
     },
+
     "day_20_kid9_bento": {
-        day: 20, title: "Maestro del Bento (G)", role: "kid9", xp: 25, location: "Ueno / Yanaka",
+        day: 20,
+        title: "Maestro del Bento (G)",
+        role: "kid9",
+        xp: 25,
+        location: "Ueno / Yanaka",
         render: () => `
             <p class="mission-desc">Minijuego: Pulsa los ingredientes en orden (Arroz -> Pescado -> Verdura).</p>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center; font-size:2rem;">
@@ -2526,8 +1717,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_20_kid9_bento', {type:'text', data:'Bento OK'}));
         }
     },
+
     "day_20_kid14_ameyoko": {
-        day: 20, title: "Regateo en Ameyoko", role: "kid14", xp: 20, location: "Mercado Ameyoko",
+        day: 20,
+        title: "Regateo en Ameyoko",
+        role: "kid14",
+        xp: 20,
+        location: "Mercado Ameyoko",
         render: () => `
             <p class="mission-desc">Calcula el cambio exacto antes de que el vendedor te lo dé.</p>
             <input type="number" id="p-total" placeholder="Precio pagado..." style="width:100%; margin-bottom:10px;">
@@ -2538,8 +1734,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_20_kid14_ameyoko', {type:'text', data: `Pago: ${document.getElementById('p-total').value} | Cambio: ${document.getElementById('p-change').value}`}));
         }
     },
+
     "day_21_kid9_monos": {
-        day: 21, title: "Los Tres Monos", role: "kid9", xp: 15, location: "Nikko o Kamakura",
+        day: 21,
+        title: "Los Tres Monos",
+        role: "kid9",
+        xp: 15,
+        location: "Nikko o Kamakura",
         render: () => `
             <p class="mission-desc">Recrea con tu familia la pose de los 3 monos sabios (🙊 🙉 🙈).</p>
             <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
@@ -2551,8 +1752,13 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_21_kid9_monos', {type:'text', data:'Foto monos'}));
         }
     },
+
     "day_21_kid14_imperial": {
-        day: 21, title: "Ingeniero Imperial", role: "kid14", xp: 20, location: "Excursión Histórica",
+        day: 21,
+        title: "Ingeniero Imperial",
+        role: "kid14",
+        xp: 20,
+        location: "Excursión Histórica",
         render: () => `
             <p class="mission-desc">Busca qué Shogun está enterrado aquí o cuánto pesa el Gran Buda.</p>
             <textarea id="i-fact" placeholder="Dato sorprendente..." style="width:100%; height:80px;"></textarea>
@@ -2562,61 +1768,16 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_21_kid14_imperial', {type:'text', data:document.getElementById('i-fact').value}));
         }
     },
-    "day_22_kid9_pescadero": {
-        day: 22, title: "Grito de Pescadero", role: "kid9", xp: 20, location: "Mercado Toyosu",
-        render: () => `
-            <p class="mission-desc">Graba tu mejor "¡Irasshaimase!" con todas tus fuerzas.</p>
-            <button id="btn-rec" class="btn-secondary" style="width:100%">🔴 Grabar Saludo</button>
-            <button id="btn-sub" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const btn = document.getElementById('btn-rec');
-            btn.addEventListener('click', async () => {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const mr = new MediaRecorder(stream);
-                mr.start(); btn.innerText = "⏹ ¡GRITA!";
-                setTimeout(() => { mr.stop(); btn.innerText = "🔊 Grabado"; document.getElementById('btn-sub').classList.remove('hidden'); stream.getTracks().forEach(t=>t.stop()); }, 4000);
-            });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_22_kid9_pescadero', {type:'text', data:'Audio Irasshaimase'}));
-        }
-    },
-    "day_22_kid14_ginza": {
-        day: 22, title: "La Joya de Ginza", role: "kid14", xp: 15, location: "Ginza",
-        render: () => `
-            <p class="mission-desc">Encuentra el artículo más absurdamente caro en Ginza.</p>
-            <input type="text" id="g-item" placeholder="Artículo..." style="width:100%; margin-bottom:10px;">
-            <input type="number" id="g-price" placeholder="Precio en Yenes (¥)" style="width:100%">
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_22_kid14_ginza', {type:'text', data: `Item: ${document.getElementById('g-item').value} | ¥: ${document.getElementById('g-price').value}`}));
-        }
-    },
-    "day_23_kid9_kitkat": {
-        day: 23, title: "Buscador de KitKat", role: "kid9", xp: 15, location: "Don Quijote",
-        render: () => `
-            <p class="mission-desc">Marca los sabores raros que veas (mín. 3).</p>
-            <div class="card" style="text-align:left;">
-                <label style="display:block; margin:10px 0;"><input type="checkbox" class="k-chk"> 🍵 Té Matcha</label>
-                <label style="display:block; margin:10px 0;"><input type="checkbox" class="k-chk"> 🍓 Fresa</label>
-                <label style="display:block; margin:10px 0;"><input type="checkbox" class="k-chk"> 🍈 Melón</label>
-                <label style="display:block; margin:10px 0;"><input type="checkbox" class="k-chk"> 🍶 Sake</label>
-                <label style="display:block; margin:10px 0;"><input type="checkbox" class="k-chk"> 🍣 Wasabi</label>
-            </div>
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px; opacity:0.5;" disabled>Enviar al Juez</button>
-        `,
-        attachEvents: () => {
-            const chks = document.querySelectorAll('.k-chk');
-            const btn = document.getElementById('btn-sub');
-            chks.forEach(c => c.addEventListener('change', () => {
-                const count = Array.from(chks).filter(x => x.checked).length;
-                btn.disabled = count < 3; btn.style.opacity = count >= 3 ? '1' : '0.5';
-            }));
-            btn.addEventListener('click', () => submitMission('day_23_kid9_kitkat', {type:'text', data:'Sabores encontrados'}));
-        }
-    },
+
+
+
+
     "day_23_kid14_tetris": {
-        day: 14, title: "Tetris de Maletas (G)", role: "kid14", xp: 25, location: "Hotel / Despedida",
+        day: 14,
+        title: "Tetris de Maletas (G)",
+        role: "kid14",
+        xp: 25,
+        location: "Hotel / Despedida",
         render: () => `
             <p class="mission-desc">Gira el bloque para que encaje en el hueco.</p>
             <div style="display:flex; justify-content:center; padding:20px;">
@@ -2635,31 +1796,15 @@ const MISSIONS_CONFIG = {
             document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_23_kid14_tetris', {type:'text', data:'Maleta encajada'}));
         }
     },
-    "day_24_fam_sayonara": {
-        day: 24, title: "Sayonara Japón", role: "both", xp: 50, location: "Aeropuerto",
-        render: () => `
-            <p class="mission-desc">Esta gran aventura ha llegado a su fin, pero tus recuerdos durarán para siempre. Antes de sellar tu pasaporte por última vez en el aeropuerto, escribe aquí cuáles han sido tus 3 momentos o lugares favoritos de todo el viaje.</p>
-            <textarea id="top-3" placeholder="Mi momento favorito fue... 1, 2 y 3."></textarea>
-            <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Sellar Pasaporte Final</button>
-        `,
-        attachEvents: (role) => {
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_24_fam_sayonara', {type:'text', data:document.getElementById('top-3').value}, role, true));
-        }
-    },
 
-    // ==========================================
-    // MISIONES EXPERTAS — APIs Nativas del Navegador
-    // ==========================================
 
-    // -------------------------------------------------------
-    // MISIÓN EXPERTA 1: "El Silencio de los Kami" — Web Audio API
-    // Día 12 (Takayama) | Niño 9 años
-    // El niño debe permanecer en silencio absoluto 10 segundos.
-    // Si hace ruido, el espíritu se despierta y se reinicia el contador.
-    // Umbral de silencio: media de frecuencias < 30 (ajustable según ambiente).
-    // -------------------------------------------------------
     "day_12_kid9_silence": {
-        tag: "expert", day: 12, title: "El Silencio de los Kami", role: "kid9", xp: 30, location: "Templos de Takayama",
+        tag: "expert",
+        day: 12,
+        title: "El Silencio de los Kami",
+        role: "kid9",
+        xp: 30,
+        location: "Templos de Takayama",
         render: () => `
             <div class="ui-kids">
                 <p class="kids-title">No despiertes al espíritu del bosque... 🤫</p>
@@ -2772,15 +1917,13 @@ const MISSIONS_CONFIG = {
         }
     },
 
-    // -------------------------------------------------------
-    // MISIÓN EXPERTA 2: "Radar de Altitud Cero" — Geolocation API
-    // Día 14 (Monte Fuji - 5ª Estación) | Niño 14 años
-    // Interfaz terminal hacker. GPS offline-first.
-    // Objetivo: lat 35.3789, lon 138.7318 (aparcamiento 5ª Estación Subaru).
-    // Fórmula de Haversine para distancia en metros.
-    // -------------------------------------------------------
     "day_14_kid14_radar": {
-        tag: "expert", day: 14, title: "Radar de Altitud Cero", role: "kid14", xp: 35, location: "5ª Estación Monte Fuji",
+        tag: "expert",
+        day: 14,
+        title: "Radar de Altitud Cero",
+        role: "kid14",
+        xp: 35,
+        location: "5ª Estación Monte Fuji",
         render: () => `
             <div class="ui-terminal">
                 <div class="term-line dim">[SISTEMA] Cargando módulo de rastreo...</div>
@@ -2906,23 +2049,13 @@ const MISSIONS_CONFIG = {
         }
     },
 
-    // -------------------------------------------------------
-    // MISIÓN EXPERTA 3: "Desencriptar Protocolo Mecha" — Web Crypto API
-    // Día 19 (Odaiba / Gundam Unicorn) | Niño 14 años
-    // El niño busca "RX-0" en el Gundam real y lo usa como clave AES-GCM.
-    // Mensaje pre-encriptado con Node.js crypto (script auxiliar en comentarios).
-    // La clave "RX-0" es pública (modelo del Gundam Unicorn), no es un secreto.
-    // -------------------------------------------------------
-    // SCRIPT AUXILIAR DE PRE-ENCRIPTACIÓN (ejecutar una vez con Node.js):
-    // const crypto = require('crypto');
-    // const msg = "Sistema Operativo Comprometido. Modo Juez Activado.";
-    // const keyHash = crypto.createHash('sha256').update('RX-0').digest();
-    // const iv = crypto.randomBytes(12);
-    // const cipher = crypto.createCipheriv('aes-256-gcm', keyHash, iv);
-    // let enc = Buffer.concat([cipher.update(msg, 'utf8'), cipher.final(), cipher.getAuthTag()]);
-    // console.log('IV:', Array.from(iv)); console.log('Ciphertext:', Array.from(enc));
     "day_19_kid14_crypto": {
-        tag: "expert", day: 19, title: "Desencriptar Protocolo Mecha", role: "kid14", xp: 35, location: "Odaiba — Gundam Unicorn",
+        tag: "expert",
+        day: 19,
+        title: "Desencriptar Protocolo Mecha",
+        role: "kid14",
+        xp: 35,
+        location: "Odaiba — Gundam Unicorn",
         render: () => {
             // Texto encriptado mostrado como hexadecimal decorativo
             const hexDisplay = '9f3e11166d97ae449508ff584d9818f629a6d9a21a3b3366f7fdeb4718b29bcfc6d6bff6b1650f062eca2d8a7493ebb8809a8a9d5e9f34e0bb92f8d2653b7443';
@@ -3014,14 +2147,13 @@ const MISSIONS_CONFIG = {
         }
     },
 
-    // -------------------------------------------------------
-    // MISIÓN EXPERTA 4: "El Latido del Dragón" — DOM Feedback / CSS
-    // Día 21 (Nikko / Kamakura) | Niño 9 años
-    // Feedback háptico simulado con CSS (sin navigator.vibrate por iOS).
-    // El niño avanza pulsando un botón, el latido se acelera hasta despertar al dragón.
-    // -------------------------------------------------------
     "day_21_kid9_dragon": {
-        tag: "expert", day: 21, title: "El Latido del Dragón", role: "kid9", xp: 30, location: "Mausoleo del Shogun",
+        tag: "expert",
+        day: 21,
+        title: "El Latido del Dragón",
+        role: "kid9",
+        xp: 30,
+        location: "Mausoleo del Shogun",
         render: () => `
             <div class="ui-kids" id="dragon-container" style="background: linear-gradient(180deg, #1a0000 0%, #0a0000 100%);">
                 <p class="mission-desc" style="color: #ff4444; font-weight: bold;">¡El Dragón de Nikko duerme! Debes avanzar con sigilo sincronizando tus pasos con su latido. Si llegas al final sin despertarlo bruscamente, habrás completado la misión del mausoleo.</p>
@@ -3127,107 +2259,16 @@ const MISSIONS_CONFIG = {
                 awakened = true;
             };
         }
-    }
-,
-    "day_23_kid9_pokedex": {
-        tag: "expert", day: 23, title: "Pokédex de Supermercado", role: "kid9", xp: 30, location: "Don Quijote",
-        render: () => `
-            <div class="ui-kids">
-                <p class="mission-desc" style="color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5);">¡Encuentra un snack raro y escanea su código de barras para capturarlo en tu Pokédex!</p>
-                <div id="scanner-container" style="position: relative; width: 100%; max-width: 300px; margin: 0 auto; border: 4px solid #fff; border-radius: 10px; overflow: hidden; background: #000; aspect-ratio: 4/3; display: none;">
-                    <video id="scanner-video" style="width: 100%; height: 100%; object-fit: cover;" autoplay playsinline></video>
-                    <div id="scan-line" style="position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: red; box-shadow: 0 0 10px red;"></div>
-                </div>
-                <div id="fallback-container" style="display: none; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: center;">
-                    <p style="color: #f1c40f;">Modo Offline: ¡Teclea los números del código de barras!</p>
-                    <input type="number" id="barcode-input" placeholder="8 a 13 números..." style="width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; letter-spacing: 2px;">
-                    <button id="btn-fallback" class="btn-primary" style="margin-top: 15px; width: 100%;">Validar Código</button>
-                </div>
-                <div id="success-screen" style="display: none; text-align: center;">
-                    <div style="font-size: 4rem;">🎉</div>
-                    <p style="color: #2ecc71; font-weight: bold; font-size: 1.2rem;">¡Snack Japonés Capturado!</p>
-                    <input type="text" id="snack-name" placeholder="¿Qué has capturado?" style="width: 100%; margin: 15px 0;">
-                    <button id="btn-submit" class="btn-primary" style="width: 100%;">Enviar al Juez</button>
-                </div>
-            </div>
-            <style>
-                @keyframes scan {
-                    0% { top: 0; }
-                    50% { top: 100%; }
-                    100% { top: 0; }
-                }
-                #scan-line { animation: scan 2s linear infinite; }
-            </style>
-        `,
-        attachEvents: () => {
-            const scannerCont = document.getElementById('scanner-container');
-            const fallbackCont = document.getElementById('fallback-container');
-            const video = document.getElementById('scanner-video');
-            const successScreen = document.getElementById('success-screen');
-            const btnSubmit = document.getElementById('btn-submit');
-            let streamRef = null;
-            let scanning = true;
-
-            const stopScanner = () => {
-                scanning = false;
-                if(streamRef) {
-                    streamRef.getTracks().forEach(t => t.stop());
-                    streamRef = null;
-                }
-            };
-
-            const showSuccess = (code) => {
-                stopScanner();
-                scannerCont.style.display = 'none';
-                fallbackCont.style.display = 'none';
-                successScreen.style.display = 'block';
-                document.body.style.backgroundColor = '#2ecc71';
-                setTimeout(() => document.body.style.backgroundColor = '', 500);
-            };
-
-            if ('BarcodeDetector' in window) {
-                const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'qr_code'] });
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-                .then(stream => {
-                    streamRef = stream;
-                    video.srcObject = stream;
-                    scannerCont.style.display = 'block';
-                    
-                    const scanLoop = () => {
-                        if(!scanning) return;
-                        detector.detect(video).then(barcodes => {
-                            if(barcodes.length > 0) {
-                                showSuccess(barcodes[0].rawValue);
-                            } else {
-                                requestAnimationFrame(scanLoop);
-                            }
-                        }).catch(() => requestAnimationFrame(scanLoop));
-                    };
-                    video.addEventListener('play', () => scanLoop());
-                })
-                .catch(() => {
-                    fallbackCont.style.display = 'block';
-                });
-            } else {
-                fallbackCont.style.display = 'block';
-            }
-
-            document.getElementById('btn-fallback').addEventListener('click', () => {
-                const val = document.getElementById('barcode-input').value;
-                if(val.length >= 8) showSuccess(val);
-                else showAlert("Error", "Introduce al menos 8 números");
-            });
-
-            btnSubmit.addEventListener('click', () => {
-                const snack = document.getElementById('snack-name').value || "Snack Misterioso";
-                submitMission('day_23_kid9_pokedex', {type: 'expert', data: 'Código de barras de: ' + snack});
-            });
-
-            window._missionCleanup = () => stopScanner();
-        }
     },
+
+
     "day_21_kid9_samurai": {
-        tag: "expert", day: 21, title: "El Tajo del Samurái", role: "kid9", xp: 30, location: "Excursión",
+        tag: "expert",
+        day: 21,
+        title: "El Tajo del Samurái",
+        role: "kid9",
+        xp: 30,
+        location: "Excursión",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color: #fff;">Sujeta tu móvil con las dos manos. Prepara tu tajo...</p>
@@ -3311,8 +2352,14 @@ const MISSIONS_CONFIG = {
             };
         }
     },
+
     "day_17_kid14_p2p_gen": {
-        tag: "expert", day: 17, title: "Enlace P2P (Emisor)", role: "kid14", xp: 25, location: "Akihabara",
+        tag: "expert",
+        day: 17,
+        title: "Enlace P2P (Emisor)",
+        role: "kid14",
+        xp: 25,
+        location: "Akihabara",
         render: () => `
             <div class="ui-terminal">
                 <p class="mission-desc">>> ACERTIJO: Una Famicom costaba 14800¥ en 1983. Una Neo Geo costaba 58000¥ en 1990. ¿Cuánto costaban juntas?</p>
@@ -3357,8 +2404,14 @@ const MISSIONS_CONFIG = {
             });
         }
     },
+
     "day_17_kid9_p2p_recv": {
-        tag: "expert", day: 17, title: "Enlace P2P (Receptor)", role: "kid9", xp: 25, location: "Akihabara",
+        tag: "expert",
+        day: 17,
+        title: "Enlace P2P (Receptor)",
+        role: "kid9",
+        xp: 25,
+        location: "Akihabara",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color:#fff;">Tu contacto mayor tiene un código secreto. Míralo en su pantalla y repítelo aquí.</p>
@@ -3407,8 +2460,14 @@ const MISSIONS_CONFIG = {
             });
         }
     },
+
     "day_18_kid14_radio": {
-        tag: "expert", day: 18, title: "Intercepción de Radio", role: "kid14", xp: 30, location: "Shibuya",
+        tag: "expert",
+        day: 18,
+        title: "Intercepción de Radio",
+        role: "kid14",
+        xp: 30,
+        location: "Shibuya",
         render: () => `
             <div class="ui-terminal">
                 <p class="mission-desc">>> Intercepta la transmisión japonesa de la red y transcríbela (romaji).</p>
@@ -3478,125 +2537,15 @@ const MISSIONS_CONFIG = {
             
             window._missionCleanup = () => { if(window.speechSynthesis) window.speechSynthesis.cancel(); };
         }
-    }
-,
-    "day_5_kid9_dance": {
-        tag: "expert", day: 5, title: "La Danza de la Cinta", role: "kid9", xp: 30, location: "Nara",
-        render: () => `
-            <div class="ui-kids">
-                <p class="mission-desc" style="color: #fff;">¡Hipnotiza al ciervo! Mueve el móvil haciendo círculos suaves en el aire.</p>
-                <div style="position: relative; width: 250px; height: 250px; margin: 0 auto; background: #000; border: 4px solid #f1c40f; border-radius: 50%; overflow: hidden;">
-                    <canvas id="dance-canvas" width="250" height="250"></canvas>
-                    <div id="deer-emoji" style="position: absolute; top: 10px; right: 20px; font-size: 3rem; transition: transform 0.3s;">🦌</div>
-                </div>
-                <div id="dance-timer" style="text-align: center; color: #fff; font-size: 1.5rem; margin-top: 10px;">10</div>
-                <button id="btn-start" class="btn-secondary" style="width: 100%; margin-top: 15px;">Permitir Sensores y Empezar</button>
-                <button id="btn-submit" class="btn-primary hidden" style="width: 100%; margin-top: 15px;">Enviar al Juez</button>
-            </div>
-        `,
-        attachEvents: () => {
-            const btnS = document.getElementById('btn-start');
-            const btnSub = document.getElementById('btn-submit');
-            const canvas = document.getElementById('dance-canvas');
-            const ctx = canvas.getContext('2d');
-            const timerEl = document.getElementById('dance-timer');
-            const deer = document.getElementById('deer-emoji');
-            
-            let active = false;
-            let time = 10;
-            let lastX = 125, lastY = 125;
-            let visitedCells = new Set();
-            let hue = 0;
-            let handler = null;
-            let timerInt = null;
-
-            const handleOrientation = (e) => {
-                if(!active) return;
-                // Usar beta (adelante/atrás -180 a 180) y gamma (izq/der -90 a 90)
-                let b = e.beta || 0;
-                let g = e.gamma || 0;
-                
-                // Mapeo
-                let x = ((g + 90) / 180) * 250;
-                let y = ((b + 180) / 360) * 250;
-                
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-                ctx.lineTo(x, y);
-                ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
-                ctx.lineWidth = 4;
-                ctx.stroke();
-                
-                lastX = x; lastY = y;
-                hue = (hue + 5) % 360;
-
-                // Grid 5x5
-                let cellX = Math.floor(x / 50);
-                let cellY = Math.floor(y / 50);
-                visitedCells.add(`${cellX},${cellY}`);
-            };
-
-            const win = () => {
-                active = false;
-                clearInterval(timerInt);
-                window.removeEventListener('deviceorientation', handler);
-                deer.innerText = '🦌✨';
-                deer.style.transform = 'scale(1.5)';
-                showAlert("¡ÉXITO!", "¡Ciervo hipnotizado!");
-                btnSub.classList.remove('hidden');
-                
-                for(let i=0; i<30; i++) {
-                    ctx.fillStyle = 'gold';
-                    ctx.beginPath();
-                    ctx.arc(Math.random()*250, Math.random()*250, 2, 0, Math.PI*2);
-                    ctx.fill();
-                }
-            };
-
-            const start = () => {
-                btnS.style.display = 'none';
-                active = true;
-                ctx.clearRect(0,0,250,250);
-                visitedCells.clear();
-                time = 10;
-                deer.innerText = '🦌';
-                deer.style.transform = 'scale(1)';
-                
-                handler = handleOrientation;
-                window.addEventListener('deviceorientation', handler);
-                
-                timerInt = setInterval(() => {
-                    time--;
-                    timerEl.innerText = time;
-                    if(visitedCells.size >= 15) {
-                        win();
-                    } else if(time <= 0) {
-                        active = false;
-                        clearInterval(timerInt);
-                        window.removeEventListener('deviceorientation', handler);
-                        deer.innerText = '🦌💤';
-                        btnS.style.display = 'block';
-                        btnS.innerText = "Despertó. ¡Reintentar!";
-                    }
-                }, 1000);
-            };
-
-            btnS.addEventListener('click', () => {
-                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    DeviceOrientationEvent.requestPermission().then(res => {
-                        if(res === 'granted') start();
-                    }).catch(console.error);
-                } else {
-                    start();
-                }
-            });
-
-            btnSub.addEventListener('click', () => submitMission('day_5_kid9_dance', {type: 'expert', data: 'Danza completada. Celdas: ' + visitedCells.size}));
-            window._missionCleanup = () => { active=false; clearInterval(timerInt); if(handler) window.removeEventListener('deviceorientation', handler); };
-        }
     },
+
     "day_8_kid9_wind": {
-        tag: "expert", day: 8, title: "El Susurro del Viento", role: "kid9", xp: 30, location: "Arashiyama",
+        tag: "expert",
+        day: 8,
+        title: "El Susurro del Viento",
+        role: "kid9",
+        xp: 30,
+        location: "Arashiyama",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color: #fff;">El bosque te escucha... Sopla suavemente como la brisa entre las cañas durante 4 segundos.</p>
@@ -3684,8 +2633,14 @@ const MISSIONS_CONFIG = {
             window._missionCleanup = () => stopAudio();
         }
     },
+
     "day_11_kid9_tea": {
-        tag: "expert", day: 11, title: "El Té Intacto", role: "kid9", xp: 30, location: "Kazeya",
+        tag: "expert",
+        day: 11,
+        title: "El Té Intacto",
+        role: "kid9",
+        xp: 30,
+        location: "Kazeya",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color: #fff;">Camina 20 segundos con el móvil perfectamente nivelado, ¡que no se derrame el té!</p>
@@ -3785,8 +2740,14 @@ const MISSIONS_CONFIG = {
             window._missionCleanup = () => { active=false; clearInterval(timerInt); if(handler) window.removeEventListener('deviceorientation', handler); };
         }
     },
+
     "day_15_kid9_yokai": {
-        tag: "expert", day: 15, title: "Filtro de Yōkai", role: "kid9", xp: 30, location: "Lagos del Fuji",
+        tag: "expert",
+        day: 15,
+        title: "Filtro de Yōkai",
+        role: "kid9",
+        xp: 30,
+        location: "Lagos del Fuji",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color: #fff;">Pasea por el bosque y mira a través del visor. ¿Ves algún espíritu?</p>
@@ -3865,8 +2826,14 @@ const MISSIONS_CONFIG = {
             window._missionCleanup = () => stopVideo();
         }
     },
+
     "day_20_kid9_potion": {
-        tag: "expert", day: 20, title: "Poción Gatuna", role: "kid9", xp: 30, location: "Yanaka Ginza",
+        tag: "expert",
+        day: 20,
+        title: "Poción Gatuna",
+        role: "kid9",
+        xp: 30,
+        location: "Yanaka Ginza",
         render: () => `
             <div class="ui-kids">
                 <p class="mission-desc" style="color: #fff;">¡Encuentra un snack retro y escanea su código secreto!</p>
@@ -3950,181 +2917,14 @@ const MISSIONS_CONFIG = {
             window._missionCleanup = () => stopScanner();
         }
     },
-    "day_3_kid14_vital": {
-        tag: "expert", day: 3, title: "Visión de Flujo Vital", role: "kid14", xp: 30, location: "Dotonbori",
-        render: () => `
-            <div class="ui-terminal">
-                <p class="mission-desc">>>> Escaneando flujo de energía... Apunta a los neones rojos/amarillos.</p>
-                <div style="position: relative; width: 100%; aspect-ratio: 4/3; background: #000; border: 2px solid #0f0; margin-bottom: 15px;">
-                    <video id="vital-video" playsinline autoplay muted style="display: none;"></video>
-                    <canvas id="vital-canvas" style="width: 100%; height: 100%;"></canvas>
-                </div>
-                <div style="color: #0f0; font-family: monospace;">ENERGÍA VITAL: <span id="vital-pct">0</span>%</div>
-                <div style="width: 100%; height: 15px; border: 1px solid #0f0; margin: 10px 0;">
-                    <div id="vital-bar" style="width: 0%; height: 100%; background: #0f0; transition: width 0.1s;"></div>
-                </div>
-                <button id="btn-start" class="btn-secondary" style="width: 100%; margin-bottom: 15px;">Activar Escáner</button>
-                <button id="btn-submit" class="btn-primary hidden" style="width: 100%;">Enviar al Juez</button>
-            </div>
-        `,
-        attachEvents: () => {
-            const btnS = document.getElementById('btn-start');
-            const btnSub = document.getElementById('btn-submit');
-            const video = document.getElementById('vital-video');
-            const canvas = document.getElementById('vital-canvas');
-            const ctx = canvas.getContext('2d');
-            const pctEl = document.getElementById('vital-pct');
-            const bar = document.getElementById('vital-bar');
-            
-            let streamRef = null;
-            let active = false;
-            let chargeFrames = 0;
 
-            const stopVideo = () => {
-                active = false;
-                if(streamRef) { streamRef.getTracks().forEach(t => t.stop()); streamRef = null; }
-            };
-
-            btnS.addEventListener('click', () => {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-                .then(stream => {
-                    streamRef = stream;
-                    video.srcObject = stream;
-                    btnS.style.display = 'none';
-                    
-                    video.onloadedmetadata = () => {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        active = true;
-                        
-                        const loop = () => {
-                            if(!active) return;
-                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                            let frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                            let d = frame.data;
-                            let hit = 0;
-                            
-                            for(let i=0; i<d.length; i+=4) {
-                                let r = d[i], g = d[i+1], b = d[i+2];
-                                let lum = (r+g+b)/3;
-                                if (lum > 150 && (r > 180 || (r+g-b) > 200)) {
-                                    d[i] = 0; d[i+1] = 255; d[i+2] = 80; // Verde esmeralda
-                                    hit++;
-                                }
-                            }
-                            ctx.putImageData(frame, 0, 0);
-                            
-                            let pct = (hit / (canvas.width * canvas.height)) * 100;
-                            pctEl.innerText = pct.toFixed(1);
-                            
-                            if (pct > 10) {
-                                chargeFrames++;
-                                bar.style.width = Math.min(100, (chargeFrames / 60) * 100) + '%';
-                                if (chargeFrames >= 120) { // 2 sec at 60fps
-                                    stopVideo();
-                                    showAlert("CARGA COMPLETA", ">>> ENERGÍA EXTRAÍDA. Sistema cargado.");
-                                    btnSub.classList.remove('hidden');
-                                    bar.style.width = '100%';
-                                    return; // stop loop
-                                }
-                            } else {
-                                chargeFrames = Math.max(0, chargeFrames - 1);
-                                bar.style.width = Math.min(100, (chargeFrames / 60) * 100) + '%';
-                            }
-                            
-                            requestAnimationFrame(loop);
-                        };
-                        loop();
-                    };
-                }).catch(() => showAlert("Error", "Cámara no accesible."));
-            });
-
-            btnSub.addEventListener('click', () => submitMission('day_3_kid14_vital', {type: 'expert', data: 'Flujo vital extraído'}));
-            window._missionCleanup = () => stopVideo();
-        }
-    },
-    "day_7_kid14_sync": {
-        tag: "expert", day: 7, title: "Sincronización de la Atalaya", role: "kid14", xp: 30, location: "Kiyomizu-dera",
-        render: () => `
-            <div class="ui-terminal">
-                <p class="mission-desc">>>> OBJETIVO: BALCÓN DE KIYOMIZU. Distancia: <span id="dist">Calculando...</span>m</p>
-                <div style="background: rgba(0,255,0,0.1); border: 1px solid #0f0; padding: 15px; margin-bottom: 15px;">
-                    <div id="sync-msg">>>> Muévete al objetivo.</div>
-                    <div id="sync-prog" style="color: #0f0; font-weight: bold; margin-top: 10px;"></div>
-                </div>
-                <button id="btn-sync" class="btn-primary hidden" style="width: 100%;">Iniciar Sincronización</button>
-                <button id="btn-submit" class="btn-primary hidden" style="width: 100%; margin-top: 15px;">Enviar al Juez</button>
-            </div>
-        `,
-        attachEvents: () => {
-            const distEl = document.getElementById('dist');
-            const btnSync = document.getElementById('btn-sync');
-            const btnSub = document.getElementById('btn-submit');
-            const msg = document.getElementById('sync-msg');
-            const prog = document.getElementById('sync-prog');
-            
-            const target = { lat: 34.9948, lon: 135.7847 };
-            let watchId = null;
-            let currentDist = 99999;
-            let syncTimer = null;
-
-            // Haversine
-            const getDistance = (lat1, lon1, lat2, lon2) => {
-                const R = 6371e3;
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLon = (lon2 - lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                return R * c;
-            };
-
-            if ("geolocation" in navigator) {
-                watchId = navigator.geolocation.watchPosition((pos) => {
-                    currentDist = getDistance(pos.coords.latitude, pos.coords.longitude, target.lat, target.lon);
-                    distEl.innerText = Math.round(currentDist);
-                    if (currentDist <= 20 && btnSync.dataset.done !== 'true') {
-                        btnSync.classList.remove('hidden');
-                        msg.innerText = ">>> OBJETIVO ALCANZADO. Listo para sincronizar.";
-                    } else if (currentDist > 20) {
-                        btnSync.classList.add('hidden');
-                        msg.innerText = ">>> Lejos del objetivo.";
-                        if(syncTimer) {
-                            clearInterval(syncTimer); syncTimer = null;
-                            prog.innerText = ">>> Sincronización perdida por distancia.";
-                        }
-                    }
-                }, (err) => {
-                    distEl.innerText = "ERROR GEO";
-                    // Fallback para testing
-                    btnSync.classList.remove('hidden'); 
-                    msg.innerText = ">>> Error de señal. Sincronización manual permitida.";
-                }, { enableHighAccuracy: true });
-            }
-
-            btnSync.addEventListener('click', () => {
-                btnSync.style.display = 'none';
-                let time = 8;
-                prog.innerText = `Sincronizando... ${time}s`;
-                syncTimer = setInterval(() => {
-                    time--;
-                    prog.innerText = `Sincronizando... ${time}s`;
-                    if(time <= 0) {
-                        clearInterval(syncTimer);
-                        btnSync.dataset.done = 'true';
-                        if(watchId) navigator.geolocation.clearWatch(watchId);
-                        msg.innerText = ">>> ATALAYA SINCRONIZADA. Coordenadas fijadas.";
-                        prog.innerText = "";
-                        btnSub.classList.remove('hidden');
-                    }
-                }, 1000);
-            });
-
-            btnSub.addEventListener('click', () => submitMission('day_7_kid14_sync', {type: 'expert', data: 'Sincronizado a ' + Math.round(currentDist) + 'm'}));
-            window._missionCleanup = () => { if(watchId) navigator.geolocation.clearWatch(watchId); clearInterval(syncTimer); };
-        }
-    },
     "day_10_kid14_crypto": {
-        tag: "expert", day: 10, title: "Protocolo de Enlace Cifrado", role: "kid14", xp: 30, location: "Hotel",
+        tag: "expert",
+        day: 10,
+        title: "Protocolo de Enlace Cifrado",
+        role: "kid14",
+        xp: 30,
+        location: "Hotel",
         render: () => `
             <div class="ui-terminal">
                 <p class="mission-desc">>>> PROTOCOLO DE ENLACE CIFRADO. Base: HOTEL. Introduzca clave de acceso.</p>
@@ -4177,8 +2977,14 @@ const MISSIONS_CONFIG = {
             btnS.addEventListener('click', () => submitMission('day_10_kid14_crypto', {type: 'expert', data: 'Hash validado'}));
         }
     },
+
     "day_16_kid14_combat": {
-        tag: "expert", day: 16, title: "Calibración Androide de Combate", role: "kid14", xp: 30, location: "Shinjuku",
+        tag: "expert",
+        day: 16,
+        title: "Calibración Androide de Combate",
+        role: "kid14",
+        xp: 30,
+        location: "Shinjuku",
         render: () => `
             <div class="ui-terminal">
                 <p style="color: red; font-weight: bold; font-size: 1.2rem;">⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS. Busca un espacio despejado.</p>
@@ -4249,86 +3055,16 @@ const MISSIONS_CONFIG = {
             window._missionCleanup = () => { active=false; if(handler) window.removeEventListener('devicemotion', handler); };
         }
     },
-    "day_22_kid14_radio": {
-        tag: "expert", day: 22, title: "Intercepción Numérica", role: "kid14", xp: 30, location: "Ginza",
+
+
+    "day_8_kid9_bamboo_clock": {
+        tag: "physical",
+        day: 8,
+        title: "El Reloj de Bambú",
+        role: "kid9",
+        xp: 15,
+        location: "Arashiyama",
         render: () => `
-            <div class="ui-terminal">
-                <p class="mission-desc">>>> ESCANEANDO FRECUENCIAS ENEMIGAS...</p>
-                <button id="btn-play" class="btn-secondary" style="width: 100%; margin-bottom: 15px;">Interceptar Señal (Intentos: <span id="tries">3</span>)</button>
-                <div id="fallback-txt" style="display: none; text-align: center; font-size: 2rem; color: #fff; margin-bottom: 15px;">🔈 <span id="kanji-code"></span></div>
-                <input type="number" id="radio-input" placeholder="Código de 3 dígitos..." style="background: #000; color: #0f0; border: 1px solid #0f0; margin-bottom: 15px; width: 100%; text-align: center; font-size: 1.5rem; letter-spacing: 5px;">
-                <button id="btn-verify" class="btn-primary" style="width: 100%;">Desencriptar</button>
-                <div id="radio-res" style="margin-top: 15px; color: #0f0; font-family: monospace;"></div>
-                <button id="btn-submit" class="btn-primary hidden" style="width: 100%; margin-top: 15px;">Enviar al Juez</button>
-            </div>
-        `,
-        attachEvents: () => {
-            const jp = { 1:'ichi', 2:'ni', 3:'san', 4:'yon', 5:'go', 6:'roku', 7:'nana', 8:'hachi', 9:'kyuu' };
-            const n1 = Math.floor(Math.random()*9)+1;
-            const n2 = Math.floor(Math.random()*9)+1;
-            const n3 = Math.floor(Math.random()*9)+1;
-            const codeStr = `${n1}${n2}${n3}`;
-            const audioStr = `${jp[n1]}... ${jp[n2]}... ${jp[n3]}`;
-            
-            let tries = 3;
-            const btnPlay = document.getElementById('btn-play');
-            const spanTries = document.getElementById('tries');
-            const btnVerify = document.getElementById('btn-verify');
-            const inp = document.getElementById('radio-input');
-            const res = document.getElementById('radio-res');
-            const btnSub = document.getElementById('btn-submit');
-            const fallbackTxt = document.getElementById('fallback-txt');
-            const kanjiCode = document.getElementById('kanji-code');
-
-            btnPlay.addEventListener('click', () => {
-                if(tries <= 0) return;
-                tries--;
-                spanTries.innerText = tries;
-                
-                if ('speechSynthesis' in window) {
-                    const u = new SpeechSynthesisUtterance(audioStr);
-                    u.lang = 'ja-JP';
-                    u.rate = 0.7;
-                    u.onerror = () => { fallbackTxt.style.display = 'block'; kanjiCode.innerText = audioStr; };
-                    window.speechSynthesis.speak(u);
-                } else {
-                    fallbackTxt.style.display = 'block';
-                    kanjiCode.innerText = audioStr;
-                }
-            });
-
-            btnVerify.addEventListener('click', () => {
-                if(inp.value === codeStr) {
-                    btnVerify.style.display = 'none';
-                    btnPlay.style.display = 'none';
-                    res.innerText = ">>> TRANSMISIÓN DESENCRIPTADA. Código: ["+codeStr+"]. Acceso concedido.";
-                    btnSub.classList.remove('hidden');
-                } else {
-                    if(tries > 0) {
-                        res.innerText = ">>> ERROR. Inténtalo de nuevo.";
-                        res.style.color = "#f00";
-                        setTimeout(()=>res.innerText="", 2000);
-                        inp.value = '';
-                    } else {
-                        res.innerText = ">>> BLOQUEO. Transmisión perdida. (Código era "+codeStr+")";
-                        res.style.color = "#f00";
-                        btnVerify.style.display = 'none';
-                        btnPlay.style.display = 'none';
-                        btnSub.classList.remove('hidden'); // allow submit anyway
-                    }
-                }
-            });
-
-            btnSub.addEventListener('click', () => submitMission('day_22_kid14_radio', {type: 'expert', data: 'Código: ' + inp.value}));
-            window._missionCleanup = () => { if(window.speechSynthesis) window.speechSynthesis.cancel(); };
-        }
-    }
-,
-
-// ====== NUEVAS MISIONES DÍAS 8, 9 Y 10 ======
-"day_8_kid9_bamboo_clock": {
-    tag: "physical", day: 8, title: "El Reloj de Bambú", role: "kid9", xp: 15, location: "Arashiyama",
-    render: () => `
         <p class="mission-desc">Cada nudo del bambú equivale a un año de vida. Encuentra un bambú alto, cuenta sus entrenudos y calcula su edad.</p>
         <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
             <button id="btn-sub-b" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
@@ -4339,7 +3075,7 @@ const MISSIONS_CONFIG = {
         <input type="number" id="bamboo-age" placeholder="Años..." style="width:100%; margin-bottom:15px;">
         <button id="btn-send-bamboo" class="btn-primary" style="width:100%;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let count = 0;
         document.getElementById('btn-add-b').addEventListener('click', () => { count++; document.getElementById('bamboo-count').innerText = count; });
         document.getElementById('btn-sub-b').addEventListener('click', () => { if(count>0) count--; document.getElementById('bamboo-count').innerText = count; });
@@ -4347,102 +3083,30 @@ const MISSIONS_CONFIG = {
             submitMission('day_8_kid9_bamboo_clock', {type:'text', data:`Nudos: ${count}, Edad: ${document.getElementById('bamboo-age').value}`});
         });
     }
-},
-"day_8_kid9_giants": {
-    tag: "photo", day: 8, title: "Perspectiva de Gigantes", role: "kid9", xp: 15, location: "Bosque de Bambú",
-    render: () => `
+    },
+
+    "day_8_kid9_giants": {
+        tag: "photo",
+        day: 8,
+        title: "Perspectiva de Gigantes",
+        role: "kid9",
+        xp: 15,
+        location: "Bosque de Bambú",
+        render: () => `
         <p class="mission-desc">Ponte en medio del camino, apunta tu cámara directamente hacia el cielo y captura cómo los gigantes de bambú intentan tapar el sol.</p>
         <button id="btn-cam" class="btn-secondary">📸 Foto de Gigantes</button>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_giants', currentUser, false); }
-},
-"day_8_kid9_rake": {
-    tag: "game", day: 8, title: "El Rastrillo del Jardinero", role: "kid9", xp: 20, location: "Tenryu-ji",
-    render: () => `
-        <p class="mission-desc">Dibuja ondas de arena zen con el dedo sobre el jardín simulado de Tenryu-ji.</p>
-        <div style="background:#e8dcc4; border:2px solid #8b5a2b; position:relative; width:100%; height:250px; margin:0 auto; margin-bottom:15px; border-radius:10px; overflow:hidden;">
-            <canvas id="zen-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;"></canvas>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <button id="btn-clear" class="btn-secondary" style="flex:1;">Alisar Arena</button>
-            <button id="btn-submit" class="btn-primary" style="flex:2;">Enviar Jardín</button>
-        </div>
-    `,
-    attachEvents: () => {
-        const canvas = document.getElementById('zen-canvas');
-        const ctx = canvas.getContext('2d');
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_giants', currentUser, false); }
+    },
 
-        ctx.strokeStyle = '#d4c4a8';
-        ctx.lineWidth = 12;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.shadowBlur = 2;
-        ctx.shadowColor = '#8b5a2b';
-
-        let drawing = false;
-
-        const getPos = (e) => {
-            const rectCanvas = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return { x: clientX - rectCanvas.left, y: clientY - rectCanvas.top };
-        };
-
-        const startDraw = (e) => {
-            drawing = true;
-            const pos = getPos(e);
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        };
-
-        const draw = (e) => {
-            if(!drawing) return;
-            e.preventDefault();
-            const pos = getPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(pos.x + 15, pos.y + 15);
-            ctx.lineTo(pos.x + 15, pos.y + 15);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(pos.x - 15, pos.y - 15);
-            ctx.lineTo(pos.x - 15, pos.y - 15);
-            ctx.stroke();
-            
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        };
-
-        const stopDraw = () => { drawing = false; };
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDraw);
-        canvas.addEventListener('mouseout', stopDraw);
-        canvas.addEventListener('touchstart', startDraw, {passive:false});
-        canvas.addEventListener('touchmove', draw, {passive:false});
-        canvas.addEventListener('touchend', stopDraw);
-
-        document.getElementById('btn-clear').addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-
-        document.getElementById('btn-submit').addEventListener('click', async () => {
-            const dataUrl = canvas.toDataURL('image/png');
-            const photoId = 'zen_' + Date.now();
-            await savePhotoToDB(photoId, dataUrl);
-            submitMission('day_8_kid9_rake', {type:'photo', data:photoId});
-        });
-    }
-},
-"day_8_kid9_monk": {
-    tag: "audio", day: 8, title: "El Mensaje del Monje", role: "kid9", xp: 20, location: "Tenryu-ji",
-    render: () => `
+    "day_8_kid9_monk": {
+        tag: "audio",
+        day: 8,
+        title: "El Mensaje del Monje",
+        role: "kid9",
+        xp: 20,
+        location: "Tenryu-ji",
+        render: () => `
         <p class="mission-desc">Imita el sonido de un cuenco tibetano o canta un mantra Zen relajante. Tienes 5 segundos.</p>
         <div id="rec-ui-monk" style="text-align:center; margin: 20px 0;">
             <div id="rec-dot-monk" style="width:20px; height:20px; background:red; border-radius:50%; margin:0 auto 10px; opacity:0;"></div>
@@ -4452,7 +3116,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-retry-monk" class="btn-secondary hidden" style="width:100%; margin-bottom:10px;">Regrabar</button>
         <button id="btn-monk" class="btn-primary hidden" style="width:100%;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec-monk');
         const btnRetry = document.getElementById('btn-retry-monk');
         const btn = document.getElementById('btn-monk');
@@ -4512,278 +3176,64 @@ const MISSIONS_CONFIG = {
         });
         window._missionCleanup = stopAll;
     }
-},
-"day_8_kid14_wave_sync": {
-    tag: "expert", day: 8, title: "Sincronización de Frecuencias", role: "kid14", xp: 25, location: "Arashiyama",
-    render: () => `
-        <p class="mission-desc">Osciloscopio cibernético: Ajusta Amplitud, Frecuencia y Fase para encajar tu onda verde con la onda roja del bosque.</p>
-        <div style="background: #001100; border: 4px solid #333; border-radius: 15px; padding: 10px; margin-bottom: 20px;">
-            <canvas id="wc2" width="300" height="150" style="width: 100%; height: 150px; background: repeating-linear-gradient(0deg, transparent, transparent 19px, #003300 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, #003300 20px); border-radius: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,1);"></canvas>
-        </div>
-        <div style="display: flex; flex-direction:column; gap:10px; margin-bottom: 20px;">
-            <div style="display: flex; align-items: center;">
-                <label style="width:80px; color:#0f0; font-family:monospace;">AMP</label>
-                <input type="range" id="sl-amp" min="10" max="70" step="1" value="20" style="flex:1; accent-color:#0f0;">
-            </div>
-            <div style="display: flex; align-items: center;">
-                <label style="width:80px; color:#0f0; font-family:monospace;">FREQ</label>
-                <input type="range" id="sl-freq" min="0.01" max="0.1" step="0.001" value="0.02" style="flex:1; accent-color:#0f0;">
-            </div>
-            <div style="display: flex; align-items: center;">
-                <label style="width:80px; color:#0f0; font-family:monospace;">FASE</label>
-                <input type="range" id="sl-fase" min="0" max="6.28" step="0.1" value="0" style="flex:1; accent-color:#0f0;">
-            </div>
-        </div>
-        <div id="sync-status2" style="text-align: center; color: #f00; font-family: monospace; font-size: 1.5rem; text-shadow: 0 0 5px #f00; margin-bottom: 10px;">ESTADO: DESINCRONIZADO</div>
-        <button id="btn-sync-ok" class="btn-primary hidden" style="width:100%; animation: pulse 1s infinite;">¡Sincronización Completada!</button>
-    `,
-    attachEvents: () => {
-        const c = document.getElementById('wc2');
-        const ctx = c.getContext('2d');
-        const sAmp = document.getElementById('sl-amp');
-        const sFreq = document.getElementById('sl-freq');
-        const sFase = document.getElementById('sl-fase');
-        const b = document.getElementById('btn-sync-ok');
-        const stat = document.getElementById('sync-status2');
-        
-        const targetAmp = 50;
-        const targetFreq = 0.05; 
-        const targetFase = 3.1;
-        let offset = 0;
-        let active = true;
+    },
 
-        const loop = () => {
-            if(!active) return;
-            ctx.clearRect(0, 0, c.width, c.height);
-            
-            ctx.globalCompositeOperation = 'lighter';
-            
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'red';
-            for(let x=0; x<c.width; x++) {
-                ctx.lineTo(x, 75 + targetAmp * Math.sin((x + offset) * targetFreq + targetFase));
-            }
-            ctx.stroke();
-            
-            const pAmp = parseFloat(sAmp.value);
-            const pFreq = parseFloat(sFreq.value);
-            const pFase = parseFloat(sFase.value);
-            
-            ctx.beginPath();
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'green';
-            for(let x=0; x<c.width; x++) {
-                ctx.lineTo(x, 75 + pAmp * Math.sin((x + offset) * pFreq + pFase));
-            }
-            ctx.stroke();
-
-            offset += 1; 
-
-            const dAmp = Math.abs(pAmp - targetAmp);
-            const dFreq = Math.abs(pFreq - targetFreq);
-            let dFase = Math.abs(pFase - targetFase);
-            
-            if(dAmp < 5 && dFreq < 0.005 && dFase < 0.5) {
-                stat.innerText = 'ESTADO: 100% SINCRONIZADO';
-                stat.style.color = '#0f0';
-                stat.style.textShadow = '0 0 10px #0f0';
-                b.classList.remove('hidden');
-                ctx.strokeStyle = 'rgba(255, 255, 0, 1)';
-                ctx.shadowColor = 'yellow';
-                ctx.stroke();
-            } else {
-                stat.innerText = 'ESTADO: DESINCRONIZADO';
-                stat.style.color = '#f00';
-                stat.style.textShadow = '0 0 5px #f00';
-                b.classList.add('hidden');
-            }
-
-            requestAnimationFrame(loop);
-        };
-        
-        loop();
-        b.addEventListener('click', () => { active = false; submitMission('day_8_kid14_wave_sync', {type:'game', data:'Ondas sincronizadas por completo'}); });
-        window._missionCleanup = () => { active = false; };
-    }
-},
-"day_8_fam_squad": {
-    tag: "photo", day: 8, title: "Escuadrón Bambú", role: "both", xp: 20, location: "Arashiyama",
-    render: () => `
+    "day_8_fam_squad": {
+        tag: "photo",
+        day: 8,
+        title: "Escuadrón Bambú",
+        role: "both",
+        xp: 20,
+        location: "Arashiyama",
+        render: () => `
         <p class="mission-desc">Foto de todo el grupo semioculto entre los troncos de bambú (¡usa el temporizador!).</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-squad" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto de escuadrón hecha</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-squad').checked) submitMission('day_8_fam_squad', {type:'text', data:'Foto de grupo confirmada'}, role, true);
             else showAlert('Aviso', 'Debéis confirmar marcando la casilla.');
         });
     }
-},
-// ====== DÍA 9 ======
-"day_9_kid9_scratch": {
-    tag: "expert", day: 9, title: "Limpia el Reflejo de Oro", role: "kid9", xp: 25, location: "Kinkaku-ji",
-    render: () => `
-        <p class="mission-desc">Rasca y limpia el estanque para revelar el Pabellón Dorado.</p>
-        <div style="position: relative; width: 100%; height: 250px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 4px solid #d4af37;">
-            <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: linear-gradient(to bottom, #87CEEB 40%, #001f3f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                <div style="font-size: 5rem; text-shadow: 0 0 20px gold;">⛩️</div>
-                <div style="font-size: 5rem; transform: scaleY(-1); opacity: 0.6; filter: blur(2px);">⛩️</div>
-            </div>
-            <canvas id="sc-gold" width="300" height="250" style="position: absolute; top:0; left:0; width: 100%; height: 100%;"></canvas>
-        </div>
-        <div style="margin-top: 15px; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
-            <div id="scratch-prog-gold" style="height: 100%; width: 0%; background: #f1c40f; transition: width 0.2s;"></div>
-        </div>
-        <button id="btn-gold" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Reflejo Revelado!</button>
-    `,
-    attachEvents: () => {
-        const c = document.getElementById('sc-gold');
-        const ctx = c.getContext('2d');
-        const b = document.getElementById('btn-gold');
-        const prog = document.getElementById('scratch-prog-gold');
-        
-        ctx.fillStyle = '#9e9e9e';
-        ctx.fillRect(0, 0, c.width, c.height);
-        
-        let isDrawing = false;
-        let clearedCount = 0;
+    },
 
-        const scratch = (e) => {
-            e.preventDefault();
-            let clientX, clientY;
-            if(e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            const rect = c.getBoundingClientRect();
-            const x = (clientX - rect.left) * (c.width / rect.width);
-            const y = (clientY - rect.top) * (c.height / rect.height);
-            
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.beginPath();
-            ctx.arc(x, y, 30, 0, Math.PI * 2);
-            ctx.fill();
-
-            clearedCount++;
-            let pct = Math.min(100, (clearedCount / 80) * 100);
-            prog.style.width = pct + '%';
-            
-            if(pct >= 90 && b.classList.contains('hidden')) {
-                ctx.clearRect(0,0,c.width,c.height);
-                prog.style.width = '100%';
-                b.classList.remove('hidden');
-                launchConfetti();
-            }
-        };
-
-        c.addEventListener('mousedown', () => { isDrawing = true; });
-        c.addEventListener('mouseup', () => { isDrawing = false; });
-        c.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
-        c.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, {passive:false});
-        c.addEventListener('touchmove', (e) => { if(isDrawing) scratch(e); }, {passive:false});
-        c.addEventListener('touchend', () => { isDrawing = false; });
-
-        b.addEventListener('click', () => submitMission('day_9_kid9_scratch', {type:'game', data:'Reflejo limpiado correctamente'}));
-    }
-},
-"day_9_kid9_altar": {
-    tag: "photo", day: 9, title: "El Altar Secreto", role: "kid9", xp: 15, location: "Fushimi Inari",
-    render: () => `
+    "day_9_kid9_altar": {
+        tag: "photo",
+        day: 9,
+        title: "El Altar Secreto",
+        role: "kid9",
+        xp: 15,
+        location: "Fushimi Inari",
+        render: () => `
         <p class="mission-desc">Busca un mini-altar lleno de arcos Torii del tamaño de un juguete y sácale una foto.</p>
         <button id="btn-cam" class="btn-secondary">📸 Foto del Altar</button>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_altar', currentUser, false); }
-},
-"day_9_kid14_torii": {
-    tag: "expert", day: 9, title: "Laberinto de Torii", role: "kid14", xp: 25, location: "Fushimi Inari",
-    render: () => `
-        <p class="mission-desc">Conecta el camino desde la entrada (abajo) hasta la cima (arriba) rotando las piezas.</p>
-        <div id="torii-board2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; max-width: 300px; margin: 0 auto; background: #222; padding: 10px; border-radius: 10px; border: 4px solid #e74c3c;">
-        </div>
-        <button id="btn-maze" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Camino Abierto!</button>
-    `,
-    attachEvents: () => {
-        const board = document.getElementById('torii-board2');
-        const btn = document.getElementById('btn-maze');
-        
-        const map = [
-            {t:1, r:90}, {t:0, r:0}, {t:1, r:180},
-            {t:0, r:90}, {t:1, r:0}, {t:0, r:90},
-            {t:1, r:270}, {t:1, r:180}, {t:1, r:0}
-        ];
-        
-        const checkWin = () => {
-            let matches = 0;
-            map.forEach((m, i) => {
-                const el = document.getElementById('t2_'+i);
-                const r = parseInt(el.dataset.r) % 360;
-                if(i===0 && r===90) matches++;
-                if(i===1 && (r===0||r===180)) matches++;
-                if(i===2 && r===270) matches++;
-                if(i===3 && (r===90||r===270)) matches++;
-                if(i===4 && r===90) matches++;
-                if(i===5 && (r===0||r===180)) matches++;
-                if(i===6 && r===0) matches++;
-                if(i===7 && r===270) matches++;
-                if(i===8 && r===180) matches++;
-            });
-            if(matches >= 6) {
-                btn.classList.remove('hidden');
-                board.style.boxShadow = '0 0 30px #f1c40f';
-            }
-        };
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_altar', currentUser, false); }
+    },
 
-        board.innerHTML = '';
-        map.forEach((m, i) => {
-            const div = document.createElement('div');
-            div.id = 't2_'+i;
-            div.dataset.r = m.r;
-            div.style.height = '80px';
-            div.style.background = '#333';
-            div.style.borderRadius = '5px';
-            div.style.position = 'relative';
-            div.style.transition = 'transform 0.3s ease';
-            div.style.transform = `rotate(${m.r}deg)`;
-            div.style.cursor = 'pointer';
-            
-            if(m.t === 0) { 
-                div.innerHTML = `<div style="position:absolute; top:0; bottom:0; left:50%; width:20px; background:#e74c3c; transform:translateX(-50%); border-left:3px solid #c0392b; border-right:3px solid #c0392b;"></div>`;
-            } else { 
-                div.innerHTML = `<div style="position:absolute; top:0; left:50%; width:20px; height:50%; background:#e74c3c; transform:translateX(-50%);"></div><div style="position:absolute; top:50%; left:50%; width:50%; height:20px; background:#e74c3c; transform:translateY(-50%);"></div>`;
-            }
-
-            div.addEventListener('click', () => {
-                let r = parseInt(div.dataset.r) + 90;
-                div.dataset.r = r;
-                div.style.transform = `rotate(${r}deg)`;
-                checkWin();
-            });
-            board.appendChild(div);
-        });
-
-        btn.addEventListener('click', () => submitMission('day_9_kid14_torii', {type:'game', data:'Laberinto resuelto'}));
-    }
-},
-"day_9_kid14_tunnel": {
-    tag: "photo", day: 9, title: "El Túnel Infinito", role: "kid14", xp: 15, location: "Fushimi Inari",
-    render: () => `
+    "day_9_kid14_tunnel": {
+        tag: "photo",
+        day: 9,
+        title: "El Túnel Infinito",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi Inari",
+        render: () => `
         <p class="mission-desc">Fotografía el pasillo de toriis desde un ángulo donde parezca que no tiene fin.</p>
         <button id="btn-cam" class="btn-secondary">📸 Foto del Túnel</button>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_tunnel', currentUser, false); }
-},
-"day_9_kid14_balance": {
-    tag: "physical", day: 9, title: "La Postura del Ave Dorada", role: "kid14", xp: 20, location: "Kinkaku-ji",
-    render: () => `
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_tunnel', currentUser, false); }
+    },
+
+    "day_9_kid14_balance": {
+        tag: "physical",
+        day: 9,
+        title: "La Postura del Ave Dorada",
+        role: "kid14",
+        xp: 20,
+        location: "Kinkaku-ji",
+        render: () => `
         <p class="mission-desc">Aguanta a la pata coja frente al Pabellón Dorado durante 30 segundos reales. ¡No toques el suelo!</p>
         <div id="chrono-bal" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent); margin:15px 0;">0.0s</div>
         <div style="display:grid; grid-template-columns:1fr; gap:10px;">
@@ -4792,7 +3242,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-sub-bal" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Tiempo al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let sT=0; let int=null;
         const cText = document.getElementById('chrono-bal');
         const bS = document.getElementById('c-start-bal');
@@ -4815,10 +3265,16 @@ const MISSIONS_CONFIG = {
         bSub.addEventListener('click', () => submitMission('day_9_kid14_balance', {type:'text', data: `Tiempo de equilibrio: ${cText.innerText}`}));
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_9_fam_portal": {
-    tag: "video", day: 9, title: "La Puerta a Otro Mundo", role: "both", xp: 20, location: "Fushimi Inari",
-    render: () => `
+    },
+
+    "day_9_fam_portal": {
+        tag: "video",
+        day: 9,
+        title: "La Puerta a Otro Mundo",
+        role: "both",
+        xp: 20,
+        location: "Fushimi Inari",
+        render: () => `
         <p class="mission-desc">Grabar un vídeo de 5 segundos de todo el grupo cruzando a la vez un arco Torii gigante.</p>
         <div id="rec-ui-portal" style="text-align:center; margin: 20px 0;">
             <button id="btn-rec-portal" class="btn-primary" style="width:100%; border-radius:50px; height:60px; font-size:1.5rem;">🎬 Grabar Cruce</button>
@@ -4827,7 +3283,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-retry-portal" class="btn-secondary hidden" style="width:100%; margin-bottom:10px;">Regrabar</button>
         <button id="btn-portal" class="btn-primary hidden" style="width:100%;">Enviar Vídeo</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btnR = document.getElementById('btn-rec-portal');
         const btnRetry = document.getElementById('btn-retry-portal');
         const btn = document.getElementById('btn-portal');
@@ -4887,126 +3343,21 @@ const MISSIONS_CONFIG = {
         });
         window._missionCleanup = stopAll;
     }
-},
-// ====== DÍA 10 ======
-"day_10_kid9_bento": {
-    tag: "expert", day: 10, title: "El Maestro del Bento", role: "kid9", xp: 25, location: "Mercado Nishiki",
-    render: () => `
-        <p class="mission-desc">Arrastra cada ingrediente a su compartimento correcto en la caja Bento para preparar un almuerzo perfecto (Usa tu dedo suavemente).</p>
-        <div id="bento-box2" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
-            <div class="bento-slot2" data-accept="arroz" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍚</div>
-            <div class="bento-slot2" data-accept="pescado" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🐟</div>
-            <div class="bento-slot2" data-accept="verdura" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🥦</div>
-            <div class="bento-slot2" data-accept="postre" style="background: #e74c3c; border-radius: 10px; border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 3rem;">🍡</div>
-        </div>
-        <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px; position:relative; touch-action:none;">
-            <div class="bento-item2" data-type="pescado" style="font-size: 3rem; position:absolute; left:10px; z-index:10;">🐟</div>
-            <div class="bento-item2" data-type="arroz" style="font-size: 3rem; position:absolute; left:80px; z-index:10;">🍚</div>
-            <div class="bento-item2" data-type="postre" style="font-size: 3rem; position:absolute; left:150px; z-index:10;">🍡</div>
-            <div class="bento-item2" data-type="verdura" style="font-size: 3rem; position:absolute; left:220px; z-index:10;">🥦</div>
-        </div>
-        <button id="btn-bento-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Itadakimasu!</button>
-    `,
-    attachEvents: () => {
-        const items = document.querySelectorAll('.bento-item2');
-        const slots = document.querySelectorAll('.bento-slot2');
-        const btn = document.getElementById('btn-bento-ok');
-        
-        let placed = 0;
-        let activeItem = null;
-        let initX=0, initY=0, curX=0, curY=0;
+    },
 
-        const getXY = (e) => {
-            if(e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            return { x: e.clientX, y: e.clientY };
-        };
-
-        const handleMove = (e) => {
-            if(!activeItem) return;
-            e.preventDefault();
-            const {x, y} = getXY(e);
-            const dx = x - initX;
-            const dy = y - initY;
-            activeItem.style.transform = `translate(${curX + dx}px, ${curY + dy}px) scale(1.2)`;
-        };
-
-        const handleEnd = (e) => {
-            if(!activeItem) return;
-            const {x, y} = getXY(e.changedTouches ? e.changedTouches[0] : e);
-            const dx = x - initX;
-            const dy = y - initY;
-            curX += dx;
-            curY += dy;
-            
-            let itemRect = activeItem.getBoundingClientRect();
-            let itemCenter = { x: itemRect.left + itemRect.width/2, y: itemRect.top + itemRect.height/2 };
-            
-            let matched = false;
-            slots.forEach(slot => {
-                let slotRect = slot.getBoundingClientRect();
-                if(itemCenter.x > slotRect.left && itemCenter.x < slotRect.right && 
-                   itemCenter.y > slotRect.top && itemCenter.y < slotRect.bottom) {
-                    
-                    if(slot.dataset.accept === activeItem.dataset.type && !slot.dataset.filled) {
-                        matched = true;
-                        slot.dataset.filled = 'true';
-                        slot.style.borderStyle = 'solid';
-                        slot.style.borderColor = '#f1c40f';
-                        slot.style.background = '#c0392b';
-                        activeItem.style.display = 'none'; 
-                        placed++;
-                        if(placed === 4) {
-                            btn.classList.remove('hidden');
-                            launchConfetti();
-                        }
-                    }
-                }
-            });
-
-            if(!matched) {
-                curX = 0; curY = 0;
-                activeItem.style.transform = 'translate(0px, 0px) scale(1)';
-            }
-            
-            activeItem.style.zIndex = '10';
-            activeItem = null;
-            document.removeEventListener('mousemove', handleMove);
-            document.removeEventListener('mouseup', handleEnd);
-            document.removeEventListener('touchmove', handleMove);
-            document.removeEventListener('touchend', handleEnd);
-        };
-
-        items.forEach(item => {
-            const startDrag = (e) => {
-                e.preventDefault();
-                activeItem = item;
-                const {x, y} = getXY(e);
-                initX = x; initY = y;
-                const match = activeItem.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-                if(match) { curX = parseFloat(match[1]); curY = parseFloat(match[2]); } 
-                else { curX = 0; curY = 0; }
-                
-                activeItem.style.zIndex = '100';
-                document.addEventListener('mousemove', handleMove, {passive:false});
-                document.addEventListener('mouseup', handleEnd);
-                document.addEventListener('touchmove', handleMove, {passive:false});
-                document.addEventListener('touchend', handleEnd);
-            };
-            item.addEventListener('mousedown', startDrag);
-            item.addEventListener('touchstart', startDrag, {passive:false});
-        });
-
-        btn.addEventListener('click', () => submitMission('day_10_kid9_bento', {type:'game', data:'Bento perfecto preparado'}));
-    }
-},
-"day_10_kid9_rainbow": {
-    tag: "photo", day: 10, title: "El Snack Arcoíris", role: "kid9", xp: 15, location: "Nishiki",
-    render: () => `
+    "day_10_kid9_rainbow": {
+        tag: "photo",
+        day: 10,
+        title: "El Snack Arcoíris",
+        role: "kid9",
+        xp: 15,
+        location: "Nishiki",
+        render: () => `
         <p class="mission-desc">Foto de algo comestible con al menos 3 colores diferentes y ponle un nombre inventado divertido.</p>
         <input type="text" id="rainbow-name" placeholder="Ej: Mega-Pincho Espacial" style="width:100%; margin-bottom:15px;">
         <button id="btn-cam" class="btn-secondary">📸 Foto del Snack</button>
     `,
-    attachEvents: (role) => { 
+        attachEvents: (role) => { 
         attachCameraFlow('btn-cam', 'day_10_kid9_rainbow', currentUser, false); 
         const btn = document.getElementById('btn-cam');
         const oldInput = btn.nextElementSibling;
@@ -5027,10 +3378,16 @@ const MISSIONS_CONFIG = {
             });
         }
     }
-},
-"day_10_kid9_matcha": {
-    tag: "sensors", day: 10, title: "Poción de Matcha", role: "kid9", xp: 15, location: "Nishiki",
-    render: () => `
+    },
+
+    "day_10_kid9_matcha": {
+        tag: "sensors",
+        day: 10,
+        title: "Poción de Matcha",
+        role: "kid9",
+        xp: 15,
+        location: "Nishiki",
+        render: () => `
         <p class="mission-desc">Busca un producto que contenga Matcha. Si puedes escanear su código de barras con la cámara, el Juez sabrá que es auténtico.</p>
         <div id="barcode-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
             <video id="barcode-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
@@ -5041,7 +3398,7 @@ const MISSIONS_CONFIG = {
         <input type="text" id="matcha-manual" placeholder="Código o nombre..." style="width:100%; margin-bottom:15px;">
         <button id="btn-matcha-sub" class="btn-primary" style="width:100%;">Enviar Datos al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const vid = document.getElementById('barcode-vid');
         const stat = document.getElementById('barcode-status');
         let stream = null;
@@ -5085,28 +3442,35 @@ const MISSIONS_CONFIG = {
         
         window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_10_kid14_tako": {
-    tag: "writing", day: 10, title: "Comida Bizarra", role: "kid14", xp: 15, location: "Nishiki",
-    render: () => `
+    },
+
+    "day_10_kid14_tako": {
+        tag: "writing",
+        day: 10,
+        title: "Comida Bizarra",
+        role: "kid14",
+        xp: 15,
+        location: "Nishiki",
+        render: () => `
         <p class="mission-desc">Localiza el famoso Tako Tamago (un pequeño pulpo rojo con un huevo de codorniz en la cabeza). ¿A cuánto lo venden hoy?</p>
         <input type="number" id="tako-price" placeholder="Precio en yenes (¥)..." style="width:100%; margin-bottom:15px;">
         <button id="btn-tako" class="btn-primary" style="width:100%;">Enviar Reporte</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn-tako').addEventListener('click', () => {
             submitMission('day_10_kid14_tako', {type:'number', data: document.getElementById('tako-price').value});
         });
     }
-}
+    },
 
-,
-
-// ====== NUEVAS MISIONES DÍAS 11 A 15 ======
-// --- DÍA 11 ---
-"day_11_onsen": {
-    tag: "expert", day: 11, title: "El Código Onsen", role: "kid9", xp: 15, location: "Okuhida",
-    render: () => `
+    "day_11_onsen": {
+        tag: "expert",
+        day: 11,
+        title: "El Código Onsen",
+        role: "kid9",
+        xp: 15,
+        location: "Okuhida",
+        render: () => `
         <p class="mission-desc">Antes de entrar al onsen, debes conocer las 3 reglas sagradas.</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; background:var(--color-gray-light); padding:15px; border-radius:8px;">
             <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o1" style="transform:scale(1.5); margin-right:10px;"> ✅ Me duché antes de entrar</label>
@@ -5116,7 +3480,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-val-onsen" class="btn-primary" style="width:100%;">Validar reglas</button>
         <button id="btn-sub-onsen" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const v = document.getElementById('btn-val-onsen');
         const s = document.getElementById('btn-sub-onsen');
         v.addEventListener('click', () => {
@@ -5126,10 +3490,16 @@ const MISSIONS_CONFIG = {
         });
         s.addEventListener('click', () => submitMission('day_11_onsen', {type:'text', data:'Reglas del onsen aprendidas'}));
     }
-},
-"day_11_tea": {
-    tag: "sensors", day: 11, title: "El Té Intacto", role: "kid9", xp: 25, location: "Ryokan",
-    render: () => `
+    },
+
+    "day_11_tea": {
+        tag: "sensors",
+        day: 11,
+        title: "El Té Intacto",
+        role: "kid9",
+        xp: 25,
+        location: "Ryokan",
+        render: () => `
         <p class="mission-desc">Camina 20 segundos con el móvil nivelado como una bandeja de té matcha.</p>
         <div style="display:flex; justify-content:center; align-items:center; height:150px; background:#d4c4a8; border-radius:20px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(0,0,0,0.5);">
             <div style="width:100px; height:100px; background:#4a5d23; border-radius:50%; border:4px solid #f0e6d2; display:flex; justify-content:center; align-items:center;">
@@ -5142,7 +3512,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-start-tea" class="btn-secondary" style="width:100%; margin-top: 15px;">Empezar a caminar</button>
         <button id="btn-sub-tea" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const drop = document.getElementById('tea-liquid');
         const timerEl = document.getElementById('tea-timer');
         const btnS = document.getElementById('btn-start-tea');
@@ -5190,10 +3560,16 @@ const MISSIONS_CONFIG = {
         btnV.addEventListener('click', () => submitMission('day_11_tea', {type:'game', data:'Té llevado sin derramar'}));
         window._missionCleanup = () => { active = false; clearInterval(interval); window.removeEventListener('deviceorientation', handleOrientation); };
     }
-},
-"day_11_yukata": {
-    tag: "economy", day: 11, title: "Cazadora de Yukatas", role: "kid9", xp: 15, location: "Ryokan",
-    render: () => `
+    },
+
+    "day_11_yukata": {
+        tag: "economy",
+        day: 11,
+        title: "Cazadora de Yukatas",
+        role: "kid9",
+        xp: 15,
+        location: "Ryokan",
+        render: () => `
         <p class="mission-desc">¿Cuántas personas con yukata has visto hoy?</p>
         <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
             <button id="btn-sub-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
@@ -5202,21 +3578,33 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-send-yukata" class="btn-primary" style="width:100%;">Enviar recuento</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let count = 0;
         document.getElementById('btn-add-y').addEventListener('click', () => { count++; document.getElementById('yukata-count').innerText = count; });
         document.getElementById('btn-sub-y').addEventListener('click', () => { if(count>0) count--; document.getElementById('yukata-count').innerText = count; });
         document.getElementById('btn-send-yukata').addEventListener('click', () => { submitMission('day_11_yukata', {type:'number', data: count}); });
     }
-},
-"day_11_tatami": {
-    tag: "photo", day: 11, title: "La Textura del Tatami", role: "kid9", xp: 15, location: "Ryokan",
-    render: () => `<p class="mission-desc">Haz una foto muy de cerca al suelo de tatami.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_11_tatami', currentUser, false); }
-},
-"day_11_kaiseki": {
-    tag: "writing", day: 11, title: "Catador de Kaiseki", role: "kid14", xp: 20, location: "Ryokan",
-    render: () => `
+    },
+
+    "day_11_tatami": {
+        tag: "photo",
+        day: 11,
+        title: "La Textura del Tatami",
+        role: "kid9",
+        xp: 15,
+        location: "Ryokan",
+        render: () => `<p class="mission-desc">Haz una foto muy de cerca al suelo de tatami.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_11_tatami', currentUser, false); }
+    },
+
+    "day_11_kaiseki": {
+        tag: "writing",
+        day: 11,
+        title: "Catador de Kaiseki",
+        role: "kid14",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> CATA GASTRONÓMICA: Prueba el plato más extraño.</p>
             <input type="text" id="k-name" placeholder="Nombre del plato..." style="width:100%; margin-bottom:10px;">
@@ -5229,17 +3617,23 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar cata</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn').addEventListener('click', () => {
             const n = document.getElementById('k-name').value;
             const a1 = document.getElementById('k-adj1').value, a2 = document.getElementById('k-adj2').value, a3 = document.getElementById('k-adj3').value;
             submitMission('day_11_kaiseki', {type:'text', data:`Plato: ${n}. Adjs: ${a1}, ${a2}, ${a3}. Bebida: ${document.getElementById('k-drink').value}.`});
         });
     }
-},
-"day_11_spring": {
-    tag: "sensors", day: 11, title: "Rastreador de Manantiales", role: "kid14", xp: 25, location: "Okuhida",
-    render: () => `
+    },
+
+    "day_11_spring": {
+        tag: "sensors",
+        day: 11,
+        title: "Rastreador de Manantiales",
+        role: "kid14",
+        xp: 25,
+        location: "Okuhida",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> RASTREANDO MANANTIAL. Objetivo: Nodo Termal.</p>
             <div style="text-align:center; margin:20px 0;">
@@ -5249,7 +3643,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Marcar posición</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const dEl = document.getElementById('radar-dist');
         const mEl = document.getElementById('radar-msg');
         const btn = document.getElementById('btn');
@@ -5273,10 +3667,16 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => submitMission('day_11_spring', {type:'game', data:'Manantial termal localizado'}));
         window._missionCleanup = () => { if(watchId) navigator.geolocation.clearWatch(watchId); };
     }
-},
-"day_11_architecture": {
-    tag: "expert", day: 11, title: "Arquitectura Termal", role: "kid14", xp: 20, location: "Ryokan",
-    render: () => `
+    },
+
+    "day_11_architecture": {
+        tag: "expert",
+        day: 11,
+        title: "Arquitectura Termal",
+        role: "kid14",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN</p>
             <input type="number" id="v-l" placeholder="Largo (m)" style="width:100%; margin-bottom:10px;">
@@ -5287,7 +3687,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Medidas</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let finalVol = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
             const l = document.getElementById('v-l').value, w = document.getElementById('v-w').value, d = document.getElementById('v-d').value;
@@ -5299,21 +3699,33 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_11_architecture', {type:'text', data:`Volumen onsen: ${finalVol} m³`}));
     }
-},
-"day_11_economy": {
-    tag: "economy", day: 11, title: "Economía Alpina", role: "kid14", xp: 15, location: "Ryokan",
-    render: () => `
+    },
+
+    "day_11_economy": {
+        tag: "economy",
+        day: 11,
+        title: "Economía Alpina",
+        role: "kid14",
+        xp: 15,
+        location: "Ryokan",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ¿Cuánto cuesta mantener este ryokan un día entero?</p>
             <input type="number" id="e-cost" placeholder="Coste diario (yenes)..." style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => { submitMission('day_11_economy', {type:'number', data:document.getElementById('e-cost').value}); }); }
-},
-"day_11_geta": {
-    tag: "physical", day: 11, title: "Equilibrio del Yukata", role: "both", xp: 20, location: "Ryokan",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => { submitMission('day_11_economy', {type:'number', data:document.getElementById('e-cost').value}); }); }
+    },
+
+    "day_11_geta": {
+        tag: "physical",
+        day: 11,
+        title: "Equilibrio del Yukata",
+        role: "both",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
         <p class="mission-desc">Camina 30 pasos en línea recta con zapatillas de madera sin tropezar.</p>
         <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
             <div id="geta-count" style="font-size:4rem; font-weight:bold;">0/30</div>
@@ -5321,7 +3733,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-geta" class="btn-primary hidden" style="width:100%;">¡Terminé sin caer!</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         let steps = 0;
         document.getElementById('btn-step').addEventListener('click', () => {
             steps++; document.getElementById('geta-count').innerText = `${steps}/30`;
@@ -5329,12 +3741,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn-geta').addEventListener('click', () => submitMission('day_11_geta', {type:'game', data:'30 pasos en geta superados'}, role, true));
     }
-},
+    },
 
-// --- DÍA 12 ---
-"day_12_silence": {
-    tag: "expert", day: 12, title: "Silencio de los Kami", role: "kid9", xp: 25, location: "Takayama",
-    render: () => `
+    "day_12_silence": {
+        tag: "expert",
+        day: 12,
+        title: "Silencio de los Kami",
+        role: "kid9",
+        xp: 25,
+        location: "Takayama",
+        render: () => `
         <p class="mission-desc">No despiertes al Kami... guarda silencio absoluto durante 10 segundos.</p>
         <div style="text-align:center; margin: 20px 0;">
             <div id="kami-icon" style="font-size:5rem; transition: transform 0.3s;">😴💤</div>
@@ -5345,7 +3761,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-start-silence" class="btn-secondary" style="width:100%;">Iniciar Silencio</button>
         <button id="btn-silence" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnS = document.getElementById('btn-start-silence');
         const btn = document.getElementById('btn-silence');
         const icon = document.getElementById('kami-icon');
@@ -5400,31 +3816,49 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => submitMission('day_12_silence', {type:'game', data:'10 segundos de silencio absoluto'}));
         window._missionCleanup = stopAudio;
     }
-},
-"day_12_sugidama": {
-    tag: "photo", day: 12, title: "La Bola de Cedro", role: "kid9", xp: 15, location: "Takayama",
-    render: () => `<p class="mission-desc">Busca una gran bola de ramas de cedro (Sugidama) en una tienda de sake.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sugidama</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_sugidama', currentUser, false); }
-},
-"day_12_wood": {
-    tag: "photo", day: 12, title: "Detective de Madera", role: "kid9", xp: 15, location: "Takayama",
-    render: () => `
+    },
+
+    "day_12_sugidama": {
+        tag: "photo",
+        day: 12,
+        title: "La Bola de Cedro",
+        role: "kid9",
+        xp: 15,
+        location: "Takayama",
+        render: () => `<p class="mission-desc">Busca una gran bola de ramas de cedro (Sugidama) en una tienda de sake.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sugidama</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_sugidama', currentUser, false); }
+    },
+
+    "day_12_wood": {
+        tag: "photo",
+        day: 12,
+        title: "Detective de Madera",
+        role: "kid9",
+        xp: 15,
+        location: "Takayama",
+        render: () => `
         <p class="mission-desc">Busca una talla de madera divertida en una fachada.</p>
         <input type="text" id="wood-desc" placeholder="¿Qué animal es?" style="width:100%; margin-bottom:10px;">
         <button id="btn-cam" class="btn-secondary">📸 Foto Talla</button>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_wood', currentUser, false); }
-},
-"day_12_hida": {
-    tag: "economy", day: 12, title: "Degustadora de Hida", role: "kid9", xp: 15, location: "Takayama",
-    render: () => `
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_12_wood', currentUser, false); }
+    },
+
+    "day_12_hida": {
+        tag: "economy",
+        day: 12,
+        title: "Degustadora de Hida",
+        role: "kid9",
+        xp: 15,
+        location: "Takayama",
+        render: () => `
         <p class="mission-desc">Puntúa el sabor de la famosa carne de Hida.</p>
         <div style="font-size:3rem; text-align:center; margin:15px 0; cursor:pointer;" id="stars">
             <span data-val="1">☆</span><span data-val="2">☆</span><span data-val="3">☆</span><span data-val="4">☆</span><span data-val="5">☆</span>
         </div>
         <button id="btn" class="btn-primary" style="width:100%">Enviar Puntuación</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let score = 0;
         const spans = document.querySelectorAll('#stars span');
         spans.forEach(s => s.addEventListener('click', () => {
@@ -5436,10 +3870,16 @@ const MISSIONS_CONFIG = {
             if(score>0) submitMission('day_12_hida', {type:'number', data:`Puntuación carne Hida: ${score} estrellas`});
         });
     }
-},
-"day_12_carving": {
-    tag: "expert", day: 12, title: "Talla en Madera", role: "kid14", xp: 25, location: "Takayama",
-    render: () => `
+    },
+
+    "day_12_carving": {
+        tag: "expert",
+        day: 12,
+        title: "Talla en Madera",
+        role: "kid14",
+        xp: 25,
+        location: "Takayama",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px; display:flex; flex-direction:column; align-items:center;">
             <p>>>> REPLICA LA TALLA DEL KANJI (Árbol): 木</p>
             <div style="background:#2c1b18; border:4px solid #5c4033; position:relative; width:300px; height:300px; margin-bottom:15px; border-radius:5px;">
@@ -5452,7 +3892,7 @@ const MISSIONS_CONFIG = {
             </div>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const canvas = document.getElementById('carve-canvas');
         const ctx = canvas.getContext('2d');
         ctx.strokeStyle = '#00FF41'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -5479,10 +3919,16 @@ const MISSIONS_CONFIG = {
             submitMission('day_12_carving', {type:'photo', data:photoId});
         });
     }
-},
-"day_12_sake": {
-    tag: "economy", day: 12, title: "Maestro Destilador", role: "kid14", xp: 20, location: "Takayama",
-    render: () => `
+    },
+
+    "day_12_sake": {
+        tag: "economy",
+        day: 12,
+        title: "Maestro Destilador",
+        role: "kid14",
+        xp: 20,
+        location: "Takayama",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> DESTILERÍA FUNASAKA.</p>
             <input type="number" id="sake-ans" placeholder="Años de antigüedad (2026 - fundación)" style="width:100%; margin-bottom:10px;">
@@ -5490,7 +3936,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Desencriptar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let fails = 0;
         document.getElementById('btn').addEventListener('click', () => {
             const val = document.getElementById('sake-ans').value;
@@ -5501,10 +3947,16 @@ const MISSIONS_CONFIG = {
             }
         });
     }
-},
-"day_12_patrol": {
-    tag: "physical", day: 12, title: "Patrulla Sanmachi Suji", role: "kid14", xp: 15, location: "Takayama",
-    render: () => `
+    },
+
+    "day_12_patrol": {
+        tag: "physical",
+        day: 12,
+        title: "Patrulla Sanmachi Suji",
+        role: "kid14",
+        xp: 15,
+        location: "Takayama",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> CASAS TRADICIONALES DETECTADAS:</p>
             <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
@@ -5515,57 +3967,85 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let count = 0;
         document.getElementById('btn-add-p').addEventListener('click', () => { count++; document.getElementById('patrol-count').innerText = count; });
         document.getElementById('btn-sub-p').addEventListener('click', () => { if(count>0) count--; document.getElementById('patrol-count').innerText = count; });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_12_patrol', {type:'number', data: count}));
     }
-},
-"day_12_appraisal": {
-    tag: "economy", day: 12, title: "Tasador Feudal", role: "kid14", xp: 15, location: "Takayama",
-    render: () => `
+    },
+
+    "day_12_appraisal": {
+        tag: "economy",
+        day: 12,
+        title: "Tasador Feudal",
+        role: "kid14",
+        xp: 15,
+        location: "Takayama",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ESTIMACIÓN INMOBILIARIA (CALLE HISTÓRICA)</p>
             <input type="number" id="app-cost" placeholder="Precio estimado (€)..." style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Tasación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_12_appraisal', {type:'number', data:document.getElementById('app-cost').value})); }
-},
-"day_12_bridge": {
-    tag: "photo", day: 12, title: "Cruzando el Miyagawa", role: "both", xp: 20, location: "Takayama",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_12_appraisal', {type:'number', data:document.getElementById('app-cost').value})); }
+    },
+
+    "day_12_bridge": {
+        tag: "photo",
+        day: 12,
+        title: "Cruzando el Miyagawa",
+        role: "both",
+        xp: 20,
+        location: "Takayama",
+        render: () => `
         <p class="mission-desc">Selfie familiar en el puente rojo sobre el río Miyagawa.</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-bridge" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto en el puente rojo hecha</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-bridge').checked) submitMission('day_12_bridge', {type:'text', data:'Foto puente confirmada'}, role, true);
             else showAlert('Aviso', 'Debéis confirmar marcando la casilla.');
         });
     }
-},
+    },
 
-// --- DÍA 13 ---
-"day_13_stairs": {
-    tag: "physical", day: 13, title: "La Escalada Chureito", role: "kid9", xp: 20, location: "Kawaguchiko",
-    render: () => `
+    "day_13_stairs": {
+        tag: "physical",
+        day: 13,
+        title: "La Escalada Chureito",
+        role: "kid9",
+        xp: 20,
+        location: "Kawaguchiko",
+        render: () => `
         <p class="mission-desc">Sube los escalones hasta la pagoda y escribe el número exacto.</p>
         <input type="number" id="st-ans" placeholder="Número..." style="width:100%; margin-bottom:15px; font-size:2rem; text-align:center;">
         <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_stairs', {type:'number', data:document.getElementById('st-ans').value})); }
-},
-"day_13_manhole": {
-    tag: "photo", day: 13, title: "El Sello del Lago", role: "kid9", xp: 15, location: "Kawaguchiko",
-    render: () => `<p class="mission-desc">Busca una tapa de alcantarilla decorada con el Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Foto Tapa</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_manhole', currentUser, false); }
-},
-"day_13_icecream": {
-    tag: "writing", day: 13, title: "Sabores del Fuji", role: "kid9", xp: 15, location: "Kawaguchiko",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_stairs', {type:'number', data:document.getElementById('st-ans').value})); }
+    },
+
+    "day_13_manhole": {
+        tag: "photo",
+        day: 13,
+        title: "El Sello del Lago",
+        role: "kid9",
+        xp: 15,
+        location: "Kawaguchiko",
+        render: () => `<p class="mission-desc">Busca una tapa de alcantarilla decorada con el Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Foto Tapa</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_manhole', currentUser, false); }
+    },
+
+    "day_13_icecream": {
+        tag: "writing",
+        day: 13,
+        title: "Sabores del Fuji",
+        role: "kid9",
+        xp: 15,
+        location: "Kawaguchiko",
+        render: () => `
         <p class="mission-desc">Prueba un helado de un sabor raro y elige su color.</p>
         <input type="text" id="ic-desc" placeholder="¿De qué sabor era?" style="width:100%; margin-bottom:10px;">
         <div style="display:flex; gap:5px; margin-bottom:15px; justify-content:space-around;">
@@ -5577,7 +4057,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn" class="btn-primary" style="width:100%">Enviar sabor</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let selectedC = "";
         const btns = document.querySelectorAll('.color-btn');
         btns.forEach(b => b.addEventListener('click', (e) => {
@@ -5587,10 +4067,16 @@ const MISSIONS_CONFIG = {
         }));
         document.getElementById('btn').addEventListener('click', () => submitMission('day_13_icecream', {type:'text', data:`Sabor: ${document.getElementById('ic-desc').value} Color: ${selectedC}`}));
     }
-},
-"day_13_yokai": {
-    tag: "expert", day: 13, title: "Filtro de Yōkai", role: "kid9", xp: 25, location: "Bosque",
-    render: () => `
+    },
+
+    "day_13_yokai": {
+        tag: "expert",
+        day: 13,
+        title: "Filtro de Yōkai",
+        role: "kid9",
+        xp: 25,
+        location: "Bosque",
+        render: () => `
         <p class="mission-desc">Usa el visor espectral para revelar espíritus ocultos (colores invertidos).</p>
         <div style="position:relative; width:100%; height:300px; background:#000; overflow:hidden; border-radius:10px; margin-bottom:10px;">
             <video id="y-vid" autoplay playsinline muted style="display:none;"></video>
@@ -5598,7 +4084,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-cap" class="btn-secondary" style="width:100%">Capturar espectro</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const vid = document.getElementById('y-vid');
         const can = document.getElementById('y-can');
         const ctx = can.getContext('2d', { willReadFrequently: true });
@@ -5640,26 +4126,44 @@ const MISSIONS_CONFIG = {
         });
         window._missionCleanup = () => { active = false; if(stream) stream.getTracks().forEach(t=>t.stop()); cancelAnimationFrame(rafId); };
     }
-},
-"day_13_perspective": {
-    tag: "photo", day: 13, title: "Perspectiva del Gigante", role: "kid14", xp: 20, location: "Lago",
-    render: () => `<p class="mission-desc">Foto de ilusión óptica donde parezca que tocas la punta del Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Enviar ilusión</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_perspective', currentUser, false); }
-},
-"day_13_tunnels": {
-    tag: "economy", day: 13, title: "Navegantes del Asfalto", role: "kid14", xp: 15, location: "Coche",
-    render: () => `
+    },
+
+    "day_13_perspective": {
+        tag: "photo",
+        day: 13,
+        title: "Perspectiva del Gigante",
+        role: "kid14",
+        xp: 20,
+        location: "Lago",
+        render: () => `<p class="mission-desc">Foto de ilusión óptica donde parezca que tocas la punta del Fuji.</p><button id="btn-cam" class="btn-secondary">📸 Enviar ilusión</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_perspective', currentUser, false); }
+    },
+
+    "day_13_tunnels": {
+        tag: "economy",
+        day: 13,
+        title: "Navegantes del Asfalto",
+        role: "kid14",
+        xp: 15,
+        location: "Coche",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> TÚNELES ATRAVESADOS:</p>
             <input type="number" id="t-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_tunnels', {type:'number', data:document.getElementById('t-ans').value})); }
-},
-"day_13_volcano": {
-    tag: "writing", day: 13, title: "Análisis Vulcanológico", role: "kid14", xp: 20, location: "Fuji",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_tunnels', {type:'number', data:document.getElementById('t-ans').value})); }
+    },
+
+    "day_13_volcano": {
+        tag: "writing",
+        day: 13,
+        title: "Análisis Vulcanológico",
+        role: "kid14",
+        xp: 20,
+        location: "Fuji",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BUSCANDO REGISTROS DE ERUPCIÓN...</p>
             <input type="text" id="v-type" placeholder="Tipo de volcán" style="width:100%; margin-bottom:10px;">
@@ -5667,43 +4171,65 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_volcano', {type:'text', data:`Tipo: ${document.getElementById('v-type').value}. Año: ${document.getElementById('v-year').value}`})); }
-},
-"day_13_triangulation": {
-    tag: "expert", day: 13, title: "Triangulación del Fuji", role: "kid14", xp: 20, location: "Lago",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_volcano', {type:'text', data:`Tipo: ${document.getElementById('v-type').value}. Año: ${document.getElementById('v-year').value}`})); }
+    },
+
+    "day_13_triangulation": {
+        tag: "expert",
+        day: 13,
+        title: "Triangulación del Fuji",
+        role: "kid14",
+        xp: 20,
+        location: "Lago",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> Estimación visual de distancia.</p>
             <input type="number" id="tr-dist" placeholder="Distancia estimada (km)..." style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_triangulation', {type:'number', data:document.getElementById('tr-dist').value})); }
-},
-"day_13_oishi": {
-    tag: "photo", day: 13, title: "Oishi Park en Flor", role: "both", xp: 20, location: "Oishi Park",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_13_triangulation', {type:'number', data:document.getElementById('tr-dist').value})); }
+    },
+
+    "day_13_oishi": {
+        tag: "photo",
+        day: 13,
+        title: "Oishi Park en Flor",
+        role: "both",
+        xp: 20,
+        location: "Oishi Park",
+        render: () => `
         <p class="mission-desc">Foto familiar con flores en primer plano y el Fuji al fondo.</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-oishi" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto en Oishi Park confirmada</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-oishi').checked) submitMission('day_13_oishi', {type:'text', data:'Foto Oishi realizada'}, role, true);
             else showAlert('Aviso', 'Marca la casilla.');
         });
     }
-},
+    },
 
-// --- DÍA 14 ---
-"day_14_rock": {
-    tag: "photo", day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Fuji 5ª Estación",
-    render: () => `<p class="mission-desc">Encuentra una piedra negra con agujeritos (lava) y hazle una foto muy de cerca.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_rock', currentUser, false); }
-},
-"day_14_kid9_echo": {
-    tag: "audio", day: 14, title: "El Sonido que Muere", role: "kid9", xp: 20, location: "Aokigahara",
-    render: () => `
+    "day_14_rock": {
+        tag: "photo",
+        day: 14,
+        title: "Aliento de Volcán",
+        role: "kid9",
+        xp: 15,
+        location: "Fuji 5ª Estación",
+        render: () => `<p class="mission-desc">Encuentra una piedra negra con agujeritos (lava) y hazle una foto muy de cerca.</p><button id="btn-cam" class="btn-secondary">📸 Foto Macro</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_rock', currentUser, false); }
+    },
+
+    "day_14_kid9_echo": {
+        tag: "audio",
+        day: 14,
+        title: "El Sonido que Muere",
+        role: "kid9",
+        xp: 20,
+        location: "Aokigahara",
+        render: () => `
         <p class="mission-desc">Da una palmada fuerte. ¿Escuchas cómo el sonido muere al instante? Graba 5 segundos.</p>
         <div id="rec-ui-echo" style="text-align:center; margin: 20px 0;">
             <button id="btn-rec-echo" class="btn-primary" style="width:100%; border-radius:50px; height:60px; font-size:1.5rem;">🎙️ Grabar Palmada</button>
@@ -5711,7 +4237,7 @@ const MISSIONS_CONFIG = {
         <audio id="au-echo" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
         <button id="btn-sub-echo" class="btn-primary hidden" style="width:100%;">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec-echo');
         const au = document.getElementById('au-echo');
         const btnS = document.getElementById('btn-sub-echo');
@@ -5737,15 +4263,27 @@ const MISSIONS_CONFIG = {
         btnS.addEventListener('click', () => { if(blobId) submitMission('day_14_kid9_echo', {type:'audio', data:'Audio de palmada guardado'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_14_root": {
-    tag: "photo", day: 14, title: "Guardián del Bosque", role: "kid9", xp: 15, location: "Aokigahara",
-    render: () => `<p class="mission-desc">Encuentra la raíz de árbol más retorcida y fantasmal.</p><button id="btn-cam" class="btn-secondary">📸 Foto de Raíz</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_root', currentUser, false); }
-},
-"day_14_compass": {
-    tag: "expert", day: 14, title: "Brújula al Cráter", role: "kid9", xp: 25, location: "Fuji",
-    render: () => `
+    },
+
+    "day_14_root": {
+        tag: "photo",
+        day: 14,
+        title: "Guardián del Bosque",
+        role: "kid9",
+        xp: 15,
+        location: "Aokigahara",
+        render: () => `<p class="mission-desc">Encuentra la raíz de árbol más retorcida y fantasmal.</p><button id="btn-cam" class="btn-secondary">📸 Foto de Raíz</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_root', currentUser, false); }
+    },
+
+    "day_14_compass": {
+        tag: "expert",
+        day: 14,
+        title: "Brújula al Cráter",
+        role: "kid9",
+        xp: 25,
+        location: "Fuji",
+        render: () => `
         <p class="mission-desc">Apunta con el móvil exactamente hacia la cima del Fuji.</p>
         <div style="display:flex; justify-content:center; align-items:center; height:200px; background:#1a252c; border-radius:50%; width:200px; margin:20px auto; position:relative; border:4px solid #34495e; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
             <div id="c-arrow" style="font-size:4rem; transition:transform 0.1s; transform-origin:center; color:#e74c3c; text-shadow:0 0 10px red;">⬆️</div>
@@ -5754,7 +4292,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-c-start" class="btn-secondary" style="width:100%;">Activar Brújula</button>
         <button id="btn-c-sub" class="btn-primary hidden" style="width:100%; margin-top:10px;">¡Acertaste! Enviar</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const arrow = document.getElementById('c-arrow');
         const btnS = document.getElementById('btn-c-start');
         const btnV = document.getElementById('btn-c-sub');
@@ -5781,25 +4319,37 @@ const MISSIONS_CONFIG = {
         btnV.addEventListener('click', () => submitMission('day_14_compass', {type:'game', data:'Orientación correcta al cráter'}));
         window._missionCleanup = () => { active=false; window.removeEventListener('deviceorientation', handleOri); };
     }
-},
-"day_14_radar": {
-    tag: "sensors", day: 14, title: "Radar de Altitud Cero", role: "kid14", xp: 25, location: "Fuji 5ª Estación",
-    render: () => `
+    },
+
+    "day_14_radar": {
+        tag: "sensors",
+        day: 14,
+        title: "Radar de Altitud Cero",
+        role: "kid14",
+        xp: 25,
+        location: "Fuji 5ª Estación",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BUSCANDO NODO CIEGO.</p>
             <div id="r-dist" style="font-size:3rem; color:#0f0; text-align:center; margin:20px 0; cursor:pointer;">-- m</div>
             <button id="btn" class="btn-primary hidden" style="width:100%">Misión Completada</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const dEl = document.getElementById('r-dist'); const btn = document.getElementById('btn');
         let cheat=0; dEl.addEventListener('click', () => { cheat++; if(cheat>=5) btn.classList.remove('hidden'); });
         btn.addEventListener('click', () => submitMission('day_14_radar', {type:'game', data:'Nodo ciego localizado'}));
     }
-},
-"day_14_pressure": {
-    tag: "video", day: 14, title: "Ley de la Presión", role: "kid14", xp: 20, location: "Fuji",
-    render: () => `
+    },
+
+    "day_14_pressure": {
+        tag: "video",
+        day: 14,
+        title: "Ley de la Presión",
+        role: "kid14",
+        xp: 20,
+        location: "Fuji",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> La bolsa de snacks está hinchada. Graba 5s explicando por qué.</p>
             <button id="btn-rec-p" class="btn-primary" style="width:100%; margin:10px 0;">🎬 Grabar explicación</button>
@@ -5807,7 +4357,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec-p'); const vid = document.getElementById('vid-p'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -5828,38 +4378,56 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_14_pressure', {type:'video', data:'Explicación guardada'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_14_altimeter": {
-    tag: "economy", day: 14, title: "Altímetro Hacker", role: "kid14", xp: 15, location: "Fuji",
-    render: () => `
+    },
+
+    "day_14_altimeter": {
+        tag: "economy",
+        day: 14,
+        title: "Altímetro Hacker",
+        role: "kid14",
+        xp: 15,
+        location: "Fuji",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> METROS HASTA LA CIMA (3776 - 2300):</p>
             <input type="number" id="alt-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_altimeter', {type:'number', data:document.getElementById('alt-ans').value})); }
-},
-"day_14_kid14_echo": {
-    tag: "writing", day: 14, title: "Densidad de Aokigahara", role: "kid14", xp: 15, location: "Aokigahara",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_altimeter', {type:'number', data:document.getElementById('alt-ans').value})); }
+    },
+
+    "day_14_kid14_echo": {
+        tag: "writing",
+        day: 14,
+        title: "Densidad de Aokigahara",
+        role: "kid14",
+        xp: 15,
+        location: "Aokigahara",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ¿Por qué en este bosque no hay eco?</p>
             <input type="text" id="echo-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_kid14_echo', {type:'text', data:document.getElementById('echo-ans').value})); }
-},
-"day_14_oxygen": {
-    tag: "physical", day: 14, title: "Oxígeno Alpino", role: "both", xp: 20, location: "Fuji",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_14_kid14_echo', {type:'text', data:document.getElementById('echo-ans').value})); }
+    },
+
+    "day_14_oxygen": {
+        tag: "physical",
+        day: 14,
+        title: "Oxígeno Alpino",
+        role: "both",
+        xp: 20,
+        location: "Fuji",
+        render: () => `
         <p class="mission-desc">A 2300m hay menos oxígeno. Todos aguantad la respiración 15s a la vez.</p>
         <div id="oxy-timer" style="font-size:4rem; text-align:center; font-weight:bold; margin:20px 0; color:var(--color-accent);">15</div>
         <button id="btn-oxy" class="btn-primary" style="width:100%;">Iniciar apnea familiar</button>
         <button id="btn-sub-oxy" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         let t=15; let int=null; const timer = document.getElementById('oxy-timer'); const btn = document.getElementById('btn-oxy'); const sub = document.getElementById('btn-sub-oxy');
         btn.addEventListener('click', () => {
             btn.classList.add('hidden');
@@ -5871,18 +4439,22 @@ const MISSIONS_CONFIG = {
         sub.addEventListener('click', () => submitMission('day_14_oxygen', {type:'game', data:'Apnea 15s superada en grupo'}, role, true));
         window._missionCleanup = () => clearInterval(int);
     }
-},
+    },
 
-// --- DÍA 15 ---
-"day_15_waterfall": {
-    tag: "audio", day: 15, title: "Melodía de Shiraito", role: "kid9", xp: 20, location: "Shiraito Falls",
-    render: () => `
+    "day_15_waterfall": {
+        tag: "audio",
+        day: 15,
+        title: "Melodía de Shiraito",
+        role: "kid9",
+        xp: 20,
+        location: "Shiraito Falls",
+        render: () => `
         <p class="mission-desc">Graba 5 segundos del atronador sonido de la cascada Shiraito.</p>
         <button id="btn-rec-w" class="btn-secondary" style="width:100%;">🎙️ Grabar cascada</button>
         <audio id="au-w" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec-w'); const au = document.getElementById('au-w'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -5903,15 +4475,27 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_15_waterfall', {type:'audio', data:'Cascada grabada'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_15_thatch": {
-    tag: "photo", day: 15, title: "La Aldea de Paja", role: "kid9", xp: 15, location: "Iyashi no Sato",
-    render: () => `<p class="mission-desc">Fotografía una casa tradicional con tejado de paja.</p><button id="btn-cam" class="btn-secondary">📸 Foto Casa</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_thatch', currentUser, false); }
-},
-"day_15_fish": {
-    tag: "expert", day: 15, title: "Pez de Cristal", role: "kid9", xp: 20, location: "Estanques",
-    render: () => `
+    },
+
+    "day_15_thatch": {
+        tag: "photo",
+        day: 15,
+        title: "La Aldea de Paja",
+        role: "kid9",
+        xp: 15,
+        location: "Iyashi no Sato",
+        render: () => `<p class="mission-desc">Fotografía una casa tradicional con tejado de paja.</p><button id="btn-cam" class="btn-secondary">📸 Foto Casa</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_thatch', currentUser, false); }
+    },
+
+    "day_15_fish": {
+        tag: "expert",
+        day: 15,
+        title: "Pez de Cristal",
+        role: "kid9",
+        xp: 20,
+        location: "Estanques",
+        render: () => `
         <p class="mission-desc">Dibuja el pez más bonito que hayas visto en el agua cristalina.</p>
         <div style="background:#fff; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
             <canvas id="fish-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
@@ -5921,7 +4505,7 @@ const MISSIONS_CONFIG = {
             <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Pez</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const can = document.getElementById('fish-can'); const ctx = can.getContext('2d');
         ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 5; ctx.lineCap = 'round';
         let drawing = false;
@@ -5938,94 +4522,137 @@ const MISSIONS_CONFIG = {
             await savePhotoToDB(id, data); submitMission('day_15_fish', {type:'photo', data:id});
         });
     }
-},
-"day_15_shogun": {
-    tag: "physical", day: 15, title: "El Trono del Shogun", role: "kid9", xp: 15, location: "Iyashi no Sato",
-    render: () => `<p class="mission-desc">Posa como un antiguo señor feudal en una silla tradicional.</p><button id="btn-cam" class="btn-secondary">📸 Foto Posando</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_shogun', currentUser, false); }
-},
-"day_15_deity": {
-    tag: "writing", day: 15, title: "Santuario Escondido", role: "kid14", xp: 15, location: "Sengen Taisha",
-    render: () => `
+    },
+
+    "day_15_shogun": {
+        tag: "physical",
+        day: 15,
+        title: "El Trono del Shogun",
+        role: "kid9",
+        xp: 15,
+        location: "Iyashi no Sato",
+        render: () => `<p class="mission-desc">Posa como un antiguo señor feudal en una silla tradicional.</p><button id="btn-cam" class="btn-secondary">📸 Foto Posando</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_shogun', currentUser, false); }
+    },
+
+    "day_15_deity": {
+        tag: "writing",
+        day: 15,
+        title: "Santuario Escondido",
+        role: "kid14",
+        xp: 15,
+        location: "Sengen Taisha",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BÚSQUEDA OSINT: Deidad del Santuario Sengen Taisha:</p>
             <input type="text" id="d-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_deity', {type:'text', data:document.getElementById('d-ans').value})); }
-},
-"day_15_honcho": {
-    tag: "photo", day: 15, title: "Perspectiva Honcho", role: "kid14", xp: 20, location: "Honcho St",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_deity', {type:'text', data:document.getElementById('d-ans').value})); }
+    },
+
+    "day_15_honcho": {
+        tag: "photo",
+        day: 15,
+        title: "Perspectiva Honcho",
+        role: "kid14",
+        xp: 20,
+        location: "Honcho St",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ENCUADRE PERFECTO: Alinea la calle con el Fuji.</p>
             <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Capturar encuadre</button>
         </div>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_honcho', currentUser, false); }
-},
-"day_15_flow": {
-    tag: "economy", day: 15, title: "Aforo de la Cascada", role: "kid14", xp: 15, location: "Shiraito",
-    render: () => `
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_honcho', currentUser, false); }
+    },
+
+    "day_15_flow": {
+        tag: "economy",
+        day: 15,
+        title: "Aforo de la Cascada",
+        role: "kid14",
+        xp: 15,
+        location: "Shiraito",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> LITROS POR SEGUNDO ESTIMADOS:</p>
             <input type="number" id="f-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_flow', {type:'number', data:document.getElementById('f-ans').value})); }
-},
-"day_15_roof": {
-    tag: "economy", day: 15, title: "Ingeniería Tradicional", role: "kid14", xp: 15, location: "Iyashi no Sato",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_flow', {type:'number', data:document.getElementById('f-ans').value})); }
+    },
+
+    "day_15_roof": {
+        tag: "economy",
+        day: 15,
+        title: "Ingeniería Tradicional",
+        role: "kid14",
+        xp: 15,
+        location: "Iyashi no Sato",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ¿Por qué los techos de paja son tan empinados?</p>
             <input type="text" id="r-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_roof', {type:'text', data:document.getElementById('r-ans').value})); }
-},
-"day_15_dragon": {
-    tag: "writing", day: 15, title: "La Leyenda del Dragón", role: "both", xp: 20, location: "Lago",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_15_roof', {type:'text', data:document.getElementById('r-ans').value})); }
+    },
+
+    "day_15_dragon": {
+        tag: "writing",
+        day: 15,
+        title: "La Leyenda del Dragón",
+        role: "both",
+        xp: 20,
+        location: "Lago",
+        render: () => `
         <p class="mission-desc">Escribid entre los dos un cuento corto sobre un dragón en el lago.</p>
         <textarea id="d-txt1" placeholder="Niña (3 frases)..." style="width:100%; height:80px; margin-bottom:10px;"></textarea>
         <textarea id="d-txt2" placeholder="Niño (3 frases)..." style="width:100%; height:80px; margin-bottom:15px; background:#000; color:#0f0;"></textarea>
         <button id="btn" class="btn-primary" style="width:100%">Enviar leyenda</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             const t1 = document.getElementById('d-txt1').value, t2 = document.getElementById('d-txt2').value;
             submitMission('day_15_dragon', {type:'text', data:`Parte 1: ${t1}\nParte 2: ${t2}`}, role, true);
         });
     }
-}
+    },
 
-,
-
-// ====== NUEVAS MISIONES DÍAS 16 A 20 ======
-// --- DÍA 16 ---
-"day_16_cat": {
-    tag: "photo", day: 16, title: "El Gato Oculto", role: "kid9", xp: 15, location: "Kagurazaka",
-    render: () => `
+    "day_16_cat": {
+        tag: "photo",
+        day: 16,
+        title: "El Gato Oculto",
+        role: "kid9",
+        xp: 15,
+        location: "Kagurazaka",
+        render: () => `
         <p class="mission-desc">Kagurazaka es el barrio de los gatos. ¡Busca uno (real o estatua) y ponle nombre!</p>
         <input type="text" id="cat-name" placeholder="Nombre japonés para el gato..." style="width:100%; margin-bottom:10px;">
         <button id="btn-cam" class="btn-secondary">📸 Foto del Gato</button>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_cat', currentUser, false); }
-},
-"day_16_skyscraper": {
-    tag: "economy", day: 16, title: "Escalada Urbana", role: "kid9", xp: 15, location: "Shinjuku",
-    render: () => `
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_cat', currentUser, false); }
+    },
+
+    "day_16_skyscraper": {
+        tag: "economy",
+        day: 16,
+        title: "Escalada Urbana",
+        role: "kid9",
+        xp: 15,
+        location: "Shinjuku",
+        render: () => `
         <p class="mission-desc">Cuenta los pisos del rascacielos más alto y multiplicaremos por 3 metros para saber su altura.</p>
         <input type="number" id="s-floors" placeholder="Número de pisos..." style="width:100%; margin-bottom:10px;">
         <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular Altura</button>
         <div id="s-res" style="font-weight:bold; color:#0f0; margin-bottom:15px; font-size:1.5rem;"></div>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar cálculo</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let h = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
             const f = document.getElementById('s-floors').value;
@@ -6033,10 +4660,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_16_skyscraper', {type:'number', data:h}));
     }
-},
-"day_16_colors": {
-    tag: "expert", day: 16, title: "Colores de Shinjuku", role: "kid9", xp: 15, location: "Shinjuku",
-    render: () => `
+    },
+
+    "day_16_colors": {
+        tag: "expert",
+        day: 16,
+        title: "Colores de Shinjuku",
+        role: "kid9",
+        xp: 15,
+        location: "Shinjuku",
+        render: () => `
         <p class="mission-desc">Observa las luces de neón y elige los 3 colores que más te llamen la atención.</p>
         <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:15px;">
             ${['Rojo', 'Naranja', 'Amarillo', 'Verde', 'Azul', 'Morado', 'Rosa', 'Blanco', 'Dorado', 'Plata'].map(c => `<button class="c-btn" style="padding:10px; border-radius:10px; border:2px solid #ccc; background:#333; flex-grow:1;">${c}</button>`).join('')}
@@ -6044,7 +4677,7 @@ const MISSIONS_CONFIG = {
         <div id="c-count" style="text-align:center; margin-bottom:10px; font-weight:bold;">Colores elegidos: 0/3</div>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar colores</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let sel = []; const btns = document.querySelectorAll('.c-btn'); const cEl = document.getElementById('c-count'); const btn = document.getElementById('btn');
         btns.forEach(b => b.addEventListener('click', () => {
             if(sel.includes(b.innerText)) { sel = sel.filter(x => x !== b.innerText); b.style.borderColor = '#ccc'; b.style.color = 'white'; }
@@ -6054,16 +4687,22 @@ const MISSIONS_CONFIG = {
         }));
         btn.addEventListener('click', () => submitMission('day_16_colors', {type:'text', data:sel.join(', ')}));
     }
-},
-"day_16_traffic": {
-    tag: "audio", day: 16, title: "Sonido del Semáforo", role: "kid9", xp: 15, location: "Tokio",
-    render: () => `
+    },
+
+    "day_16_traffic": {
+        tag: "audio",
+        day: 16,
+        title: "Sonido del Semáforo",
+        role: "kid9",
+        xp: 15,
+        location: "Tokio",
+        render: () => `
         <p class="mission-desc">Graba 5s del famoso sonido (pi-po, pi-po) de los semáforos japoneses.</p>
         <button id="btn-rec" class="btn-secondary" style="width:100%;">🎙️ Grabar semáforo</button>
         <audio id="au-p" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-p'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -6084,21 +4723,33 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_16_traffic', {type:'audio', data:'Audio semáforo'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_16_vortex": {
-    tag: "photo", day: 16, title: "Vórtice Temporal", role: "kid14", xp: 20, location: "Shinjuku",
-    render: () => `
+    },
+
+    "day_16_vortex": {
+        tag: "photo",
+        day: 16,
+        title: "Vórtice Temporal",
+        role: "kid14",
+        xp: 20,
+        location: "Shinjuku",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> OBJETIVO: Encuadrar tradición y futuro.</p>
             <input type="text" id="v-ans" placeholder="Templo + Rascacielos..." style="width:100%; margin-bottom:10px;">
             <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Foto Vórtice</button>
         </div>
     `,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_vortex', currentUser, false); }
-},
-"day_16_combat": {
-    tag: "sensors", day: 16, title: "Calibración de Androide", role: "kid14", xp: 25, location: "Shinjuku",
-    render: () => `
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_16_vortex', currentUser, false); }
+    },
+
+    "day_16_combat": {
+        tag: "sensors",
+        day: 16,
+        title: "Calibración de Androide",
+        role: "kid14",
+        xp: 25,
+        location: "Shinjuku",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> CALIBRACIÓN DE COMBATE.</p>
             <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS.</p>
@@ -6108,7 +4759,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Completado</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let s1 = false; let s2 = false; let active = false;
         const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
         const st1 = document.getElementById('c-step1'); const st2 = document.getElementById('c-step2');
@@ -6133,10 +4784,16 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => submitMission('day_16_combat', {type:'game', data:'Combo ejecutado'}));
         window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
     }
-},
-"day_16_shinjuku": {
-    tag: "physical", day: 16, title: "Supervivencia Shinjuku", role: "kid14", xp: 25, location: "Estación",
-    render: () => `
+    },
+
+    "day_16_shinjuku": {
+        tag: "physical",
+        day: 16,
+        title: "Supervivencia Shinjuku",
+        role: "kid14",
+        xp: 25,
+        location: "Estación",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
             <p>>>> SIGUE LOS CARTELES AMARILLOS. SIN GPS.</p>
             <div id="chrono" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
@@ -6144,7 +4801,7 @@ const MISSIONS_CONFIG = {
             <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Salida encontrada!</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
@@ -6153,37 +4810,53 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_16_shinjuku', {type:'text', data:`Escape Shinjuku: ${document.getElementById('chrono').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_16_density": {
-    tag: "economy", day: 16, title: "Densidad Poblacional", role: "kid14", xp: 15, location: "Shibuya",
-    render: () => `
+    },
+
+    "day_16_density": {
+        tag: "economy",
+        day: 16,
+        title: "Densidad Poblacional",
+        role: "kid14",
+        xp: 15,
+        location: "Shibuya",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> PERSONAS EN UN CRUCE EN VERDE:</p>
             <input type="number" id="d-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_16_density', {type:'number', data:document.getElementById('d-ans').value})); }
-},
-"day_16_tocho": {
-    tag: "photo", day: 16, title: "Observatorio Gratuito", role: "both", xp: 20, location: "Tocho",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_16_density', {type:'number', data:document.getElementById('d-ans').value})); }
+    },
+
+    "day_16_tocho": {
+        tag: "photo",
+        day: 16,
+        title: "Observatorio Gratuito",
+        role: "both",
+        xp: 20,
+        location: "Tocho",
+        render: () => `
         <p class="mission-desc">Sube al mirador gratuito del Ayuntamiento y saca una foto nocturna familiar.</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-t" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto nocturna en Tocho</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-t').checked) submitMission('day_16_tocho', {type:'text', data:'Foto Tocho completada'}, role, true);
             else showAlert('Aviso', 'Falta confirmación.');
         });
     }
-},
+    },
 
-// --- DÍA 17 ---
-"day_17_omikuji": {
-    tag: "expert", day: 17, title: "Destino Omikuji", role: "kid9", xp: 15, location: "Senso-ji",
-    render: () => `
+    "day_17_omikuji": {
+        tag: "expert",
+        day: 17,
+        title: "Destino Omikuji",
+        role: "kid9",
+        xp: 15,
+        location: "Senso-ji",
+        render: () => `
         <p class="mission-desc">Saca un papel de la suerte (omikuji) y registra tu resultado.</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
             <button class="btn-secondary btn-o" data-res="Buena Suerte">🌟 Buena Suerte</button>
@@ -6193,7 +4866,7 @@ const MISSIONS_CONFIG = {
         <div id="o-msg" style="color:red; font-weight:bold; margin-bottom:10px; text-align:center;"></div>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar destino</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let res = "";
         document.querySelectorAll('.btn-o').forEach(b => b.addEventListener('click', (e) => {
             res = e.target.dataset.res;
@@ -6205,20 +4878,38 @@ const MISSIONS_CONFIG = {
         }));
         document.getElementById('btn').addEventListener('click', () => submitMission('day_17_omikuji', {type:'text', data:`Destino: ${res}`}));
     }
-},
-"day_17_incense": {
-    tag: "photo", day: 17, title: "Humo de la Fortuna", role: "kid9", xp: 15, location: "Senso-ji",
-    render: () => `<p class="mission-desc">El humo del incienso trae buena salud. Captura el momento en que envuelve a alguien.</p><button id="btn-cam" class="btn-secondary">📸 Foto Humo</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_incense', currentUser, false); }
-},
-"day_17_gashapon": {
-    tag: "photo", day: 17, title: "Gashapon Perfecto", role: "kid9", xp: 15, location: "Akihabara",
-    render: () => `<p class="mission-desc">¡Muestra tu tesoro! Foto de la cápsula y el juguete juntos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Gashapon</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_gashapon', currentUser, false); }
-},
-"day_17_p2p_receiver": {
-    tag: "expert", day: 17, title: "Sincronización P2P", role: "kid9", xp: 25, location: "Akihabara",
-    render: () => `
+    },
+
+    "day_17_incense": {
+        tag: "photo",
+        day: 17,
+        title: "Humo de la Fortuna",
+        role: "kid9",
+        xp: 15,
+        location: "Senso-ji",
+        render: () => `<p class="mission-desc">El humo del incienso trae buena salud. Captura el momento en que envuelve a alguien.</p><button id="btn-cam" class="btn-secondary">📸 Foto Humo</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_incense', currentUser, false); }
+    },
+
+    "day_17_gashapon": {
+        tag: "photo",
+        day: 17,
+        title: "Gashapon Perfecto",
+        role: "kid9",
+        xp: 15,
+        location: "Akihabara",
+        render: () => `<p class="mission-desc">¡Muestra tu tesoro! Foto de la cápsula y el juguete juntos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Gashapon</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_gashapon', currentUser, false); }
+    },
+
+    "day_17_p2p_receiver": {
+        tag: "expert",
+        day: 17,
+        title: "Sincronización P2P",
+        role: "kid9",
+        xp: 25,
+        location: "Akihabara",
+        render: () => `
         <p class="mission-desc">Tu hermano ha interceptado un código secreto. Míralo en su pantalla y pulsa los colores en el mismo orden.</p>
         <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
             <button class="c-sq" data-c="Rojo" style="width:60px; height:60px; background:red; border-radius:10px; border:2px solid transparent;"></button>
@@ -6229,7 +4920,7 @@ const MISSIONS_CONFIG = {
         <div id="seq-disp" style="text-align:center; letter-spacing:5px; font-size:2rem; margin-bottom:10px;"></div>
         <button id="btn" class="btn-primary" style="width:100%">Listo</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let seq = []; const target = ['Rojo', 'Azul', 'Verde', 'Amarillo'];
         document.querySelectorAll('.c-sq').forEach(b => b.addEventListener('click', (e) => {
             seq.push(e.target.dataset.c);
@@ -6240,10 +4931,16 @@ const MISSIONS_CONFIG = {
             else { showAlert('Error', 'Secuencia incorrecta. Vuelve a intentarlo.'); seq=[]; document.getElementById('seq-disp').innerText=""; }
         });
     }
-},
-"day_17_retro": {
-    tag: "economy", day: 17, title: "Arqueología Gamer", role: "kid14", xp: 20, location: "Akihabara",
-    render: () => `
+    },
+
+    "day_17_retro": {
+        tag: "economy",
+        day: 17,
+        title: "Arqueología Gamer",
+        role: "kid14",
+        xp: 20,
+        location: "Akihabara",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BUSCANDO JUEGO RETRO EN SUPER POTATO</p>
             <input type="text" id="r-game" placeholder="Nombre del juego..." style="width:100%; margin-bottom:10px;">
@@ -6253,7 +4950,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let eur = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
             const y = document.getElementById('r-yen').value;
@@ -6261,10 +4958,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_17_retro', {type:'text', data:`Juego: ${document.getElementById('r-game').value}. Precio: ${document.getElementById('r-yen').value}¥ (${eur}€)`}));
     }
-},
-"day_17_skytree": {
-    tag: "sensors", day: 17, title: "Cervicales de Acero", role: "kid14", xp: 20, location: "Skytree",
-    render: () => `
+    },
+
+    "day_17_skytree": {
+        tag: "sensors",
+        day: 17,
+        title: "Cervicales de Acero",
+        role: "kid14",
+        xp: 20,
+        location: "Skytree",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> APUNTANDO A LA CIMA. Mantén el móvil hacia arriba.</p>
             <div style="width:100%; height:30px; background:#333; border-radius:5px; margin:20px 0;">
@@ -6274,7 +4977,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%;">Completado</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const bar = document.getElementById('sky-bar'); const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
         let active = false; let progress = 0; let int = null;
         
@@ -6294,10 +4997,16 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => submitMission('day_17_skytree', {type:'game', data:'10s apuntando a Skytree'}));
         window._missionCleanup = () => { active=false; clearInterval(int); window.removeEventListener('deviceorientation', handleOri); };
     }
-},
-"day_17_p2p_sender": {
-    tag: "expert", day: 17, title: "Sincronización P2P", role: "kid14", xp: 25, location: "Akihabara",
-    render: () => `
+    },
+
+    "day_17_p2p_sender": {
+        tag: "expert",
+        day: 17,
+        title: "Sincronización P2P",
+        role: "kid14",
+        xp: 25,
+        location: "Akihabara",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> RESOLVER PARA DESBLOQUEAR CÓDIGO</p>
             <p>Famicom: 14.800¥. Neo Geo: 58.000¥. ¿Suma total?</p>
@@ -6315,17 +5024,23 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Aceptar Sincronización</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn-calc').addEventListener('click', () => {
             if(document.getElementById('p2p-ans').value == 72800) { document.getElementById('code-area').classList.remove('hidden'); document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden'); }
             else showAlert('Error', 'Cálculo incorrecto.');
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_17_p2p_sender', {type:'game', data:'Código enviado a receptora'}));
     }
-},
-"day_17_height": {
-    tag: "economy", day: 17, title: "Altura del Cielo", role: "kid14", xp: 15, location: "Skytree",
-    render: () => `
+    },
+
+    "day_17_height": {
+        tag: "economy",
+        day: 17,
+        title: "Altura del Cielo",
+        role: "kid14",
+        xp: 15,
+        location: "Skytree",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ALTURA DE LA SKYTREE (metros):</p>
             <input type="number" id="h-ans" style="width:100%; margin-bottom:10px;">
@@ -6333,23 +5048,29 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let fails = 0;
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('h-ans').value == 634) submitMission('day_17_height', {type:'number', data:634});
             else { fails++; if(fails===1) document.getElementById('h-msg').innerText = "Pista: El número se lee 'mu-sa-shi' como la antigua provincia."; else document.getElementById('h-msg').innerText = "Incorrecto."; }
         });
     }
-},
-"day_17_sumida": {
-    tag: "video", day: 17, title: "Navegando el Sumida", role: "both", xp: 20, location: "Río Sumida",
-    render: () => `
+    },
+
+    "day_17_sumida": {
+        tag: "video",
+        day: 17,
+        title: "Navegando el Sumida",
+        role: "both",
+        xp: 20,
+        location: "Río Sumida",
+        render: () => `
         <p class="mission-desc">Graba un vídeo de 10 segundos del paseo en barco por el río Sumida.</p>
         <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar paseo</button>
         <video id="v-sum" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
         <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-sum'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -6370,12 +5091,16 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_17_sumida', {type:'video', data:'Paseo Sumida'}, role, true); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
+    },
 
-// --- DÍA 18 ---
-"day_18_shibuya": {
-    tag: "economy", day: 18, title: "La Marea Humana", role: "kid9", xp: 20, location: "Shibuya",
-    render: () => `
+    "day_18_shibuya": {
+        tag: "economy",
+        day: 18,
+        title: "La Marea Humana",
+        role: "kid9",
+        xp: 20,
+        location: "Shibuya",
+        render: () => `
         <p class="mission-desc">Cuenta a todas las personas que lleven gafas de sol en un solo cruce en verde (60s).</p>
         <div style="font-size:3rem; text-align:center; font-weight:bold;" id="s-count">0</div>
         <div style="font-size:1.5rem; text-align:center; color:red;" id="s-timer">60s</div>
@@ -6383,7 +5108,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-start" class="btn-primary" style="width:100%;">Comenzar Semáforo</button>
         <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar recuento</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let c=0, t=60, int=null, active=false;
         const count = document.getElementById('s-count'); const timer = document.getElementById('s-timer');
         document.getElementById('btn-plus').addEventListener('click', () => { if(active) { c++; count.innerText = c; } });
@@ -6394,33 +5119,57 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn').addEventListener('click', () => submitMission('day_18_shibuya', {type:'number', data:c}));
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_18_hachiko": {
-    tag: "photo", day: 18, title: "Guardián Hachiko", role: "kid9", xp: 15, location: "Shibuya",
-    render: () => `<p class="mission-desc">Busca la estatua de Hachiko y hazte una foto con él.</p><button id="btn-cam" class="btn-secondary">📸 Foto Hachiko</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_18_hachiko', currentUser, false); }
-},
-"day_18_ema": {
-    tag: "writing", day: 18, title: "Mensaje del Emperador", role: "kid9", xp: 15, location: "Meiji Jingu",
-    render: () => `
+    },
+
+    "day_18_hachiko": {
+        tag: "photo",
+        day: 18,
+        title: "Guardián Hachiko",
+        role: "kid9",
+        xp: 15,
+        location: "Shibuya",
+        render: () => `<p class="mission-desc">Busca la estatua de Hachiko y hazte una foto con él.</p><button id="btn-cam" class="btn-secondary">📸 Foto Hachiko</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_18_hachiko', currentUser, false); }
+    },
+
+    "day_18_ema": {
+        tag: "writing",
+        day: 18,
+        title: "Mensaje del Emperador",
+        role: "kid9",
+        xp: 15,
+        location: "Meiji Jingu",
+        render: () => `
         <p class="mission-desc">Escribe un deseo para nuestra familia, como en una tablilla ema.</p>
         <textarea id="e-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
         <button id="btn" class="btn-primary" style="width:100%">Enviar deseo</button>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_ema', {type:'text', data:document.getElementById('e-ans').value})); }
-},
-"day_18_crepe": {
-    tag: "writing", day: 18, title: "Crepe de Harajuku", role: "kid9", xp: 15, location: "Harajuku",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_ema', {type:'text', data:document.getElementById('e-ans').value})); }
+    },
+
+    "day_18_crepe": {
+        tag: "writing",
+        day: 18,
+        title: "Crepe de Harajuku",
+        role: "kid9",
+        xp: 15,
+        location: "Harajuku",
+        render: () => `
         <p class="mission-desc">Describe tu crepe: ¿qué llevaba dentro? ¿Estaba bueno?</p>
         <textarea id="cr-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
         <button id="btn" class="btn-primary" style="width:100%">Enviar reseña</button>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_crepe', {type:'text', data:document.getElementById('cr-ans').value})); }
-},
-"day_18_radio": {
-    tag: "expert", day: 18, title: "Intercepción de Radio", role: "kid14", xp: 25, location: "Harajuku",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_crepe', {type:'text', data:document.getElementById('cr-ans').value})); }
+    },
+
+    "day_18_radio": {
+        tag: "expert",
+        day: 18,
+        title: "Intercepción de Radio",
+        role: "kid14",
+        xp: 25,
+        location: "Harajuku",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> INTERCEPTANDO SEÑAL ROBÓTICA...</p>
             <button id="btn-play" class="btn-secondary" style="width:100%; margin-bottom:10px;">Escuchar Señal (Intentos: 3)</button>
@@ -6428,7 +5177,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Desencriptar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const words = ['sushi', 'samurai', 'kawaii', 'fuji', 'ramen'];
         const target = words[Math.floor(Math.random() * words.length)];
         let lives = 3;
@@ -6444,17 +5193,23 @@ const MISSIONS_CONFIG = {
             else { lives--; document.getElementById('btn-play').innerText = `Escuchar Señal (Intentos: ${lives})`; if(lives<=0) showAlert('Error', 'Bloqueado. Misión fallida. Reinicia el nivel.'); else showAlert('Error', 'Fallo de desencriptación.'); }
         });
     }
-},
-"day_18_trend": {
-    tag: "photo", day: 18, title: "Cazatendencias", role: "kid14", xp: 20, location: "Harajuku",
-    render: () => `
+    },
+
+    "day_18_trend": {
+        tag: "photo",
+        day: 18,
+        title: "Cazatendencias",
+        role: "kid14",
+        xp: 20,
+        location: "Harajuku",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> CAPTURA Y DESCRIBE ESTILO ATREVIDO.</p>
             <input type="text" id="tr-ans" placeholder="Descripción del look..." style="width:100%; margin-bottom:10px;">
             <button id="btn-cam" class="btn-secondary" style="width:100%">📸 Foto + Enviar</button>
         </div>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btn = document.getElementById('btn-cam');
         attachCameraFlow('btn-cam', 'day_18_trend', currentUser, false);
         const oldInput = btn.nextElementSibling;
@@ -6469,10 +5224,16 @@ const MISSIONS_CONFIG = {
             });
         }
     }
-},
-"day_18_flow": {
-    tag: "economy", day: 18, title: "Flujo del Cruce", role: "kid14", xp: 15, location: "Shibuya",
-    render: () => `
+    },
+
+    "day_18_flow": {
+        tag: "economy",
+        day: 18,
+        title: "Flujo del Cruce",
+        role: "kid14",
+        xp: 15,
+        location: "Shibuya",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> PERSONAS POR HORA (estima):</p>
             <p style="color:#aaa; font-size:0.8rem;">Pista: ~3000 por verde. ¿Cuántos cruces en 1h?</p>
@@ -6480,28 +5241,40 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_flow', {type:'number', data:document.getElementById('f-ans').value})); }
-},
-"day_18_silence": {
-    tag: "economy", day: 18, title: "Silencio en la Ciudad", role: "kid14", xp: 15, location: "Meiji Jingu",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_flow', {type:'number', data:document.getElementById('f-ans').value})); }
+    },
+
+    "day_18_silence": {
+        tag: "economy",
+        day: 18,
+        title: "Silencio en la Ciudad",
+        role: "kid14",
+        xp: 15,
+        location: "Meiji Jingu",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ¿Por qué no se oye la ciudad desde dentro del santuario?</p>
             <textarea id="s-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Enviar Deducción</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_silence', {type:'text', data:document.getElementById('s-ans').value})); }
-},
-"day_18_crossing": {
-    tag: "video", day: 18, title: "Cruzando Shibuya", role: "both", xp: 20, location: "Shibuya",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_18_silence', {type:'text', data:document.getElementById('s-ans').value})); }
+    },
+
+    "day_18_crossing": {
+        tag: "video",
+        day: 18,
+        title: "Cruzando Shibuya",
+        role: "both",
+        xp: 20,
+        location: "Shibuya",
+        render: () => `
         <p class="mission-desc">Graba un vídeo de 15s de toda la familia cruzando el paso de cebra de Shibuya.</p>
         <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar cruce</button>
         <video id="v-cross" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
         <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-cross'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -6522,18 +5295,22 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_18_crossing', {type:'video', data:'Video Shibuya guardado'}, role, true); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
+    },
 
-// --- DÍA 19 ---
-"day_19_gundam": {
-    tag: "video", day: 19, title: "Piloto de Mechas", role: "kid9", xp: 20, location: "Odaiba",
-    render: () => `
+    "day_19_gundam": {
+        tag: "video",
+        day: 19,
+        title: "Piloto de Mechas",
+        role: "kid9",
+        xp: 20,
+        location: "Odaiba",
+        render: () => `
         <p class="mission-desc">¡El Gundam se transforma! Graba 15s de la transformación como si fueras piloto de mechas.</p>
         <button id="btn-rec" class="btn-secondary" style="width:100%;">🎬 Grabar transformación</button>
         <video id="v-g" controls class="hidden" style="width:100%; margin-top:10px; border-radius:10px;"></video>
         <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar Vídeo</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec'); const vid = document.getElementById('v-g'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -6554,21 +5331,33 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_19_gundam', {type:'video', data:'Video Gundam guardado'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_19_color": {
-    tag: "expert", day: 19, title: "Cazador de Luz", role: "kid9", xp: 25, location: "TeamLab",
-    render: () => `
+    },
+
+    "day_19_color": {
+        tag: "expert",
+        day: 19,
+        title: "Cazador de Luz",
+        role: "kid9",
+        xp: 25,
+        location: "TeamLab",
+        render: () => `
         <p class="mission-desc">Ajusta el color hasta igualar la luz dominante de tu sala.</p>
         <div style="text-align:center; margin-bottom:15px;">
             <input type="color" id="c-picker" value="#ff0000" style="width:100px; height:100px; padding:0; border:none; border-radius:50%; overflow:hidden; outline:none;">
         </div>
         <button id="btn" class="btn-primary" style="width:100%">Capturar color</button>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_color', {type:'game', data:`Color capturado: ${document.getElementById('c-picker').value}`})); }
-},
-"day_19_teamlab": {
-    tag: "expert", day: 19, title: "Sueños Digitales", role: "kid9", xp: 20, location: "TeamLab",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_color', {type:'game', data:`Color capturado: ${document.getElementById('c-picker').value}`})); }
+    },
+
+    "day_19_teamlab": {
+        tag: "expert",
+        day: 19,
+        title: "Sueños Digitales",
+        role: "kid9",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
         <p class="mission-desc">Dibuja la proyección digital que más te haya gustado del museo.</p>
         <div style="background:#000; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
             <canvas id="t-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
@@ -6578,7 +5367,7 @@ const MISSIONS_CONFIG = {
             <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Dibujo</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const can = document.getElementById('t-can'); const ctx = can.getContext('2d');
         ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 5; ctx.lineCap = 'round';
         let drawing = false;
@@ -6595,15 +5384,27 @@ const MISSIONS_CONFIG = {
             await savePhotoToDB(id, data); submitMission('day_19_teamlab', {type:'photo', data:id});
         });
     }
-},
-"day_19_liberty": {
-    tag: "photo", day: 19, title: "La Libertad Nipona", role: "kid9", xp: 15, location: "Odaiba",
-    render: () => `<p class="mission-desc">Busca la Estatua de la Libertad de Odaiba y hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estatua</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_19_liberty', currentUser, false); }
-},
-"day_19_crypto": {
-    tag: "expert", day: 19, title: "Desencriptar Protocolo", role: "kid14", xp: 25, location: "Odaiba",
-    render: () => `
+    },
+
+    "day_19_liberty": {
+        tag: "photo",
+        day: 19,
+        title: "La Libertad Nipona",
+        role: "kid9",
+        xp: 15,
+        location: "Odaiba",
+        render: () => `<p class="mission-desc">Busca la Estatua de la Libertad de Odaiba y hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estatua</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_19_liberty', currentUser, false); }
+    },
+
+    "day_19_crypto": {
+        tag: "expert",
+        day: 19,
+        title: "Desencriptar Protocolo",
+        role: "kid14",
+        xp: 25,
+        location: "Odaiba",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> INTERCEPTA EL CÓDIGO DEL MECHA. Busca el número de modelo en el hombro del robot.</p>
             <input type="text" id="cr-ans" placeholder="Modelo (XX-X)..." style="width:100%; margin-bottom:10px; text-transform:uppercase;">
@@ -6612,7 +5413,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Autorizar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn-calc').addEventListener('click', async () => {
             const txt = document.getElementById('cr-ans').value.trim().toUpperCase();
             const enc = new TextEncoder().encode(txt);
@@ -6628,32 +5429,50 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_19_crypto', {type:'game', data:'Protocolo mecha comprometido'}));
     }
-},
-"day_19_mirrors": {
-    tag: "economy", day: 19, title: "Lógica de Iluminación", role: "kid14", xp: 20, location: "TeamLab",
-    render: () => `
+    },
+
+    "day_19_mirrors": {
+        tag: "economy",
+        day: 19,
+        title: "Lógica de Iluminación",
+        role: "kid14",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> Explica cómo crees que funcionan los espejos infinitos de TeamLab.</p>
             <textarea id="m-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_mirrors', {type:'text', data:document.getElementById('m-ans').value})); }
-},
-"day_19_weight": {
-    tag: "economy", day: 19, title: "Estructura de Gundam", role: "kid14", xp: 15, location: "Odaiba",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_mirrors', {type:'text', data:document.getElementById('m-ans').value})); }
+    },
+
+    "day_19_weight": {
+        tag: "economy",
+        day: 19,
+        title: "Estructura de Gundam",
+        role: "kid14",
+        xp: 15,
+        location: "Odaiba",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> PESO DEL GUNDAM UNICORN (toneladas):</p>
             <input type="number" id="w-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_weight', {type:'number', data:document.getElementById('w-ans').value})); }
-},
-"day_19_monorail": {
-    tag: "physical", day: 19, title: "Monorriel Yurikamome", role: "kid14", xp: 15, location: "Tren",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_19_weight', {type:'number', data:document.getElementById('w-ans').value})); }
+    },
+
+    "day_19_monorail": {
+        tag: "physical",
+        day: 19,
+        title: "Monorriel Yurikamome",
+        role: "kid14",
+        xp: 15,
+        location: "Tren",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
             <p>>>> CRONOMETRANDO TREN AUTÓNOMO.</p>
             <div id="chrono" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
@@ -6661,7 +5480,7 @@ const MISSIONS_CONFIG = {
             <button id="btn-end" class="btn-primary hidden" style="width:100%;">Llegada</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
@@ -6670,26 +5489,36 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_19_monorail', {type:'text', data:`Tiempo entre estaciones: ${document.getElementById('chrono').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_19_immersive": {
-    tag: "photo", day: 19, title: "Inmersión Total", role: "both", xp: 20, location: "TeamLab",
-    render: () => `
+    },
+
+    "day_19_immersive": {
+        tag: "photo",
+        day: 19,
+        title: "Inmersión Total",
+        role: "both",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
         <p class="mission-desc">Foto artística de toda la familia rodeada de luz o agua en TeamLab.</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-im" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto inmersiva realizada</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-im').checked) submitMission('day_19_immersive', {type:'text', data:'Foto TeamLab confirmada'}, role, true);
             else showAlert('Aviso', 'Marca la casilla.');
         });
     }
-},
+    },
 
-// --- DÍA 20 ---
-"day_20_bento": {
-    tag: "expert", day: 20, title: "Maestro del Bento", role: "kid9", xp: 25, location: "Ueno",
-    render: () => `
+    "day_20_bento": {
+        tag: "expert",
+        day: 20,
+        title: "Maestro del Bento",
+        role: "kid9",
+        xp: 25,
+        location: "Ueno",
+        render: () => `
         <p class="mission-desc">Arrastra los 4 ingredientes a la caja Bento (usa el dedo suavemente).</p>
         <div id="b2-box" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
             <div class="b2-slot" data-acc="arroz" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
@@ -6705,7 +5534,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px;">¡Itadakimasu!</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const items = document.querySelectorAll('.b2-item'); const slots = document.querySelectorAll('.b2-slot'); const btn = document.getElementById('btn-ok');
         let placed = 0; let active = null; let iX=0, iY=0, cX=0, cY=0;
         const getXY = (e) => e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
@@ -6738,10 +5567,16 @@ const MISSIONS_CONFIG = {
         });
         btn.addEventListener('click', () => submitMission('day_20_bento', {type:'game', data:'Bento completado'}));
     }
-},
-"day_20_potion": {
-    tag: "expert", day: 20, title: "Poción Gatuna", role: "kid9", xp: 20, location: "Yanaka Ginza",
-    render: () => `
+    },
+
+    "day_20_potion": {
+        tag: "expert",
+        day: 20,
+        title: "Poción Gatuna",
+        role: "kid9",
+        xp: 20,
+        location: "Yanaka Ginza",
+        render: () => `
         <p class="mission-desc">Escanea el código de barras de un snack y anota qué has encontrado.</p>
         <div id="bc-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
             <video id="bc-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
@@ -6751,7 +5586,7 @@ const MISSIONS_CONFIG = {
         <input type="text" id="bc-man" placeholder="Código o nombre..." style="width:100%; margin-bottom:15px;">
         <button id="btn" class="btn-primary" style="width:100%;">Enviar Datos al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const vid = document.getElementById('bc-vid'); const stat = document.getElementById('bc-stat');
         let stream = null; let scanning = true;
         const start = async () => {
@@ -6778,20 +5613,32 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn').addEventListener('click', () => submitMission('day_20_potion', {type:'text', data: `Code/Nombre: ${document.getElementById('bc-man').value}`}));
         window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_20_pond": {
-    tag: "photo", day: 20, title: "El Pato del Estanque", role: "kid9", xp: 15, location: "Ueno",
-    render: () => `<p class="mission-desc">Fotografía las hojas de loto gigantes o los patos del estanque.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estanque</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_20_pond', currentUser, false); }
-},
-"day_20_weight": {
-    tag: "photo", day: 20, title: "El Peso del Tesoro", role: "kid9", xp: 15, location: "Ameyoko",
-    render: () => `
+    },
+
+    "day_20_pond": {
+        tag: "photo",
+        day: 20,
+        title: "El Pato del Estanque",
+        role: "kid9",
+        xp: 15,
+        location: "Ueno",
+        render: () => `<p class="mission-desc">Fotografía las hojas de loto gigantes o los patos del estanque.</p><button id="btn-cam" class="btn-secondary">📸 Foto Estanque</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_20_pond', currentUser, false); }
+    },
+
+    "day_20_weight": {
+        tag: "photo",
+        day: 20,
+        title: "El Peso del Tesoro",
+        role: "kid9",
+        xp: 15,
+        location: "Ameyoko",
+        render: () => `
         <p class="mission-desc">Haz una foto a algo muy pesado que quepa en tu mano y estima su peso.</p>
         <input type="number" id="w-ans" placeholder="Peso estimado (gramos)..." style="width:100%; margin-bottom:10px;">
         <button id="btn-cam" class="btn-secondary">📸 Foto + Enviar</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btn = document.getElementById('btn-cam');
         attachCameraFlow('btn-cam', 'day_20_weight', currentUser, false);
         const oldInput = btn.nextElementSibling;
@@ -6806,10 +5653,16 @@ const MISSIONS_CONFIG = {
             });
         }
     }
-},
-"day_20_change": {
-    tag: "economy", day: 20, title: "Regateo en Ameyoko", role: "kid14", xp: 20, location: "Ameyoko",
-    render: () => `
+    },
+
+    "day_20_change": {
+        tag: "economy",
+        day: 20,
+        title: "Regateo en Ameyoko",
+        role: "kid14",
+        xp: 20,
+        location: "Ameyoko",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> CÁLCULO DE CAMBIO EXACTO</p>
             <input type="number" id="c-price" placeholder="Precio (¥)" style="width:100%; margin-bottom:10px;">
@@ -6818,7 +5671,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Comprobar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn').addEventListener('click', () => {
             const p = document.getElementById('c-price').value; const b = document.getElementById('c-bill').value; const a = document.getElementById('c-ans').value;
             if(p && b && a) {
@@ -6827,21 +5680,33 @@ const MISSIONS_CONFIG = {
             }
         });
     }
-},
-"day_20_museum": {
-    tag: "economy", day: 20, title: "Arquitectura del Museo", role: "kid14", xp: 15, location: "Ueno",
-    render: () => `
+    },
+
+    "day_20_museum": {
+        tag: "economy",
+        day: 20,
+        title: "Arquitectura del Museo",
+        role: "kid14",
+        xp: 15,
+        location: "Ueno",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> Diferencias arquitectónicas entre el Museo Nacional y los rascacielos:</p>
             <textarea id="m-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_museum', {type:'text', data:document.getElementById('m-ans').value})); }
-},
-"day_20_vintage": {
-    tag: "economy", day: 20, title: "Análisis de Precios Retro", role: "kid14", xp: 15, location: "Ameyoko",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_museum', {type:'text', data:document.getElementById('m-ans').value})); }
+    },
+
+    "day_20_vintage": {
+        tag: "economy",
+        day: 20,
+        title: "Análisis de Precios Retro",
+        role: "kid14",
+        xp: 15,
+        location: "Ameyoko",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> OBJETO VINTAGE ENCONTRADO:</p>
             <input type="text" id="v-name" placeholder="Objeto..." style="width:100%; margin-bottom:10px;">
@@ -6849,41 +5714,60 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar tasación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_vintage', {type:'text', data:`Objeto: ${document.getElementById('v-name').value}, Precio: ${document.getElementById('v-price').value}¥`})); }
-},
-"day_20_stairs": {
-    tag: "physical", day: 20, title: "Escaleras del Atardecer", role: "kid14", xp: 15, location: "Yanaka Ginza",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_vintage', {type:'text', data:`Objeto: ${document.getElementById('v-name').value}, Precio: ${document.getElementById('v-price').value}¥`})); }
+    },
+
+    "day_20_stairs": {
+        tag: "physical",
+        day: 20,
+        title: "Escaleras del Atardecer",
+        role: "kid14",
+        xp: 15,
+        location: "Yanaka Ginza",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ESCALONES CONTADOS EN YUYAKE DANDAN:</p>
             <input type="number" id="s-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_stairs', {type:'number', data:document.getElementById('s-ans').value})); }
-},
-"day_20_tasting": {
-    tag: "writing", day: 20, title: "Degustación Callejera", role: "both", xp: 20, location: "Calle",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_stairs', {type:'number', data:document.getElementById('s-ans').value})); }
+    },
+
+    "day_20_tasting": {
+        tag: "writing",
+        day: 20,
+        title: "Degustación Callejera",
+        role: "both",
+        xp: 20,
+        location: "Calle",
+        render: () => `
         <p class="mission-desc">¿Cuál ha sido el mejor bocado del día en los puestos callejeros?</p>
         <textarea id="t-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
         <button id="btn" class="btn-primary" style="width:100%">Enviar respuesta</button>
     `,
-    attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_tasting', {type:'text', data:document.getElementById('t-ans').value}, role, true)); }
-}
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_20_tasting', {type:'text', data:document.getElementById('t-ans').value}, role, true)); }
+    },
 
-,
+    "day_21_monkeys": {
+        tag: "photo",
+        day: 21,
+        title: "Los Tres Monos",
+        role: "kid9",
+        xp: 15,
+        location: "Nikko",
+        render: () => `<p class="mission-desc">Encuentra los tres monos sabios. ¿Puedes imitarlos en la foto?</p><button id="btn-cam" class="btn-secondary">📸 Foto Monos</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_21_monkeys', currentUser, false); }
+    },
 
-// ====== NUEVAS MISIONES DÍAS 21 A 24 ======
-// --- DÍA 21 ---
-"day_21_monkeys": {
-    tag: "photo", day: 21, title: "Los Tres Monos", role: "kid9", xp: 15, location: "Nikko",
-    render: () => `<p class="mission-desc">Encuentra los tres monos sabios. ¿Puedes imitarlos en la foto?</p><button id="btn-cam" class="btn-secondary">📸 Foto Monos</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_21_monkeys', currentUser, false); }
-},
-"day_21_dragon": {
-    tag: "expert", day: 21, title: "El Latido del Dragón", role: "kid9", xp: 25, location: "Nikko",
-    render: () => `
+    "day_21_dragon": {
+        tag: "expert",
+        day: 21,
+        title: "El Latido del Dragón",
+        role: "kid9",
+        xp: 25,
+        location: "Nikko",
+        render: () => `
         <p class="mission-desc">Acércate a la tumba... ¿Sientes el latido del dragón?</p>
         <div style="display:flex; justify-content:center; align-items:center; height:150px;">
             <div id="d-jewel" style="width:80px; height:80px; background:radial-gradient(circle, #f1c40f, #d35400); border-radius:50%; box-shadow:0 0 20px #f1c40f; transition:all 0.2s;"></div>
@@ -6891,7 +5775,7 @@ const MISSIONS_CONFIG = {
         <button id="btn-adv" class="btn-secondary" style="width:100%; margin-bottom:10px;">Avanzar hacia el dragón</button>
         <div id="d-msg" style="text-align:center; color:#0f0; font-weight:bold; font-size:1.5rem; height:40px;"></div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const jewel = document.getElementById('d-jewel'); const btn = document.getElementById('btn-adv'); const msg = document.getElementById('d-msg');
         let speed = 2000; let clicks = 0; let int = null;
         const pulse = () => { jewel.style.transform = 'scale(1.3)'; setTimeout(()=>jewel.style.transform = 'scale(1)', speed/2); };
@@ -6908,10 +5792,16 @@ const MISSIONS_CONFIG = {
         });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_21_slash": {
-    tag: "expert", day: 21, title: "El Tajo del Samurái", role: "kid9", xp: 25, location: "Kamakura",
-    render: () => `
+    },
+
+    "day_21_slash": {
+        tag: "expert",
+        day: 21,
+        title: "El Tajo del Samurái",
+        role: "kid9",
+        xp: 25,
+        location: "Kamakura",
+        render: () => `
         <p class="mission-desc">Entrena como samurái dando un espadazo vertical con el móvil en la mano.</p>
         <div style="text-align:center; margin:20px 0;">
             <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON DOS MANOS</p>
@@ -6921,7 +5811,7 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn-start" class="btn-secondary" style="width:100%;">Preparar Tajo</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnS = document.getElementById('btn-start'); const timer = document.getElementById('sl-timer'); const icon = document.getElementById('sl-icon'); const fx = document.getElementById('sl-fx');
         let active = false;
         const handleMotion = (e) => {
@@ -6948,15 +5838,21 @@ const MISSIONS_CONFIG = {
         });
         window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
     }
-},
-"day_21_jizo": {
-    tag: "culture", day: 21, title: "Guardián de Piedra", role: "kid9", xp: 15, location: "Kamakura",
-    render: () => `
+    },
+
+    "day_21_jizo": {
+        tag: "culture",
+        day: 21,
+        title: "Guardián de Piedra",
+        role: "kid9",
+        xp: 15,
+        location: "Kamakura",
+        render: () => `
         <p class="mission-desc">Encuentra una estatua Jizo (con babero rojo) y averigua a quién protege.</p>
         <input type="text" id="j-ans" placeholder="¿A quién protege?..." style="width:100%; margin-bottom:10px;">
         <button id="btn-cam" class="btn-secondary">📸 Foto + Enviar</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btn = document.getElementById('btn-cam');
         attachCameraFlow('btn-cam', 'day_21_jizo', currentUser, false);
         const oldInput = btn.nextElementSibling;
@@ -6971,10 +5867,16 @@ const MISSIONS_CONFIG = {
             });
         }
     }
-},
-"day_21_buddha": {
-    tag: "culture", day: 21, title: "Ingeniero Imperial", role: "kid14", xp: 20, location: "Kamakura",
-    render: () => `
+    },
+
+    "day_21_buddha": {
+        tag: "culture",
+        day: 21,
+        title: "Ingeniero Imperial",
+        role: "kid14",
+        xp: 20,
+        location: "Kamakura",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> DATOS DEL GRAN BUDA:</p>
             <input type="text" id="b-mat" placeholder="Material..." style="width:100%; margin-bottom:10px;">
@@ -6982,11 +5884,17 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_buddha', {type:'text', data:`Material: ${document.getElementById('b-mat').value}, Año: ${document.getElementById('b-year').value}`})); }
-},
-"day_21_gold": {
-    tag: "economy", day: 21, title: "Análisis de Pan de Oro", role: "kid14", xp: 20, location: "Templo",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_buddha', {type:'text', data:`Material: ${document.getElementById('b-mat').value}, Año: ${document.getElementById('b-year').value}`})); }
+    },
+
+    "day_21_gold": {
+        tag: "economy",
+        day: 21,
+        title: "Análisis de Pan de Oro",
+        role: "kid14",
+        xp: 20,
+        location: "Templo",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ESTADÍSTICAS DEL TEMPLO DORADO</p>
             <p>Superficie: 200m², Grosor pan oro: 0.0001m, Densidad: 19.300 kg/m³.</p>
@@ -6996,17 +5904,23 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn-calc').addEventListener('click', () => {
             const w = document.getElementById('g-ans').value;
             if(w) { document.getElementById('g-res').innerText = `Resultado analítico: ~386 kg`; document.getElementById('btn').classList.remove('hidden'); }
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_21_gold', {type:'number', data:document.getElementById('g-ans').value}));
     }
-},
-"day_21_tracking": {
-    tag: "sensors", day: 21, title: "Rastreo de la Naturaleza", role: "kid14", xp: 25, location: "Nikko",
-    render: () => `
+    },
+
+    "day_21_tracking": {
+        tag: "sensors",
+        day: 21,
+        title: "Rastreo de la Naturaleza",
+        role: "kid14",
+        xp: 25,
+        location: "Nikko",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> RASTREADOR GPS ACTIVADO. BUSCANDO PUNTO DE INTERÉS NATURAL.</p>
             <div id="trk-dist" style="font-size:2rem; margin:15px 0; color:#0f0; text-align:center;">--- m</div>
@@ -7014,7 +5928,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%;">Punto Alcanzado</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn'); const distEl = document.getElementById('trk-dist');
         let watchId = null;
         const TARGET = {lat: 36.7381, lon: 139.5005}; // Cascadas Kegon aprox (Fake/Test)
@@ -7038,27 +5952,39 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => submitMission('day_21_tracking', {type:'game', data:'Punto encontrado'}));
         window._missionCleanup = () => { if(watchId!==null) navigator.geolocation.clearWatch(watchId); };
     }
-},
-"day_21_defense": {
-    tag: "economy", day: 21, title: "Defensa del Shogunato", role: "kid14", xp: 15, location: "Templo/Castillo",
-    render: () => `
+    },
+
+    "day_21_defense": {
+        tag: "economy",
+        day: 21,
+        title: "Defensa del Shogunato",
+        role: "kid14",
+        xp: 15,
+        location: "Templo/Castillo",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> Análisis de defensa: ¿Por qué este lugar era difícil de atacar?</p>
             <textarea id="d-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Enviar Análisis</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_defense', {type:'text', data:document.getElementById('d-ans').value})); }
-},
-"day_21_silence": {
-    tag: "audio", day: 21, title: "La Paz de la Montaña", role: "both", xp: 20, location: "Templo/Tumba",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_21_defense', {type:'text', data:document.getElementById('d-ans').value})); }
+    },
+
+    "day_21_silence": {
+        tag: "audio",
+        day: 21,
+        title: "La Paz de la Montaña",
+        role: "both",
+        xp: 20,
+        location: "Templo/Tumba",
+        render: () => `
         <p class="mission-desc">Todo el grupo guarda silencio absoluto durante 30 segundos.</p>
         <div style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-accent);" id="si-timer">30s</div>
         <button id="btn-start" class="btn-secondary" style="width:100%; margin-top:10px;">Iniciar Silencio</button>
         <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         let t = 30, int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             e.target.classList.add('hidden');
@@ -7070,18 +5996,22 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn').addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio completado'}, role, true));
         window._missionCleanup = () => clearInterval(int);
     }
-},
+    },
 
-// --- DÍA 22 ---
-"day_22_shout": {
-    tag: "audio", day: 22, title: "Grito de Pescadero", role: "kid9", xp: 20, location: "Toyosu",
-    render: () => `
+    "day_22_shout": {
+        tag: "audio",
+        day: 22,
+        title: "Grito de Pescadero",
+        role: "kid9",
+        xp: 20,
+        location: "Toyosu",
+        render: () => `
         <p class="mission-desc">Imita el saludo enérgico de los vendedores: "¡EE-RA-SHAI-MA-SÉ!"</p>
         <button id="btn-rec" class="btn-secondary" style="width:100%;">🎙️ Grabar grito</button>
         <audio id="au-s" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-s'); const btn = document.getElementById('btn');
         let mr=null, stream=null, blobId=null;
         btnR.addEventListener('click', async () => {
@@ -7102,21 +6032,33 @@ const MISSIONS_CONFIG = {
         btn.addEventListener('click', () => { if(blobId) submitMission('day_22_shout', {type:'audio', data:'Grito guardado'}); });
         window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_22_car": {
-    tag: "photo", day: 22, title: "Vehículo de Lujo", role: "kid9", xp: 15, location: "Ginza",
-    render: () => `<p class="mission-desc">En Ginza pasan los coches más lujosos del mundo. Captura el más espectacular.</p><button id="btn-cam" class="btn-secondary">📸 Foto Coche</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_car', currentUser, false); }
-},
-"day_22_elevator": {
-    tag: "physical", day: 22, title: "Ascensor Infinito", role: "kid9", xp: 15, location: "Roppongi",
-    render: () => `
+    },
+
+    "day_22_car": {
+        tag: "photo",
+        day: 22,
+        title: "Vehículo de Lujo",
+        role: "kid9",
+        xp: 15,
+        location: "Ginza",
+        render: () => `<p class="mission-desc">En Ginza pasan los coches más lujosos del mundo. Captura el más espectacular.</p><button id="btn-cam" class="btn-secondary">📸 Foto Coche</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_car', currentUser, false); }
+    },
+
+    "day_22_elevator": {
+        tag: "physical",
+        day: 22,
+        title: "Ascensor Infinito",
+        role: "kid9",
+        xp: 15,
+        location: "Roppongi",
+        render: () => `
         <p class="mission-desc">Cronometra cuánto tarda este ascensor ultrarrápido en subir.</p>
         <div id="el-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
         <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
         <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Llegué!</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
@@ -7125,15 +6067,27 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_22_elevator', {type:'text', data:`Tiempo ascensor: ${document.getElementById('el-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_22_tower": {
-    tag: "photo", day: 22, title: "Réplica Eiffel", role: "kid9", xp: 15, location: "Torre de Tokio",
-    render: () => `<p class="mission-desc">Apunta a la Torre de Tokio y haz que parezca que la sostienes entre tus dedos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Torre</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_tower', currentUser, false); }
-},
-"day_22_jewel": {
-    tag: "economy", day: 22, title: "La Joya de Ginza", role: "kid14", xp: 15, location: "Ginza",
-    render: () => `
+    },
+
+    "day_22_tower": {
+        tag: "photo",
+        day: 22,
+        title: "Réplica Eiffel",
+        role: "kid9",
+        xp: 15,
+        location: "Torre de Tokio",
+        render: () => `<p class="mission-desc">Apunta a la Torre de Tokio y haz que parezca que la sostienes entre tus dedos.</p><button id="btn-cam" class="btn-secondary">📸 Foto Torre</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_tower', currentUser, false); }
+    },
+
+    "day_22_jewel": {
+        tag: "economy",
+        day: 22,
+        title: "La Joya de Ginza",
+        role: "kid14",
+        xp: 15,
+        location: "Ginza",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BUSCANDO ARTÍCULO MÁS CARO</p>
             <input type="text" id="j-item" placeholder="Artículo..." style="width:100%; margin-bottom:10px;">
@@ -7144,7 +6098,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let years = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
             const p = document.getElementById('j-price').value; const a = document.getElementById('j-allow').value;
@@ -7156,10 +6110,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_22_jewel', {type:'text', data:`Item: ${document.getElementById('j-item').value}, Años necesarios: ${years}`}));
     }
-},
-"day_22_numbers": {
-    tag: "expert", day: 22, title: "Intercepción Numérica", role: "kid14", xp: 25, location: "Calle",
-    render: () => `
+    },
+
+    "day_22_numbers": {
+        tag: "expert",
+        day: 22,
+        title: "Intercepción Numérica",
+        role: "kid14",
+        xp: 25,
+        location: "Calle",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> ESCUCHA LA SEÑAL NUMÉRICA (Japonés).</p>
             <button id="btn-play" class="btn-secondary" style="width:100%; margin-bottom:10px;">Interceptar Señal (Intentos: 3)</button>
@@ -7167,7 +6127,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Verificar</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const jpn = {1:'ichi', 2:'ni', 3:'san', 4:'yon', 5:'go', 6:'roku', 7:'nana', 8:'hachi', 9:'kyu'};
         const n1 = Math.floor(Math.random()*9)+1; const n2 = Math.floor(Math.random()*9)+1; const n3 = Math.floor(Math.random()*9)+1;
         const targetStr = `${n1}${n2}${n3}`; const sayStr = `${jpn[n1]}... ${jpn[n2]}... ${jpn[n3]}`;
@@ -7184,48 +6144,70 @@ const MISSIONS_CONFIG = {
             else { lives--; document.getElementById('btn-play').innerText = `Interceptar Señal (Intentos: ${lives})`; if(lives<=0) showAlert('Error', 'Bloqueado.'); else showAlert('Error', 'Código incorrecto.'); }
         });
     }
-},
-"day_22_fish": {
-    tag: "economy", day: 22, title: "Logística del Pescado", role: "kid14", xp: 15, location: "Toyosu",
-    render: () => `
+    },
+
+    "day_22_fish": {
+        tag: "economy",
+        day: 22,
+        title: "Logística del Pescado",
+        role: "kid14",
+        xp: 15,
+        location: "Toyosu",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> Razones del traslado del mercado Tsukiji → Toyosu:</p>
             <textarea id="f-ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Enviar Explicación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_fish', {type:'text', data:document.getElementById('f-ans').value})); }
-},
-"day_22_compare": {
-    tag: "economy", day: 22, title: "Altura Relativa", role: "kid14", xp: 15, location: "Torre de Tokio",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_fish', {type:'text', data:document.getElementById('f-ans').value})); }
+    },
+
+    "day_22_compare": {
+        tag: "economy",
+        day: 22,
+        title: "Altura Relativa",
+        role: "kid14",
+        xp: 15,
+        location: "Torre de Tokio",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> COMPARATIVA: ¿Cuántas Torres de Tokio (332.9m) caben en una Skytree (634m)?</p>
             <input type="number" id="c-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Respuesta</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_compare', {type:'number', data:document.getElementById('c-ans').value})); }
-},
-"day_22_neon": {
-    tag: "photo", day: 22, title: "Luces de Neón", role: "both", xp: 20, location: "Ginza/Roppongi",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_22_compare', {type:'number', data:document.getElementById('c-ans').value})); }
+    },
+
+    "day_22_neon": {
+        tag: "photo",
+        day: 22,
+        title: "Luces de Neón",
+        role: "both",
+        xp: 20,
+        location: "Ginza/Roppongi",
+        render: () => `
         <p class="mission-desc">Selfie nocturno familiar con los rascacielos iluminados de fondo.</p>
         <label style="display:block; margin:20px 0; font-size:1.2rem; background:var(--color-gray-light); padding:15px; border-radius:10px;"><input type="checkbox" id="chk-n" style="transform:scale(1.5); margin-right:15px;"> ✅ Foto nocturna familiar lista</label>
         <button id="btn" class="btn-primary" style="width:100%">Enviar al Juez</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             if(document.getElementById('chk-n').checked) submitMission('day_22_neon', {type:'text', data:'Foto neón completada'}, role, true);
             else showAlert('Aviso', 'Marca la casilla de confirmación.');
         });
     }
-},
+    },
 
-// --- DÍA 23 ---
-"day_23_kitkat": {
-    tag: "economy", day: 23, title: "Buscador de KitKat", role: "kid9", xp: 15, location: "Don Quijote",
-    render: () => `
+    "day_23_kitkat": {
+        tag: "economy",
+        day: 23,
+        title: "Buscador de KitKat",
+        role: "kid9",
+        xp: 15,
+        location: "Don Quijote",
+        render: () => `
         <p class="mission-desc">Busca sabores raros de KitKat (mínimo 3).</p>
         <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
             <label><input type="checkbox" class="k-chk" value="Matcha"> 🍵 Matcha</label>
@@ -7236,17 +6218,23 @@ const MISSIONS_CONFIG = {
         </div>
         <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         document.getElementById('btn').addEventListener('click', () => {
             const checked = Array.from(document.querySelectorAll('.k-chk:checked')).map(cb => cb.value);
             if(checked.length >= 3) submitMission('day_23_kitkat', {type:'text', data:`KitKats: ${checked.join(', ')}`});
             else showAlert('Faltan sabores', 'Debes encontrar al menos 3 sabores.');
         });
     }
-},
-"day_23_pokedex": {
-    tag: "expert", day: 23, title: "Pokédex de Supermercado", role: "kid9", xp: 25, location: "Tienda",
-    render: () => `
+    },
+
+    "day_23_pokedex": {
+        tag: "expert",
+        day: 23,
+        title: "Pokédex de Supermercado",
+        role: "kid9",
+        xp: 25,
+        location: "Tienda",
+        render: () => `
         <p class="mission-desc">Escanea el código de barras de tu último snack.</p>
         <div id="p-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
             <video id="p-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
@@ -7257,7 +6245,7 @@ const MISSIONS_CONFIG = {
         <input type="text" id="p-name" placeholder="Nombre del snack..." style="width:100%; margin-bottom:15px;">
         <button id="btn" class="btn-primary" style="width:100%;">Registrar en Pokédex</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         const vid = document.getElementById('p-vid'); const stat = document.getElementById('p-stat');
         let stream = null; let scanning = true;
         const start = async () => {
@@ -7284,16 +6272,22 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn').addEventListener('click', () => submitMission('day_23_pokedex', {type:'text', data: `Code: ${document.getElementById('p-code').value}, Name: ${document.getElementById('p-name').value}`}));
         window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
     }
-},
-"day_23_coins": {
-    tag: "photo", day: 23, title: "Oráculo de Monedas", role: "kid9", xp: 15, location: "Calle",
-    render: () => `
+    },
+
+    "day_23_coins": {
+        tag: "photo",
+        day: 23,
+        title: "Oráculo de Monedas",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `
         <p class="mission-desc">Lanza tus últimas monedas al aire y fotografíalas en el suelo para revelar tu fortuna.</p>
         <button id="btn-cam" class="btn-secondary" style="width:100%; margin-bottom:15px;">📸 Foto Monedas</button>
         <div id="o-pred" class="hidden" style="padding:15px; background:#fff; color:#000; font-family:serif; font-size:1.2rem; text-align:center; border:2px solid #d4af37; border-radius:10px;"></div>
         <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Enviar Fortuna</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         const btnCam = document.getElementById('btn-cam'); const btn = document.getElementById('btn'); const predBox = document.getElementById('o-pred');
         attachCameraFlow('btn-cam', 'day_23_coins', currentUser, false);
         const oldInput = btnCam.nextElementSibling;
@@ -7311,15 +6305,27 @@ const MISSIONS_CONFIG = {
             });
         }
     }
-},
-"day_23_mascot": {
-    tag: "photo", day: 23, title: "Mascotas de Viaje", role: "kid9", xp: 15, location: "Hotel",
-    render: () => `<p class="mission-desc">Haz una foto de tu compañero de viaje favorito (peluche/juguete) antes de volver a casa.</p><button id="btn-cam" class="btn-secondary">📸 Foto Mascota</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_mascot', currentUser, false); }
-},
-"day_23_tetris": {
-    tag: "expert", day: 23, title: "Tetris de Maletas", role: "kid14", xp: 25, location: "Hotel",
-    render: () => `
+    },
+
+    "day_23_mascot": {
+        tag: "photo",
+        day: 23,
+        title: "Mascotas de Viaje",
+        role: "kid9",
+        xp: 15,
+        location: "Hotel",
+        render: () => `<p class="mission-desc">Haz una foto de tu compañero de viaje favorito (peluche/juguete) antes de volver a casa.</p><button id="btn-cam" class="btn-secondary">📸 Foto Mascota</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_mascot', currentUser, false); }
+    },
+
+    "day_23_tetris": {
+        tag: "expert",
+        day: 23,
+        title: "Tetris de Maletas",
+        role: "kid14",
+        xp: 25,
+        location: "Hotel",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> OPTIMIZACIÓN DE EQUIPAJE. Gira las piezas hasta que encajen.</p>
             <div style="display:flex; justify-content:space-around; align-items:center; height:150px; background:#222; border-radius:10px; margin:15px 0;">
@@ -7339,7 +6345,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Empaquetado Listo</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         // Target: all 0deg (or multiples of 360)
         document.querySelectorAll('.btn-rot').forEach(b => {
             b.addEventListener('click', (e) => {
@@ -7358,10 +6364,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_23_tetris', {type:'game', data:'Equipaje optimizado'}));
     }
-},
-"day_23_audit": {
-    tag: "economy", day: 23, title: "Auditoría Final", role: "kid14", xp: 15, location: "Hotel",
-    render: () => `
+    },
+
+    "day_23_audit": {
+        tag: "economy",
+        day: 23,
+        title: "Auditoría Final",
+        role: "kid14",
+        xp: 15,
+        location: "Hotel",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> SUMA LOS ÚLTIMOS 4 TICKETS</p>
             <input type="number" id="a-t1" placeholder="Ticket 1..." style="width:100%; margin-bottom:5px;">
@@ -7373,7 +6385,7 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Auditoría</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let tot = 0;
         document.getElementById('btn-calc').addEventListener('click', () => {
             const t1 = Number(document.getElementById('a-t1').value||0); const t2 = Number(document.getElementById('a-t2').value||0);
@@ -7382,10 +6394,16 @@ const MISSIONS_CONFIG = {
         });
         document.getElementById('btn').addEventListener('click', () => submitMission('day_23_audit', {type:'number', data:tot}));
     }
-},
-"day_23_security": {
-    tag: "physical", day: 23, title: "Protocolo de Embarque", role: "kid14", xp: 15, location: "Aeropuerto",
-    render: () => `
+    },
+
+    "day_23_security": {
+        tag: "physical",
+        day: 23,
+        title: "Protocolo de Embarque",
+        role: "kid14",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px; text-align:center;">
             <p>>>> CRONOMETRANDO CONTROL SEGURIDAD</p>
             <div id="sec-timer" style="font-size:3rem; margin:15px 0; color:var(--color-accent);">0.0s</div>
@@ -7393,7 +6411,7 @@ const MISSIONS_CONFIG = {
             <button id="btn-end" class="btn-primary hidden" style="width:100%;">¡Pasado!</button>
         </div>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
@@ -7402,44 +6420,72 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_23_security', {type:'text', data:`Control de seguridad: ${document.getElementById('sec-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_23_weight": {
-    tag: "economy", day: 23, title: "Peso de Carga", role: "kid14", xp: 15, location: "Aeropuerto",
-    render: () => `
+    },
+
+    "day_23_weight": {
+        tag: "economy",
+        day: 23,
+        title: "Peso de Carga",
+        role: "kid14",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> PESO ESTIMADO DE MALETA (kg):</p>
             <input type="number" id="w-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar Estimación</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_23_weight', {type:'number', data:document.getElementById('w-ans').value})); }
-},
-"day_23_stamp": {
-    tag: "photo", day: 23, title: "El Sello Final", role: "both", xp: 30, location: "Aeropuerto",
-    render: () => `<p class="mission-desc">Busca un tampón de tinta y consigue el último sello físico del viaje. Hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sello</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_stamp', currentUser, false); }
-},
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_23_weight', {type:'number', data:document.getElementById('w-ans').value})); }
+    },
 
-// --- DÍA 24 ---
-"day_24_meal": {
-    tag: "photo", day: 24, title: "Comida Aérea", role: "kid9", xp: 10, location: "Avión",
-    render: () => `<p class="mission-desc">Fotografía tu última comida japonesa... en el aire.</p><button id="btn-cam" class="btn-secondary">📸 Foto Comida</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_meal', currentUser, false); }
-},
-"day_24_clouds": {
-    tag: "photo", day: 24, title: "Nubes sobre Europa", role: "kid9", xp: 10, location: "Avión",
-    render: () => `<p class="mission-desc">Captura el cielo desde 10.000 metros. ¡La última foto!</p><button id="btn-cam" class="btn-secondary">📸 Foto Nubes</button>`,
-    attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_clouds', currentUser, false); }
-},
-"day_24_turbulence": {
-    tag: "physical", day: 24, title: "Cinturón Abrochado", role: "kid9", xp: 15, location: "Avión",
-    render: () => `
+    "day_23_stamp": {
+        tag: "photo",
+        day: 23,
+        title: "El Sello Final",
+        role: "both",
+        xp: 30,
+        location: "Aeropuerto",
+        render: () => `<p class="mission-desc">Busca un tampón de tinta y consigue el último sello físico del viaje. Hazle una foto.</p><button id="btn-cam" class="btn-secondary">📸 Foto Sello</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_23_stamp', currentUser, false); }
+    },
+
+    "day_24_meal": {
+        tag: "photo",
+        day: 24,
+        title: "Comida Aérea",
+        role: "kid9",
+        xp: 10,
+        location: "Avión",
+        render: () => `<p class="mission-desc">Fotografía tu última comida japonesa... en el aire.</p><button id="btn-cam" class="btn-secondary">📸 Foto Comida</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_meal', currentUser, false); }
+    },
+
+    "day_24_clouds": {
+        tag: "photo",
+        day: 24,
+        title: "Nubes sobre Europa",
+        role: "kid9",
+        xp: 10,
+        location: "Avión",
+        render: () => `<p class="mission-desc">Captura el cielo desde 10.000 metros. ¡La última foto!</p><button id="btn-cam" class="btn-secondary">📸 Foto Nubes</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_clouds', currentUser, false); }
+    },
+
+    "day_24_turbulence": {
+        tag: "physical",
+        day: 24,
+        title: "Cinturón Abrochado",
+        role: "kid9",
+        xp: 15,
+        location: "Avión",
+        render: () => `
         <p class="mission-desc">Cronometra cuánto dura la turbulencia.</p>
         <div id="tu-timer" style="font-size:3rem; text-align:center; margin:15px 0; color:var(--color-accent);">0.0s</div>
         <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">Iniciar</button>
         <button id="btn-end" class="btn-primary hidden" style="width:100%;">Fin</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let t0 = 0; let int = null;
         document.getElementById('btn-start').addEventListener('click', (e) => {
             t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
@@ -7448,15 +6494,21 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_24_turbulence', {type:'text', data:`Turbulencia: ${document.getElementById('tu-timer').innerText}`}); });
         window._missionCleanup = () => clearInterval(int);
     }
-},
-"day_24_badges": {
-    tag: "economy", day: 24, title: "Recuento de Sellos", role: "kid9", xp: 15, location: "Avión",
-    render: () => `
+    },
+
+    "day_24_badges": {
+        tag: "economy",
+        day: 24,
+        title: "Recuento de Sellos",
+        role: "kid9",
+        xp: 15,
+        location: "Avión",
+        render: () => `
         <p class="mission-desc">Calculando misiones completadas en el viaje...</p>
         <div id="bdg-res" style="font-size:2rem; text-align:center; margin:15px 0; color:#0f0; font-weight:bold;"></div>
         <button id="btn" class="btn-primary hidden" style="width:100%">Enviar recuento</button>
     `,
-    attachEvents: () => {
+        attachEvents: () => {
         let count = 0;
         try {
             const gs = JSON.parse(localStorage.getItem('gameState'));
@@ -7468,10 +6520,16 @@ const MISSIONS_CONFIG = {
         document.getElementById('btn').classList.remove('hidden');
         document.getElementById('btn').addEventListener('click', () => submitMission('day_24_badges', {type:'number', data:count}));
     }
-},
-"day_24_timezones": {
-    tag: "economy", day: 24, title: "Husos Horarios", role: "kid14", xp: 15, location: "Avión",
-    render: () => `
+    },
+
+    "day_24_timezones": {
+        tag: "economy",
+        day: 24,
+        title: "Husos Horarios",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> REPORTE HORARIO SIMULTÁNEO</p>
             <input type="text" id="tz-jap" placeholder="Hora Japón..." style="width:100%; margin-bottom:5px;">
@@ -7480,51 +6538,75 @@ const MISSIONS_CONFIG = {
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_timezones', {type:'text', data:`JP: ${document.getElementById('tz-jap').value}, ES: ${document.getElementById('tz-esp').value}, AV: ${document.getElementById('tz-air').value}`})); }
-},
-"day_24_distance": {
-    tag: "economy", day: 24, title: "Kilometraje Total", role: "kid14", xp: 15, location: "Avión",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_timezones', {type:'text', data:`JP: ${document.getElementById('tz-jap').value}, ES: ${document.getElementById('tz-esp').value}, AV: ${document.getElementById('tz-air').value}`})); }
+    },
+
+    "day_24_distance": {
+        tag: "economy",
+        day: 24,
+        title: "Kilometraje Total",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> DISTANCIA TOTAL (km):</p>
             <input type="number" id="d-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_distance', {type:'number', data:document.getElementById('d-ans').value})); }
-},
-"day_24_speed": {
-    tag: "physical", day: 24, title: "Velocidad de Retorno", role: "kid14", xp: 15, location: "Avión",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_distance', {type:'number', data:document.getElementById('d-ans').value})); }
+    },
+
+    "day_24_speed": {
+        tag: "physical",
+        day: 24,
+        title: "Velocidad de Retorno",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> VELOCIDAD MÁXIMA (km/h):</p>
             <input type="number" id="v-ans" style="width:100%; margin-bottom:10px;">
             <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_speed', {type:'number', data:document.getElementById('v-ans').value})); }
-},
-"day_24_log": {
-    tag: "writing", day: 24, title: "Análisis del Viaje", role: "kid14", xp: 20, location: "Avión",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_speed', {type:'number', data:document.getElementById('v-ans').value})); }
+    },
+
+    "day_24_log": {
+        tag: "writing",
+        day: 24,
+        title: "Análisis del Viaje",
+        role: "kid14",
+        xp: 20,
+        location: "Avión",
+        render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
             <p>>>> BITÁCORA FINAL. Resume la misión Japón 2026.</p>
             <textarea id="l-ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
             <button id="btn" class="btn-primary" style="width:100%">Transmitir</button>
         </div>
     `,
-    attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_log', {type:'text', data:document.getElementById('l-ans').value})); }
-},
-"day_24_sayonara": {
-    tag: "writing", day: 24, title: "Sayonara Japón", role: "both", xp: 50, location: "Avión",
-    render: () => `
+        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => submitMission('day_24_log', {type:'text', data:document.getElementById('l-ans').value})); }
+    },
+
+    "day_24_sayonara": {
+        tag: "writing",
+        day: 24,
+        title: "Sayonara Japón",
+        role: "both",
+        xp: 50,
+        location: "Avión",
+        render: () => `
         <p class="mission-desc">Escribe tu TOP 3 de momentos favoritos del viaje.</p>
         <input type="text" id="sy-1" placeholder="Momento #1..." style="width:100%; margin-bottom:5px;">
         <input type="text" id="sy-2" placeholder="Momento #2..." style="width:100%; margin-bottom:5px;">
         <input type="text" id="sy-3" placeholder="Momento #3..." style="width:100%; margin-bottom:15px;">
         <button id="btn" class="btn-primary" style="width:100%; background:#d4af37; color:#000;">Desbloquear Sello Legendario</button>
     `,
-    attachEvents: (role) => {
+        attachEvents: (role) => {
         document.getElementById('btn').addEventListener('click', () => {
             const m1 = document.getElementById('sy-1').value; const m2 = document.getElementById('sy-2').value; const m3 = document.getElementById('sy-3').value;
             if(m1 && m2 && m3) {
@@ -7538,6 +6620,1001 @@ const MISSIONS_CONFIG = {
             } else { showAlert('Aviso', 'Rellena los 3 momentos.'); }
         });
     }
-}
+    },
 
+    "day_1_bingo": {
+        tag: "game",
+        day: 1,
+        title: "Bingo Aeroportuario",
+        role: "kid9",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
+            <p class="mission-desc">¡Entrenamiento de observación activado! Encuentra 4 objetos típicos en el aeropuerto. Toca el sello correspondiente cuando lo localices.</p>
+            <div class="bingo-grid" id="b-grid">
+                <div class="bingo-card" data-val="av">✈️<br><span style="font-size:1rem">Avión Jumbo</span></div>
+                <div class="bingo-card" data-val="pi">👨‍✈️<br><span style="font-size:1rem">Piloto</span></div>
+                <div class="bingo-card" data-val="ma">🧳<br><span style="font-size:1rem">Maleta Roja</span></div>
+                <div class="bingo-card" data-val="pa">🛂<br><span style="font-size:1rem">Pasaporte</span></div>
+            </div>
+            <button id="btn-b" class="btn-primary hidden" style="width:100%; margin-top:15px;">¡Bingo Completado!</button>
+        `,
+        attachEvents: (role) => {
+            let found = 0;
+            document.querySelectorAll('.bingo-card').forEach(c => {
+                c.addEventListener('click', function() {
+                    if(!this.classList.contains('flipped')) {
+                        this.classList.add('flipped');
+                        found++;
+                        if(found === 4) document.getElementById('btn-b').classList.remove('hidden');
+                    }
+                });
+            });
+            document.getElementById('btn-b').addEventListener('click', () => submitMission('day_1_bingo', {type:'game', data:'Bingo 4/4'}, role));
+        }
+    },
+
+    "day_1_balance": {
+        tag: "sensors",
+        day: 1,
+        title: "Equilibrio a 10.000 Metros",
+        role: "kid9",
+        xp: 20,
+        location: "Avión",
+        render: () => `
+            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 15 segundos.</p>
+            <div class="level-container">
+                <div class="target-zone"></div>
+                <div class="bubble" id="lvl-bubble"></div>
+            </div>
+            <p id="lvl-timer" style="text-align:center; font-size:2rem; font-weight:bold;">15.0s</p>
+            <button id="btn-start" class="btn-primary" style="width:100%">Calibrar y Empezar</button>
+        `,
+        attachEvents: (role) => {
+            let active = false; let timeLeft = 15; let timerInt;
+            const bubble = document.getElementById('lvl-bubble');
+            const handleOrient = (e) => {
+                if(!active) return;
+                const x = e.gamma; const y = e.beta;
+                bubble.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                if(Math.abs(x) > 30 || Math.abs(y) > 30) {
+                    active = false; clearInterval(timerInt);
+                    showAlert("Fallo", "¡Se ha derramado el té! Vuelve a intentarlo.");
+                    document.getElementById('btn-start').classList.remove('hidden');
+                }
+            };
+            document.getElementById('btn-start').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden');
+                active = true; timeLeft = 15;
+                window.addEventListener('deviceorientation', handleOrient);
+                timerInt = setInterval(() => {
+                    timeLeft -= 0.1;
+                    document.getElementById('lvl-timer').innerText = timeLeft.toFixed(1) + 's';
+                    if(timeLeft <= 0) {
+                        active = false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient);
+                        submitMission('day_1_balance', {type:'sensors', data:'15s completados'}, role);
+                    }
+                }, 100);
+            });
+            window._missionCleanup = () => { active=false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient); };
+        }
+    },
+
+    "day_1_engine": {
+        tag: "audio",
+        day: 1,
+        title: "El Escáner de Frecuencias",
+        role: "kid9",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <p class="mission-desc">Acerca el móvil a la ventanilla. ¡Captura el sonido del motor!</p>
+            <button id="btn-rec" class="btn-primary" style="width:100%; height:80px; border-radius:40px; font-size:1.5rem">🎤 Grabar 5s</button>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-rec', 'day_1_engine', role, false)
+    },
+
+    "day_1_navigator": {
+        tag: "writing",
+        day: 1,
+        title: "Navegante de Altura",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> PROTOCOLO DE VUELO: ACTIVO</p>
+                <input type="number" id="nav-alt" placeholder="Altitud (pies)..." style="width:100%; margin-bottom:10px;">
+                <input type="number" id="nav-spd" placeholder="Velocidad (km/h)..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR DATOS TELEMÉTRICOS</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                submitMission('day_1_navigator', {type:'text', data:`Alt: ${document.getElementById('nav-alt').value}ft, Vel: ${document.getElementById('nav-spd').value}km/h`}, role);
+            });
+        }
+    },
+
+    "day_1_timezone": {
+        tag: "economy",
+        day: 1,
+        title: "Reloj Samurái del Sueño",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> CÁLCULO DE JETLAG.</p>
+                <p>Japón va 7 horas por delante (o +8 según horario de verano/invierno). Si en Madrid son las 22:00, ¿qué hora es en Tokio?</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">VALIDAR</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_timezone', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_1_exchange": {
+        tag: "economy",
+        day: 1,
+        title: "El Precio del Yen",
+        role: "kid14",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> COTIZACIÓN EN TIEMPO REAL.</p>
+                <p>Revisa la pizarra de cambio del aeropuerto. ¿Cuántos yenes te dan HOY por 1 Euro?</p>
+                <input type="number" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR AL JUEZ</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_exchange', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_1_bets": {
+        tag: "writing",
+        day: 1,
+        title: "Apuesta del Aterrizaje",
+        role: "both",
+        xp: 25,
+        location: "Avión",
+        render: () => `
+            <p class="mission-desc">¡Misión de equipo! Escribid juntos 3 cosas raras, locas o increíbles que creéis que veréis en Japón durante el viaje.</p>
+            <textarea id="ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Sellar Apuesta</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_bets', {type:'text', data:document.getElementById('ans').value}, role, true)); }
+    },
+
+    "day_2_yokai": {
+        tag: "photo",
+        day: 2,
+        title: "Caza del Yōkai Oficial",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `<p class="mission-desc">¡Alerta Yōkai! Encuentra una mascota oficial de alguna tienda japonesa o un cartel manga gigante en las calles y captúralo.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_yokai', role, false)
+    },
+
+    "day_2_posture": {
+        tag: "physical",
+        day: 2,
+        title: "Equilibrio Silencioso",
+        role: "kid9",
+        xp: 20,
+        location: "Metro",
+        render: () => `
+            <p class="mission-desc">Regla de oro nipona: Silencio y respeto en el metro. Mantente 2 minutos totalmente inmóvil, sentado o bien sujeto, sin hablar.</p>
+            <button id="btn-start" class="btn-primary" style="width:100%">Iniciar Crono Zen</button>
+            <p id="timer" class="hidden" style="text-align:center; font-size:2rem; font-weight:bold; margin-top:10px;">120s</p>
+        `,
+        attachEvents: (role) => {
+            let int;
+            document.getElementById('btn-start').addEventListener('click', (e) => {
+                e.target.classList.add('hidden');
+                let t = 120;
+                document.getElementById('timer').classList.remove('hidden');
+                int = setInterval(() => {
+                    t--; document.getElementById('timer').innerText = t + 's';
+                    if(t<=0) { clearInterval(int); submitMission('day_2_posture', {type:'text', data:'Logrado'}, role); }
+                }, 1000);
+            });
+            window._missionCleanup = () => clearInterval(int);
+        }
+    },
+
+    "day_2_melody": {
+        tag: "audio",
+        day: 2,
+        title: "Melodía Subterránea",
+        role: "kid9",
+        xp: 20,
+        location: "Metro",
+        render: () => `<p class="mission-desc">Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala!</p>
+                       <button id="btn-rec" class="btn-primary" style="width:100%; height:80px; border-radius:40px; font-size:1.5rem">🎤 Grabar 5s</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-rec', 'day_2_melody', role, false)
+    },
+
+    "day_2_shogun": {
+        tag: "expert",
+        day: 2,
+        title: "Protocolo Shōgun",
+        role: "kid14",
+        xp: 25,
+        location: "Calles",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> MODO GUÍA: ON.</p>
+                <p>Guía a la familia desde la estación hasta el hotel o restaurante objetivo usando un mapa local de la estación, sin que los padres usen Google Maps.</p>
+                <button id="btn" class="btn-primary" style="width:100%">Misión Completada (El Juez confirmará)</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_2_shogun', {type:'text', data:'Ruta guiada con éxito'}, role)); }
+    },
+
+    "day_2_ekistamp": {
+        tag: "photo",
+        day: 2,
+        title: "Coleccionista de Eki-Stamps",
+        role: "both",
+        xp: 15,
+        location: "Estaciones",
+        render: () => `<p class="mission-desc">Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_ekistamp', role, false, true)
+    },
+
+    "day_3_glico": {
+        tag: "photo",
+        day: 3,
+        title: "Glico Man",
+        role: "kid9",
+        xp: 15,
+        location: "Dotonbori",
+        render: () => `<p class="mission-desc">¡Llegada a Dotonbori! Imita la pose clásica del Glico Man frente al gran cartel luminoso y hazte una foto.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_glico', role, false)
+    },
+
+    "day_3_ninja": {
+        tag: "photo",
+        day: 3,
+        title: "Ninja de las Sombras",
+        role: "kid9",
+        xp: 10,
+        location: "Calles",
+        render: () => `<p class="mission-desc">Busca una luz en la calle que proyecte tu sombra grande en la pared. Haz una pose ninja y fotografía la sombra.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_ninja', role, false)
+    },
+
+    "day_3_bridge": {
+        tag: "physical",
+        day: 3,
+        title: "Foso del Castillo",
+        role: "kid9",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <p class="mission-desc">El foso es inmenso. Cruza el puente principal contando en voz alta tus pasos. ¿Cuántos pasos has dado en total para cruzar?</p>
+            <input type="number" id="ans" style="width:100%; margin-bottom:10px;" placeholder="Número de pasos...">
+            <button id="btn" class="btn-primary" style="width:100%">Reportar</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_3_bridge', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_3_umeda": {
+        tag: "photo",
+        day: 3,
+        title: "Umeda Sky (Superhéroe)",
+        role: "kid9",
+        xp: 15,
+        location: "Umeda Sky",
+        render: () => `<p class="mission-desc">Juega con la perspectiva: haz que te tomen una foto donde parezca que estás sujetando o levantando el enorme edificio Umeda Sky Building.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_umeda', role, false)
+    },
+
+    "day_3_architect": {
+        tag: "expert",
+        day: 3,
+        title: "Arquitecto del Castillo",
+        role: "kid14",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ANÁLISIS DEFENSIVO DEL SHOGUN.</p>
+                <p>Observa el foso y los enormes bloques de piedra. Estima el ancho del foso en metros basándote en tu propia visión.</p>
+                <input type="number" id="ans" placeholder="Metros estimados..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR CÁLCULO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_3_architect', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_3_neon": {
+        tag: "photo",
+        day: 3,
+        title: "Filtro Cyberpunk",
+        role: "kid14",
+        xp: 15,
+        location: "Dotonbori",
+        render: () => `<div class="ui-terminal" style="padding:15px; border-radius:8px;"><p>>>> TOMA NOCTURNA: Busca una callejuela iluminada por neones y toma una foto angular estilo cyberpunk.</p></div>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_neon', role, false)
+    },
+
+    "day_3_rush": {
+        tag: "physical",
+        day: 3,
+        title: "El Asalto al Shogun",
+        role: "kid14",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> CRONÓMETRO TÁCTICO INICIADO.</p>
+                <p>Desde la puerta exterior hasta la base de la torre principal. Mide el tiempo a pie (sin correr para no alterar a los guardias).</p>
+                <input type="text" id="ans" placeholder="Minutos y segundos..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">REPORTAR TIEMPO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_3_rush', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_3_flow": {
+        tag: "sensors",
+        day: 3,
+        title: "Visión de Flujo Vital",
+        role: "kid14",
+        xp: 30,
+        location: "Dotonbori",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ESCANEO DE MULTITUDES (Orientación).</p>
+                <p>Apunta el dispositivo hacia el letrero más luminoso (Glico u otro) y mantenlo estable para medir el magnetismo.</p>
+                <div id="sensor-val" style="font-size:2rem; color:#00ff99; margin:10px 0;">--</div>
+                <button id="btn-scan" class="btn-primary" style="width:100%">INICIAR ESCANEO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let active = false; let int;
+            document.getElementById('btn-scan').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden'); active = true;
+                let val = 0;
+                const h = (ev) => { val = Math.floor(Math.abs(ev.alpha || 0)); document.getElementById('sensor-val').innerText = val + ' Hz'; };
+                window.addEventListener('deviceorientation', h);
+                setTimeout(() => {
+                    active = false; window.removeEventListener('deviceorientation', h);
+                    submitMission('day_3_flow', {type:'sensors', data:'Escaneo: ' + val + 'Hz'}, role);
+                }, 5000);
+            });
+        }
+    },
+
+    "day_3_reflect": {
+        tag: "photo",
+        day: 3,
+        title: "El Reflejo Infinito",
+        role: "both",
+        xp: 25,
+        location: "Osaka",
+        render: () => `<p class="mission-desc">Buscad un espejo, cristal o charco donde se refleje la ciudad y vuestra familia junta. ¡Foto artística cooperativa!</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_reflect', role, false, true)
+    },
+
+    "day_4_bestiary": {
+        tag: "writing",
+        day: 4,
+        title: "Bestiario Kuromon",
+        role: "kid9",
+        xp: 15,
+        location: "Kuromon",
+        render: () => `
+            <p class="mission-desc">Kuromon Ichiba tiene comida muy extraña. Encuentra el pez o marisco más raro y ponle un nombre alienígena inventado.</p>
+            <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Registrar Criatura</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_bestiary', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_4_gachapon": {
+        tag: "game",
+        day: 4,
+        title: "Gachapon",
+        role: "kid9",
+        xp: 15,
+        location: "Tiendas",
+        render: () => `
+            <p class="mission-desc">Desliza el dedo en círculo sobre la ruleta virtual para abrir tu cápsula digital.</p>
+            <div id="roulette" style="width:150px; height:150px; border-radius:50%; border:10px dashed var(--color-primary); margin:0 auto 20px; transition: transform 2s ease-out;"></div>
+            <button id="btn" class="btn-primary" style="width:100%">Girar Manivela</button>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', (e) => {
+                document.getElementById('roulette').style.transform = "rotate(720deg)";
+                setTimeout(() => submitMission('day_4_gachapon', {type:'game', data:'Cápsula obtenida'}, role), 2000);
+            });
+        }
+    },
+
+    "day_4_vending_roulette": {
+        tag: "photo",
+        day: 4,
+        title: "Ruleta Vending Anime",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `<p class="mission-desc">Encuentra una lata de bebida que tenga dibujado a un personaje de anime famoso o mascota adorable y hazle una foto.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_4_vending_roulette', role, false)
+    },
+
+    "day_4_crab": {
+        tag: "physical",
+        day: 4,
+        title: "Paso del Cangrejo",
+        role: "kid9",
+        xp: 15,
+        location: "Puente / Calles",
+        render: () => `
+            <p class="mission-desc">Debes cruzar el próximo paso de cebra o puente moviéndote de lado como los cangrejos gigantes de Dotonbori. Confirma cuando lo hagas.</p>
+            <button id="btn" class="btn-primary" style="width:100%">¡Hecho, clip, clap!</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_crab', {type:'physical', data:'Logrado'}, role)); }
+    },
+
+    "day_4_knife": {
+        tag: "writing",
+        day: 4,
+        title: "El Cuchillo Samurái",
+        role: "kid14",
+        xp: 15,
+        location: "Doguyasuji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ARMERÍA LOCALIZADA.</p>
+                <p>Encuentra el cuchillo de chef más caro en un escaparate. ¿Para qué crees que se usa (pescado, carne, verduras)?</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_knife', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_4_500yen": {
+        tag: "economy",
+        day: 4,
+        title: "Reto 500 Yenes",
+        role: "kid14",
+        xp: 20,
+        location: "Kombini",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> GESTIÓN DE RECURSOS.</p>
+                <p>Entra en un Lawson/7-Eleven. Forma el mejor combo de snacks/bebidas sumando exactamente 500¥ (o lo más cerca posible sin pasarte). Escribe el combo.</p>
+                <textarea id="ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+                <button id="btn" class="btn-primary" style="width:100%">REGISTRAR COMPRA</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_500yen', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_4_isshinji": {
+        tag: "writing",
+        day: 4,
+        title: "Secreto Isshinji",
+        role: "kid14",
+        xp: 15,
+        location: "Isshinji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ANALIZANDO ESTRUCTURA OSÉA...</p>
+                <p>El templo Isshinji tiene Budas hechos con un material único y algo tétrico. Descubre qué es y regístralo.</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_isshinji', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_4_tracker": {
+        tag: "physical",
+        day: 4,
+        title: "Rastreador de Kobe",
+        role: "kid14",
+        xp: 15,
+        location: "Kuromon",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> CONTADOR DE OBJETIVOS.</p>
+                <p>Cruza el mercado y anota mentalmente cuántos puestos sirven carne de Wagyu/Kobe en brochetas.</p>
+                <input type="number" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">TRANSMITIR CIFRA</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_4_tracker', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_4_yakiniku": {
+        tag: "photo",
+        day: 4,
+        title: "Maestro Yakiniku",
+        role: "both",
+        xp: 20,
+        location: "Restaurante",
+        render: () => `<p class="mission-desc">Misión conjunta: Haced una foto perfecta de la parrilla con la carne humeante mientras uno la voltea.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_4_yakiniku', role, false, true)
+    },
+
+    "day_5_monk": {
+        tag: "game",
+        day: 5,
+        title: "Control Monje",
+        role: "kid9",
+        xp: 20,
+        location: "Buda",
+        render: () => `
+            <p class="mission-desc">Demuestra el control de un monje Zen. Mantén pulsada la esfera de meditación durante 15 segundos sin soltar.</p>
+            <div id="monk-sphere" style="width:100px; height:100px; border-radius:50%; background:var(--color-primary); margin:0 auto 20px; transition: transform 0.5s;"></div>
+            <p id="monk-timer" style="text-align:center; font-size:2rem; font-weight:bold;">15s</p>
+        `,
+        attachEvents: (role) => {
+            let active = false; let timeLeft = 15; let timerInt;
+            const sphere = document.getElementById('monk-sphere');
+            const startMeditation = (e) => {
+                e.preventDefault();
+                active = true;
+                sphere.style.transform = "scale(1.5)";
+                timerInt = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('monk-timer').innerText = timeLeft + 's';
+                    if(timeLeft <= 0) {
+                        active = false; clearInterval(timerInt);
+                        submitMission('day_5_monk', {type:'game', data:'Meditación lograda'}, role);
+                    }
+                }, 1000);
+            };
+            const stopMeditation = () => {
+                if(!active) return;
+                active = false; clearInterval(timerInt); timeLeft = 15;
+                document.getElementById('monk-timer').innerText = '15s';
+                sphere.style.transform = "scale(1)";
+                showAlert("Fallo", "Has perdido la concentración.");
+            };
+            sphere.addEventListener('mousedown', startMeditation);
+            sphere.addEventListener('mouseup', stopMeditation);
+            sphere.addEventListener('mouseout', stopMeditation);
+            sphere.addEventListener('touchstart', startMeditation, {passive:false});
+            sphere.addEventListener('touchend', stopMeditation);
+            window._missionCleanup = () => { active=false; clearInterval(timerInt); };
+        }
+    },
+
+    "day_5_deer_galaxy": {
+        tag: "physical",
+        day: 5,
+        title: "La Galaxia de los Ciervos",
+        role: "kid9",
+        xp: 20,
+        location: "Parque de Nara",
+        render: () => `
+            <p class="mission-desc">¡Hay ciervos por todas partes! Tienes 2 minutos para contar todos los que veas a tu alrededor. Usa los botones para llevar la cuenta.</p>
+            <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+                <button id="btn-sub" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
+                <div id="deer-count" style="font-size:3rem; font-weight:bold;">0</div>
+                <button id="btn-add" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
+            </div>
+            <button id="btn-start" class="btn-primary" style="width:100%">Comenzar (2m)</button>
+        `,
+        attachEvents: (role) => {
+            let count = 0;
+            document.getElementById('btn-add').addEventListener('click', () => { count++; document.getElementById('deer-count').innerText = count; });
+            document.getElementById('btn-sub').addEventListener('click', () => { if(count>0) count--; document.getElementById('deer-count').innerText = count; });
+            document.getElementById('btn-start').addEventListener('click', (e) => {
+                e.target.classList.add('hidden');
+                setTimeout(() => submitMission('day_5_deer_galaxy', {type:'physical', data:`Contados: ${count} ciervos`}, role), 120000);
+            });
+        }
+    },
+
+    "day_5_ribbon": {
+        tag: "sensors",
+        day: 5,
+        title: "La Danza de la Cinta",
+        role: "kid9",
+        xp: 30,
+        location: "Nara",
+        render: () => `
+            <p class="mission-desc">¡Hipnotiza al ciervo! Mueve el móvil haciendo círculos suaves en el aire durante 10 segundos para trazar una cinta virtual.</p>
+            <div id="ribbon-val" style="font-size:3rem; text-align:center; color:var(--color-primary); margin:20px 0;">0</div>
+            <button id="btn-scan" class="btn-primary" style="width:100%">Iniciar Danza</button>
+        `,
+        attachEvents: (role) => {
+            let active = false; let int;
+            document.getElementById('btn-scan').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden'); active = true;
+                let val = 0;
+                const h = (ev) => { 
+                    if(!active) return;
+                    val += Math.abs(ev.alpha || 0) + Math.abs(ev.beta || 0); 
+                    document.getElementById('ribbon-val').innerText = Math.floor(val/100); 
+                };
+                window.addEventListener('deviceorientation', h);
+                setTimeout(() => {
+                    active = false; window.removeEventListener('deviceorientation', h);
+                    submitMission('day_5_ribbon', {type:'sensors', data:'Danza de la cinta: ' + Math.floor(val/100) + ' ptos'}, role);
+                }, 10000);
+            });
+        }
+    },
+
+    "day_5_zen": {
+        tag: "writing",
+        day: 5,
+        title: "Caligrafía Zen",
+        role: "kid14",
+        xp: 15,
+        location: "Nara",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> PRUEBA DE CONCENTRACIÓN.</p>
+                <p>Escribe el Kanji de "Persona" (人) o "Montaña" (山) instalando el teclado japonés o usando romaji que se convierta a Kanji.</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px; text-align:center; font-size:2rem;">
+                <button id="btn" class="btn-primary" style="width:100%">VALIDAR TRAZO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_5_zen', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_5_engineer": {
+        tag: "expert",
+        day: 5,
+        title: "Ingeniero Todai-ji",
+        role: "kid14",
+        xp: 20,
+        location: "Todai-ji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ANÁLISIS ESTRUCTURAL.</p>
+                <p>El Todai-ji es el edificio de madera más grande del mundo. Estima cuántos pisos equivaldría su altura en un edificio moderno de España.</p>
+                <input type="number" id="ans" placeholder="Pisos estimados..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR CÁLCULO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_5_engineer', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_5_guardian": {
+        tag: "physical",
+        day: 5,
+        title: "El Guardián de la Suerte",
+        role: "kid14",
+        xp: 20,
+        location: "Todai-ji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ESCANEO BIOMÉTRICO DE PILARES.</p>
+                <p>Los pilares de Todai-ji son inmensos. Intenta abrazar uno (o simúlalo si hay gente). ¿Tus manos se tocan?</p>
+                <button id="btn-1" class="btn-primary" style="width:100%; margin-bottom:10px;">Sí, se tocan</button>
+                <button id="btn-2" class="btn-secondary" style="width:100%">Faltan metros</button>
+            </div>
+        `,
+        attachEvents: (role) => { 
+            document.getElementById('btn-1').addEventListener('click', () => submitMission('day_5_guardian', {type:'text', data:'Sí, se tocan'}, role)); 
+            document.getElementById('btn-2').addEventListener('click', () => submitMission('day_5_guardian', {type:'text', data:'Faltan metros'}, role)); 
+        }
+    },
+
+    "day_6_seal": {
+        tag: "expert",
+        day: 6,
+        title: "El Sello del Shogun",
+        role: "kid9",
+        xp: 15,
+        location: "Castillo Nijo",
+        render: () => `
+            <p class="mission-desc">El símbolo de la familia Tokugawa (tres hojas de malva) está escondido por todo el castillo. Encuentra el más brillante y captúralo.</p>
+            <button id="btn-cam" class="btn-secondary">📸 Foto del Sello</button>
+        `,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_6_seal', role, false); }
+    },
+
+    "day_6_clouds": {
+        tag: "writing",
+        day: 6,
+        title: "Jardín de Nubes",
+        role: "kid9",
+        xp: 15,
+        location: "Palacio",
+        render: () => `
+            <p class="mission-desc">Los pinos del Palacio Imperial están podados para parecer nubes. Busca el que tenga la forma más extraña y descríbelo: ¿a qué animal se parece?</p>
+            <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_clouds', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_6_ninja_steps": {
+        tag: "game",
+        day: 6,
+        title: "Pasos de Ninja",
+        role: "kid9",
+        xp: 20,
+        location: "Nijo",
+        render: () => `
+            <p class="mission-desc">Para no hacer sonar el suelo ruiseñor, debes sincronizar tus pasos. Toca la pantalla en el momento exacto en el que el sello de pie llegue a la zona roja inferior.</p>
+            <div id="ninja-track" style="width:100px; height:300px; background:#ddd; margin:0 auto 20px; position:relative; overflow:hidden; border:2px solid #333;">
+                <div id="ninja-target" style="position:absolute; bottom:20px; width:100px; height:40px; background:rgba(255,0,0,0.5);"></div>
+                <div id="ninja-foot" style="position:absolute; top:-50px; left:25px; width:50px; height:50px; font-size:2rem;">🥷</div>
+            </div>
+            <button id="btn-step" class="btn-primary" style="width:100%">PISAR</button>
+        `,
+        attachEvents: (role) => {
+            let hits = 0; let int; let active=true; let pos = -50;
+            const foot = document.getElementById('ninja-foot');
+            const loop = () => {
+                if(!active) return;
+                pos += 5;
+                foot.style.top = pos + 'px';
+                if(pos > 350) { pos = -50; }
+                int = requestAnimationFrame(loop);
+            };
+            loop();
+            document.getElementById('btn-step').addEventListener('click', () => {
+                if(pos >= 230 && pos <= 280) {
+                    hits++; pos = -50;
+                    if(hits >= 3) { active=false; submitMission('day_6_ninja_steps', {type:'game', data:'Pasos sincronizados'}, role); }
+                } else {
+                    showAlert('Ruido', 'El suelo ha chirriado. Concéntrate.');
+                }
+            });
+            window._missionCleanup = () => { active=false; cancelAnimationFrame(int); };
+        }
+    },
+
+    "day_6_tactical": {
+        tag: "expert",
+        day: 6,
+        title: "Infiltración Táctica",
+        role: "kid14",
+        xp: 20,
+        location: "Nijo",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ANALIZANDO PERÍMETRO DEL CASTILLO.</p>
+                <p>Identifica 2 puntos ciegos reales (esquinas, puertas, árboles) y describe la ruta exacta para llegar al tejado sin activar los suelos de ruiseñor.</p>
+                <textarea id="ans" style="width:100%; height:80px; margin-bottom:10px;"></textarea>
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR AL JUEZ</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_tactical', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_6_edict": {
+        tag: "writing",
+        day: 6,
+        title: "Edicto Imperial",
+        role: "kid14",
+        xp: 15,
+        location: "Palacio",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> REDACCIÓN DE LEYES.</p>
+                <p>Eres el Emperador por un día. Escribe un decreto absurdo que todos los visitantes del palacio deban cumplir a partir de ahora.</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">PROMULGAR</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_edict', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_6_time_travel": {
+        tag: "photo",
+        day: 6,
+        title: "Viaje en el Tiempo",
+        role: "kid14",
+        xp: 15,
+        location: "Sannenzaka",
+        render: () => `<div class="ui-terminal" style="padding:15px; border-radius:8px;"><p>>>> TOMA HISTÓRICA: Saca una foto de la calle Sannenzaka intentando que no salga NINGUNA persona moderna, móvil o cable de luz. Solo estética 1600.</p></div>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_6_time_travel', role, false)
+    },
+
+    "day_6_ring": {
+        tag: "physical",
+        day: 6,
+        title: "El Anillo Imperial",
+        role: "kid14",
+        xp: 20,
+        location: "Palacio Imperial",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> CRONÓMETRO DE RECONOCIMIENTO.</p>
+                <p>Mide tu velocidad imperial. Cronometra cuánto tardas en dar 100 pasos exactos por el recinto del palacio.</p>
+                <input type="text" id="ans" placeholder="Tiempo en 100 pasos..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR TIEMPO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_6_ring', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_7_tea": {
+        tag: "sensors",
+        day: 7,
+        title: "Té del Shogun",
+        role: "kid9",
+        xp: 25,
+        location: "Sannenzaka",
+        render: () => `
+            <p class="mission-desc">Imagina que llevas una bandeja con té hirviendo para el Shogun. Caminarás 20 metros manteniendo el móvil totalmente plano. Si se inclina demasiado, ¡se derrama!</p>
+            <div id="tea-lvl" style="width:100px; height:100px; border-radius:50%; border:5px solid var(--color-primary); margin:20px auto; position:relative;">
+                <div id="tea-drop" style="width:20px; height:20px; background:#4a3b32; border-radius:50%; position:absolute; top:40px; left:40px;"></div>
+            </div>
+            <button id="btn-start" class="btn-primary" style="width:100%">Iniciar Transporte</button>
+        `,
+        attachEvents: (role) => {
+            let active = false;
+            document.getElementById('btn-start').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden');
+                active = true;
+                const drop = document.getElementById('tea-drop');
+                const h = (ev) => {
+                    if(!active) return;
+                    const x = ev.gamma; const y = ev.beta;
+                    drop.style.transform = `translate(${x}px, ${y}px)`;
+                    if(Math.abs(x) > 30 || Math.abs(y) > 30) {
+                        active = false; showAlert("Fallo", "¡Se ha derramado el té!");
+                        document.getElementById('btn-start').classList.remove('hidden');
+                    }
+                };
+                window.addEventListener('deviceorientation', h);
+                setTimeout(() => {
+                    if(active) { active = false; window.removeEventListener('deviceorientation', h); submitMission('day_7_tea', {type:'sensors', data:'Té transportado'}, role); }
+                }, 20000);
+            });
+            window._missionCleanup = () => active = false;
+        }
+    },
+
+    "day_7_stone_guardian": {
+        tag: "physical",
+        day: 7,
+        title: "El Guardián de Piedra",
+        role: "kid9",
+        xp: 15,
+        location: "Kiyomizu-dera",
+        render: () => `
+            <p class="mission-desc">Los pilares de madera de este templo son legendarios. Intenta abrazar uno de los pilares gigantes (o imagina que lo haces si hay mucha gente). ¿Llegan tus manos a tocarse?</p>
+            <button id="btn" class="btn-primary" style="width:100%">¡Lo he medido!</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_stone_guardian', {type:'physical', data:'Pilar medido'}, role)); }
+    },
+
+    "day_7_structural": {
+        tag: "expert",
+        day: 7,
+        title: "Cálculo de Cargas",
+        role: "kid14",
+        xp: 20,
+        location: "Kiyomizu-dera",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> ANÁLISIS ESTRUCTURAL.</p>
+                <p>NÚMERO DE PILARES en la primera fila frontal de la terraza. Cuenta y multiplica por 5 (toneladas de peso que soporta aprox cada uno).</p>
+                <input type="number" id="ans" placeholder="Resultado en toneladas..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR CÁLCULO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_structural', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_7_survival": {
+        tag: "expert",
+        day: 7,
+        title: "Supervivencia al Maleficio",
+        role: "kid14",
+        xp: 15,
+        location: "Sannenzaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> AMENAZA DETECTADA: Maldición por caída en Sannenzaka.</p>
+                <p>Revisa tu inventario actual (mochila). ¿Qué 3 objetos reales usarías para contrarrestar la maldición y sobrevivir al día?</p>
+                <input type="text" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">APLICAR ANTÍDOTO</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_survival', {type:'text', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_7_anti_quake": {
+        tag: "game",
+        day: 7,
+        title: "Anti-Sismo",
+        role: "kid14",
+        xp: 25,
+        location: "Kiyomizu",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> PROTOCOLO SÍSMICO INICIADO.</p>
+                <p>Kiyomizu-dera no usa clavos para resistir sismos. Mantén tu móvil plano como una mesa durante 15 segundos para evitar que la estructura colapse.</p>
+                <button id="btn-start" class="btn-primary" style="width:100%">INICIAR CALIBRACIÓN</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let active = false;
+            document.getElementById('btn-start').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden');
+                active = true;
+                const h = (ev) => {
+                    if(!active) return;
+                    if(Math.abs(ev.gamma) > 15 || Math.abs(ev.beta) > 15) {
+                        active = false; showAlert("Colapso", "Sismo detectado. Has fallado la estructura.");
+                        document.getElementById('btn-start').classList.remove('hidden');
+                    }
+                };
+                window.addEventListener('deviceorientation', h);
+                setTimeout(() => {
+                    if(active) { active = false; window.removeEventListener('deviceorientation', h); submitMission('day_7_anti_quake', {type:'game', data:'Estructura estabilizada'}, role); }
+                }, 15000);
+            });
+            window._missionCleanup = () => active = false;
+        }
+    },
+
+    "day_7_stairs": {
+        tag: "physical",
+        day: 7,
+        title: "La Conquista de las Escaleras",
+        role: "kid14",
+        xp: 20,
+        location: "Subida Kiyomizu",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> REGISTRO DE ELEVACIÓN.</p>
+                <p>Kioto está lleno de cuestas. Cuenta cuántos escalones subes desde la base de Sannenzaka hasta la entrada del templo.</p>
+                <input type="number" id="ans" placeholder="Total de escalones..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR INFORME</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_7_stairs', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+    "day_7_geisha": {
+        tag: "photo",
+        day: 7,
+        title: "Código Geisha",
+        role: "both",
+        xp: 15,
+        location: "Gion",
+        render: () => `<p class="mission-desc">Explora las callejuelas de Gion al atardecer. Encontrad un farolillo de papel tradicional (Chōchin) encendido frente a una casa de té y capturadlo.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_7_geisha', role, false, true)
+    }
 };

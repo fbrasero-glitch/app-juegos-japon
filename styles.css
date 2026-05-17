@@ -800,6 +800,124 @@ input:focus, select:focus, textarea:focus {
     cursor: url('https://emojicdn.elk.sh/🧹?size=32'), auto;
 }
 
+/* --- CLASIFICACIÓN (LEADERBOARD) --- */
+.leaderboard-card {
+    background: var(--color-white);
+    border: 2px solid var(--color-gray);
+}
+.leaderboard-row {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: var(--color-gray-light, #f5f5f5);
+    transition: all 0.3s;
+}
+.leaderboard-row.active {
+    border: 2px solid var(--color-primary);
+    background: var(--color-white);
+}
+.badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 5px;
+}
+.laura-fill {
+    background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+}
+.ivan-fill {
+    background: repeating-linear-gradient(
+        45deg,
+        #00ff99,
+        #00ff99 10px,
+        #00cc7a 10px,
+        #00cc7a 20px
+    );
+}
+
+/* --- TEMAS DINÁMICOS --- */
+
+/* Tema Laura (Kitsune) */
+body.theme-laura {
+    --color-bg: #fff0e6;
+    --color-primary: #ff7b54;
+    --color-primary-dark: #e8633e;
+    --color-text: #4a3b32;
+    --color-accent: #ff9a9e;
+    --color-white: #ffffff;
+    --color-gray: #ffd6c9;
+    --color-gray-dark: #a68a7e;
+    --font-main: "Quicksand", "M PLUS Rounded 1c", sans-serif;
+    --radius-main: 20px;
+    --radius-btn: 15px;
+}
+body.theme-laura .btn-primary {
+    background: linear-gradient(135deg, #ff7b54 0%, #ff9a9e 100%);
+    box-shadow: 0 4px 15px rgba(255, 123, 84, 0.4);
+}
+body.theme-laura .xp-bar {
+    background-color: #ffd6c9;
+}
+body.theme-laura .xp-fill {
+    background: linear-gradient(90deg, #ff7b54 0%, #ff9a9e 100%);
+    border-radius: 10px;
+}
+
+/* Tema Iván (Ronin) */
+body.theme-ivan {
+    --color-bg: #0a0e12;
+    --color-primary: #00ff99;
+    --color-primary-dark: #00cc7a;
+    --color-text: #e0e0e0;
+    --color-accent: #00ff99;
+    --color-white: #161b22;
+    --color-gray: #30363d;
+    --color-gray-dark: #8b949e;
+    --font-main: "Fira Code", "Courier New", monospace;
+    --radius-main: 4px;
+    --radius-btn: 2px;
+}
+body.theme-ivan .btn-primary {
+    background-color: transparent;
+    border: 1px solid #00ff99;
+    color: #00ff99;
+    box-shadow: 0 0 10px rgba(0,255,153,0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+body.theme-ivan .btn-primary:hover {
+    background-color: rgba(0,255,153,0.1);
+}
+body.theme-ivan .card {
+    border: 1px solid #30363d;
+    background-color: #161b22;
+}
+body.theme-ivan .xp-bar {
+    background-color: #30363d;
+    border-radius: 0;
+}
+body.theme-ivan .xp-fill {
+    background: repeating-linear-gradient(
+        -45deg,
+        #00ff99,
+        #00ff99 5px,
+        #00cc7a 5px,
+        #00cc7a 10px
+    );
+    border-radius: 0;
+}
+body.theme-ivan #main-header {
+    background-color: #0a0e12;
+    border-bottom: 1px solid #00ff99;
+    color: #00ff99;
+}
+
+/* --- ANIMACIONES --- */
+@keyframes bounceIn {
+    0% { transform: scale(0.1); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
 .canvas-zen {
     background-color: #ffffff;
     border: 2px solid #1a1a1a;
