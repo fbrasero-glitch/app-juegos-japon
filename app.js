@@ -927,16 +927,41 @@ async function renderAlbumCategory(categoryId) {
     const grid = document.getElementById('album-grid');
     grid.innerHTML = ''; // Limpiar
     
-    for (let i = 0; i < cat.slots; i++) {
+    // Verificar que existe el array de estado del álbum
+    if (!gameState[currentUser].album[categoryId]) {
+        gameState[currentUser].album[categoryId] = [];
+    }
+    // Compatibilidad si se creó como objeto
+    if (!Array.isArray(gameState[currentUser].album[categoryId])) {
+        gameState[currentUser].album[categoryId] = [];
+    }
+    
+    const savedIndexes = gameState[currentUser].album[categoryId];
+    
+    let maxIndex = cat.slots - 1;
+    if (savedIndexes.length > 0) {
+        maxIndex = Math.max(maxIndex, Math.max(...savedIndexes));
+    }
+    
+    // Calculamos los slots a renderizar: Todos los fijos, los dinámicos llenos, y UN hueco extra siempre al final.
+    const renderCount = maxIndex + 2; 
+    
+    for (let i = 0; i < renderCount; i++) {
         const slotId = `album_${currentUser}_${categoryId}_${i}`;
         
         const div = document.createElement('div');
         div.className = 'album-slot';
         
-        // Cargar imagen de la base de datos IndexedDB si existe
         let dataUrl = null;
         if (window.getMedia) {
-            dataUrl = await window.getMedia(slotId);
+            // Para no sobrecargar IndexedDB, solo buscamos si está en los índices salvados, o si pertenece a los cat.slots originales
+            if (i < cat.slots || savedIndexes.includes(i)) {
+                dataUrl = await window.getMedia(slotId);
+                if (dataUrl && !savedIndexes.includes(i)) {
+                    savedIndexes.push(i);
+                    saveState();
+                }
+            }
         }
         
         if (dataUrl) {
@@ -955,23 +980,43 @@ async function renderAlbumCategory(categoryId) {
                 
                 div.addEventListener('click', () => {
                     if (confirm('¿Quieres borrar esta foto del álbum?')) {
-                        if(window.deleteMedia) window.deleteMedia(slotId).then(() => renderAlbumCategory(categoryId));
+                        if(window.deleteMedia) {
+                            window.deleteMedia(slotId).then(() => {
+                                const indexToRemove = savedIndexes.indexOf(i);
+                                if (indexToRemove > -1) {
+                                    savedIndexes.splice(indexToRemove, 1);
+                                    saveState();
+                                }
+                                renderAlbumCategory(categoryId);
+                            });
+                        }
                     }
                 });
             }
         } else {
             // Slot vacío
-            const hint = cat.hints[i] || 'Buscar...';
-            const isAudioCat = categoryId === 'texturas_sonidos';
+            let hint = cat.hints[i];
+            let isExtraSlot = false;
+            
+            if (i >= cat.slots) {
+                hint = 'Añadir más...';
+                isExtraSlot = true;
+            } else if (!hint) {
+                hint = 'Buscar...';
+            }
             
             div.innerHTML = `
-                <div class="album-icon">${categoryId === 'texturas_sonidos' ? '📸/🎙️' : '📸'}</div>
-                <div class="album-hint">${hint}</div>
+                <div class="album-icon" ${isExtraSlot ? 'style="color: var(--color-primary);"' : ''}>${categoryId === 'texturas_sonidos' ? '📸/🎙️' : (isExtraSlot ? '➕' : '📸')}</div>
+                <div class="album-hint" ${isExtraSlot ? 'style="color: var(--color-primary);"' : ''}>${hint}</div>
             `;
+            
+            if (isExtraSlot) {
+                div.style.borderStyle = 'dashed';
+                div.style.borderColor = 'var(--color-primary)';
+            }
             
             div.addEventListener('click', () => {
                 const input = document.getElementById('album-camera-input');
-                // Si es sonido, forzar accept audio
                 if (categoryId === 'texturas_sonidos' && confirm('¿Quieres grabar un Sonido en lugar de tomar una Foto?')) {
                     input.accept = 'audio/*';
                     input.removeAttribute('capture'); 
@@ -987,16 +1032,16 @@ async function renderAlbumCategory(categoryId) {
                     try {
                         let resultDataUrl = "";
                         if (file.type.startsWith('audio/')) {
-                            // Audio no se comprime con canvas
                             const reader = new FileReader();
                             reader.onload = async (re) => {
                                 await window.saveMedia(slotId, re.target.result);
+                                if (!savedIndexes.includes(i)) savedIndexes.push(i);
+                                saveState();
                                 renderAlbumCategory(categoryId);
                             };
                             reader.readAsDataURL(file);
                             return;
                         } else {
-                            // Es imagen, comprimir
                             const bmp = await createImageBitmap(file);
                             const canvas = document.createElement('canvas');
                             const MAX = 800;
@@ -1010,6 +1055,8 @@ async function renderAlbumCategory(categoryId) {
                             resultDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                             
                             await window.saveMedia(slotId, resultDataUrl);
+                            if (!savedIndexes.includes(i)) savedIndexes.push(i);
+                            saveState();
                             renderAlbumCategory(categoryId);
                         }
                     } catch (err) {
