@@ -4,11 +4,11 @@
 
 const DEFAULT_STATE = {
     kid9: { 
-        name: "Explorador Pequeño", xp: 0, level: 0, missions: {}, 
+        name: "Laura", xp: 0, level: 0, missions: {}, 
         badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true } 
     },
     kid14: { 
-        name: "Navegante Mayor", xp: 0, level: 0, missions: {},
+        name: "Iván", xp: 0, level: 0, missions: {},
         badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true } 
     },
     judgePIN: "1234"

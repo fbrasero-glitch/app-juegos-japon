@@ -1040,7 +1040,7 @@ const MISSIONS_CONFIG = {
         location: "Hotel",
         render: () => `
             <div class="ui-terminal">
-                <p class="mission-desc">>>> PROTOCOLO DE ENLACE CIFRADO. Base: HOTEL. Introduzca clave de acceso.</p>
+                <p class="mission-desc">>>> PROTOCOLO DE ENLACE CIFRADO. Base: HOTEL. Introduzca clave de acceso.<br><span style="color: #0c0; font-size: 0.85rem;">[Pista de Red: Nombre de la ciudad del hotel + "_ANNEX" en mayúsculas]</span></p>
                 <input type="text" id="crypto-input" placeholder="Clave secreta..." style="background: #000; color: #0f0; border: 1px solid #0f0; margin-bottom: 15px; width: 100%; font-family: monospace; text-transform: uppercase;">
                 <button id="btn-auth" class="btn-primary" style="width: 100%;">Autenticar</button>
                 <div id="crypto-res" style="margin-top: 15px; color: #0f0; font-family: monospace;"></div>
