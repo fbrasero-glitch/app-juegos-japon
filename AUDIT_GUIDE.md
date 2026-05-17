@@ -112,83 +112,35 @@ node -e "...count missions"  # Verificar 9 por día
 
 ## 📊 ESTADO DE LA AUDITORÍA POR BLOQUES
 
-### ✅ Bloque 1: Días 1-7 (Auditado en sesiones anteriores)
+### ✅ Bloque 1: Días 1-7 (COMPLETADO)
 - 9 misiones por día ✅
 - Calidad UX verificada ✅
+- `day_1_clouds` mejorada ✅
 
-### ❌ Bloque 2: Días 8-14 (PENDIENTE)
-| Día | Misiones actuales | Objetivo | Estado |
-|-----|------------------|----------|--------|
-| 8   | 18               | 9        | ❌ Purgar + Auditar |
-| 9   | 16               | 9        | ❌ Purgar + Auditar |
-| 10  | 10               | 9        | ❌ Purgar + Auditar |
-| 11  | 13               | 9        | ❌ Purgar + Auditar |
-| 12  | 13               | 9        | ❌ Purgar + Auditar |
-| 13  | 12               | 9        | ❌ Purgar + Auditar |
-| 14  | 14               | 9        | ❌ Purgar + Auditar |
+### ✅ Bloque 2: Días 8-14 (COMPLETADO)
+- 58 duplicados purgados (junto con Bloque 3) ✅
+- Misiones SHORT mejoradas: `day_9_kid14_gravity`, `day_9_kid14_angulo`, `day_9_kid14_tunnel`, `day_9_kid9_altar`, `day_10_kid9_nishiki`, `day_10_fam_sayonara`, `day_11_tatami`, `day_12_sugidama`, `day_13_manhole`, `day_13_perspective`, `day_14_rock`, `day_14_root` ✅
+- `day_8_kid14_arashiyama` tag:undefined → tag:writing ✅
 
-### ❌ Bloque 3: Días 15-21 (PENDIENTE)
-| Día | Misiones actuales | Objetivo | Estado |
-|-----|------------------|----------|--------|
-| 15  | 12               | 9        | ❌ Purgar + Auditar |
-| 16  | 13               | 9        | ❌ Purgar + Auditar |
-| 17  | 14               | 9        | ❌ Purgar + Auditar |
-| 18  | 12               | 9        | ❌ Purgar + Auditar |
-| 19  | 12               | 9        | ❌ Purgar + Auditar |
-| 20  | 12               | 9        | ❌ Purgar + Auditar |
-| 21  | 13               | 9        | ❌ Purgar + Auditar |
+### ✅ Bloque 3: Días 15-21 (COMPLETADO)
+- Misiones SHORT mejoradas: `day_15_thatch`, `day_15_shogun`, `day_17_incense`, `day_17_gashapon`, `day_18_hachiko`, `day_19_liberty`, `day_20_pond`, `day_21_monkeys` ✅
 
 ### ✅ Bloque 4: Días 22-24 (COMPLETADO)
-- 9 misiones por día ✅
-- Duplicados purgados ✅
 - 25 de 27 misiones reescritas con calidad comercial ✅
 - 2 conservadas (ya tenían calidad suficiente) ✅
 
 ---
 
-## 🎨 PATRONES DE DISEÑO APLICADOS (copiar para nuevas misiones)
+## 🏁 RESULTADO FINAL
 
-### Misión tipo FOTO (kid9)
-```html
-<p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">
-    🎯 [EMOJI] [Narrativa inmersiva con contexto del lugar]
-</p>
-<div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#COLOR1,#COLOR2); border-radius:15px;">
-    <p style="font-size:3rem;">[EMOJI GRANDE]</p>
-    <p style="color:#fff; font-style:italic; margin-top:10px;">[Frase motivacional]</p>
-</div>
-<button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 [Acción específica]</button>
-```
-
-### Misión tipo TERMINAL (kid14)
-```html
-<div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
-    <p style="color:#0f0;">>>> [TÍTULO TÁCTICO]</p>
-    <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">[Contexto de misión hacker]</p>
-    <label style="color:#0f0; font-size:0.8rem;">[LABEL]:</label>
-    <input type="text" id="xxx" placeholder="Ej: ..." style="width:100%; margin-bottom:10px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
-    <button id="btn" class="btn-primary" style="width:100%">📤 [Acción terminal]</button>
-</div>
-```
-
-### Misión tipo CRONÓMETRO
-```html
-<div style="background:linear-gradient(135deg,#1a1a2e,#2a1a3e); border-radius:15px; padding:20px; margin:15px 0; text-align:center;">
-    <div id="timer" style="font-size:3.5rem; font-weight:bold; color:#00ff87; text-shadow:0 0 20px rgba(0,255,135,0.4); font-family:monospace;">0.0s</div>
-</div>
-<button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">🚀 [Iniciar]</button>
-<button id="btn-end" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">🏁 [Finalizar]</button>
-```
-
-### Misión tipo CONJUNTA (both)
-```html
-<p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">👨‍👩‍👧‍👦 [Narrativa familiar]</p>
-<div style="text-align:center; margin:15px 0; padding:25px; background:linear-gradient(135deg,#COLOR1,#COLOR2); border-radius:15px; border:2px solid #d4af37;">
-    <p style="font-size:4rem;">[EMOJIS]</p>
-    <p style="color:#d4af37; font-weight:bold;">[Subtítulo épico]</p>
-</div>
-<!-- checkbox o cámara según tipo -->
-```
+| Métrica | Valor |
+|---------|-------|
+| **Días** | 24/24 con 9 misiones cada uno ✅ |
+| **Total misiones** | 216 (objetivo cumplido) ✅ |
+| **Tags undefined** | 0 ✅ |
+| **Renders SHORT (<200 chars)** | 0 ✅ |
+| **Duplicados eliminados** | 58 ✅ |
+| **Misiones reescritas (calidad)** | ~47 ✅ |
 
 ---
 
@@ -197,14 +149,3 @@ node -e "...count missions"  # Verificar 9 por día
 - `GUIA_MISIONES_COMPLETA.md` — Guía exportada de todas las misiones
 - `xp.md` — Sistema de XP, niveles e insignias
 
----
-
-## 🔄 FLUJO DE TRABAJO PARA CONTINUAR
-
-1. **Leer este archivo** ← estás aquí
-2. **Elegir el siguiente bloque** (Bloque 2 = Días 8-14, o Bloque 3 = Días 15-21)
-3. **FASE 1**: Para cada día, listar misiones actuales, identificar duplicados, crear script de purga
-4. **FASE 2**: Para cada misión restante, evaluar calidad → crear `upgrade_dayXX.js`
-5. **Verificar**: `node -c missions.js` + contar misiones
-6. **Commit + Push**: `git add -A; git commit -m "..."; git push origin master`
-7. **Actualizar este archivo** con el estado del bloque completado
