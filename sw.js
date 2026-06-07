@@ -1,12 +1,18 @@
-const CACHE_NAME = 'japan-missions-v8';
+const CACHE_NAME = 'japan-missions-v10';
 const ASSETS = [
     './',
     './index.html',
     './styles.css',
     './dbHelper.js',
+    './games.js',
     './missions.js',
+    './missions_days_1_8.js',
+    './missions_days_9_16.js',
+    './missions_days_17_24.js',
     './app.js',
-    './manifest.json'
+    './manifest.json',
+    './icon-192.png',
+    './icon-512.png'
 ];
 
 self.addEventListener('install', event => {

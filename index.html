@@ -37,7 +37,6 @@
                 </button>
             </div>
             <button id="btn-passport" class="btn-secondary">Ver Pasaporte</button>
-            <button id="btn-debug-unlock" class="btn-secondary" style="margin-top:10px; border: 2px dashed var(--color-accent); color: var(--color-accent);">🛠️ Desbloquear Todo (Test)</button>
         </div>
         
         <!-- Modal PIN Juez -->
@@ -111,19 +110,30 @@
 
     <!-- PANEL DEL JUEZ -->
     <div id="view-judge" class="view hidden">
-        <div class="judge-header">
-            <h2>Misiones Pendientes</h2>
+        <div class="judge-header" style="background: var(--color-primary-dark); color: white; padding: 20px; display: flex; flex-direction: column; gap: 5px;">
+            <h2 style="margin:0;">Panel del Juez Supremo</h2>
+            <p style="margin:0; font-size:0.9rem; opacity:0.8;">Evalúa misiones y otorga recompensas especiales</p>
         </div>
-        <div id="pending-missions-list" class="list-container">
+        
+        <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Misiones por Evaluar</h3>
+        <div id="pending-missions-list" class="list-container" style="margin-top: 10px;">
             <!-- Misiones pendientes se inyectan aquí -->
+        </div>
+        
+        <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 15px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">🎁 Recompensas Solicitadas</h3>
+        <div id="pending-rewards-list" class="list-container" style="margin-top: 10px; padding-bottom: 50px;">
+            <!-- Recompensas solicitadas se inyectan aquí -->
         </div>
     </div>
 
     <!-- PASAPORTE (GALERÍA) -->
     <div id="view-passport" class="view hidden">
-        <h2>Tus Logros</h2>
-        <div id="passport-gallery" class="gallery-container">
-            <!-- Títulos y sellos se inyectan aquí -->
+        <div class="passport-tabs">
+            <button id="btn-passport-me" class="passport-tab active">Mis Logros</button>
+            <button id="btn-passport-sibling" class="passport-tab">Logros de Hermano</button>
+        </div>
+        <div id="passport-content" class="passport-container">
+            <!-- Contenido dinámico inyectado aquí -->
         </div>
     </div>
 
@@ -186,8 +196,12 @@
             });
         }
     </script>
-    <script src="dbHelper.js?v=8"></script>
-    <script src="missions.js?v=8"></script>
-    <script src="app.js?v=8"></script>
+    <script src="dbHelper.js?v=9"></script>
+    <script src="games.js?v=9"></script>
+    <script src="missions.js?v=9"></script>
+    <script src="missions_days_1_8.js?v=9"></script>
+    <script src="missions_days_9_16.js?v=9"></script>
+    <script src="missions_days_17_24.js?v=9"></script>
+    <script src="app.js?v=9"></script>
 </body>
 </html>

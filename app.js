@@ -5,11 +5,11 @@
 const DEFAULT_STATE = {
     kid9: { 
         name: "Laura", xp: 0, level: 0, missions: {}, 
-        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, album: {} 
+        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
     },
     kid14: { 
         name: "Iván", xp: 0, level: 0, missions: {},
-        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true } 
+        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
     },
     judgePIN: "1234"
 };
@@ -44,7 +44,6 @@ let gameState = null;
 let currentUser = null; // 'kid9', 'kid14', 'judge'
 let currentDay = null; // Día que se está visualizando
 let currentDayMissions = []; // Misiones del día actual
-let debugUnlockAll = false; // Flag para pruebas
 
 
 // ==========================================
@@ -112,6 +111,7 @@ function loadState() {
             if (!gameState[kid].badges) gameState[kid].badges = [];
             if (!gameState[kid].counters) gameState[kid].counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
             if (!gameState[kid].album) gameState[kid].album = {};
+            if (!gameState[kid].rewards) gameState[kid].rewards = {};
         });
     } else {
         gameState = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -430,17 +430,15 @@ function renderDaysList(role) {
             if (m.status === 'pending') anyPending = true;
         });
 
-        const isLocked = !prevDayApproved && !debugUnlockAll;
+        const isLocked = false;
         
         const card = document.createElement('div');
-        card.className = `card ${isLocked ? 'locked' : ''}`;
+        card.className = 'card';
         card.innerHTML = `
-            <div class="card-title">Día ${dayNum} ${isLocked ? '🔒' : (allApproved ? '✅' : '🚀')}</div>
+            <div class="card-title">Día ${dayNum} ${allApproved ? '✅' : '🚀'}</div>
             <p style="font-size:0.9rem; color:var(--color-gray-dark)">${mKeys.length} misiones</p>
         `;
-        if (!isLocked) {
-            card.addEventListener('click', () => renderDayMissions(role, dayNum, mKeys));
-        }
+        card.addEventListener('click', () => renderDayMissions(role, dayNum, mKeys));
         list.appendChild(card);
 
         prevDayApproved = allApproved; // Para el día siguiente
@@ -526,10 +524,8 @@ function renderDayMissions(role, dayNum, missionKeys) {
         `;
         
         card.addEventListener('click', () => {
-            if (state.status === 'approved' && !debugUnlockAll) {
-                showAlert('Misión completada', '¡Ya has superado esta prueba! Activa el Modo Test en el inicio para volver a realizarla.');
-            } else if (state.status === 'pending' && !debugUnlockAll) {
-                showAlert('En revisión', 'El Juez Supremo está evaluando tu entrega. Activa el Modo Test en el inicio para volver a realizarla.');
+            if (state.status === 'pending') {
+                showAlert('En revisión', 'El Juez Supremo está evaluando tu entrega. Esta prueba estará bloqueada hasta que el juez la analice.');
             } else {
                 renderMissionDetail(k, role);
             }
@@ -546,9 +542,25 @@ function renderMissionDetail(missionId, role) {
     if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
     const conf = MISSIONS_CONFIG[missionId];
     const container = document.getElementById('mission-content');
+    
+    const state = gameState[role].missions[missionId];
+    let warningHtml = '';
+    if (state && state.status === 'approved') {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(255, 193, 7, 0.1); border: 2px solid #ffc107; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⚠️</span>
+                <div>
+                    <strong style="color: #ffc107; font-size: 1.05rem;">Prueba Ya Puntuada</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">Puedes repetir esta prueba para jugar, pero ya no sumará más XP ni se enviará al juez.</p>
+                </div>
+            </div>
+        `;
+    }
+
     container.innerHTML = `
         <h2 class="mission-title">${conf.title}</h2>
         <div style="text-align:center; color:var(--color-accent); margin-bottom:15px; font-weight:bold;">📍 ${conf.location || 'Cualquier lugar'}</div>
+        ${warningHtml}
         ${conf.render(role)}
     `;
     switchView('view-mission', true, "Misión");
@@ -556,6 +568,13 @@ function renderMissionDetail(missionId, role) {
 }
 
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false) {
+    const mState = gameState[role].missions[missionId];
+    if (mState && mState.status === 'approved') {
+        showAlert('Prueba Completada', 'Has terminado de repetir la prueba. Recuerda que ya fue puntuada y no volverá a enviarse al juez.');
+        renderDayMissions(role, currentDay, currentDayMissions);
+        return;
+    }
+
     if (isFamily) {
         // Misión conjunta: marcar pending para AMBOS perfiles inmediatamente
         const submission = { ...submissionData, timestamp: new Date().toISOString() };
@@ -711,6 +730,34 @@ async function renderJudgePanel() {
         list.appendChild(card);
     }
 
+    const rewardsList = document.getElementById('pending-rewards-list');
+    if (rewardsList) {
+        rewardsList.innerHTML = '';
+        const requestedRewards = getRequestedRewards();
+        
+        if (requestedRewards.length === 0) {
+            rewardsList.innerHTML = '<p style="text-align:center; padding:20px; color: var(--color-gray-dark);">No hay recompensas pendientes de otorgar.</p>';
+        } else {
+            requestedRewards.forEach(req => {
+                const card = document.createElement('div');
+                card.className = 'card submission-item';
+                card.style.borderLeft = '5px solid var(--color-primary)';
+                
+                const kidName = gameState[req.kidId].name;
+                card.innerHTML = `
+                    <div class="card-title">${req.config.icon} ${req.config.title}</div>
+                    <div class="submission-meta">👤 Reclamado por: <strong>${kidName}</strong></div>
+                    <p style="margin: 5px 0 15px 0; font-size: 0.95rem;">${req.config.desc}</p>
+                    <div class="judge-actions" style="display:flex; gap:10px;">
+                        <button class="btn-reject" style="flex:1;" onclick="rejectReward('${req.kidId}', '${req.rewardId}')">❌ Denegar</button>
+                        <button class="btn-approve" style="flex:1;" onclick="approveReward('${req.kidId}', '${req.rewardId}')">✅ Otorgar</button>
+                    </div>
+                `;
+                rewardsList.appendChild(card);
+            });
+        }
+    }
+
     switchView('view-judge', true, "Panel del Juez");
 }
 
@@ -743,7 +790,7 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
     saveState();
     
     if (newBadges.length > 0) {
-        showAlert('¡Insignia Desbloqueada!', `Has conseguido: ${newBadges.map(b => b.icon + ' ' + b.title).join(', ')}`);
+        showNewBadges(newBadges);
     }
 
     if (!leveledUp) {
@@ -842,37 +889,383 @@ document.getElementById('btn-back').addEventListener('click', () => {
     }
 });
 
+// ==========================================
+// CONFIGURACIÓN DE LOGROS XBOX Y RECOMPENSAS
+// ==========================================
+
+const BADGES_CONFIG = {
+    'medalla_olimpica': { title: 'Medalla Olímpica', icon: '🥇', points: 150, desc: 'Completa 5 desafíos físicos (misión con 🏃) seguidos sin fallar.' },
+    'bateria_inagotable': { title: 'Batería Inagotable', icon: '🔋', points: 100, desc: 'Envía 3 pruebas al Juez antes de las 8:00 o después de las 22:00.' },
+    'sincronizacion_perfecta': { title: 'Sincronización Perfecta', icon: '🤝', points: 150, desc: 'Completa 5 misiones conjuntas aprobadas.' },
+    'estomago_acero': { title: 'Estómago de Acero', icon: '🍜', points: 100, desc: 'Completa 3 misiones de probar platos extraños, snacks raros o takoyaki.' },
+    'criptografo_elite': { title: 'Criptógrafo de Élite', icon: '🔐', points: 200, desc: 'Supera 3 misiones tipo "Terminal" al primer intento.' }
+};
+
+const REWARDS_CONFIG = {
+    "combini_sweet": {
+        id: "combini_sweet",
+        title: "Dulce del Combini",
+        desc: "Elegir un helado o dulce en un Combini o máquina expendedora.",
+        pointsRequired: 100,
+        icon: "🍦"
+    },
+    "dinner_choice": {
+        id: "dinner_choice",
+        title: "Elección de Cena",
+        desc: "Elegir el restaurante o plato para la cena de hoy.",
+        pointsRequired: 200,
+        icon: "🍣"
+    },
+    "gachapon_extra": {
+        id: "gachapon_extra",
+        title: "Gachapon/Garra Extra",
+        desc: "Una tirada extra de gachapon o intento en máquina de garra arcade.",
+        pointsRequired: 350,
+        icon: "🧸"
+    },
+    "supreme_wish": {
+        id: "supreme_wish",
+        title: "Deseo Supremo",
+        desc: "Un deseo especial concedido por el Juez Supremo (dentro de lo razonable).",
+        pointsRequired: 500,
+        icon: "⛩️"
+    }
+};
+
+function getGamerscore(kidId) {
+    const badges = gameState[kidId].badges || [];
+    let score = 0;
+    badges.forEach(bId => {
+        if (BADGES_CONFIG[bId]) {
+            score += BADGES_CONFIG[bId].points;
+        }
+    });
+    return score;
+}
+
+function playXboxSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        const playTone = (freq, startTime, duration) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, startTime);
+            
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        };
+        
+        const now = ctx.currentTime;
+        playTone(1046.50, now, 0.4);       // C6
+        playTone(1318.51, now + 0.08, 0.4); // E6
+        playTone(1567.98, now + 0.16, 0.4); // G6
+        playTone(2093.00, now + 0.24, 0.6); // C7
+    } catch (e) {
+        console.error("Audio Context fallido", e);
+    }
+}
+
+function showXboxAchievementToast(badge) {
+    const toast = document.createElement('div');
+    toast.className = 'xbox-toast';
+    
+    const points = BADGES_CONFIG[badge.id] ? BADGES_CONFIG[badge.id].points : 100;
+    
+    toast.innerHTML = `
+        <div class="xbox-toast-ring">${badge.icon}</div>
+        <div class="xbox-toast-text">
+            <span class="xbox-toast-title">¡Logro desbloqueado!</span>
+            <span class="xbox-toast-msg">${badge.title} <span class="xbox-toast-score">${points}G</span></span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Reproducir chime de Xbox
+    playXboxSound();
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+        }, 600);
+    }, 4000);
+}
+
+function showNewBadges(newBadges) {
+    newBadges.forEach((b, idx) => {
+        setTimeout(() => {
+            showXboxAchievementToast(b);
+        }, idx * 4500);
+    });
+}
+
+function getRequestedRewards() {
+    const requested = [];
+    ['kid9', 'kid14'].forEach(kidId => {
+        const rewards = gameState[kidId].rewards || {};
+        Object.keys(rewards).forEach(rewardId => {
+            if (rewards[rewardId] === 'requested') {
+                requested.push({
+                    kidId: kidId,
+                    rewardId: rewardId,
+                    config: REWARDS_CONFIG[rewardId]
+                });
+            }
+        });
+    });
+    return requested;
+}
+
+window.requestReward = (kidId, rewardId) => {
+    if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
+    gameState[kidId].rewards[rewardId] = 'requested';
+    saveState();
+    showAlert('Reclamado', '¡Se ha enviado tu solicitud al Juez Supremo!');
+    renderPassportView(kidId);
+};
+
+window.approveReward = (kidId, rewardId) => {
+    if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
+    gameState[kidId].rewards[rewardId] = 'claimed';
+    saveState();
+    launchConfetti();
+    showAlert('Recompensa Otorgada', `Has concedido la recompensa "${REWARDS_CONFIG[rewardId].title}" a ${gameState[kidId].name}.`);
+    renderJudgePanel();
+};
+
+window.rejectReward = (kidId, rewardId) => {
+    if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
+    gameState[kidId].rewards[rewardId] = 'unlocked';
+    saveState();
+    showAlert('Recompensa Denegada', `Has denegado la recompensa a ${gameState[kidId].name}. Volverá a estar disponible para reclamar.`);
+    renderJudgePanel();
+};
+
+function renderPassportView(viewedKidId) {
+    const isMe = (viewedKidId === currentUser);
+    const kidData = gameState[viewedKidId];
+    const siblingId = viewedKidId === 'kid9' ? 'kid14' : 'kid9';
+    const siblingData = gameState[siblingId];
+    
+    const container = document.getElementById('passport-content');
+    container.innerHTML = '';
+    
+    const levelsArr = viewedKidId === 'kid9' ? LEVELS_LAURA : LEVELS_IVAN;
+    const currentLevelIdx = kidData.level || 0;
+    const levelData = levelsArr[currentLevelIdx];
+    const gamerscore = getGamerscore(viewedKidId);
+    
+    const heroCard = document.createElement('div');
+    heroCard.className = 'passport-hero-card card';
+    
+    heroCard.innerHTML = `
+        <div class="hero-header-info">
+            <span class="hero-avatar">${viewedKidId === 'kid9' ? '🦊' : '🐉'}</span>
+            <div class="hero-text">
+                <h2 style="margin: 0; font-size: 1.8rem; line-height: 1.2;">${kidData.name}</h2>
+                <div class="hero-rank" style="font-size: 0.95rem; font-weight: bold; margin-top: 4px;">${levelData.icon} ${levelData.title}</div>
+            </div>
+            <div class="hero-gamerscore">
+                <span class="gs-icon">G</span>
+                <span class="gs-value">${gamerscore}</span>
+            </div>
+        </div>
+        <div class="hero-stats-row" style="display: flex; justify-content: space-between; margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
+            <span>Nivel ${currentLevelIdx}</span>
+            <span>${kidData.xp} XP</span>
+        </div>
+    `;
+    container.appendChild(heroCard);
+    
+    const achievementsTitle = document.createElement('h3');
+    achievementsTitle.className = 'passport-section-title';
+    achievementsTitle.innerText = `Logros (${kidData.badges.length} / 5)`;
+    container.appendChild(achievementsTitle);
+    
+    const grid = document.createElement('div');
+    grid.className = 'achievements-grid';
+    
+    Object.keys(BADGES_CONFIG).forEach(badgeId => {
+        const badge = BADGES_CONFIG[badgeId];
+        const isUnlocked = kidData.badges.includes(badgeId);
+        
+        const badgeCard = document.createElement('div');
+        badgeCard.className = `badge-card card ${isUnlocked ? 'unlocked' : 'locked'}`;
+        
+        if (isUnlocked) {
+            badgeCard.innerHTML = `
+                <div class="badge-icon-wrapper">
+                    <span class="badge-icon">${badge.icon}</span>
+                </div>
+                <div class="badge-info">
+                    <h4>${badge.title}</h4>
+                    <p>${badge.desc}</p>
+                    <span class="badge-points">+${badge.points}G</span>
+                </div>
+            `;
+        } else {
+            let currentProg = 0;
+            let maxProg = 5;
+            const counters = kidData.counters || {};
+            if (badgeId === 'medalla_olimpica') {
+                currentProg = counters.physicalStreak || 0;
+                maxProg = 5;
+            } else if (badgeId === 'bateria_inagotable') {
+                currentProg = counters.earlyLateSubmissions || 0;
+                maxProg = 3;
+            } else if (badgeId === 'sincronizacion_perfecta') {
+                currentProg = counters.perfectJointMissions || 0;
+                maxProg = 5;
+            } else if (badgeId === 'estomago_acero') {
+                currentProg = counters.foodMissions || 0;
+                maxProg = 3;
+            } else if (badgeId === 'criptografo_elite') {
+                currentProg = counters.expertMissions || 0;
+                maxProg = 3;
+                if (counters.cryptoSolvedFirstTry === false) {
+                    currentProg = 0;
+                }
+            }
+            
+            const percent = Math.min(100, Math.floor((currentProg / maxProg) * 100));
+            
+            badgeCard.innerHTML = `
+                <div class="badge-icon-wrapper">
+                    <span class="badge-icon">🔒</span>
+                </div>
+                <div class="badge-info">
+                    <h4>${badge.title} <span style="font-size:0.8rem; opacity:0.6; font-weight:normal;">(${badge.points}G)</span></h4>
+                    <p>${badge.desc}</p>
+                    <div class="badge-progress-container">
+                        <div class="badge-progress-bar">
+                            <div class="badge-progress-fill" style="width: ${percent}%;"></div>
+                        </div>
+                        <span class="badge-progress-text">${currentProg} / ${maxProg}</span>
+                    </div>
+                </div>
+            `;
+        }
+        grid.appendChild(badgeCard);
+    });
+    container.appendChild(grid);
+    
+    const rewardsTitle = document.createElement('h3');
+    rewardsTitle.className = 'passport-section-title';
+    rewardsTitle.innerText = `Recompensas del Juez`;
+    container.appendChild(rewardsTitle);
+    
+    const rewardsContainer = document.createElement('div');
+    rewardsContainer.className = 'rewards-grid';
+    
+    if (!kidData.rewards) kidData.rewards = {};
+    
+    Object.keys(REWARDS_CONFIG).forEach(rewardId => {
+        const reward = REWARDS_CONFIG[rewardId];
+        const status = kidData.rewards[rewardId] || 'locked';
+        
+        let finalStatus = status;
+        if (status === 'locked' && gamerscore >= reward.pointsRequired) {
+            finalStatus = 'unlocked';
+        } else if (status !== 'claimed' && status !== 'requested' && gamerscore < reward.pointsRequired) {
+            finalStatus = 'locked';
+        }
+        
+        const rewardCard = document.createElement('div');
+        rewardCard.className = `reward-card card reward-${finalStatus}`;
+        
+        let actionBtnHtml = '';
+        if (isMe) {
+            if (finalStatus === 'unlocked') {
+                actionBtnHtml = `<button class="btn-primary btn-claim-reward" onclick="requestReward('${viewedKidId}', '${rewardId}')">🎁 Reclamar al Juez</button>`;
+            } else if (finalStatus === 'requested') {
+                actionBtnHtml = `<div class="reward-status-label status-pending">⏳ Esperando al Juez</div>`;
+            } else if (finalStatus === 'claimed') {
+                actionBtnHtml = `<div class="reward-status-label status-approved">✅ Concedido por el Juez</div>`;
+            } else {
+                actionBtnHtml = `<div class="reward-status-label reward-locked-label">🔒 Requiere ${reward.pointsRequired}G</div>`;
+            }
+        } else {
+            if (finalStatus === 'claimed') {
+                actionBtnHtml = `<div class="reward-status-label status-approved">✅ Conseguido por ${kidData.name}</div>`;
+            } else if (finalStatus === 'requested') {
+                actionBtnHtml = `<div class="reward-status-label status-pending">⏳ Solicitado por ${kidData.name}</div>`;
+            } else {
+                actionBtnHtml = `<div class="reward-status-label reward-locked-label">${finalStatus === 'locked' ? '🔒' : '🔓'} ${reward.pointsRequired}G</div>`;
+            }
+        }
+        
+        rewardCard.innerHTML = `
+            <div class="reward-header">
+                <span class="reward-icon">${reward.icon}</span>
+                <div class="reward-title-group">
+                    <h4>${reward.title}</h4>
+                    <span class="reward-cost">${reward.pointsRequired}G</span>
+                </div>
+            </div>
+            <p class="reward-desc">${reward.desc}</p>
+            <div class="reward-action-area">
+                ${actionBtnHtml}
+            </div>
+        `;
+        rewardsContainer.appendChild(rewardCard);
+    });
+    container.appendChild(rewardsContainer);
+}
+
+document.getElementById('btn-passport-me').addEventListener('click', () => {
+    document.getElementById('btn-passport-me').classList.add('active');
+    document.getElementById('btn-passport-sibling').classList.remove('active');
+    renderPassportView(currentUser);
+});
+
+document.getElementById('btn-passport-sibling').addEventListener('click', () => {
+    document.getElementById('btn-passport-sibling').classList.add('active');
+    document.getElementById('btn-passport-me').classList.remove('active');
+    const siblingId = currentUser === 'kid9' ? 'kid14' : 'kid9';
+    renderPassportView(siblingId);
+});
+
+document.getElementById('btn-passport').addEventListener('click', () => {
+    if (!currentUser || currentUser === 'judge') {
+        currentUser = 'kid9'; 
+        renderDaysList('kid9'); 
+    }
+    document.getElementById('nav-btn-passport').click();
+});
+
 document.getElementById('nav-btn-passport').addEventListener('click', () => {
     if (!currentUser || currentUser === 'judge') {
         showAlert('Atención', 'Selecciona un explorador primero para ver el pasaporte.');
         return;
     }
-    const gallery = document.getElementById('passport-gallery');
-    gallery.innerHTML = `
-        <div class="card">
-            <h3>🦊 ${gameState.kid9.name}</h3>
-            <p>Nivel ${gameState.kid9.level} (${gameState.kid9.xp} XP)</p>
-        </div>
-        <div class="card">
-            <h3>🐉 ${gameState.kid14.name}</h3>
-            <p>Nivel ${gameState.kid14.level} (${gameState.kid14.xp} XP)</p>
-        </div>
-    `;
+    const siblingId = currentUser === 'kid9' ? 'kid14' : 'kid9';
+    document.getElementById('btn-passport-sibling').innerText = `Logros de ${gameState[siblingId].name}`;
+    
+    document.getElementById('btn-passport-me').classList.add('active');
+    document.getElementById('btn-passport-sibling').classList.remove('active');
+    
+    renderPassportView(currentUser);
     switchView('view-passport', true, "Pasaporte");
 });
 
-document.getElementById('btn-debug-unlock').addEventListener('click', () => {
-    debugUnlockAll = !debugUnlockAll;
-    const btn = document.getElementById('btn-debug-unlock');
-    if (debugUnlockAll) {
-        btn.style.backgroundColor = 'var(--color-accent)';
-        btn.style.color = 'var(--color-bg)';
-    } else {
-        btn.style.backgroundColor = 'transparent';
-        btn.style.color = 'var(--color-accent)';
-    }
-    showAlert('Modo Pruebas', debugUnlockAll ? '✅ Todas las misiones desbloqueadas para pruebas.' : '❌ Modo pruebas desactivado.');
-});
+
 
 document.getElementById('btn-close-celebration').addEventListener('click', () => {
     document.getElementById('celebration-modal').classList.add('hidden');
