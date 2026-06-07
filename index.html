@@ -37,6 +37,11 @@
                 </button>
             </div>
             <button id="btn-passport" class="btn-secondary">Ver Pasaporte</button>
+            
+            <div id="update-container" class="update-section">
+                <span id="app-version-label">Buscando versión...</span>
+                <button id="btn-check-update" class="btn-text">Buscar actualización</button>
+            </div>
         </div>
         
         <!-- Modal PIN Juez -->
@@ -186,6 +191,21 @@
             <span class="nav-label">Pasaporte</span>
         </button>
     </nav>
+
+    <!-- Toast de actualización disponible -->
+    <div id="update-toast" class="update-toast hidden">
+        <div class="update-toast-content">
+            <span class="update-toast-emoji">✨</span>
+            <div class="update-toast-body">
+                <h4>¡Actualización lista!</h4>
+                <p>Nueva versión <span id="update-toast-version">v-</span> disponible.</p>
+            </div>
+            <div class="update-toast-actions">
+                <button id="btn-update-now" class="btn-primary-small">Actualizar</button>
+                <button id="btn-update-close" class="btn-close-toast">✕</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         if ('serviceWorker' in navigator && location.protocol !== 'file:') {

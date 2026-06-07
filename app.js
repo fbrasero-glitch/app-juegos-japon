@@ -1277,6 +1277,11 @@ window.onload = async () => {
     loadState();
     if (window.initIndexedDB) await window.initIndexedDB();
     switchView('view-home', false);
+    
+    // Comprobación de versión automática al iniciar la app
+    setTimeout(() => {
+        checkAppUpdates(false);
+    }, 1000);
 };
 
 // ==========================================
@@ -1466,4 +1471,140 @@ async function renderAlbumCategory(categoryId) {
     }
     
     switchView('view-album-category', true, cat.title);
+}
+
+// ==========================================
+// LÓGICA DE COMPROBACIÓN DE ACTUALIZACIÓN (GITHUB)
+// ==========================================
+
+let isRefreshingApp = false;
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (isRefreshingApp) return;
+        isRefreshingApp = true;
+        window.location.reload();
+    });
+}
+
+function getVersionFromText(text) {
+    const match = text.match(/CACHE_NAME\s*=\s*['"]japan-missions-v([^'"]+)['"]/);
+    return match ? match[1] : null;
+}
+
+async function checkAppUpdates(isManual = false) {
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') {
+        const versionLabel = document.getElementById('app-version-label');
+        if (versionLabel) versionLabel.innerText = 'Versión: Local (Desarrollo)';
+        if (isManual) showAlert('Actualizaciones', 'El Service Worker no está activo en este protocolo (ej. archivo local).');
+        return;
+    }
+
+    const versionLabel = document.getElementById('app-version-label');
+    const checkBtn = document.getElementById('btn-check-update');
+
+    if (isManual && checkBtn) {
+        checkBtn.disabled = true;
+        checkBtn.innerText = 'Comprobando...';
+    }
+
+    try {
+        const localRes = await fetch('./sw.js');
+        if (!localRes.ok) throw new Error('No se pudo acceder al Service Worker local.');
+        const localText = await localRes.text();
+        const localVersion = getVersionFromText(localText);
+
+        if (!localVersion) {
+            if (versionLabel) versionLabel.innerText = 'Versión: Indeterminada';
+            if (isManual) showAlert('Error', 'No se pudo leer la versión local en sw.js.');
+            return;
+        }
+
+        if (versionLabel) {
+            versionLabel.innerText = `Versión actual: v${localVersion}`;
+        }
+
+        // Usamos la rama master detectada localmente
+        const githubRes = await fetch('https://raw.githubusercontent.com/fbrasero-glitch/app-juegos-japon/master/sw.js');
+        if (!githubRes.ok) throw new Error('No se pudo conectar con GitHub.');
+        const githubText = await githubRes.text();
+        const githubVersion = getVersionFromText(githubText);
+
+        if (!githubVersion) {
+            if (isManual) showAlert('Error', 'No se pudo leer la versión remota.');
+            return;
+        }
+
+        const localNum = parseInt(localVersion, 10);
+        const remoteNum = parseInt(githubVersion, 10);
+
+        if (!isNaN(localNum) && !isNaN(remoteNum) && remoteNum > localNum) {
+            const toast = document.getElementById('update-toast');
+            const toastVer = document.getElementById('update-toast-version');
+            if (toast && toastVer) {
+                toastVer.innerText = `v${githubVersion}`;
+                toast.classList.remove('hidden');
+            }
+            if (isManual) {
+                showAlert('Nueva Versión', `Se ha encontrado una versión más reciente (v${githubVersion}). Iniciando actualización...`);
+                triggerSWUpdate();
+            }
+        } else {
+            if (isManual) {
+                showAlert('Al día', `La aplicación ya está en su versión más moderna (v${localVersion}).`);
+            }
+        }
+    } catch (err) {
+        console.error('Error al comprobar actualización:', err);
+        if (isManual) {
+            showAlert('Error de conexión', 'No se pudo conectar a GitHub. Comprueba tu conexión a Internet.');
+        }
+    } finally {
+        if (isManual && checkBtn) {
+            checkBtn.disabled = false;
+            checkBtn.innerText = 'Buscar actualización';
+        }
+    }
+}
+
+async function triggerSWUpdate() {
+    if ('serviceWorker' in navigator) {
+        const updateBtn = document.getElementById('btn-update-now');
+        if (updateBtn) {
+            updateBtn.disabled = true;
+            updateBtn.innerText = 'Actualizando...';
+        }
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.update();
+            console.log('Actualización forzada en el Service Worker.');
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } catch (err) {
+            console.error('Error al actualizar Service Worker:', err);
+            showAlert('Error', 'No se pudo completar la actualización automática.');
+            if (updateBtn) {
+                updateBtn.disabled = false;
+                updateBtn.innerText = 'Actualizar';
+            }
+        }
+    }
+}
+
+// Eventos del updater
+const btnCheckUpdate = document.getElementById('btn-check-update');
+if (btnCheckUpdate) {
+    btnCheckUpdate.addEventListener('click', () => checkAppUpdates(true));
+}
+const btnUpdateNow = document.getElementById('btn-update-now');
+if (btnUpdateNow) {
+    btnUpdateNow.addEventListener('click', triggerSWUpdate);
+}
+const btnUpdateClose = document.getElementById('btn-update-close');
+if (btnUpdateClose) {
+    btnUpdateClose.addEventListener('click', () => {
+        const toast = document.getElementById('update-toast');
+        if (toast) toast.classList.add('hidden');
+    });
 }
