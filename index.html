@@ -115,9 +115,14 @@
 
     <!-- PANEL DEL JUEZ -->
     <div id="view-judge" class="view hidden">
-        <div class="judge-header" style="background: var(--color-primary-dark); color: white; padding: 20px; display: flex; flex-direction: column; gap: 5px;">
-            <h2 style="margin:0;">Panel del Juez Supremo</h2>
-            <p style="margin:0; font-size:0.9rem; opacity:0.8;">Evalúa misiones y otorga recompensas especiales</p>
+        <div class="judge-header" style="background: var(--color-primary-dark); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+            <div>
+                <h2 style="margin:0;">Panel del Juez Supremo</h2>
+                <p style="margin:0; font-size:0.9rem; opacity:0.8;">Evalúa misiones y otorga recompensas especiales</p>
+            </div>
+            <button id="btn-judge-reset-all" style="background: #e53935; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-weight: bold; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.25); white-space: nowrap; transition: all 0.2s;">
+                ⚠️ Resetear Todo
+            </button>
         </div>
         
         <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Misiones por Evaluar</h3>
@@ -191,6 +196,45 @@
             <span class="nav-label">Pasaporte</span>
         </button>
     </nav>
+
+    <!-- VISTA DE MINIJUEGO -->
+    <div id="view-minigame" class="view hidden" style="background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(10px); color: white; padding: 20px; text-align: center; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 5000; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Quicksand', 'Nunito', sans-serif;">
+        <!-- Header -->
+        <div style="width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+            <h3 id="minigame-title" style="margin: 0; color: #ffd700; font-size: 1.4rem; font-weight: bold; text-shadow: 0 0 10px rgba(255,215,0,0.3);">🎮 Minijuego</h3>
+            <button id="btn-close-minigame" style="background: rgba(255,255,255,0.1); border: none; color: white; font-size: 1.2rem; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s;">✕</button>
+        </div>
+        
+        <!-- Game container -->
+        <div id="minigame-container" style="width: 100%; max-width: 500px; aspect-ratio: 4/3; background: #050508; border: 3px solid #ff7b54; border-radius: 20px; overflow: hidden; position: relative; box-shadow: 0 15px 40px rgba(0,0,0,0.5);">
+            <canvas id="minigame-canvas" width="800" height="600" style="width: 100%; height: 100%; display: block; image-rendering: pixelated;"></canvas>
+            
+            <!-- Instructions Overlay -->
+            <div id="minigame-intro" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10,10,15,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; text-align: center; box-sizing: border-box;">
+                <div style="font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 15px #ff7b54);" id="minigame-intro-emoji">⭐</div>
+                <h4 id="minigame-intro-title" style="color: #ffd700; margin: 0 0 12px 0; font-size: 1.5rem; font-weight: bold;">Título del Juego</h4>
+                <p id="minigame-intro-desc" style="font-size: 0.95rem; margin-bottom: 25px; line-height: 1.5; color: #e0e0e8; max-width: 380px;">Descripción detallada de las mecánicas y los controles para el usuario.</p>
+                <button id="btn-start-minigame" class="btn-primary" style="background: linear-gradient(135deg, #ff7b54 0%, #ff5722 100%); border: none; font-weight: bold; font-size: 1.1rem; padding: 12px 35px; border-radius: 50px; box-shadow: 0 5px 15px rgba(255,123,84,0.4); cursor: pointer; transition: transform 0.1s;">🎮 ¡Empezar!</button>
+            </div>
+            
+            <!-- Game Over / Win Overlay -->
+            <div id="minigame-outro" class="hidden" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,5,10,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; text-align: center; z-index: 10; box-sizing: border-box;">
+                <div id="minigame-outro-emoji" style="font-size: 4rem; margin-bottom: 15px;">🏆</div>
+                <h4 id="minigame-outro-title" style="color: #00ff99; margin: 0 0 12px 0; font-size: 1.8rem; font-weight: bold;">¡Victoria!</h4>
+                <p id="minigame-outro-desc" style="font-size: 1.05rem; margin-bottom: 25px; line-height: 1.5; color: #e0e0e8; max-width: 380px;">¡Lo has logrado con éxito!</p>
+                <div style="display: flex; gap: 15px; width: 100%; justify-content: center;">
+                    <button id="btn-retry-minigame" class="btn-secondary" style="background: transparent; border: 2px solid rgba(255,255,255,0.4); color: white; border-radius: 50px; padding: 10px 25px; font-weight: bold;">🔄 Reintentar</button>
+                    <button id="btn-submit-minigame" class="btn-primary" style="background: linear-gradient(135deg, #00ff99 0%, #00e676 100%); border: none; color: #050508; font-weight: bold; border-radius: 50px; padding: 10px 30px; box-shadow: 0 5px 15px rgba(0,255,153,0.3);">🎖️ Enviar Misión</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Score/Footer info -->
+        <div id="minigame-status" style="width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-family: monospace; font-size: 1.2rem; color: #ffd700; background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); box-sizing: border-box;">
+            <span id="minigame-score" style="text-shadow: 0 0 8px rgba(255,215,0,0.4);">Puntos: 0</span>
+            <span id="minigame-goal" style="color: #a0a0b0;">Meta: 300</span>
+        </div>
+    </div>
 
     <!-- Toast de actualización disponible -->
     <div id="update-toast" class="update-toast hidden">

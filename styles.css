@@ -1362,3 +1362,26 @@ body.theme-ivan .update-toast-emoji {
     from { text-shadow: 0 0 2px var(--color-primary); }
     to { text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-accent); }
 }
+
+/* =========================================
+   ESTILOS Y ANIMACIONES DE MINIJUEGOS (DÍA 3)
+   ========================================= */
+@keyframes gameBounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+}
+
+@keyframes gamePulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 153, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(0, 255, 153, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 153, 0); }
+}
+
+#minigame-outro-emoji {
+    animation: gameBounce 0.8s infinite alternate ease-in-out;
+}
+
+#btn-submit-minigame {
+    animation: gamePulse 2s infinite ease-in-out;
+}
+

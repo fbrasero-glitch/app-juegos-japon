@@ -3628,6 +3628,40 @@ Object.assign(MISSIONS_CONFIG, {
         }
     },
 
+    "day_8_kid9_rake": {
+        tag: "game",
+        day: 8,
+        title: "El Rastrillo del Jardinero",
+        role: "kid9",
+        xp: 20,
+        location: "Tenryu-ji",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🎋 El Rastrillo del Jardinero 🎋</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Dibuja ondas de arena zen con el dedo sobre el jardín simulado de Tenryu-ji.</p>
+                
+                <div style="background:#e8dcc4; border:2px solid #8b5a2b; position:relative; width:100%; height:200px; margin:0 auto; margin-bottom:15px; border-radius:10px; overflow:hidden;">
+                    <canvas id="zen-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;"></canvas>
+                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.7); z-index:5;">
+                        <span style="font-size:3rem; margin-bottom:10px;">🎋🌊</span>
+                        <p style="font-size:0.85rem; color:#8d6e63; font-weight:bold; margin:0;">El Rastrillo Zen interactivo se jugará a pantalla completa.</p>
+                    </div>
+                </div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; background:#8d6e63; border-color:#8d6e63; font-weight:bold; border-radius:20px;">🎮 Abrir Jardín Zen</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                if (window.MinigamesManager && typeof window.MinigamesManager.launch === 'function') {
+                    window.MinigamesManager.launch('day_8_kid9_rake');
+                } else {
+                    submitMission('day_8_kid9_rake', {type:'game', data:'Jardín zen completado'}, role);
+                }
+            });
+        }
+    },
+
     "day_8_fam_squad": {
         tag: "photo",
         day: 8,

@@ -173,39 +173,38 @@ Use esta guía para entender el objetivo de cada juego, las mecánicas técnicas
 
 ---
 
-### 4. 🎙️ Melodía Subterránea
-* **Ubicación:** 📍 *Metro*
+### 4. 📸 Safari Fotográfico: Destino Osaka
+* **Ubicación:** 📍 *Taxi / Osaka*
 * **Explorador:** 🦊 Laura (9 años)
-* **Experiencia:** `+20 XP`
+* **Experiencia:** `+25 XP`
 * **ID de Sistema:** `day_2_melody`
 
 > **Descripción de la Misión:**
-> Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala! 🎤 Grabar 5s
+> >>> SAFARI FOTOGRÁFICO. Captura con fotos 8 hitos de tu trayecto en taxi desde el aeropuerto Kansai (KIX) hasta el hotel: 1. Aeropuerto KIX, 2. El Vehículo de taxi, 3. Selfie grupal de los pasajeros, 4. El taxímetro al arrancar, 5. El gran puente colgante, 6. El skyline de entrada a la metrópolis, 7. Un neón urbano de la calle y 8. La fachada del hotel de llegada. ¡Completa los 8 slots Polaroid para transmitir el reporte!
 
 
 ---
 
-### 5. ⚡ Mapeo del Laberinto
-* **Ubicación:** 📍 *Metro*
+### 5. ⚡ Ruta del Taxi: Destino Osaka
+* **Ubicación:** 📍 *Taxi / Osaka*
 * **Explorador:** 🐉 Iván (14 años)
 * **Experiencia:** `+20 XP`
 * **ID de Sistema:** `day_2_maze`
 
 > **Descripción de la Misión:**
-> >>> INFILTRACIÓN SUBTERRÁNEA. Cronometra cuánto tardáis desde que bajáis del tren hasta salir a la calle pisando la acera. ENVIAR REPORTE
+> >>> RUTA DE TAXI. Conduce el taxi 🚕 por las calles de Osaka desde el aeropuerto de Kansai (KIX) hasta el hotel 🏨. Evita las obras y atascos, y recoge al menos un plato de Takoyaki 🐙 para la cena por el camino. En el hotel, transmite tu reporte.
 
 
 ---
 
-### 6. ✍️ Kanjis de Emergencia
-* **Ubicación:** 📍 *Metro*
+### 6. ⚡ Neon Circuit Router: Dōtonbori
+* **Ubicación:** 📍 *Dōtonbori / Osaka*
 * **Explorador:** 🐉 Iván (14 años)
 * **Experiencia:** `+15 XP`
 * **ID de Sistema:** `day_2_kanji`
-* **Hardware/UI:** *✍️ Requiere respuesta textual escrita.*
 
 > **Descripción de la Misión:**
-> >>> BUSCANDO SALIDA DE EMERGENCIA (非常口). Escribe en tu teclado exactamente la palabra en rōmaji o español que significa salida. TRANSMITIR
+> >>> ROUTER DE NEÓN. Conecta los generadores de energía ⚡ a través de los tubos giratorios de neón para encender los 5 carteles gigantes de Dōtonbori (🦀, 🐙, 🏃, 🐡, 🏮). Una vez completada la red, transmite la decodificación.
 
 
 ---
@@ -222,26 +221,26 @@ Use esta guía para entender el objetivo de cada juego, las mecánicas técnicas
 
 ---
 
-### 8. ⚡ Protocolo Shōgun
-* **Ubicación:** 📍 *Calles*
+### 8. 📸 Safari Fotográfico: Destino Osaka
+* **Ubicación:** 📍 *Taxi / Osaka*
 * **Explorador:** 🐉 Iván (14 años)
 * **Experiencia:** `+25 XP`
 * **ID de Sistema:** `day_2_shogun`
 
 > **Descripción de la Misión:**
-> >>> MODO GUÍA: ON. Guía a la familia desde la estación hasta el hotel o restaurante objetivo usando un mapa local de la estación, sin que los padres usen Google Maps. Misión Completada (El Juez confirmará)
+> >>> SAFARI FOTOGRÁFICO. Captura con fotos 8 hitos de tu trayecto en taxi desde el aeropuerto Kansai (KIX) hasta el hotel: 1. Aeropuerto KIX, 2. El Vehículo de taxi, 3. Selfie grupal de los pasajeros, 4. El taxímetro al arrancar, 5. El gran puente colgante, 6. El skyline de entrada a la metrópolis, 7. Un neón urbano de la calle y 8. La fachada del hotel de llegada. ¡Completa los 8 slots Polaroid para transmitir el reporte!
 
 
 ---
 
-### 9. 📸 Coleccionista de Eki-Stamps
-* **Ubicación:** 📍 *Estaciones*
-* **Explorador:** 👨‍👩‍👧‍👦 Conjunta (Familia)
+### 9. 🛌 Sintonizador de Sueño Zen
+* **Ubicación:** 📍 *Hotel / Osaka*
+* **Explorador:** 👨‍👩‍👧‍👦 Ambos (Iván y Laura)
 * **Experiencia:** `+15 XP`
 * **ID de Sistema:** `day_2_ekistamp`
 
 > **Descripción de la Misión:**
-> Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta. 📸 Tomar Foto
+> ¡Desafío especial para vencer el jetlag! Sintoniza el ruido marrón en la frecuencia delta de 500 Hz usando el dial deslizante para desacelerar a las 8 ovejas revoltosas. Haz clic en las ovejas para dormirlas y escuchar dulces notas de marimba pentatónica. Una vez dormidas las 8 ovejas, pregunta a tu padre (si eres Iván) o a tu madre (si eres Laura) qué técnica utilizarán esta noche para conciliar el sueño y regístrala para enviar el reporte.
 
 
 ---

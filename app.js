@@ -211,7 +211,20 @@ function showAlert(title, message) {
     document.getElementById('alert-title').innerText = title;
     document.getElementById('alert-message').innerText = message;
     document.getElementById('alert-modal').classList.remove('hidden');
+    
+    // Si hay una misión en curso y se muestra un error, fallo o advertencia, incrementamos el contador de intentos
+    if (window._missionStartTime) {
+        const t = title.toLowerCase();
+        const m = message.toLowerCase();
+        const keywords = ['error', 'fallo', 'incorrecto', 'intentos', 'fallaste', 'revisa', 'de nuevo', 'inválido'];
+        const hasKeyword = keywords.some(k => t.includes(k) || m.includes(k));
+        if (hasKeyword) {
+            window._missionAttempts = (window._missionAttempts || 1) + 1;
+            console.log(`Intento de misión fallido detectado. Total intentos: ${window._missionAttempts}`);
+        }
+    }
 }
+
 
 document.getElementById('btn-alert-ok').addEventListener('click', () => {
     document.getElementById('alert-modal').classList.add('hidden');
@@ -324,9 +337,15 @@ function launchSakuraParticles() { launchConfetti(); }
 function launchMatrixCode() { launchConfetti(); }
 function getPendingMissions() {
     const pending = [];
+    if (!gameState) return pending;
     ['kid9', 'kid14'].forEach(kid => {
+        if (!gameState[kid] || !gameState[kid].missions) return;
         Object.keys(gameState[kid].missions).forEach(mId => {
-            if (gameState[kid].missions[mId].status === 'pending') {
+            if (gameState[kid].missions[mId] && gameState[kid].missions[mId].status === 'pending') {
+                if (!MISSIONS_CONFIG[mId]) {
+                    console.warn(`Mission config not found for key: ${mId}. Skipping to prevent crashes.`);
+                    return;
+                }
                 pending.push({
                     kid: kid,
                     missionId: mId,
@@ -338,6 +357,7 @@ function getPendingMissions() {
     });
     return pending;
 }
+
 
 // ==========================================
 // 4. CONTROLADORES UI Y ENRUTAMIENTO
@@ -540,6 +560,12 @@ function renderDayMissions(role, dayNum, missionKeys) {
 function renderMissionDetail(missionId, role) {
     // Limpiar recursos de la misión anterior (AudioContext, GPS, timers...)
     if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
+    
+    // Iniciar contadores para medir intentos y tiempo empleado
+    window._missionStartTime = Date.now();
+    window._missionAttempts = 1;
+    console.log(`Misión iniciada: ${missionId}. Temporizador e intentos reiniciados.`);
+
     const conf = MISSIONS_CONFIG[missionId];
     const container = document.getElementById('mission-content');
     
@@ -557,40 +583,117 @@ function renderMissionDetail(missionId, role) {
         `;
     }
 
+    const day3MissionsLaura = ['day_3_glico', 'day_3_ninja', 'day_3_bridge', 'day_3_umeda', 'day_3_reflect'];
+    const day3MissionsIvan = ['day_3_architect', 'day_3_neon', 'day_3_rush', 'day_3_flow', 'day_3_reflect'];
+    const day4MissionsIvan = ['day_4_knife', 'day_4_500yen', 'day_4_isshinji', 'day_4_tracker', 'day_4_yakiniku'];
+    const day4MissionsLaura = ['day_4_bestiary', 'day_4_gachapon', 'day_4_vending_roulette', 'day_4_crab', 'day_4_yakiniku'];
+    const day5MissionsLaura = ['day_5_gymnast', 'day_5_mochi', 'day_5_monk', 'day_5_deer_galaxy', 'day_5_ribbon'];
+    const day5MissionsIvan = ['day_5_investor', 'day_5_mochi', 'day_5_zen', 'day_5_engineer', 'day_5_guardian'];
+    const day6MissionsLaura = ['day_6_evasion', 'day_6_seal', 'day_6_clouds', 'day_6_ninja_steps', 'day_6_clan'];
+    const day6MissionsIvan = ['day_6_tactical', 'day_6_edict', 'day_6_time_travel', 'day_6_ring', 'day_6_clan'];
+    const day7MissionsLaura = ['day_7_kimono', 'day_7_kintsugi', 'day_7_tea', 'day_7_stone_guardian', 'day_7_geisha'];
+    const day7MissionsIvan = ['day_7_structural', 'day_7_survival', 'day_7_anti_quake', 'day_7_stairs', 'day_7_geisha'];
+    const day8MissionsLaura = ['day_8_kid9_rake', 'day_8_kid9_pose', 'day_8_kid9_wind', 'day_8_kid9_bamboo_clock', 'day_8_kid9_giants', 'day_8_kid9_monk', 'day_8_fam_squad'];
+    const day8MissionsIvan = ['day_8_kid14_wave_sync', 'day_8_kid14_bosque', 'day_8_kid14_arashiyama', 'day_8_fam_squad'];
+    const day9MissionsLaura = ['day_9_kid9_scratch', 'day_9_kid9_zorros', 'day_9_kid9_altar', 'day_9_fam_portal'];
+    const day9MissionsIvan = ['day_9_kid14_torii', 'day_9_kid14_gravity', 'day_9_kid14_angulo', 'day_9_kid14_ave', 'day_9_kid14_tunnel', 'day_9_fam_portal'];
+    const day10MissionsLaura = ['day_10_kid9_bento', 'day_10_kid9_nishiki', 'day_10_kid9_dragon', 'day_10_kid9_rainbow', 'day_10_kid9_matcha', 'day_10_fam_sayonara'];
+    const day10MissionsIvan = ['day_10_kid14_crypto', 'day_10_kid14_milla', 'day_10_kid14_tako', 'day_10_fam_sayonara'];
+
+    const isMinigameMission = (role === 'kid9' && (day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) || day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) || day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId))) || 
+                              (role === 'kid14' && (day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) || day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) || day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId)));
+
+    let minigameButtonHtml = '';
+    if (isMinigameMission) {
+        minigameButtonHtml = `
+            <div class="minigame-promo-card" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, rgba(255, 123, 84, 0.15) 0%, rgba(255, 154, 158, 0.05) 100%); border: 2px solid var(--color-primary); border-radius: var(--radius-main); text-align: center; box-shadow: var(--shadow-soft);">
+                <span style="font-size: 1.6rem; display: block; margin-bottom: 5px;">🎮 ¡Bonus de Juego!</span>
+                <p style="margin: 0 0 12px 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">Al finalizar esta prueba jugarás automáticamente. O practica ahora haciendo clic aquí:</p>
+                <button id="btn-replay-minigame-direct" class="btn-secondary" style="width:100%; background: #ff7b54; border-color: #ff7b54; color: white; font-weight: bold; border-radius: 20px; box-shadow: 0 4px 10px rgba(255,123,84,0.25); cursor:pointer;">🎮 Jugar Minijuego (Entrenamiento)</button>
+            </div>
+        `;
+    }
+
     container.innerHTML = `
         <h2 class="mission-title">${conf.title}</h2>
         <div style="text-align:center; color:var(--color-accent); margin-bottom:15px; font-weight:bold;">📍 ${conf.location || 'Cualquier lugar'}</div>
         ${warningHtml}
+        ${minigameButtonHtml}
         ${conf.render(role)}
     `;
     switchView('view-mission', true, "Misión");
     conf.attachEvents(role);
+
+    if (isMinigameMission) {
+        const btnReplay = document.getElementById('btn-replay-minigame-direct');
+        if (btnReplay) {
+            btnReplay.addEventListener('click', () => {
+                window.pendingSubmission = null; // No submit upon win
+                if (window.MinigamesManager && typeof window.MinigamesManager.launch === 'function') {
+                    window.MinigamesManager.launch(missionId);
+                }
+            });
+        }
+    }
 }
 
-function submitMission(missionId, submissionData, role = currentUser, isFamily = false) {
+function submitMission(missionId, submissionData, role = currentUser, isFamily = false, bypassMinigame = false) {
     const mState = gameState[role].missions[missionId];
-    if (mState && mState.status === 'approved') {
-        showAlert('Prueba Completada', 'Has terminado de repetir la prueba. Recuerda que ya fue puntuada y no volverá a enviarse al juez.');
-        renderDayMissions(role, currentDay, currentDayMissions);
-        return;
+        const day3MissionsLaura = ['day_3_glico', 'day_3_ninja', 'day_3_bridge', 'day_3_umeda', 'day_3_reflect'];
+    const day3MissionsIvan = ['day_3_architect', 'day_3_neon', 'day_3_rush', 'day_3_flow', 'day_3_reflect'];
+    const day4MissionsIvan = ['day_4_knife', 'day_4_500yen', 'day_4_isshinji', 'day_4_tracker', 'day_4_yakiniku'];
+    const day4MissionsLaura = ['day_4_bestiary', 'day_4_gachapon', 'day_4_vending_roulette', 'day_4_crab', 'day_4_yakiniku'];
+    const day5MissionsLaura = ['day_5_gymnast', 'day_5_mochi', 'day_5_monk', 'day_5_deer_galaxy', 'day_5_ribbon'];
+    const day5MissionsIvan = ['day_5_investor', 'day_5_mochi', 'day_5_zen', 'day_5_engineer', 'day_5_guardian'];
+    const day6MissionsLaura = ['day_6_evasion', 'day_6_seal', 'day_6_clouds', 'day_6_ninja_steps', 'day_6_clan'];
+    const day6MissionsIvan = ['day_6_tactical', 'day_6_edict', 'day_6_time_travel', 'day_6_ring', 'day_6_clan'];
+    const day7MissionsLaura = ['day_7_kimono', 'day_7_kintsugi', 'day_7_tea', 'day_7_stone_guardian', 'day_7_geisha'];
+    const day7MissionsIvan = ['day_7_structural', 'day_7_survival', 'day_7_anti_quake', 'day_7_stairs', 'day_7_geisha'];
+    const day8MissionsLaura = ['day_8_kid9_rake', 'day_8_kid9_pose', 'day_8_kid9_wind', 'day_8_kid9_bamboo_clock', 'day_8_kid9_giants', 'day_8_kid9_monk', 'day_8_fam_squad'];
+    const day8MissionsIvan = ['day_8_kid14_wave_sync', 'day_8_kid14_bosque', 'day_8_kid14_arashiyama', 'day_8_fam_squad'];
+    const day9MissionsLaura = ['day_9_kid9_scratch', 'day_9_kid9_zorros', 'day_9_kid9_altar', 'day_9_fam_portal'];
+    const day9MissionsIvan = ['day_9_kid14_torii', 'day_9_kid14_gravity', 'day_9_kid14_angulo', 'day_9_kid14_ave', 'day_9_kid14_tunnel', 'day_9_fam_portal'];
+    const day10MissionsLaura = ['day_10_kid9_bento', 'day_10_kid9_nishiki', 'day_10_kid9_dragon', 'day_10_kid9_rainbow', 'day_10_kid9_matcha', 'day_10_fam_sayonara'];
+    const day10MissionsIvan = ['day_10_kid14_crypto', 'day_10_kid14_milla', 'day_10_kid14_tako', 'day_10_fam_sayonara'];
+
+    const isMinigameMission = (role === 'kid9' && (day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) || day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) || day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId))) || 
+                              (role === 'kid14' && (day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) || day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) || day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId)));
+
+    if (isMinigameMission && !bypassMinigame) {
+        window.pendingSubmission = { missionId, submissionData, role, isFamily };
+        if (window.MinigamesManager && typeof window.MinigamesManager.launch === 'function') {
+            window.MinigamesManager.launch(missionId);
+            return;
+        }
     }
+
+    const timeTaken = window._missionStartTime ? Math.round((Date.now() - window._missionStartTime) / 1000) : null;
+    const attempts = window._missionAttempts || 1;
+
+    const enrichedSubmission = {
+        ...submissionData,
+        attempts: attempts,
+        timeTaken: timeTaken,
+        timestamp: new Date().toISOString()
+    };
 
     if (isFamily) {
         // Misión conjunta: marcar pending para AMBOS perfiles inmediatamente
-        const submission = { ...submissionData, timestamp: new Date().toISOString() };
         ['kid9', 'kid14'].forEach(kid => {
             if (gameState[kid].missions[missionId]) {
                 gameState[kid].missions[missionId].status = 'pending';
-                gameState[kid].missions[missionId].submission = submission;
+                gameState[kid].missions[missionId].submission = enrichedSubmission;
             }
         });
     } else {
         gameState[role].missions[missionId].status = 'pending';
-        gameState[role].missions[missionId].submission = {
-            ...submissionData,
-            timestamp: new Date().toISOString()
-        };
+        gameState[role].missions[missionId].submission = enrichedSubmission;
     }
+
+    // Limpiar contadores globales
+    window._missionStartTime = null;
+    window._missionAttempts = 1;
+
     saveState();
     showAlert('Enviado', '¡Tu misión ha sido enviada al Juez Supremo!');
     renderDayMissions(role, currentDay, currentDayMissions);
@@ -646,6 +749,113 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
 // 5. PANEL DEL JUEZ
 // ==========================================
 
+function generateJudgeGuide(p) {
+    const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
+    const isKid9 = p.kid === 'kid9';
+    
+    // 1. Explicación de la prueba según su tag
+    let explanation = '';
+    const tag = p.config ? p.config.tag : 'generic';
+    switch (tag) {
+        case 'photo':
+            explanation = 'Esta es una prueba de fotografía. El niño debe localizar un elemento en Japón y capturarlo. Evalúa si la foto corresponde a lo pedido.';
+            break;
+        case 'audio':
+            explanation = 'Esta es una prueba de grabación de sonido. El niño debe capturar el sonido del entorno. Reproduce el audio o pide que te lo muestren.';
+            break;
+        case 'writing':
+            explanation = 'Esta es una prueba escrita. El niño debe dar una respuesta corta, un cálculo aproximado o reflexionar sobre lo observado.';
+            break;
+        case 'sensors':
+            explanation = 'Esta es una prueba física validada por sensores (orientación del dispositivo, movimiento, giroscopio, etc.). El sistema se valida al completarla.';
+            break;
+        case 'versus':
+            explanation = 'Esta es una prueba competitiva o minijuego físico de reflejos. El niño debe completar una meta física o reto familiar.';
+            break;
+        case 'economy':
+            explanation = 'Esta es una prueba económica o de cálculo matemático. Consiste en contar monedas, calcular importes o realizar sumas.';
+            break;
+        case 'game':
+            explanation = 'Esta es una prueba lógica o puzzle interactivo digital jugado y completado en el propio dispositivo.';
+            break;
+        default:
+            explanation = 'Esta es una prueba general. Evalúa la respuesta enviada para asegurar que se ha completado la tarea con honestidad.';
+    }
+
+    // 2. Respuesta esperada sugerida
+    let expected = '';
+    if (p.config && p.config.correctAnswer) {
+        expected = p.config.correctAnswer;
+    } else {
+        switch (tag) {
+            case 'photo':
+                expected = 'Una fotografía nítida e inequívoca del objeto, cartel o vista solicitada.';
+                break;
+            case 'audio':
+                expected = 'Una grabación de audio limpia donde se perciba el sonido correspondiente (ej. agua, semáforo, voz).';
+                break;
+            case 'writing':
+                expected = 'Una respuesta escrita coherente con la pregunta que demuestre que el explorador ha investigado.';
+                break;
+            case 'sensors':
+                expected = 'Que el sistema de orientación/GPS del móvil haya verificado los parámetros (umbral, distancia, etc.).';
+                break;
+            case 'game':
+                expected = 'El puzzle lógico o juego completado en pantalla (validación automática).';
+                break;
+            default:
+                expected = 'Verificar que la tarea se haya realizado según las reglas de la misión.';
+        }
+    }
+
+    // 3. Comentarios graciosos y dinámicos para el niño
+    const suggestions = [];
+    const attempts = p.data.submission.attempts || 1;
+    const timeTaken = p.data.submission.timeTaken;
+    
+    // Emojis específicos
+    const emoji = isKid9 ? '🦊' : '🐉';
+    
+    // Sugerencias basadas en intentos
+    if (attempts === 1) {
+        suggestions.push(`"¡Impresionante, ${kidName}! Lo has clavado a la primera. ¡Tienes el foco de un auténtico ninja! ${emoji}🎯"`);
+    } else if (attempts > 1 && attempts < 4) {
+        suggestions.push(`"¡Buena constancia, ${kidName}! Te costó ${attempts} intentos, pero el tesón de un samurái siempre da frutos. ${emoji}⚔️"`);
+    } else {
+        suggestions.push(`"¡Eso es persistencia, ${kidName}! ${attempts} intentos demuestran que no te rindes ante ningún reto. ${emoji}🔥"`);
+    }
+
+    // Sugerencias basadas en velocidad (si existe)
+    if (timeTaken !== null && timeTaken !== undefined) {
+        if (timeTaken < 15) {
+            suggestions.push(`"¡Has resuelto esta prueba a velocidad de tren bala Shinkansen! (${timeTaken} segundos). 🚅💨"`);
+        } else if (timeTaken > 120) {
+            const minutes = Math.floor(timeTaken / 60);
+            suggestions.push(`"Has actuado con la paciencia Zen de un maestro del té (${minutes} min de concentración). 🧘‍♂️🍵"`);
+        } else {
+            suggestions.push(`"Buen ritmo y equilibrio entre velocidad y destreza, digno de un maestro artesano. 🎋✨"`);
+        }
+    }
+
+    // Sugerencias por tipo de prueba
+    if (tag === 'photo') {
+        suggestions.push(`"¡Menudo encuadre! Esta foto merece guardarse en el álbum imperial de Japón. 📸⛩️"`);
+    } else if (tag === 'audio') {
+        suggestions.push(`"¡Excelente captura acústica! Escuchar este sonido nos transporta de lleno al lugar. 🎧🎙️"`);
+    } else if (tag === 'writing') {
+        suggestions.push(`"¡Excelente razonamiento! Tus palabras tienen la sabiduría de un pergamino antiguo. 📜💡"`);
+    }
+
+    // Comentario extra
+    suggestions.push(`"¡Misión aprobada con honor! Reclama tu recompensa y prepárate para la siguiente aventura. 🌸🗻"`);
+
+    return {
+        explanation: explanation,
+        expectedAnswer: expected,
+        suggestions: suggestions
+    };
+}
+
 async function renderJudgePanel() {
     currentUser = 'judge';
     const list = document.getElementById('pending-missions-list');
@@ -658,77 +868,185 @@ async function renderJudgePanel() {
     }
 
     for (const p of pendings) {
-        const card = document.createElement('div');
-        card.className = 'card submission-item';
-        
-        const kidName = gameState[p.kid].name;
-        let dataHtml = '';
+        try {
+            const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
+            let dataHtml = '';
 
-        if (p.data.submission.type === 'number' || p.data.submission.type === 'text') {
-            dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
-        } else if (p.data.submission.type === 'photo') {
-            const photoData = await getPhotoFromDB(p.data.submission.data);
-            dataHtml = `<img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px;">`;
-        } else if (p.data.submission.type === 'video' || p.data.submission.type === 'audio') {
-            dataHtml = `<b>Evidencia Multimedia:</b> ${p.data.submission.data}`;
-        } else if (p.data.submission.type === 'game') {
-            dataHtml = `<b>Resultado de la Prueba:</b> ${p.data.submission.data}`;
-        } else if (p.data.submission.type === 'photo_choice') {
-            const photoData = await getPhotoFromDB(p.data.submission.data.photoId);
-            dataHtml = `
-                <img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-bottom:10px;"><br>
-                <b>Elección:</b> ${p.data.submission.data.choice}
-            `;
-        } else if (p.data.submission.type === 'mixed') {
-            let parts = p.data.submission.data.split('. Foto ID: ');
-            if (parts.length === 1) parts = p.data.submission.data.split('. Foto: ');
-            
-            if (parts.length > 1) {
-                const photoData = await getPhotoFromDB(parts[parts.length - 1]);
-                const textData = parts.slice(0, -1).join('. ');
-                dataHtml = `<b>${textData}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; margin-top:10px;">`;
-            } else {
-                dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
+            if (!p.data || !p.data.submission) {
+                console.warn(`Submission data missing for mission: ${p.missionId}`);
+                continue;
             }
-        } else if (p.data.submission.type === 'family') {
-            dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
-        }
-        
-        if (p.config.correctAnswer) {
-            dataHtml += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--color-gray-light);">
-                <b style="color: var(--color-accent);">💡 Respuesta Esperada:</b><br>
-                <span style="font-size: 0.9rem; color: var(--color-gray-dark);">${p.config.correctAnswer}</span>
-            </div>`;
-        }
 
-        let actionsHtml = `
-            <button class="btn-reject" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
-            <button class="btn-approve" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
-        `;
+            // Renderizar la información de la respuesta
+            if (p.data.submission.type === 'number' || p.data.submission.type === 'text') {
+                dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
+            } else if (p.data.submission.type === 'photo') {
+                const photoData = await getPhotoFromDB(p.data.submission.data);
+                dataHtml = `<img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea;">`;
+            } else if (p.data.submission.type === 'photos') {
+                let imgHtml = '';
+                const ids = p.data.submission.data;
+                const labels = [
+                    "1. Aeropuerto KIX", "2. El Vehículo", "3. Pasajeros", "4. Taxímetro",
+                    "5. Gran Puente", "6. Entrada Ciudad", "7. Los Neones", "8. Llegada Osaka"
+                ];
+                if (Array.isArray(ids)) {
+                    for (let i = 0; i < ids.length; i++) {
+                        const photoData = ids[i] ? await getPhotoFromDB(ids[i]) : null;
+                        if (photoData) {
+                            imgHtml += `
+                                <div style="flex: 1 1 22%; min-width: 90px; margin: 6px; text-align: center; border: 1px solid #cbd5e1; padding: 4px; background: #f8fafc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                    <img src="${photoData}" alt="${labels[i]}" style="width:100%; border-radius:4px; max-height: 90px; object-fit: cover; background: #eaeaea;">
+                                    <div style="font-size:0.6rem; color:#475569; font-weight:bold; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${labels[i]}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+                dataHtml = `<div style="display:flex; flex-wrap:wrap; justify-content:center; background:#f1f5f9; padding:8px; border-radius:8px;">${imgHtml}</div>`;
+            } else if (p.data.submission.type === 'video' || p.data.submission.type === 'audio') {
+                dataHtml = `<b>Evidencia Multimedia:</b> ${p.data.submission.data}`;
+            } else if (p.data.submission.type === 'game') {
+                dataHtml = `<b>Resultado de la Prueba:</b> ${p.data.submission.data}`;
+            } else if (p.data.submission.type === 'photo_choice') {
+                const photoData = await getPhotoFromDB(p.data.submission.data.photoId);
+                dataHtml = `
+                    <img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-bottom:10px;"><br>
+                    <b>Elección:</b> ${p.data.submission.data.choice}
+                `;
+            } else if (p.data.submission.type === 'mixed') {
+                let parts = p.data.submission.data.split('. Foto ID: ');
+                if (parts.length === 1) parts = p.data.submission.data.split('. Foto: ');
+                
+                if (parts.length > 1) {
+                    const photoData = await getPhotoFromDB(parts[parts.length - 1]);
+                    const textData = parts.slice(0, -1).join('. ');
+                    dataHtml = `<b>${textData}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-top:10px;">`;
+                } else {
+                    dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
+                }
+            } else if (p.data.submission.type === 'family') {
+                dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
+            }
 
-        if (p.missionId === 'day_5_gymnast') {
-            actionsHtml = `
-            <div style="width:100%; margin-bottom:10px; background:var(--color-black); border-radius:10px; padding:10px;">
-                <p style="text-align:center; font-size:0.9rem; margin-bottom:5px;">Puntuación de Estilo Extra:</p>
-                <div style="display:flex; justify-content:space-between; gap:5px;">
-                    <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#cd7f32; color:#cd7f32;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 5}, false)">🥉 +5</button>
-                    <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#c0c0c0; color:#c0c0c0;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 10}, false)">🥈 +10</button>
-                    <button class="btn-primary" style="flex:1; font-size:0.8rem; padding:5px; background:#ffd700; color:#000;" onclick="approveMission('${p.kid}', '${p.missionId}', ${p.config.xp + 15}, false)">🥇 +15</button>
+            // Calcular métricas
+            const timeTaken = p.data.submission.timeTaken;
+            let formattedTime = 'No medido';
+            if (timeTaken !== null && timeTaken !== undefined) {
+                if (timeTaken < 60) {
+                    formattedTime = `${timeTaken} segundos`;
+                } else {
+                    const mins = Math.floor(timeTaken / 60);
+                    const secs = timeTaken % 60;
+                    formattedTime = `${mins}m ${secs}s`;
+                }
+            }
+
+            const attempts = p.data.submission.attempts || 1;
+            let attemptsText = `${attempts} intento`;
+            if (attempts === 1) {
+                attemptsText += ' (¡A la primera! 🎯)';
+            } else {
+                attemptsText = `${attempts} intentos`;
+            }
+
+            // Generar la guía y comentarios dinámicos
+            const guide = generateJudgeGuide(p);
+            const missionXP = p.config ? p.config.xp : 15;
+
+            let actionsHtml = `
+                <button class="btn-reject" style="flex: 1;" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
+                <button class="btn-approve" style="flex: 1;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
+            `;
+
+            if (p.missionId === 'day_5_gymnast') {
+                actionsHtml = `
+                <div style="width:100%; margin-bottom:10px; background:var(--color-black); border-radius:10px; padding:10px;">
+                    <p style="text-align:center; font-size:0.9rem; margin-bottom:5px; color: white;">Puntuación de Estilo Extra:</p>
+                    <div style="display:flex; justify-content:space-between; gap:5px;">
+                        <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#cd7f32; color:#cd7f32;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 5}, false)">🥉 +5</button>
+                        <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#c0c0c0; color:#c0c0c0;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 10}, false)">🥈 +10</button>
+                        <button class="btn-primary" style="flex:1; font-size:0.8rem; padding:5px; background:#ffd700; color:#000;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 15}, false)">🥇 +15</button>
+                    </div>
                 </div>
-            </div>
-            ` + actionsHtml;
-        }
+                ` + actionsHtml;
+            }
 
-        card.innerHTML = `
-            <div class="card-title">${p.config.title}</div>
-            <div class="submission-meta">👤 ${kidName} | 📅 Día ${p.config.day} | 📍 ${p.config.location || 'N/A'}</div>
-            <div class="submission-data">${dataHtml}</div>
-            <div class="judge-actions" style="flex-wrap:wrap;">
-                ${actionsHtml}
-            </div>
-        `;
-        list.appendChild(card);
+            const card = document.createElement('div');
+            card.className = 'card submission-item';
+            card.style.borderLeft = '5px solid var(--color-primary)';
+            card.style.padding = '18px';
+            card.style.marginBottom = '20px';
+            card.style.position = 'relative';
+
+            card.innerHTML = `
+                <!-- Cabecera de la Tarjeta -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
+                    <div>
+                        <div class="card-title" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; color: var(--color-primary); text-align: left;">
+                            ${p.config ? p.config.title : p.missionId}
+                        </div>
+                        <div style="font-size: 0.82rem; color: var(--color-gray-dark); text-align: left;">
+                            👤 <strong>${kidName}</strong> | 📅 Día ${p.config ? p.config.day : 'N/A'} | 📍 ${p.config ? (p.config.location || 'N/A') : 'N/A'}
+                        </div>
+                    </div>
+                    <div style="background: var(--color-primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; white-space: nowrap;">
+                        +${missionXP} XP
+                    </div>
+                </div>
+
+                <!-- Guía e Instrucción de Evaluación -->
+                <div style="background: rgba(141, 110, 99, 0.05); border: 1px solid rgba(141, 110, 99, 0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; text-align: left; line-height: 1.4;">
+                    <div style="font-weight: 900; color: var(--color-primary-dark); margin-bottom: 2px;">📖 Qué evalúas:</div>
+                    <p style="margin: 0; opacity: 0.95; color: #3e2723;">${guide.explanation}</p>
+                    <div style="font-weight: 900; color: var(--color-accent); margin-top: 8px; margin-bottom: 2px;">💡 Respuesta correcta esperada:</div>
+                    <p style="margin: 0; font-style: italic; opacity: 0.95; color: #5d4037;">${guide.expectedAnswer}</p>
+                </div>
+
+                <!-- Métricas de Rendimiento -->
+                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                    <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                        <div style="font-size: 1.1rem; margin-bottom: 2px;">⏱️</div>
+                        <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Tiempo Empleado</div>
+                        <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${formattedTime}</div>
+                    </div>
+                    <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                        <div style="font-size: 1.1rem; margin-bottom: 2px;">🎯</div>
+                        <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Intentos</div>
+                        <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${attemptsText}</div>
+                    </div>
+                </div>
+
+                <!-- Evidencia Entregada -->
+                <div style="background: white; border: 1px solid #efebe9; border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                    <div style="font-size: 0.78rem; font-weight: bold; text-transform: uppercase; color: var(--color-primary-dark); margin-bottom: 8px; border-bottom: 1px solid #f5f2f0; padding-bottom: 4px; letter-spacing: 0.3px;">📥 Evidencia del explorador:</div>
+                    <div style="font-size: 0.95rem; color: #3e2723; word-break: break-word;">${dataHtml}</div>
+                </div>
+
+                <!-- Sugerencias de Feedback Interactivas -->
+                <div style="background: #fafafa; border: 1px dashed var(--color-primary); border-radius: 10px; padding: 12px; margin-bottom: 18px; text-align: left;">
+                    <div style="font-weight: bold; color: var(--color-primary-dark); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; letter-spacing: 0.3px;">
+                        <span>💬</span> Sugerencias de Feedback (clic para copiar):
+                    </div>
+                    <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #5d4037; display: flex; flex-direction: column; gap: 8px;">
+                        ${guide.suggestions.map(s => {
+                            const escapedVal = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            return `<li style="line-height: 1.4; cursor: pointer; padding: 3px 0; transition: color 0.15s;" onclick="navigator.clipboard.writeText('${escapedVal}'); showAlert('Copiado', '¡Comentario copiado al portapapeles!');" title="Haz clic para copiar">${s} 📋</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="judge-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    ${actionsHtml}
+                </div>
+            `;
+            list.appendChild(card);
+        } catch (err) {
+            console.error(`Error rendering pending mission ${p.missionId}:`, err);
+        }
     }
+
 
     const rewardsList = document.getElementById('pending-rewards-list');
     if (rewardsList) {
@@ -834,6 +1152,38 @@ document.getElementById('btn-judge-login').addEventListener('click', () => {
         renderJudgePanel();
     } else {
         showAlert('Error', 'PIN incorrecto');
+    }
+});
+
+document.getElementById('btn-judge-reset-all').addEventListener('click', () => {
+    if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. Esta acción es irreversible.")) {
+        // 1. Limpiar localStorage
+        localStorage.removeItem('japanMissionsState');
+        
+        // 2. Limpiar base de datos IndexedDB de multimedia
+        if (window.indexedDB) {
+            try {
+                const DB_NAME = 'JapanTravelDB';
+                const req = indexedDB.deleteDatabase(DB_NAME);
+                req.onsuccess = () => {
+                    console.log("IndexedDB eliminada correctamente.");
+                    location.reload();
+                };
+                req.onerror = () => {
+                    console.error("Error al eliminar IndexedDB.");
+                    location.reload();
+                };
+                req.onblocked = () => {
+                    console.warn("Borrado bloqueado temporalmente. Recargando igualmente.");
+                    location.reload();
+                };
+            } catch (err) {
+                console.error("Error durante el borrado de IndexedDB:", err);
+                location.reload();
+            }
+        } else {
+            location.reload();
+        }
     }
 });
 
@@ -1608,3 +1958,103 @@ if (btnUpdateClose) {
         if (toast) toast.classList.add('hidden');
     });
 }
+
+// ==========================================
+// 5. AUDIO SINTETIZADOR PROCEDIMENTAL Y UTILIDADES
+// ==========================================
+window.playProceduralSound = function(type) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+        
+        const playTone = (freq, start, duration, oscType = 'sine', gainVal = 0.1) => {
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = oscType;
+            osc.frequency.setValueAtTime(freq, start);
+            
+            gainNode.gain.setValueAtTime(0, start);
+            gainNode.gain.linearRampToValueAtTime(gainVal, start + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            osc.start(start);
+            osc.stop(start + duration);
+            return { osc, gain: gainNode };
+        };
+        
+        if (type === 'click') {
+            playTone(800, now, 0.05, 'triangle', 0.15);
+        } else if (type === 'success') {
+            playTone(523.25, now, 0.12, 'sine', 0.1);       // C5
+            playTone(659.25, now + 0.06, 0.12, 'sine', 0.1);  // E5
+            playTone(783.99, now + 0.12, 0.12, 'sine', 0.1);  // G5
+            playTone(1046.50, now + 0.18, 0.25, 'sine', 0.15); // C6
+        } else if (type === 'error') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(90, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } else if (type === 'jump') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.15);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        } else if (type === 'collect') {
+            playTone(987.77, now, 0.08, 'sine', 0.15); // B5
+            playTone(1318.51, now + 0.04, 0.2, 'sine', 0.15); // E6
+        } else if (type === 'damage') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(250, now);
+            osc.frequency.linearRampToValueAtTime(60, now + 0.2);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.2);
+        } else if (type === 'rotate') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(350, now);
+            osc.frequency.linearRampToValueAtTime(550, now + 0.08);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } else if (type === 'win') {
+            playTone(523.25, now, 0.2, 'sine', 0.1);
+            playTone(659.25, now + 0.05, 0.2, 'sine', 0.1);
+            playTone(783.99, now + 0.1, 0.2, 'sine', 0.1);
+            playTone(987.77, now + 0.15, 0.25, 'sine', 0.1);
+            playTone(1046.50, now + 0.2, 0.6, 'sine', 0.15);
+        }
+    } catch (e) {
+        console.warn("Fallo en sonido procedimental:", e);
+    }
+};

@@ -80,23 +80,22 @@
 📝 Instrucciones: Regla de oro nipona: Silencio y respeto en el metro. Mantente 2 minutos totalmente inmóvil, sentado o bien sujeto, sin hablar. Iniciar Crono Zen 120s
 -----------------------------------------------------------
 
-[Misión 4] 🎙️ Melodía Subterránea
-📍 Ubicación: Metro
-👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +20 XP | Code: day_2_melody
-📝 Instrucciones: Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala! 🎤 Grabar 5s
+[Misión 4] 📸 Safari Fotográfico: Destino Osaka
+📍 Ubicación: Taxi / Osaka
+👤 Rol: 🦊 Laura (9 años) | 🏆 XP: +25 XP | Code: day_2_melody
+📝 Instrucciones: >>> SAFARI FOTOGRÁFICO. Toma 8 fotos durante tu trayecto en taxi desde KIX hasta el hotel (aeropuerto, coche de taxi, pasajeros, taxímetro, puente, entrada a la ciudad, neones y hotel de llegada). Completa las 8 Polaroids para transmitir el reporte.
 -----------------------------------------------------------
 
-[Misión 5] ⚡ Mapeo del Laberinto
-📍 Ubicación: Metro
+[Misión 5] ⚡ Ruta del Taxi: Destino Osaka
+📍 Ubicación: Taxi / Osaka
 👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +20 XP | Code: day_2_maze
-📝 Instrucciones: >>> INFILTRACIÓN SUBTERRÁNEA. Cronometra cuánto tardáis desde que bajáis del tren hasta salir a la calle pisando la acera. ENVIAR REPORTE
+📝 Instrucciones: >>> RUTA DE TAXI. Conduce el taxi 🚕 por las calles de Osaka desde el aeropuerto de Kansai (KIX) hasta el hotel 🏨. Evita las obras y atascos, y recoge al menos un plato de Takoyaki 🐙 para la cena por el camino. En el hotel, transmite tu reporte.
 -----------------------------------------------------------
 
-[Misión 6] ✍️ Kanjis de Emergencia
-📍 Ubicación: Metro
+[Misión 6] ⚡ Neon Circuit Router: Dōtonbori
+📍 Ubicación: Dōtonbori / Osaka
 👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +15 XP | Code: day_2_kanji
-⚙️ Sensor: ✍️ Requiere respuesta textual escrita.
-📝 Instrucciones: >>> BUSCANDO SALIDA DE EMERGENCIA (非常口). Escribe en tu teclado exactamente la palabra en rōmaji o español que significa salida. TRANSMITIR
+📝 Instrucciones: >>> ROUTER DE NEÓN. Conecta los generadores de energía ⚡ a través de los tubos giratorios de neón para encender los 5 carteles gigantes de Dōtonbori (🦀, 🐙, 🏃, 🐡, 🏮) y transmite la decodificación.
 -----------------------------------------------------------
 
 [Misión 7] 💰 Auditoría de Vending
@@ -105,16 +104,16 @@
 📝 Instrucciones: >>> Observa una máquina de bebidas estándar. ¿Cuánto cuesta la botella de agua mineral estándar (normalmente Suntory o similar)? ENVIAR
 -----------------------------------------------------------
 
-[Misión 8] ⚡ Protocolo Shōgun
-📍 Ubicación: Calles
+[Misión 8] 📸 Safari Fotográfico: Destino Osaka
+📍 Ubicación: Taxi / Osaka
 👤 Rol: 🐉 Iván (14 años) | 🏆 XP: +25 XP | Code: day_2_shogun
-📝 Instrucciones: >>> MODO GUÍA: ON. Guía a la familia desde la estación hasta el hotel o restaurante objetivo usando un mapa local de la estación, sin que los padres usen Google Maps. Misión Completada (El Juez confirmará)
+📝 Instrucciones: >>> SAFARI FOTOGRÁFICO. Toma 8 fotos durante tu trayecto en taxi desde KIX hasta el hotel (aeropuerto, coche de taxi, pasajeros, taxímetro, puente, entrada a la ciudad, neones y hotel de llegada). Completa las 8 Polaroids para transmitir el reporte.
 -----------------------------------------------------------
 
-[Misión 9] 📸 Coleccionista de Eki-Stamps
-📍 Ubicación: Estaciones
-👤 Rol: 👨‍👩‍👧‍👦 Conjunta (Familia) | 🏆 XP: +15 XP | Code: day_2_ekistamp
-📝 Instrucciones: Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta. 📸 Tomar Foto
+[Misión 9] 🛌 Sintonizador de Sueño Zen
+📍 Ubicación: Hotel / Osaka
+👤 Rol: 👨‍👩‍👧‍👦 Ambos (Iván y Laura) | 🏆 XP: +15 XP | Code: day_2_ekistamp
+📝 Instrucciones: Juego anti-jetlag. Sintoniza el ruido marrón en la frecuencia delta (500 Hz) con el slider para calmar y ralentizar a las 8 ovejas. Haz clic en ellas para dormirlas y escuchar campanas de marimba pentatónica. Al final, escribe la técnica que usará tu padre (Iván) o tu madre (Laura) para dormir esta noche y envía el reporte.
 -----------------------------------------------------------
 
 --- DÍA 3 ---

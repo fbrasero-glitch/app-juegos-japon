@@ -94,11 +94,11 @@ Esta guía contiene el itinerario táctico y las misiones interactivas para el v
 
 ---
 
-### ⚡ Melodía Subterránea
+### 📸 Safari Fotográfico: Destino Osaka
 - **Rol:** 🦊 Explorador de 9 (Kid)
 - **XP:** `25 XP`
-- **Ubicación:** 📍 Metro
-- **Misión:** Cuando suene la melodía de la estación, ¡pulsa el botón y graba 5 segundos!
+- **Ubicación:** 📍 Taxi / Osaka
+- **Misión:** Haz un fotorreportaje de 8 hitos clave durante el trayecto en taxi desde KIX hasta el hotel (aeropuerto, coche de taxi, pasajeros, taxímetro, puente colgante, entrada a la ciudad, neones de las calles y fachada del hotel). Completa las 8 Polaroids para transmitir el reporte.
 
 ---
 
@@ -110,27 +110,27 @@ Esta guía contiene el itinerario táctico y las misiones interactivas para el v
 
 ---
 
-### ❓ Protocolo Shōgun
-- **Rol:** 🐉 Navegante de 14 (Teen)
-- **XP:** `20 XP`
-- **Ubicación:** 📍 Metro / Tren
-- **Misión:** Guía a la familia al hotel.
-
----
-
-### ⚡ Mapeo del Laberinto
-- **Rol:** 🐉 Navegante de 14 (Teen)
-- **XP:** `20 XP`
-- **Ubicación:** 📍 Metro
-- **Misión:** >>> SIGUE LOS CARTELES AMARILLOS DE SALIDA. SIN GPS. 00:00 INICIAR EXTRACCIÓN LLEGAMOS A LA CALLE Enviar Reporte
-
----
-
-### ⚡ Kanjis de Emergencia
+### 📸 Safari Fotográfico: Destino Osaka
 - **Rol:** 🐉 Navegante de 14 (Teen)
 - **XP:** `25 XP`
-- **Ubicación:** 📍 Metro
-- **Misión:** >>> Localiza la SALIDA DE EMERGENCIA (非常口). Dibuja los 3 kanjis. 非 常 口 BORRAR TRANSMITIR
+- **Ubicación:** 📍 Taxi / Osaka
+- **Misión:** Haz un fotorreportaje de 8 hitos clave durante el trayecto en taxi desde KIX hasta el hotel (aeropuerto, coche de taxi, pasajeros, taxímetro, puente colgante, entrada a la ciudad, neones de las calles y fachada del hotel). Completa las 8 Polaroids para transmitir el reporte.
+
+---
+
+### ⚡ Ruta del Taxi: Destino Osaka
+- **Rol:** 🐉 Navegante de 14 (Teen)
+- **XP:** `20 XP`
+- **Ubicación:** 📍 Taxi / Osaka
+- **Misión:** >>> RUTA DE TAXI. Conduce el taxi 🚕 esquivando obstáculos de tráfico y recoge al menos un Takoyaki 🐙 antes de llegar al hotel 🏨.
+
+---
+
+### ⚡ Neon Circuit Router: Dōtonbori
+- **Rol:** 🐉 Navegante de 14 (Teen)
+- **XP:** `15 XP`
+- **Ubicación:** 📍 Dōtonbori / Osaka
+- **Misión:** >>> ROUTER DE NEÓN. Conecta los generadores ⚡ a través de los tubos giratorios de neón para encender los 5 carteles gigantes de Dōtonbori (🦀, 🐙, 🏃, 🐡, 🏮).
 
 ---
 
@@ -142,11 +142,11 @@ Esta guía contiene el itinerario táctico y las misiones interactivas para el v
 
 ---
 
-### 📸 Coleccionista de Eki-Stamps
-- **Rol:** 👨‍👩‍👧‍👦 Conjunta
+### 🛌 Sintonizador de Sueño Zen
+- **Rol:** 👨‍👩‍👧‍👦 Ambos
 - **XP:** `15 XP`
-- **Ubicación:** 📍 Estaciones
-- **Misión:** Busca el sello de la estación.
+- **Ubicación:** 📍 Hotel / Osaka
+- **Misión:** Sintoniza el ruido marrón en la frecuencia delta (500 Hz) con el slider para calmar y ralentizar a las 8 ovejas. Toca cada una para dormirlas (sonarán notas de marimba pentatónica). Al final, responde qué técnica usará tu padre (Iván) o tu madre (Laura) para dormir esta noche frente al jetlag.
 
 ---
 
