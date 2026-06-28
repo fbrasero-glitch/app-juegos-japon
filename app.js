@@ -599,9 +599,40 @@ function renderMissionDetail(missionId, role) {
     const day9MissionsIvan = ['day_9_kid14_torii', 'day_9_kid14_gravity', 'day_9_kid14_angulo', 'day_9_kid14_ave', 'day_9_kid14_tunnel', 'day_9_fam_portal'];
     const day10MissionsLaura = ['day_10_kid9_bento', 'day_10_kid9_nishiki', 'day_10_kid9_dragon', 'day_10_kid9_rainbow', 'day_10_kid9_matcha', 'day_10_fam_sayonara'];
     const day10MissionsIvan = ['day_10_kid14_crypto', 'day_10_kid14_milla', 'day_10_kid14_tako', 'day_10_fam_sayonara'];
+    const day11MissionsLaura = ['day_11_onsen', 'day_11_tea', 'day_11_yukata', 'day_11_tatami', 'day_11_geta'];
+    const day11MissionsIvan = ['day_11_kaiseki', 'day_11_spring', 'day_11_architecture', 'day_11_economy', 'day_11_geta'];
+    const day12MissionsLaura = ['day_12_silence', 'day_12_sugidama', 'day_12_wood', 'day_12_hida', 'day_12_bridge'];
+    const day12MissionsIvan = ['day_12_carving', 'day_12_sake', 'day_12_patrol', 'day_12_appraisal', 'day_12_bridge'];
+    const day13MissionsLaura = ['day_13_stairs', 'day_13_manhole', 'day_13_icecream', 'day_13_yokai', 'day_13_oishi'];
+    const day13MissionsIvan = ['day_13_perspective', 'day_13_tunnels', 'day_13_volcano', 'day_13_triangulation', 'day_13_oishi'];
+    const day14MissionsLaura = ['day_14_rock', 'day_14_kid9_echo', 'day_14_root', 'day_14_compass', 'day_14_oxygen'];
+    const day14MissionsIvan = ['day_14_radar', 'day_14_pressure', 'day_14_altimeter', 'day_14_kid14_echo', 'day_14_oxygen'];
+    const day15MissionsLaura = ['day_15_waterfall', 'day_15_thatch', 'day_15_fish', 'day_15_shogun', 'day_15_dragon'];
+    const day15MissionsIvan = ['day_15_deity', 'day_15_honcho', 'day_15_flow', 'day_15_roof', 'day_15_dragon'];
+    const day16MissionsLaura = ['day_16_cat', 'day_16_skyscraper', 'day_16_colors', 'day_16_traffic', 'day_16_tocho'];
+    const day16MissionsIvan = ['day_16_vortex', 'day_16_combat', 'day_16_shinjuku', 'day_16_density', 'day_16_tocho'];
+    const day17MissionsLaura = ['day_17_omikuji', 'day_17_incense', 'day_17_gashapon', 'day_17_p2p_receiver', 'day_17_sumida'];
+    const day17MissionsIvan = ['day_17_retro', 'day_17_skytree', 'day_17_p2p_sender', 'day_17_height', 'day_17_sumida'];
+    const day18MissionsLaura = ['day_18_shibuya', 'day_18_hachiko', 'day_18_ema', 'day_18_crepe', 'day_18_crossing'];
+    const day18MissionsIvan = ['day_18_radio', 'day_18_trend', 'day_18_flow', 'day_18_silence', 'day_18_crossing'];
+    const day19MissionsLaura = ['day_19_gundam', 'day_19_color', 'day_19_teamlab', 'day_19_liberty', 'day_19_immersive'];
+    const day19MissionsIvan = ['day_19_crypto', 'day_19_mirrors', 'day_19_weight', 'day_19_monorail', 'day_19_immersive'];
 
-    const isMinigameMission = (role === 'kid9' && (day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) || day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) || day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId))) || 
-                              (role === 'kid14' && (day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) || day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) || day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId)));
+    const isMinigameMission = (role === 'kid9' && (
+        day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) ||
+        day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) ||
+        day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId) || day11MissionsLaura.includes(missionId) ||
+        day12MissionsLaura.includes(missionId) || day13MissionsLaura.includes(missionId) || day14MissionsLaura.includes(missionId) ||
+        day15MissionsLaura.includes(missionId) || day16MissionsLaura.includes(missionId) || day17MissionsLaura.includes(missionId) ||
+        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId)
+    )) || (role === 'kid14' && (
+        day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) ||
+        day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) ||
+        day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId) || day11MissionsIvan.includes(missionId) ||
+        day12MissionsIvan.includes(missionId) || day13MissionsIvan.includes(missionId) || day14MissionsIvan.includes(missionId) ||
+        day15MissionsIvan.includes(missionId) || day16MissionsIvan.includes(missionId) || day17MissionsIvan.includes(missionId) ||
+        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId)
+    ));
 
     let minigameButtonHtml = '';
     if (isMinigameMission) {
@@ -655,9 +686,40 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
     const day9MissionsIvan = ['day_9_kid14_torii', 'day_9_kid14_gravity', 'day_9_kid14_angulo', 'day_9_kid14_ave', 'day_9_kid14_tunnel', 'day_9_fam_portal'];
     const day10MissionsLaura = ['day_10_kid9_bento', 'day_10_kid9_nishiki', 'day_10_kid9_dragon', 'day_10_kid9_rainbow', 'day_10_kid9_matcha', 'day_10_fam_sayonara'];
     const day10MissionsIvan = ['day_10_kid14_crypto', 'day_10_kid14_milla', 'day_10_kid14_tako', 'day_10_fam_sayonara'];
+    const day11MissionsLaura = ['day_11_onsen', 'day_11_tea', 'day_11_yukata', 'day_11_tatami', 'day_11_geta'];
+    const day11MissionsIvan = ['day_11_kaiseki', 'day_11_spring', 'day_11_architecture', 'day_11_economy', 'day_11_geta'];
+    const day12MissionsLaura = ['day_12_silence', 'day_12_sugidama', 'day_12_wood', 'day_12_hida', 'day_12_bridge'];
+    const day12MissionsIvan = ['day_12_carving', 'day_12_sake', 'day_12_patrol', 'day_12_appraisal', 'day_12_bridge'];
+    const day13MissionsLaura = ['day_13_stairs', 'day_13_manhole', 'day_13_icecream', 'day_13_yokai', 'day_13_oishi'];
+    const day13MissionsIvan = ['day_13_perspective', 'day_13_tunnels', 'day_13_volcano', 'day_13_triangulation', 'day_13_oishi'];
+    const day14MissionsLaura = ['day_14_rock', 'day_14_kid9_echo', 'day_14_root', 'day_14_compass', 'day_14_oxygen'];
+    const day14MissionsIvan = ['day_14_radar', 'day_14_pressure', 'day_14_altimeter', 'day_14_kid14_echo', 'day_14_oxygen'];
+    const day15MissionsLaura = ['day_15_waterfall', 'day_15_thatch', 'day_15_fish', 'day_15_shogun', 'day_15_dragon'];
+    const day15MissionsIvan = ['day_15_deity', 'day_15_honcho', 'day_15_flow', 'day_15_roof', 'day_15_dragon'];
+    const day16MissionsLaura = ['day_16_cat', 'day_16_skyscraper', 'day_16_colors', 'day_16_traffic', 'day_16_tocho'];
+    const day16MissionsIvan = ['day_16_vortex', 'day_16_combat', 'day_16_shinjuku', 'day_16_density', 'day_16_tocho'];
+    const day17MissionsLaura = ['day_17_omikuji', 'day_17_incense', 'day_17_gashapon', 'day_17_p2p_receiver', 'day_17_sumida'];
+    const day17MissionsIvan = ['day_17_retro', 'day_17_skytree', 'day_17_p2p_sender', 'day_17_height', 'day_17_sumida'];
+    const day18MissionsLaura = ['day_18_shibuya', 'day_18_hachiko', 'day_18_ema', 'day_18_crepe', 'day_18_crossing'];
+    const day18MissionsIvan = ['day_18_radio', 'day_18_trend', 'day_18_flow', 'day_18_silence', 'day_18_crossing'];
+    const day19MissionsLaura = ['day_19_gundam', 'day_19_color', 'day_19_teamlab', 'day_19_liberty', 'day_19_immersive'];
+    const day19MissionsIvan = ['day_19_crypto', 'day_19_mirrors', 'day_19_weight', 'day_19_monorail', 'day_19_immersive'];
 
-    const isMinigameMission = (role === 'kid9' && (day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) || day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) || day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId))) || 
-                              (role === 'kid14' && (day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) || day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) || day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId)));
+    const isMinigameMission = (role === 'kid9' && (
+        day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) ||
+        day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) ||
+        day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId) || day11MissionsLaura.includes(missionId) ||
+        day12MissionsLaura.includes(missionId) || day13MissionsLaura.includes(missionId) || day14MissionsLaura.includes(missionId) ||
+        day15MissionsLaura.includes(missionId) || day16MissionsLaura.includes(missionId) || day17MissionsLaura.includes(missionId) ||
+        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId)
+    )) || (role === 'kid14' && (
+        day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) ||
+        day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) ||
+        day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId) || day11MissionsIvan.includes(missionId) ||
+        day12MissionsIvan.includes(missionId) || day13MissionsIvan.includes(missionId) || day14MissionsIvan.includes(missionId) ||
+        day15MissionsIvan.includes(missionId) || day16MissionsIvan.includes(missionId) || day17MissionsIvan.includes(missionId) ||
+        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId)
+    ));
 
     if (isMinigameMission && !bypassMinigame) {
         window.pendingSubmission = { missionId, submissionData, role, isFamily };
@@ -1859,7 +1921,7 @@ async function checkAppUpdates(isManual = false) {
     }
 
     try {
-        const localRes = await fetch('./sw.js');
+        const localRes = await fetch('./sw.js?t=' + Date.now());
         if (!localRes.ok) throw new Error('No se pudo acceder al Service Worker local.');
         const localText = await localRes.text();
         const localVersion = getVersionFromText(localText);
@@ -1874,8 +1936,8 @@ async function checkAppUpdates(isManual = false) {
             versionLabel.innerText = `Versión actual: v${localVersion}`;
         }
 
-        // Usamos la rama master detectada localmente
-        const githubRes = await fetch('https://raw.githubusercontent.com/fbrasero-glitch/app-juegos-japon/master/sw.js');
+        // Usamos la rama master detectada localmente con cache-buster
+        const githubRes = await fetch('https://raw.githubusercontent.com/fbrasero-glitch/app-juegos-japon/master/sw.js?t=' + Date.now());
         if (!githubRes.ok) throw new Error('No se pudo conectar con GitHub.');
         const githubText = await githubRes.text();
         const githubVersion = getVersionFromText(githubText);

@@ -4,6 +4,20 @@
  * Custom built for Laura's Day 3.
  */
 
+function lerp(start, end, amt) {
+    return (1 - amt) * start + amt * end;
+}
+
+function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+}
+
+function playProceduralSound(type) {
+    if (window.playProceduralSound) {
+        window.playProceduralSound(type);
+    }
+}
+
 window.MinigamesManager = {
     activeGame: null,
     canvas: null,
@@ -71,6 +85,12 @@ window.MinigamesManager = {
         if (!this.canvas) return;
         this.canvas.width = 800;
         this.canvas.height = 600;
+        
+        // Mobile compatibility: prevent collapse and maintain exactly 4:3 on all screens
+        const container = document.getElementById('minigame-container');
+        if (container && container.clientWidth > 0) {
+            container.style.height = (container.clientWidth * 0.75) + 'px';
+        }
     },
 
     getCanvasCoords(e) {
@@ -125,6 +145,9 @@ window.MinigamesManager = {
         document.getElementById('view-minigame').classList.remove('hidden');
         document.getElementById('minigame-intro').classList.remove('hidden');
         document.getElementById('minigame-outro').classList.add('hidden');
+        
+        // Recalculate container size now that it has been shown and has layout clientWidth
+        this.resizeCanvas();
         
         const config = this.getGameConfig(missionId);
         this.goal = config.goal;
@@ -736,6 +759,184 @@ window.MinigamesManager = {
                     goal: 6,
                     color: "#ff8a80"
                 };
+            // DIA 11
+            case 'day_11_onsen':
+                return { title: "El Código Onsen ♨️🧼", emoji: "♨️", instructions: "¡Ducha a Laura frotando la suciedad y ajusta las válvulas (caliente izquierda, fría derecha) para mantener la temperatura entre 40°C y 42°C!", goal: 100, color: "#4facfe" };
+            case 'day_11_tea':
+                return { title: "El Té Intacto 🍵⚖️", emoji: "🍵", instructions: "Mueve el dedo/ratón para equilibrar la bandeja de matcha. ¡Evita que el tazón se caiga con las ráfagas de viento!", goal: 100, color: "#8a9a5b" };
+            case 'day_11_yukata':
+                return { title: "Cazadora de Yukatas 👘🔎", emoji: "👘", instructions: "Toca únicamente a las personas que lleven yukatas tradicionales. ¡Cuidado con los turistas y los traviesos monos!", goal: 10, color: "#f50057" };
+            case 'day_11_tatami':
+                return { title: "La Textura del Tatami 🟫🧩", emoji: "🟫", instructions: "Cubre toda la habitación arrastrando los tatamis (2x1). Toca un tatami para rotarlo. Evita solapamientos.", goal: 1, color: "#d2b48c" };
+            case 'day_11_kaiseki':
+                return { title: "Catador de Kaiseki 🍱🧠", emoji: "🍱", instructions: "Memoria Kaiseki: observa el orden de los platos tradicionales y, cuando desaparezcan, colócalos en la posición correcta.", goal: 3, color: "#ff9100" };
+            case 'day_11_spring':
+                return { title: "Rastreador de Manantiales 📡🔥", emoji: "📡", instructions: "Pulsa en el mapa de Okuhida para enviar señales de sonar. Encuentra los 3 puntos de calor volcánico.", goal: 3, color: "#00e676" };
+            case 'day_11_architecture':
+                return { title: "Arquitectura Termal 🎋💧", emoji: "🎋", instructions: "Une las tuberías de bambú rotándolas para hacer fluir el agua termal de la cascada hacia el baño de madera.", goal: 1, color: "#4db6ac" };
+            case 'day_11_economy':
+                return { title: "Economía Alpina 💰🏪", emoji: "💰", instructions: "Ryokan Tycoon: compra carbón para las calderas y hospeda a los clientes rápidamente para ganar 1000¥.", goal: 1000, color: "#ffd700" };
+            case 'day_11_geta':
+                return { title: "El Equilibrio del Yukata 👣👡", emoji: "👣", instructions: "Toca los pies alternativamente siguiendo el ritmo y mantén la aguja de equilibrio al centro.", goal: 40, color: "#8d6e63" };
+            // DIA 12
+            case 'day_12_silence':
+                return { title: "Silencio de los Kami 😴🌲", emoji: "🌲", instructions: "Mantén pulsado para correr. Suelta cuando los picos de sonido suban o cuando pases cerca de un Kami durmiente.", goal: 200, color: "#2e7d32" };
+            case 'day_12_sugidama':
+                return { title: "La Bola de Cedro 🟤✂️", emoji: "🟤", instructions: "Recorta el arbusto de cedro para darle una forma esférica perfecta. Poda las hojas salientes.", goal: 95, color: "#795548" };
+            case 'day_12_wood':
+                return { title: "Detective de Madera 🐅🧩", emoji: "🐅", instructions: "Restaura la talla de madera tradicional de Takayama rotando las piezas hasta revelar el relieve animal.", goal: 2, color: "#8d6e63" };
+            case 'day_12_hida':
+                return { title: "Degustadora de Hida 🥩🔥", emoji: "🥩", instructions: "Cocina Wagyu de Hida. Coloca en la parrilla, voltéalas cuando estén doradas y sírvelas en su punto exacto.", goal: 5, color: "#ff3d00" };
+            case 'day_12_carving':
+                return { title: "Talla en Madera 🪓木", emoji: "🪓", instructions: "Cincela el tronco golpeándolo para esculpir la forma del kanji sagrado de la madera: 木.", goal: 85, color: "#5c4033" };
+            case 'day_12_sake':
+                return { title: "Maestro Destilador 🍶🌡️", emoji: "🍶", instructions: "Recoge arroz y levadura con tu cuba y controla las válvulas de vapor para fermentar el sake en su temperatura ideal.", goal: 20, color: "#3f51b5" };
+            case 'day_12_patrol':
+                return { title: "Patrulla Sanmachi Suji 🚲🛢️", emoji: "🚲", instructions: "Esquiva barriles y obstáculos en tu bicicleta cambiando de carril, y limpia las calles feudales de Takayama.", goal: 500, color: "#455a64" };
+            case 'day_12_appraisal':
+                return { title: "Tasador Feudal ⚖️🏡", emoji: "🏡", instructions: "Coloca las monedas Koban en la balanza para tasar correctamente el coste de restauración del patrimonio.", goal: 3, color: "#ffb300" };
+            case 'day_12_bridge':
+                return { title: "Cruzando el Miyagawa 🌉 logs", emoji: "🌉", instructions: "Miyagawa Crossing: ayuda a Laura e Iván a saltar sobre los troncos flotantes hasta llegar a la otra orilla.", goal: 1, color: "#e53935" };
+            // DIA 13
+            case 'day_13_stairs':
+                return { title: "La Escalada Chureito ⛩️🏃‍♀️", emoji: "⛩️", instructions: "Sube los 398 escalones hacia la Pagoda. Salta grietas y monos que tiran piñas (toca dos veces para doble salto).", goal: 398, color: "#00b0ff" };
+            case 'day_13_manhole':
+                return { title: "El Sello del Lago 🎨🎨", emoji: "🎨", instructions: "Colorea la alcantarilla de Kawaguchiko. Moja tu rodillo y pinta cada sección con su esmalte correspondiente.", goal: 100, color: "#ab47bc" };
+            case 'day_13_icecream':
+                return { title: "Helados Exóticos 🍦🗼", emoji: "🍦", instructions: "Apila bolas de helado de wasabi y lavanda en el cono. Mantén el centro de gravedad alineado para no caer.", goal: 6, color: "#f06292" };
+            case 'day_13_yokai':
+                return { title: "Filtro de Yōkai 👻🔎", emoji: "👻", instructions: "Mueve tu visor espectral para revelar a los Yokai invisibles en el bosque y tócalos para sellarlos.", goal: 5, color: "#7c4dff" };
+            case 'day_13_perspective':
+                return { title: "Perspectiva del Gigante 🗻🧍", emoji: "🗻", instructions: "Ajusta la posición y zoom de la foto para alinear a Laura con el Monte Fuji y lograr un efecto óptico.", goal: 90, color: "#00ffff" };
+            case 'day_13_tunnels':
+                return { title: "Navegantes del Asfalto 🚗⚡", emoji: "🚗", instructions: "Conduce por la autopista del Fuji. Esquiva barreras en la oscuridad y recoge cargas de batería de neón.", goal: 3, color: "#1de9b6" };
+            case 'day_13_volcano':
+                return { title: "Análisis Vulcanológico 🌋🎈", emoji: "🌋", instructions: "Pop/elimina las burbujas de gas en la cámara de magma y abre las válvulas para que la presión no llegue al 100%.", goal: 30, color: "#d50000" };
+            case 'day_13_triangulation':
+                return { title: "Triangulación del Fuji 📡💻", emoji: "📡", instructions: "Ajusta las antenas de los 3 satélites para que sus haces de microondas confluyan exactamente en la cima del Fuji.", goal: 1, color: "#2979ff" };
+            case 'day_13_oishi':
+                return { title: "Oishi Park en Flor 🌸📸", emoji: "🌸", instructions: "Espera a que se vayan las nubes del Fuji y cruce una mariposa para tomar la foto perfecta del parque en flor.", goal: 80, color: "#7cb342" };
+            
+            // DIA 14
+            case 'day_14_rock':
+                return { title: "Buscador de Magma 🌋🪨", emoji: "🪨", instructions: "Arrastra las piedras volcánicas a los contenedores superiores del mismo color (Amarillo, Naranja, Gris). ¡Evita tocar las burbujas de gas de azufre!", goal: 10, color: "#ff5722" };
+            case 'day_14_kid9_echo':
+                return { title: "Eco del Silencio 🌲🤫", emoji: "🤫", instructions: "Toca las zonas boscosas para silenciar y absorber la onda de sonido antes de que llegue al final.", goal: 8, color: "#2e7d32" };
+            case 'day_14_root':
+                return { title: "Raíces del Guardián 🌳🌱", emoji: "🌱", instructions: "Dibuja el camino de la raíz para recoger las 3 esferas de agua y llegar al suelo fértil. ¡Esquiva rocas y lava!", goal: 1, color: "#81c784" };
+            case 'day_14_compass':
+                return { title: "Vuelo a la Cima 🗻🎈", emoji: "🎈", instructions: "Ajusta la brújula/dirección del viento para esquivar ráfagas y nubes de tormenta hasta alcanzar el cráter.", goal: 1500, color: "#00bcd4" };
+            case 'day_14_radar':
+                return { title: "Punto Ciego de Datos 📡🛰️", emoji: "🛰️", instructions: "Mueve tu nodo para ocultarte en las sombras de los edificios y evitar los haces de los satélites mientras descargas datos.", goal: 100, color: "#00ff99" };
+            case 'day_14_pressure':
+                return { title: "Presurizador Alpino 🎒🎈", emoji: "🎈", instructions: "Toca las moléculas de aire calientes (rojo brillante) para enfriarlas y estabilizar la presión de la bolsa de patatas antes de que explote.", goal: 20, color: "#ffd700" };
+            case 'day_14_altimeter':
+                return { title: "Hackeo de Altímetro 📟💻", emoji: "📟", instructions: "Ajusta las ondas de frecuencia para sintonizar el diferencial vertical exacto del Monte Fuji (1.476 metros).", goal: 3, color: "#00e5ff" };
+            case 'day_14_kid14_echo':
+                return { title: "Laberinto de Absorción 🥽🔇", emoji: "🔇", instructions: "Coloca paneles absorbentes para atrapar y amortiguar el sonido en el laberinto de Aokigahara antes de que rebote.", goal: 1, color: "#c8e6c9" };
+            case 'day_14_oxygen':
+                return { title: "Sincronía de Apnea 🫁⏱️", emoji: "🫁", instructions: "Toca la pantalla cuando ambos pulmones en expansión coincidan exactamente en la zona verde central para sincronizar el oxígeno familiar.", goal: 15, color: "#b2ebf2" };
+
+            // DIA 15
+            case 'day_15_waterfall':
+                return { title: "Arpa de Shiraito 🌊🎵", emoji: "🎵", instructions: "Desliza el dedo por las cuerdas de agua justo cuando las notas brillantes toquen la línea inferior para tocar la melodía.", goal: 15, color: "#00acc1" };
+            case 'day_15_thatch':
+                return { title: "Techador de Shirakawa 🏠🌾", emoji: "🌾", instructions: "Suelta los fardos de paja oscilantes para construir el tejado inclinado. ¡Mantén el equilibrio a ambos lados!", goal: 8, color: "#d2b48c" };
+            case 'day_15_fish':
+                return { title: "El Pez de Cristal 🐟💧", emoji: "🐟", instructions: "Toca el agua para crear ondas y guiar suavemente a los peces koi hacia las zonas seguras brillantes de agua cristalina.", goal: 4, color: "#e0f7fa" };
+            case 'day_15_shogun':
+                return { title: "Equilibrio del Shogun 👑🧘", emoji: "👑", instructions: "Laura Chibi debe meditar. Toca los objetos flotantes que caen para desviarlos y mantener el centro de gravedad del trono.", goal: 15, color: "#d4af37" };
+            case 'day_15_deity':
+                return { title: "Sello de los Cerezos 🌸⛩️", emoji: "⛩️", instructions: "Traza una línea continua conectando los pétalos flotantes en el orden de las letras K-O-N-O-H-A-N-A para romper el sello.", goal: 2, color: "#fbc02d" };
+            case 'day_15_honcho':
+                return { title: "Encuadre de Perspectiva 📏📷", emoji: "📷", instructions: "Mueve y rota los diales de la cámara para enfocar el Fuji y alinear perfectamente la perspectiva lineal de la calle Honcho.", goal: 100, color: "#ffffff" };
+            case 'day_15_flow':
+                return { title: "Control de Caudal 🚰🌊", emoji: "🚰", instructions: "Regula las compuertas de salida de los tanques para mantener el nivel de agua en el punto medio estable sin desbordarse.", goal: 15, color: "#009688" };
+            case 'day_15_roof':
+                return { title: "Ingeniería de Nieve ❄️🏘️", emoji: "❄️", instructions: "Ajusta la inclinación del tejado Gassho-zukuri para que la nieve resbale antes de que el peso colapse la estructura de paja.", goal: 20, color: "#81c784" };
+            case 'day_15_dragon':
+                return { title: "El Vuelo del Dragón 🐉🌊", emoji: "🐉", instructions: "Controla al dragón de Kawaguchiko manteniéndolo pulsado para ascender y soltándolo para descender. Recoge 15 gemas de fuego.", goal: 15, color: "#f57f17" };
+
+            // DIA 16
+            case 'day_16_cat':
+                return { title: "Linterna del Neko 🐱🏮", emoji: "🏮", instructions: "Guía el foco de tu linterna japonesa en los callejones oscuros y toca a los gatitos ocultos cuando parpadeen.", goal: 5, color: "#efebe9" };
+            case 'day_16_skyscraper':
+                return { title: "Ascensor de la Torre 🏢⚡", emoji: "🏢", instructions: "Impulsa el ascensor de cristal a izquierda y derecha con los propulsores para mantenerlo en el riel central contra el viento.", goal: 50, color: "#c8e6c9" };
+            case 'day_16_colors':
+                return { title: "Mezclador de Neón 🎨⚡", emoji: "⚡", instructions: "Inyecta las proporciones exactas de colores primarios (Rojo, Verde, Azul) en los tubos para conseguir el tono del cartel solicitado.", goal: 5, color: "#ff007f" };
+            case 'day_16_traffic':
+                return { title: "Cruce Shibuya 🚦🚶", emoji: "🚶", instructions: "Dibuja caminos seguros para los peatones y dales prisa para cruzar antes de que giren los taxis de Tokio.", goal: 12, color: "#ef5350" };
+            case 'day_16_vortex':
+                return { title: "Filtro Temporal 🌀⏰", emoji: "🌀", instructions: "Arrastra y rota el vórtice temporal para alinear la arquitectura tradicional de Edo con los edificios futuristas.", goal: 3, color: "#00ff99" };
+            case 'day_16_combat':
+                return { title: "Corte Kenjutsu ⚔️🤖", emoji: "⚔️", instructions: "Desliza el dedo por la pantalla imitando los cortes vectoriales indicados (tajos horizontales, verticales y diagonales).", goal: 10, color: "#00ffff" };
+            case 'day_16_shinjuku':
+                return { title: "Escape de Shinjuku 🚶🏢", emoji: "🚶", instructions: "Guía a tu grupo en el laberinto de la estación siguiendo las flechas amarillas y evitando la multitud contraria.", goal: 1, color: "#ffd700" };
+            case 'day_16_density':
+                return { title: "Contador Shibuya 👥📊", emoji: "📊", instructions: "Observa la multitud que cruza y selecciona la estimación de personas del color indicado.", goal: 5, color: "#81c784" };
+            case 'day_16_tocho':
+                return { title: "Constelación de Tokio 🌃⭐", emoji: "⭐", instructions: "Desde el mirador del Tocho, conecta las estrellas del cielo nocturno para dibujar las siluetas de monumentos tradicionales.", goal: 3, color: "#3f51b5" };
+
+            // DIA 17
+            case 'day_17_omikuji':
+                return { title: "Destino Omikuji ⛩️🔮", emoji: "🔮", instructions: "¡Agita la caja tradicional de madera! Arrastra/desliza la caja rápidamente a los lados para sacar los palos de la suerte. Si obtienes Mala Suerte, átalo al poste para ahuyentar la mala fortuna.", goal: 3, color: "#e53935" };
+            case 'day_17_incense':
+                return { title: "Humo de la Fortuna 💨✨", emoji: "✨", instructions: "¡Báñate en el humo sagrado del Jokoro! Mueve a Laura de lado a lado para recolectar las partículas de humo flotantes. Esquiva las cenizas rojas calientes.", goal: 100, color: "#78909c" };
+            case 'day_17_gashapon':
+                return { title: "Gashapon Perfecto 🎰🎁", emoji: "🎰", instructions: "¡Gira la manivela para conseguir cápsulas! Arrastra en círculos para rotar el dial 360 grados. Luego abre la cápsula para revelar tu figura coleccionable.", goal: 3, color: "#ec407a" };
+            case 'day_17_p2p_receiver':
+                return { title: "Sincronización P2P: Receptor 📡🛰️", emoji: "📡", instructions: "¡Captura los bits de datos! Mueve el receptor de izquierda a derecha para recoger las señales de colores que caen por los cables.", goal: 20, color: "#00e5ff" };
+            case 'day_17_retro':
+                return { title: "Arqueología Gamer 🎮👾", emoji: "👾", instructions: "¡Explora Super Potato! Limpia el polvo arrastrando sobre los cartuchos para encontrar los juegos de oro legendarios. ¡Cómpralos dentro de tu presupuesto!", goal: 3, color: "#ffd700" };
+            case 'day_17_skytree':
+                return { title: "Cervicales de Acero 🏢🌪️", emoji: "🏢", instructions: "¡Ascensor al cielo! Desliza horizontalmente para estabilizar el ascensor en la guía vertical contra los vientos huracanados. Esquiva obstáculos de la estructura.", goal: 634, color: "#03a9f4" };
+            case 'day_17_p2p_sender':
+                return { title: "Sincronización P2P: Emisor ⚡💻", emoji: "💻", instructions: "¡Conecta los nodos de datos! Arrastra cables de colores para unir los puertos de la red sin cruzarlos y transmite a máxima potencia.", goal: 3, color: "#00ff99" };
+            case 'day_17_height':
+                return { title: "Altura del Cielo 🔭📡", emoji: "🔭", instructions: "¡Calibra la Skytree! Gira las perillas analógicas (calibración gruesa y fina) para apuntar exactamente al emisor superior a 634 metros.", goal: 3, color: "#8e44ad" };
+            case 'day_17_sumida':
+                return { title: "Navegando el Sumida 🚢🌉", emoji: "🚢", instructions: "¡Conduce el Water Bus Himiko! Esquiva obstáculos en el río Sumida y navega exactamente bajo el centro de los puentes históricos.", goal: 4, color: "#009688" };
+
+            // DIA 18
+            case 'day_18_shibuya':
+                return { title: "La Marea Humana 👥📊", emoji: "👥", instructions: "¡Censo de Shibuya! Toca rápidamente sobre los peatones que lleven gafas de sol en el scramble crossing. ¡No te equivoques de peatón!", goal: 20, color: "#ff5722" };
+            case 'day_18_hachiko':
+                return { title: "Guardián Hachiko 🐕🌸", emoji: "🐕", instructions: "¡Mima a Hachiko! Acaricia su cabeza frotando suavemente y aparta la lluvia y las hojas otoñales que caen sobre él para mantenerlo feliz.", goal: 100, color: "#ffb74d" };
+            case 'day_18_ema':
+                return { title: "Deseo en el Ema ⛩️📜", emoji: "📜", instructions: "¡Cuelga la tablilla de los deseos! Toca cuando la tablilla oscilante esté perfectamente alineada con el gancho del altar del templo.", goal: 3, color: "#b57c1e" };
+            case 'day_18_crepe':
+                return { title: "Crepe de Harajuku 🥞🍓", emoji: "🥞", instructions: "¡Prepara un crepe gigante! Mueve el cono de lado a lado para apilar fresas, nata, helado y toppings. ¡Evita los ingredientes podridos!", goal: 15, color: "#f8bbd0" };
+            case 'day_18_radio':
+                return { title: "Intercepción de Radio 📻🌊", emoji: "📻", instructions: "¡Sintoniza la frecuencia! Arrastra los diales de Frecuencia y Amplitud para hacer coincidir tu onda de neón con la señal interceptada.", goal: 3, color: "#4db6ac" };
+            case 'day_18_trend':
+                return { title: "Cazatendencias 📸👗", emoji: "📸", instructions: "¡Reporte de Takeshita Street! Toma fotos de los transeúntes que lleven el estilo del target de moda en la esquina superior.", goal: 5, color: "#ec407a" };
+            case 'day_18_flow':
+                return { title: "Flujo del Cruce 🚦🚶", emoji: "🚦", instructions: "¡Controla Shibuya! Alterna los semáforos para evacuar peatones y coches. Dale prisa a los peatones lentos y evita accidentes.", goal: 50, color: "#e53935" };
+            case 'day_18_silence':
+                return { title: "Silencio en la Ciudad 🌲🤫", emoji: "🌲", instructions: "¡Protege el Santuario Meiji! Planta árboles protectores en el sendero para amortiguar y disolver las ondas de ruido urbano de la ciudad.", goal: 5, color: "#2e7d32" };
+            case 'day_18_crossing':
+                return { title: "Cruzando Shibuya 🚶💨", emoji: "🚶", instructions: "¡Guía a la familia! Cruza Shibuya Scramble esquivando la masa de transeúntes a contracorriente, paraguas y turistas.", goal: 1, color: "#78909c" };
+
+            // DIA 19
+            case 'day_19_gundam':
+                return { title: "Piloto de Mechas 🤖🎯", emoji: "🤖", instructions: "¡Defiende el Unicorn Gundam! Controla la retícula de la cabina táctica para fijar y destruir drones enemigos con pulsos láser.", goal: 15, color: "#3f51b5" };
+            case 'day_19_color':
+                return { title: "Cazador de Luz 🎨🔮", emoji: "🔮", instructions: "¡Colores de TeamLab! Observa el color de la sala y salta rápidamente sobre las columnas de luz del color correspondiente. ¡Evita colores incorrectos!", goal: 15, color: "#bb86fc" };
+            case 'day_19_teamlab':
+                return { title: "Sueños Digitales 🌸🦋", emoji: "🦋", instructions: "¡Arte digital interactivo! Pinta flores en la pantalla y toca las mariposas para que propaguen polen brillante de crecimiento fractal.", goal: 95, color: "#00e5ff" };
+            case 'day_19_liberty':
+                return { title: "La Libertad Nipona 🗽📏", emoji: "🗽", instructions: "¡Ilusión óptica de Odaiba! Ajusta la posición de la mano y el zoom del Rainbow Bridge para alinear la antorcha con tu dedo.", goal: 2, color: "#00acc1" };
+            case 'day_19_crypto':
+                return { title: "Desencriptar Protocolo 📟🔓", emoji: "🔓", instructions: "¡Hackea la interfaz del Gundam! Selecciona los bloques numéricos que caen para que sumen el valor de clave indicado en cada puerto.", goal: 4, color: "#00e676" };
+            case 'day_19_mirrors':
+                return { title: "Lógica de Iluminación 📐💡", emoji: "💡", instructions: "¡Cámara de espejos! Coloca y rota espejos en la cuadrícula de TeamLab para desviar el haz láser y activar el receptor central.", goal: 3, color: "#ffd700" };
+            case 'day_19_weight':
+                return { title: "Estructura de Gundam 🏗️🤖", emoji: "🏗️", instructions: "¡Ensambla el mecha! Deja caer las piezas de acero balanceadas por la grúa una sobre otra. Alinea los centros de gravedad.", goal: 8, color: "#cfd8dc" };
+            case 'day_19_monorail':
+                return { title: "Monorriel Yurikamome 🚝🏁", emoji: "🚝", instructions: "¡Conduce por Odaiba! Controla la aceleración y frenada del tren autónomo. Frena suavemente dentro de los límites del andén.", goal: 3, color: "#4facfe" };
+            case 'day_19_immersive':
+                return { title: "Inmersión Total 🌌🌊", emoji: "🌌", instructions: "¡Cascada de luz de TeamLab! Toca y desvía los chorros luminosos para canalizarlos y envolver a la familia en auras brillantes.", goal: 30, color: "#b388ff" };
+
             default:
                 return { title: "Minijuego", emoji: "🎮", instructions: "Completa el desafío.", goal: 100, color: "#ffd700" };
         }
@@ -1093,6 +1294,98 @@ window.MinigamesManager = {
             case 'day_10_fam_sayonara':
                 this.inputSayonaraPress(x, y);
                 break;
+            // DIA 11
+            case 'day_11_onsen': this.inputOnsenPress(x, y); break;
+            case 'day_11_yukata': this.inputYukataPress(x, y); break;
+            case 'day_11_tatami': this.inputTatamiPress(x, y); break;
+            case 'day_11_kaiseki': this.inputKaisekiPress(x, y); break;
+            case 'day_11_spring': this.inputSpringPress(x, y); break;
+            case 'day_11_architecture': this.inputArchitecturePress(x, y); break;
+            case 'day_11_economy': this.inputEconomyPress(x, y); break;
+            case 'day_11_geta': this.inputGetaPress(x, y); break;
+            // DIA 12
+            case 'day_12_sugidama': this.inputSugidamaPress(x, y); break;
+            case 'day_12_wood': this.inputWoodPress(x, y); break;
+            case 'day_12_hida': this.inputHidaPress(x, y); break;
+            case 'day_12_carving': this.inputCarvingPress(x, y); break;
+            case 'day_12_sake': this.inputSakePress(x, y); break;
+            case 'day_12_patrol': this.inputPatrolPress(x, y); break;
+            case 'day_12_appraisal': this.inputAppraisalPress(x, y); break;
+            case 'day_12_bridge': this.inputBridgePress(x, y); break;
+            // DIA 13
+            case 'day_13_stairs': this.inputStairsPress(x, y); break;
+            case 'day_13_manhole': this.inputManholePress(x, y); break;
+            case 'day_13_icecream': this.inputIcecreamPress(x, y); break;
+            case 'day_13_yokai': this.inputYokaiPress(x, y); break;
+            case 'day_13_perspective': this.inputPerspectivePress(x, y); break;
+            case 'day_13_tunnels': this.inputTunnelsPress(x, y); break;
+            case 'day_13_volcano': this.inputVolcanoPress(x, y); break;
+            case 'day_13_triangulation': this.inputTriangulationPress(x, y); break;
+            case 'day_13_oishi': this.inputOishiPress(x, y); break;
+
+            // DIA 14
+            case 'day_14_rock': this.inputRockPress(x, y); break;
+            case 'day_14_kid9_echo': this.inputEchoPress(x, y); break;
+            case 'day_14_root': this.inputRootPress(x, y); break;
+            case 'day_14_compass': this.inputCompassPress(x, y); break;
+            case 'day_14_radar': this.inputRadarPress(x, y); break;
+            case 'day_14_pressure': this.inputPressurePress(x, y); break;
+            case 'day_14_altimeter': this.inputAltimeterPress(x, y); break;
+            case 'day_14_kid14_echo': this.inputEcho2Press(x, y); break;
+            case 'day_14_oxygen': this.inputOxygenPress(x, y); break;
+            // DIA 15
+            case 'day_15_waterfall': this.inputWaterfallPress(x, y); break;
+            case 'day_15_thatch': this.inputThatchPress(x, y); break;
+            case 'day_15_fish': this.inputFishPress(x, y); break;
+            case 'day_15_shogun': this.inputShogunPress(x, y); break;
+            case 'day_15_deity': this.inputDeityPress(x, y); break;
+            case 'day_15_honcho': this.inputHonchoPress(x, y); break;
+            case 'day_15_flow': this.inputFlowPress(x, y); break;
+            case 'day_15_roof': this.inputRoofPress(x, y); break;
+            case 'day_15_dragon': this.inputDragonPress(x, y); break;
+            // DIA 16
+            case 'day_16_cat': this.inputCatPress(x, y); break;
+            case 'day_16_skyscraper': this.inputSkyscraperPress(x, y); break;
+            case 'day_16_colors': this.inputColorsPress(x, y); break;
+            case 'day_16_traffic': this.inputTrafficPress(x, y); break;
+            case 'day_16_vortex': this.inputVortexPress(x, y); break;
+            case 'day_16_combat': this.inputCombatPress(x, y); break;
+            case 'day_16_shinjuku': this.inputShinjukuPress(x, y); break;
+            case 'day_16_density': this.inputDensityPress(x, y); break;
+            case 'day_16_tocho': this.inputTochoPress(x, y); break;
+
+            // DIA 17
+            case 'day_17_omikuji': this.inputOmikujiPress(x, y); break;
+            case 'day_17_incense': this.inputIncensePress(x, y); break;
+            case 'day_17_gashapon': this.inputGashaponPress(x, y); break;
+            case 'day_17_p2p_receiver': this.inputP2PReceiverPress(x, y); break;
+            case 'day_17_retro': this.inputRetroPress(x, y); break;
+            case 'day_17_skytree': this.inputSkytreePress(x, y); break;
+            case 'day_17_p2p_sender': this.inputP2PSenderPress(x, y); break;
+            case 'day_17_height': this.inputHeightPress(x, y); break;
+            case 'day_17_sumida': this.inputSumidaPress(x, y); break;
+
+            // DIA 18
+            case 'day_18_shibuya': this.inputShibuyaPress(x, y); break;
+            case 'day_18_hachiko': this.inputHachikoPress(x, y); break;
+            case 'day_18_ema': this.inputEmaPress(x, y); break;
+            case 'day_18_crepe': this.inputCrepePress(x, y); break;
+            case 'day_18_radio': this.inputRadioPress(x, y); break;
+            case 'day_18_trend': this.inputTrendPress(x, y); break;
+            case 'day_18_flow': this.inputFlow18Press(x, y); break;
+            case 'day_18_silence': this.inputSilencePress(x, y); break;
+            case 'day_18_crossing': this.inputCrossingPress(x, y); break;
+
+            // DIA 19
+            case 'day_19_gundam': this.inputGundamPress(x, y); break;
+            case 'day_19_color': this.inputColorPress(x, y); break;
+            case 'day_19_teamlab': this.inputTeamLabPress(x, y); break;
+            case 'day_19_liberty': this.inputLibertyPress(x, y); break;
+            case 'day_19_crypto': this.inputCryptoPress(x, y); break;
+            case 'day_19_mirrors': this.inputMirrorsPress(x, y); break;
+            case 'day_19_weight': this.inputWeightPress(x, y); break;
+            case 'day_19_monorail': this.inputMonorailPress(x, y); break;
+            case 'day_19_immersive': this.inputImmersivePress(x, y); break;
         }
     },
 
@@ -1146,6 +1439,44 @@ window.MinigamesManager = {
             case 'day_10_kid9_rainbow':
                 this.releaseRainbow(x, y);
                 break;
+            // DIA 11
+            case 'day_11_tatami': this.releaseTatami(x, y); break;
+            case 'day_11_kaiseki': this.releaseKaiseki(x, y); break;
+            // DIA 12
+            case 'day_12_wood': this.releaseWood(x, y); break;
+            case 'day_12_appraisal': this.releaseAppraisal(x, y); break;
+            // DIA 13
+            case 'day_13_icecream': this.releaseIcecream(x, y); break;
+            case 'day_13_perspective': this.releasePerspective(x, y); break;
+            
+            // DIA 14
+            case 'day_14_rock': this.releaseRock(x, y); break;
+            case 'day_14_root': this.releaseRoot(x, y); break;
+            // DIA 15
+            case 'day_15_deity': this.releaseDeity(x, y); break;
+            case 'day_15_honcho': this.releaseHoncho(x, y); break;
+            case 'day_15_flow': this.releaseFlow(x, y); break;
+            // DIA 16
+            case 'day_16_vortex': this.releaseVortex(x, y); break;
+            case 'day_16_combat': this.releaseCombat(x, y); break;
+            case 'day_16_tocho': this.releaseTocho(x, y); break;
+
+            // DIA 17
+            case 'day_17_omikuji': this.releaseOmikuji(x, y); break;
+            case 'day_17_gashapon': this.releaseGashapon(x, y); break;
+            case 'day_17_p2p_sender': this.releaseP2PSender(x, y); break;
+            case 'day_17_height': this.releaseHeight(x, y); break;
+
+            // DIA 18
+            case 'day_18_hachiko': this.releaseHachiko(x, y); break;
+            case 'day_18_crepe': this.releaseCrepe(x, y); break;
+
+            // DIA 19
+            case 'day_19_teamlab': this.releaseTeamLab(x, y); break;
+            case 'day_19_liberty': this.releaseLiberty(x, y); break;
+            case 'day_19_mirrors': this.releaseMirrors(x, y); break;
+            case 'day_19_weight': this.releaseWeight(x, y); break;
+            case 'day_19_monorail': this.releaseMonorail(x, y); break;
         }
     },
 
@@ -1456,6 +1787,100 @@ window.MinigamesManager = {
             case 'day_10_fam_sayonara':
                 this.setupSayonara();
                 break;
+            // DIA 11
+            case 'day_11_onsen': this.setupOnsen(); break;
+            case 'day_11_tea': this.setupTea(); break;
+            case 'day_11_yukata': this.setupYukata(); break;
+            case 'day_11_tatami': this.setupTatami(); break;
+            case 'day_11_kaiseki': this.setupKaiseki(); break;
+            case 'day_11_spring': this.setupSpring(); break;
+            case 'day_11_architecture': this.setupArchitecture(); break;
+            case 'day_11_economy': this.setupEconomy(); break;
+            case 'day_11_geta': this.setupGeta(); break;
+            // DIA 12
+            case 'day_12_silence': this.setupSilence(); break;
+            case 'day_12_sugidama': this.setupSugidama(); break;
+            case 'day_12_wood': this.setupWood(); break;
+            case 'day_12_hida': this.setupHida(); break;
+            case 'day_12_carving': this.setupCarving(); break;
+            case 'day_12_sake': this.setupSake(); break;
+            case 'day_12_patrol': this.setupPatrol(); break;
+            case 'day_12_appraisal': this.setupAppraisal(); break;
+            case 'day_12_bridge': this.setupBridge(); break;
+            // DIA 13
+            case 'day_13_stairs': this.setupStairs(); break;
+            case 'day_13_manhole': this.setupManhole(); break;
+            case 'day_13_icecream': this.setupIcecream(); break;
+            case 'day_13_yokai': this.setupYokai(); break;
+            case 'day_13_perspective': this.setupPerspective(); break;
+            case 'day_13_tunnels': this.setupTunnels(); break;
+            case 'day_13_volcano': this.setupVolcano(); break;
+            case 'day_13_triangulation': this.setupTriangulation(); break;
+            case 'day_13_oishi': this.setupOishi(); break;
+
+            // DIA 14
+            case 'day_14_rock': this.setupRock(); break;
+            case 'day_14_kid9_echo': this.setupEcho(); break;
+            case 'day_14_root': this.setupRoot(); break;
+            case 'day_14_compass': this.setupCompass(); break;
+            case 'day_14_radar': this.setupRadar(); break;
+            case 'day_14_pressure': this.setupPressure(); break;
+            case 'day_14_altimeter': this.setupAltimeter(); break;
+            case 'day_14_kid14_echo': this.setupEcho2(); break;
+            case 'day_14_oxygen': this.setupOxygen(); break;
+            // DIA 15
+            case 'day_15_waterfall': this.setupWaterfall(); break;
+            case 'day_15_thatch': this.setupThatch(); break;
+            case 'day_15_fish': this.setupFish(); break;
+            case 'day_15_shogun': this.setupShogun(); break;
+            case 'day_15_deity': this.setupDeity(); break;
+            case 'day_15_honcho': this.setupHoncho(); break;
+            case 'day_15_flow': this.setupFlow(); break;
+            case 'day_15_roof': this.setupRoof(); break;
+            case 'day_15_dragon': this.setupDragon(); break;
+            // DIA 16
+            case 'day_16_cat': this.setupCat(); break;
+            case 'day_16_skyscraper': this.setupSkyscraper(); break;
+            case 'day_16_colors': this.setupColors(); break;
+            case 'day_16_traffic': this.setupTraffic(); break;
+            case 'day_16_vortex': this.setupVortex(); break;
+            case 'day_16_combat': this.setupCombat(); break;
+            case 'day_16_shinjuku': this.setupShinjuku(); break;
+            case 'day_16_density': this.setupDensity(); break;
+            case 'day_16_tocho': this.setupTocho(); break;
+
+            // DIA 17
+            case 'day_17_omikuji': this.setupOmikuji(); break;
+            case 'day_17_incense': this.setupIncense(); break;
+            case 'day_17_gashapon': this.setupGashapon(); break;
+            case 'day_17_p2p_receiver': this.setupP2PReceiver(); break;
+            case 'day_17_retro': this.setupRetro(); break;
+            case 'day_17_skytree': this.setupSkytree(); break;
+            case 'day_17_p2p_sender': this.setupP2PSender(); break;
+            case 'day_17_height': this.setupHeight(); break;
+            case 'day_17_sumida': this.setupSumida(); break;
+
+            // DIA 18
+            case 'day_18_shibuya': this.setupShibuya(); break;
+            case 'day_18_hachiko': this.setupHachiko(); break;
+            case 'day_18_ema': this.setupEma(); break;
+            case 'day_18_crepe': this.setupCrepe(); break;
+            case 'day_18_radio': this.setupRadio(); break;
+            case 'day_18_trend': this.setupTrend(); break;
+            case 'day_18_flow': this.setupFlow18(); break;
+            case 'day_18_silence': this.setupSilence(); break;
+            case 'day_18_crossing': this.setupCrossing(); break;
+
+            // DIA 19
+            case 'day_19_gundam': this.setupGundam(); break;
+            case 'day_19_color': this.setupColor(); break;
+            case 'day_19_teamlab': this.setupTeamLab(); break;
+            case 'day_19_liberty': this.setupLiberty(); break;
+            case 'day_19_crypto': this.setupCrypto(); break;
+            case 'day_19_mirrors': this.setupMirrors(); break;
+            case 'day_19_weight': this.setupWeight(); break;
+            case 'day_19_monorail': this.setupMonorail(); break;
+            case 'day_19_immersive': this.setupImmersive(); break;
         }
     },
 
@@ -1682,6 +2107,100 @@ window.MinigamesManager = {
             case 'day_10_fam_sayonara':
                 this.updateSayonara(dt);
                 break;
+            // DIA 11
+            case 'day_11_onsen': this.updateOnsen(dt); break;
+            case 'day_11_tea': this.updateTea(dt); break;
+            case 'day_11_yukata': this.updateYukata(dt); break;
+            case 'day_11_tatami': this.updateTatami(dt); break;
+            case 'day_11_kaiseki': this.updateKaiseki(dt); break;
+            case 'day_11_spring': this.updateSpring(dt); break;
+            case 'day_11_architecture': this.updateArchitecture(dt); break;
+            case 'day_11_economy': this.updateEconomy(dt); break;
+            case 'day_11_geta': this.updateGeta(dt); break;
+            // DIA 12
+            case 'day_12_silence': this.updateSilence(dt); break;
+            case 'day_12_sugidama': this.updateSugidama(dt); break;
+            case 'day_12_wood': this.updateWood(dt); break;
+            case 'day_12_hida': this.updateHida(dt); break;
+            case 'day_12_carving': this.updateCarving(dt); break;
+            case 'day_12_sake': this.updateSake(dt); break;
+            case 'day_12_patrol': this.updatePatrol(dt); break;
+            case 'day_12_appraisal': this.updateAppraisal(dt); break;
+            case 'day_12_bridge': this.updateBridge(dt); break;
+            // DIA 13
+            case 'day_13_stairs': this.updateStairs(dt); break;
+            case 'day_13_manhole': this.updateManhole(dt); break;
+            case 'day_13_icecream': this.updateIcecream(dt); break;
+            case 'day_13_yokai': this.updateYokai(dt); break;
+            case 'day_13_perspective': this.updatePerspective(dt); break;
+            case 'day_13_tunnels': this.updateTunnels(dt); break;
+            case 'day_13_volcano': this.updateVolcano(dt); break;
+            case 'day_13_triangulation': this.updateTriangulation(dt); break;
+            case 'day_13_oishi': this.updateOishi(dt); break;
+
+            // DIA 14
+            case 'day_14_rock': this.updateRock(dt); break;
+            case 'day_14_kid9_echo': this.updateEcho(dt); break;
+            case 'day_14_root': this.updateRoot(dt); break;
+            case 'day_14_compass': this.updateCompass(dt); break;
+            case 'day_14_radar': this.updateRadar(dt); break;
+            case 'day_14_pressure': this.updatePressure(dt); break;
+            case 'day_14_altimeter': this.updateAltimeter(dt); break;
+            case 'day_14_kid14_echo': this.updateEcho2(dt); break;
+            case 'day_14_oxygen': this.updateOxygen(dt); break;
+            // DIA 15
+            case 'day_15_waterfall': this.updateWaterfall(dt); break;
+            case 'day_15_thatch': this.updateThatch(dt); break;
+            case 'day_15_fish': this.updateFish(dt); break;
+            case 'day_15_shogun': this.updateShogun(dt); break;
+            case 'day_15_deity': this.updateDeity(dt); break;
+            case 'day_15_honcho': this.updateHoncho(dt); break;
+            case 'day_15_flow': this.updateFlow(dt); break;
+            case 'day_15_roof': this.updateRoof(dt); break;
+            case 'day_15_dragon': this.updateDragon(dt); break;
+            // DIA 16
+            case 'day_16_cat': this.updateCat(dt); break;
+            case 'day_16_skyscraper': this.updateSkyscraper(dt); break;
+            case 'day_16_colors': this.updateColors(dt); break;
+            case 'day_16_traffic': this.updateTraffic(dt); break;
+            case 'day_16_vortex': this.updateVortex(dt); break;
+            case 'day_16_combat': this.updateCombat(dt); break;
+            case 'day_16_shinjuku': this.updateShinjuku(dt); break;
+            case 'day_16_density': this.updateDensity(dt); break;
+            case 'day_16_tocho': this.updateTocho(dt); break;
+
+            // DIA 17
+            case 'day_17_omikuji': this.updateOmikuji(dt); break;
+            case 'day_17_incense': this.updateIncense(dt); break;
+            case 'day_17_gashapon': this.updateGashapon(dt); break;
+            case 'day_17_p2p_receiver': this.updateP2PReceiver(dt); break;
+            case 'day_17_retro': this.updateRetro(dt); break;
+            case 'day_17_skytree': this.updateSkytree(dt); break;
+            case 'day_17_p2p_sender': this.updateP2PSender(dt); break;
+            case 'day_17_height': this.updateHeight(dt); break;
+            case 'day_17_sumida': this.updateSumida(dt); break;
+
+            // DIA 18
+            case 'day_18_shibuya': this.updateShibuya(dt); break;
+            case 'day_18_hachiko': this.updateHachiko(dt); break;
+            case 'day_18_ema': this.updateEma(dt); break;
+            case 'day_18_crepe': this.updateCrepe(dt); break;
+            case 'day_18_radio': this.updateRadio(dt); break;
+            case 'day_18_trend': this.updateTrend(dt); break;
+            case 'day_18_flow': this.updateFlow18(dt); break;
+            case 'day_18_silence': this.updateSilence(dt); break;
+            case 'day_18_crossing': this.updateCrossing(dt); break;
+
+            // DIA 19
+            case 'day_19_gundam': this.updateGundam(dt); break;
+            case 'day_19_color': this.updateColor(dt); break;
+            case 'day_19_teamlab': this.updateTeamLab(dt); break;
+            case 'day_19_liberty': this.updateLiberty(dt); break;
+            case 'day_19_crypto': this.updateCrypto(dt); break;
+            case 'day_19_mirrors': this.updateMirrors(dt); break;
+            case 'day_19_weight': this.updateWeight(dt); break;
+            case 'day_19_monorail': this.updateMonorail(dt); break;
+            case 'day_19_immersive': this.updateImmersive(dt); break;
         }
         this.updateParticles(dt);
     },
@@ -1922,6 +2441,100 @@ window.MinigamesManager = {
                 case 'day_10_fam_sayonara':
                     this.drawSayonara();
                     break;
+                // DIA 11
+                case 'day_11_onsen': this.drawOnsen(); break;
+                case 'day_11_tea': this.drawTea(); break;
+                case 'day_11_yukata': this.drawYukata(); break;
+                case 'day_11_tatami': this.drawTatami(); break;
+                case 'day_11_kaiseki': this.drawKaiseki(); break;
+                case 'day_11_spring': this.drawSpring(); break;
+                case 'day_11_architecture': this.drawArchitecture(); break;
+                case 'day_11_economy': this.drawEconomy(); break;
+                case 'day_11_geta': this.drawGeta(); break;
+                // DIA 12
+                case 'day_12_silence': this.drawSilence(); break;
+                case 'day_12_sugidama': this.drawSugidama(); break;
+                case 'day_12_wood': this.drawWood(); break;
+                case 'day_12_hida': this.drawHida(); break;
+                case 'day_12_carving': this.drawCarving(); break;
+                case 'day_12_sake': this.drawSake(); break;
+                case 'day_12_patrol': this.drawPatrol(); break;
+                case 'day_12_appraisal': this.drawAppraisal(); break;
+                case 'day_12_bridge': this.drawBridge(); break;
+                // DIA 13
+                case 'day_13_stairs': this.drawStairs(); break;
+                case 'day_13_manhole': this.drawManhole(); break;
+                case 'day_13_icecream': this.drawIcecream(); break;
+                case 'day_13_yokai': this.drawYokai(); break;
+                case 'day_13_perspective': this.drawPerspective(); break;
+                case 'day_13_tunnels': this.drawTunnels(); break;
+                case 'day_13_volcano': this.drawVolcano(); break;
+                case 'day_13_triangulation': this.drawTriangulation(); break;
+                case 'day_13_oishi': this.drawOishi(); break;
+
+                // DIA 14
+                case 'day_14_rock': this.drawRock(); break;
+                case 'day_14_kid9_echo': this.drawEcho(); break;
+                case 'day_14_root': this.drawRoot(); break;
+                case 'day_14_compass': this.drawCompass(); break;
+                case 'day_14_radar': this.drawRadar(); break;
+                case 'day_14_pressure': this.drawPressure(); break;
+                case 'day_14_altimeter': this.drawAltimeter(); break;
+                case 'day_14_kid14_echo': this.drawEcho2(); break;
+                case 'day_14_oxygen': this.drawOxygen(); break;
+                // DIA 15
+                case 'day_15_waterfall': this.drawWaterfall(); break;
+                case 'day_15_thatch': this.drawThatch(); break;
+                case 'day_15_fish': this.drawFish(); break;
+                case 'day_15_shogun': this.drawShogun(); break;
+                case 'day_15_deity': this.drawDeity(); break;
+                case 'day_15_honcho': this.drawHoncho(); break;
+                case 'day_15_flow': this.drawFlow(); break;
+                case 'day_15_roof': this.drawRoof(); break;
+                case 'day_15_dragon': this.drawDragon(); break;
+                // DIA 16
+                case 'day_16_cat': this.drawCat(); break;
+                case 'day_16_skyscraper': this.drawSkyscraper(); break;
+                case 'day_16_colors': this.drawColors(); break;
+                case 'day_16_traffic': this.drawTraffic(); break;
+                case 'day_16_vortex': this.drawVortex(); break;
+                case 'day_16_combat': this.drawCombat(); break;
+                case 'day_16_shinjuku': this.drawShinjuku(); break;
+                case 'day_16_density': this.drawDensity(); break;
+                case 'day_16_tocho': this.drawTocho(); break;
+
+                // DIA 17
+                case 'day_17_omikuji': this.drawOmikuji(); break;
+                case 'day_17_incense': this.drawIncense(); break;
+                case 'day_17_gashapon': this.drawGashapon(); break;
+                case 'day_17_p2p_receiver': this.drawP2PReceiver(); break;
+                case 'day_17_retro': this.drawRetro(); break;
+                case 'day_17_skytree': this.drawSkytree(); break;
+                case 'day_17_p2p_sender': this.drawP2PSender(); break;
+                case 'day_17_height': this.drawHeight(); break;
+                case 'day_17_sumida': this.drawSumida(); break;
+
+                // DIA 18
+                case 'day_18_shibuya': this.drawShibuya(); break;
+                case 'day_18_hachiko': this.drawHachiko(); break;
+                case 'day_18_ema': this.drawEma(); break;
+                case 'day_18_crepe': this.drawCrepe(); break;
+                case 'day_18_radio': this.drawRadio(); break;
+                case 'day_18_trend': this.drawTrend(); break;
+                case 'day_18_flow': this.drawFlow18(); break;
+                case 'day_18_silence': this.drawSilence(); break;
+                case 'day_18_crossing': this.drawCrossing(); break;
+
+                // DIA 19
+                case 'day_19_gundam': this.drawGundam(); break;
+                case 'day_19_color': this.drawColor(); break;
+                case 'day_19_teamlab': this.drawTeamLab(); break;
+                case 'day_19_liberty': this.drawLiberty(); break;
+                case 'day_19_crypto': this.drawCrypto(); break;
+                case 'day_19_mirrors': this.drawMirrors(); break;
+                case 'day_19_weight': this.drawWeight(); break;
+                case 'day_19_monorail': this.drawMonorail(); break;
+                case 'day_19_immersive': this.drawImmersive(); break;
             }
             
             this.drawParticles();
@@ -15738,5 +16351,14036 @@ window.MinigamesManager = {
             rg = ag + amount * (bg - ag),
             rb = ab + amount * (bb - ab);
         return '#' + ((1 << 24) + (Math.round(rr) << 16) + (Math.round(rg) << 8) + Math.round(rb)).toString(16).slice(1);
-    }
+    },
+
+    victory() {
+        this.win();
+    },
+
+    // ==========================================================
+    // DIA 11 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 1. day_11_onsen: El Código Onsen
+    setupOnsen() {
+        this.gameData = {
+            scrub: 0, temp: 35,
+            hotValve: 0.3, coldValve: 0.7,
+            timer: 8, targetTemp: 41,
+            isDraggingHot: false, isDraggingCold: false
+        };
+        this.score = 0;
+    },
+    updateOnsen(dt) {
+        const gd = this.gameData;
+        
+        // Scrub logic
+        if (this.mouse.isDown && this.mouse.y < 400 && this.mouse.x > 200 && this.mouse.x < 600) {
+            gd.scrub = Math.min(100, gd.scrub + dt * 45);
+            this.score = Math.round(gd.scrub);
+            if (Math.random() < 0.3) {
+                this.particles.push({
+                    x: this.mouse.x, y: this.mouse.y,
+                    vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                    size: 3 + Math.random() * 6, color: '#ffffff', life: 0.5, decay: 0.02
+                });
+            }
+            if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+        }
+        
+        if (this.mouse.isDown) {
+            if (gd.isDraggingHot) {
+                gd.hotValve = Math.max(0, Math.min(1, (this.mouse.x - 150) / 200));
+            } else if (gd.isDraggingCold) {
+                gd.coldValve = Math.max(0, Math.min(1, (this.mouse.x - 450) / 200));
+            }
+        }
+        
+        gd.temp = 20 + (gd.hotValve * 40) - (gd.coldValve * 15);
+        gd.temp = Math.max(10, Math.min(60, gd.temp));
+        
+        if (gd.scrub >= 100 && Math.abs(gd.temp - gd.targetTemp) <= 1.0) {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                this.victory();
+            }
+        } else {
+            gd.timer = 8;
+        }
+    },
+    drawOnsen() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(100, 150, 600, 300);
+        
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(400, 250, 50, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(370, 190, 60, 20);
+        
+        if (gd.scrub < 100) {
+            ctx.fillStyle = 'rgba(121, 85, 72, ' + (1 - gd.scrub/100) + ')';
+            ctx.beginPath();
+            ctx.arc(380, 240, 8, 0, Math.PI*2);
+            ctx.arc(420, 260, 6, 0, Math.PI*2);
+            ctx.arc(395, 270, 10, 0, Math.PI*2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = 'rgba(79, 195, 247, 0.4)';
+        ctx.fillRect(100, 280, 600, 170);
+        
+        if (Math.random() < 0.15) {
+            this.particles.push({
+                x: 150 + Math.random() * 500, y: 280,
+                vx: (Math.random() - 0.5) * 20, vy: -30 - Math.random() * 20,
+                size: 8 + Math.random() * 12, color: 'rgba(255,255,255,0.2)', life: 0.8, decay: 0.015
+            });
+        }
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 50, 400, 20);
+        
+        ctx.fillStyle = '#00ff99';
+        const xGreenStart = 200 + 400 * (40 - 10)/50;
+        const xGreenWidth = 400 * (2 / 50);
+        ctx.fillRect(xGreenStart, 50, xGreenWidth, 20);
+        
+        const xInd = 200 + 400 * (gd.temp - 10)/50;
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(xInd - 3, 45, 6, 30);
+        
+        ctx.fillStyle = '#ffebee';
+        ctx.fillRect(150, 500, 200, 10);
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(150 + gd.hotValve * 200, 505, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#e3f2fd';
+        ctx.fillRect(450, 500, 200, 10);
+        ctx.fillStyle = '#2979ff';
+        ctx.beginPath();
+        ctx.arc(450 + gd.coldValve * 200, 505, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Temp: ' + gd.temp.toFixed(1) + '°C', 400, 35);
+        ctx.fillText('♨️ Válvula Caliente', 250, 545);
+        ctx.fillText('❄️ Válvula Fría', 550, 545);
+        
+        if (gd.scrub < 100) {
+            ctx.fillText('¡Frota la pantalla para lavar a Laura! ' + Math.round(gd.scrub) + '%', 400, 120);
+        } else if (Math.abs(gd.temp - gd.targetTemp) > 1.0) {
+            ctx.fillStyle = '#ffeb3b';
+            ctx.fillText('¡Limpia! Ahora regula a 41°C usando las válvulas.', 400, 120);
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText('¡Temperatura Perfecta! Mantén: ' + gd.timer.toFixed(1) + 's', 400, 120);
+        }
+    },
+    inputOnsenPress(x, y) {
+        const gd = this.gameData;
+        const hx = 150 + gd.hotValve * 200;
+        if (Math.hypot(x - hx, y - 505) < 30) {
+            gd.isDraggingHot = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        const cx = 450 + gd.coldValve * 200;
+        if (Math.hypot(x - cx, y - 505) < 30) {
+            gd.isDraggingCold = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    inputOnsenRelease() {
+        this.gameData.isDraggingHot = false;
+        this.gameData.isDraggingCold = false;
+    },
+
+    // 2. day_11_tea: El Té Intacto
+    setupTea() {
+        this.gameData = {
+            trayX: 400, trayAngle: 0,
+            bowlX: 400, bowlVx: 0,
+            distance: 0, targetDist: 100,
+            wind: 0, windTimer: 0.5,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateTea(dt) {
+        const gd = this.gameData;
+        const prevTrayX = gd.trayX;
+        gd.trayX += (this.mouse.x - gd.trayX) * 0.15;
+        gd.trayAngle = (gd.trayX - prevTrayX) * 0.01 + (this.mouse.isDown ? (this.mouse.x - 400) * 0.0005 : 0);
+        gd.trayAngle = Math.max(-0.4, Math.min(0.4, gd.trayAngle));
+        
+        gd.windTimer -= dt;
+        if (gd.windTimer <= 0) {
+            gd.wind = (Math.random() - 0.5) * 8;
+            gd.windTimer = 2.0 + Math.random() * 2.0;
+        }
+        
+        gd.bowlVx += Math.sin(gd.trayAngle) * 80 * dt;
+        gd.bowlVx += gd.wind * 0.5 * dt;
+        gd.bowlX += gd.bowlVx * dt * 100;
+        gd.bowlVx *= 0.96;
+        
+        const relativePos = gd.bowlX - gd.trayX;
+        if (Math.abs(relativePos) > 130) {
+            gd.lives--;
+            this.screenShake = 15;
+            if (window.playProceduralSound) playProceduralSound('damage');
+            gd.bowlX = gd.trayX;
+            gd.bowlVx = 0;
+            if (gd.lives <= 0) {
+                this.gameOver();
+            }
+        }
+        
+        gd.distance += dt * 5;
+        this.score = Math.min(100, Math.round((gd.distance / gd.targetDist) * 100));
+        
+        if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawTea() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#f5f2eb';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(50, 50, 300, 400);
+        ctx.strokeRect(450, 50, 300, 400);
+        
+        if (Math.abs(gd.wind) > 0.5 && Math.random() < 0.1) {
+            this.particles.push({
+                x: gd.wind > 0 ? -20 : 820, y: 150 + Math.random() * 150,
+                vx: gd.wind * 80, vy: (Math.random() - 0.5) * 10,
+                size: 2, color: 'rgba(138,154,91,0.3)', life: 1.0, decay: 0.02
+            });
+        }
+        
+        ctx.save();
+        ctx.translate(gd.trayX, 420);
+        ctx.rotate(gd.trayAngle);
+        
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(-140, -10, 280, 20);
+        ctx.fillStyle = '#880e4f';
+        ctx.fillRect(-140, -12, 10, 24);
+        ctx.fillRect(130, -12, 10, 24);
+        ctx.restore();
+        
+        ctx.save();
+        const bx = gd.trayX + (gd.bowlX - gd.trayX) * Math.cos(gd.trayAngle);
+        const by = 420 + (gd.bowlX - gd.trayX) * Math.sin(gd.trayAngle);
+        ctx.translate(bx, by);
+        ctx.rotate(gd.trayAngle);
+        
+        ctx.fillStyle = '#33691e';
+        ctx.beginPath();
+        ctx.arc(0, -25, 35, 0, Math.PI, false);
+        ctx.fill();
+        
+        ctx.fillStyle = '#8a9a5b';
+        ctx.beginPath();
+        const sloshAngle = -gd.bowlVx * 0.1;
+        ctx.rotate(sloshAngle);
+        ctx.ellipse(0, -25, 30, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Distancia Ryokan: ' + Math.round(gd.distance) + ' / 100m', 400, 60);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '💚 ';
+        ctx.fillText(heartStr, 400, 100);
+        
+        if (Math.abs(gd.wind) > 1) {
+            ctx.fillStyle = '#d84315';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.fillText('💨 Viento Alpino: ' + (gd.wind > 0 ? '➡️' : '⬅️'), 400, 140);
+        }
+    },
+    inputTeaPress(x, y) {},
+
+    // 3. day_11_yukata: Cazadora de Yukatas
+    setupYukata() {
+        this.gameData = {
+            guests: [],
+            spawnTimer: 0,
+            scoreCount: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateYukata(dt) {
+        const gd = this.gameData;
+        gd.guests.forEach(g => { g.x += g.vx * dt; });
+        gd.guests = gd.guests.filter(g => g.x > -100 && g.x < 900);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const types = ['yukata', 'yukata', 'tourist', 'monkey', 'ninja'];
+            const chosenType = types[Math.floor(Math.random() * types.length)];
+            const dir = Math.random() < 0.5 ? 1 : -1;
+            
+            let emoji = '🧍';
+            if (chosenType === 'yukata') emoji = '👘';
+            else if (chosenType === 'monkey') emoji = '🐒';
+            else if (chosenType === 'ninja') emoji = '🥷';
+            
+            gd.guests.push({
+                id: Date.now() + Math.random(),
+                x: dir > 0 ? -50 : 850,
+                y: 350 + Math.random() * 120,
+                vx: dir * (100 + Math.random() * 100),
+                type: chosenType,
+                emoji: emoji
+            });
+            gd.spawnTimer = 0.8 + Math.random() * 0.8;
+        }
+        
+        if (gd.scoreCount >= 10) {
+            this.victory();
+        }
+    },
+    drawYukata() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 100, 10, 400);
+        ctx.fillRect(630, 100, 10, 400);
+        
+        ctx.fillStyle = '#d84315';
+        ctx.fillRect(135, 120, 40, 50);
+        ctx.fillRect(615, 120, 40, 50);
+        ctx.font = '20px sans-serif';
+        ctx.fillText('🏮', 155, 150);
+        ctx.fillText('🏮', 635, 150);
+        
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 340, 800, 260);
+        
+        gd.guests.sort((a, b) => a.y - b.y);
+        gd.guests.forEach(g => {
+            ctx.font = '55px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(g.emoji, g.x, g.y);
+        });
+        
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.fillText('Huéspedes en Yukata cazados: ' + gd.scoreCount + ' / 10', 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+    },
+    inputYukataPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.guests.forEach((g, idx) => {
+            const dist = Math.hypot(x - g.x, y - (g.y - 25));
+            if (dist < 45) {
+                if (g.type === 'yukata') {
+                    gd.scoreCount++;
+                    this.score = gd.scoreCount;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    for (let i = 0; i < 8; i++) {
+                        this.particles.push({
+                            x: g.x, y: g.y - 25,
+                            vx: (Math.random() - 0.5) * 100, vy: (Math.random() - 0.5) * 100,
+                            size: 4 + Math.random() * 4, color: '#f48fb1', life: 0.6, decay: 0.02
+                        });
+                    }
+                } else {
+                    gd.lives--;
+                    this.screenShake = 12;
+                    if (window.playProceduralSound) playProceduralSound('error');
+                }
+                gd.guests.splice(idx, 1);
+            }
+        });
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        }
+    },
+
+    // 4. day_11_tatami: La Textura del Tatami
+    setupTatami() {
+        this.gameData = {
+            grid: Array(4).fill(null).map(() => Array(4).fill(null)),
+            mats: [
+                { id: 0, x: 80, y: 150, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 1, x: 80, y: 280, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 2, x: 80, y: 410, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 3, x: 680, y: 150, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 4, x: 680, y: 280, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 5, x: 680, y: 410, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 6, x: 300, y: 520, w: 2, h: 1, color: '#dcedc8', placedX: -1, placedY: -1 },
+                { id: 7, x: 450, y: 520, w: 1, h: 2, color: '#dcedc8', placedX: -1, placedY: -1 }
+            ],
+            draggingMat: null,
+            dragOffset: { x: 0, y: 0 }
+        };
+        this.score = 0;
+    },
+    updateTatami(dt) {
+        const gd = this.gameData;
+        if (gd.draggingMat) {
+            gd.draggingMat.x = this.mouse.x - gd.dragOffset.x;
+            gd.draggingMat.y = this.mouse.y - gd.dragOffset.y;
+        }
+    },
+    drawTatami() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(200, 100, 400, 400);
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 2;
+        for (let c = 0; c <= 4; c++) {
+            ctx.beginPath();
+            ctx.moveTo(200 + c * 100, 100);
+            ctx.lineTo(200 + c * 100, 500);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(200, 100 + c * 100);
+            ctx.lineTo(600, 100 + c * 100);
+            ctx.stroke();
+        }
+        
+        const sortedMats = [...gd.mats].sort((a, b) => {
+            if (a === gd.draggingMat) return 1;
+            if (b === gd.draggingMat) return -1;
+            return 0;
+        });
+        
+        sortedMats.forEach(m => {
+            ctx.save();
+            ctx.fillStyle = m.color;
+            ctx.strokeStyle = '#33691e';
+            ctx.lineWidth = 3;
+            
+            const px = m.x;
+            const py = m.y;
+            const pw = m.w * 100;
+            const ph = m.h * 100;
+            
+            ctx.fillRect(px, py, pw, ph);
+            ctx.strokeRect(px, py, pw, ph);
+            
+            ctx.fillStyle = '#1b5e20';
+            if (m.w >= m.h) {
+                ctx.fillRect(px, py, pw, 6);
+                ctx.fillRect(px, py + ph - 6, pw, 6);
+            } else {
+                ctx.fillRect(px, py, 6, ph);
+                ctx.fillRect(px + pw - 6, py, 6, ph);
+            }
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Distribuye los tatamis para cubrir la habitación!', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca un tatami fuera de la cuadrícula para rotarlo.', 400, 75);
+    },
+    inputTatamiPress(x, y) {
+        const gd = this.gameData;
+        
+        for (let i = gd.mats.length - 1; i >= 0; i--) {
+            const m = gd.mats[i];
+            const pw = m.w * 100;
+            const ph = m.h * 100;
+            if (x > m.x && x < m.x + pw && y > m.y && y < m.y + ph) {
+                if (m.placedX !== -1) {
+                    for (let r = 0; r < m.h; r++) {
+                        for (let c = 0; c < m.w; c++) {
+                            gd.grid[m.placedY + r][m.placedX + c] = null;
+                        }
+                    }
+                    m.placedX = -1;
+                    m.placedY = -1;
+                }
+                
+                gd.draggingMat = m;
+                gd.dragOffset.x = x - m.x;
+                gd.dragOffset.y = y - m.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseTatami(x, y) {
+        const gd = this.gameData;
+        const m = gd.draggingMat;
+        if (!m) return;
+        gd.draggingMat = null;
+        
+        const cellX = Math.round((m.x - 200) / 100);
+        const cellY = Math.round((m.y - 100) / 100);
+        
+        let fits = false;
+        if (cellX >= 0 && cellX + m.w <= 4 && cellY >= 0 && cellY + m.h <= 4) {
+            let overlap = false;
+            for (let r = 0; r < m.h; r++) {
+                for (let c = 0; c < m.w; c++) {
+                    if (gd.grid[cellY + r][cellX + c] !== null) overlap = true;
+                }
+            }
+            if (!overlap) fits = true;
+        }
+        
+        if (fits) {
+            m.x = 200 + cellX * 100;
+            m.y = 100 + cellY * 100;
+            m.placedX = cellX;
+            m.placedY = cellY;
+            for (let r = 0; r < m.h; r++) {
+                for (let c = 0; c < m.w; c++) {
+                    gd.grid[cellY + r][cellX + c] = m.id;
+                }
+            }
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            let emptyCount = 0;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (gd.grid[r][c] === null) emptyCount++;
+                }
+            }
+            if (emptyCount === 0) {
+                this.victory();
+            }
+        } else {
+            const movedDist = Math.hypot(m.x - (this.mouse.startX - gd.dragOffset.x), m.y - (this.mouse.startY - gd.dragOffset.y));
+            if (movedDist < 10) {
+                const prevW = m.w;
+                m.w = m.h;
+                m.h = prevW;
+                if (window.playProceduralSound) playProceduralSound('rotate');
+            }
+            
+            m.placedX = -1;
+            m.placedY = -1;
+            m.x = m.id < 3 ? 80 : m.id < 6 ? 680 : m.id === 6 ? 300 : 450;
+            m.y = m.id < 3 ? 150 + m.id * 130 : m.id < 6 ? 150 + (m.id - 3) * 130 : 520;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+
+    // 5. day_11_kaiseki: Catador de Kaiseki
+    setupKaiseki() {
+        const foodPool = [
+            { icon: '🍱', name: 'Sushi/Sashimi' },
+            { icon: '🍤', name: 'Tempura Crujiente' },
+            { icon: '🥣', name: 'Sopa de Miso' },
+            { icon: '🍙', name: 'Onigiri de Arroz' },
+            { icon: '🍵', name: 'Té Matcha' }
+        ];
+        
+        const targetList = [...foodPool].sort(() => Math.random() - 0.5);
+        
+        this.gameData = {
+            target: targetList,
+            current: Array(5).fill(null),
+            timer: 3.5,
+            state: 'show',
+            items: targetList.map((item, idx) => ({
+                id: idx,
+                icon: item.icon,
+                name: item.name,
+                x: 100 + idx * 150,
+                y: 500,
+                placed: -1
+            })).sort(() => Math.random() - 0.5),
+            draggingItem: null,
+            dragOffset: { x: 0, y: 0 },
+            correctServings: 0
+        };
+        this.score = 0;
+    },
+    updateKaiseki(dt) {
+        const gd = this.gameData;
+        if (gd.state === 'show') {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                gd.state = 'play';
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        } else {
+            if (gd.draggingItem) {
+                gd.draggingItem.x = this.mouse.x - gd.dragOffset.x;
+                gd.draggingItem.y = this.mouse.y - gd.dragOffset.y;
+            }
+        }
+    },
+    drawKaiseki() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#d7ccc8';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 5; i++) {
+            const px = 100 + i * 150;
+            const py = 250;
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.beginPath();
+            ctx.arc(px, py, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(i + 1, px, py + 8);
+        }
+        
+        if (gd.state === 'show') {
+            gd.target.forEach((item, idx) => {
+                const px = 100 + idx * 150;
+                const py = 250;
+                ctx.font = '50px sans-serif';
+                ctx.fillText(item.icon, px, py + 18);
+            });
+            
+            ctx.fillStyle = '#ffb74d';
+            ctx.font = 'bold 24px Outfit, sans-serif';
+            ctx.fillText('¡MEMORIZA EL ORDEN PROTOCOLARIO! ' + gd.timer.toFixed(1) + 's', 400, 100);
+        } else {
+            gd.current.forEach((itemIdx, plateIdx) => {
+                if (itemIdx !== null) {
+                    const px = 100 + plateIdx * 150;
+                    const py = 250;
+                    const item = gd.items.find(x => x.id === itemIdx);
+                    if (item && item !== gd.draggingItem) {
+                        ctx.font = '50px sans-serif';
+                        ctx.fillText(item.icon, px, py + 18);
+                    }
+                }
+            });
+            
+            gd.items.forEach(item => {
+                if (item.placed === -1 && item !== gd.draggingItem) {
+                    ctx.fillStyle = '#4e342e';
+                    ctx.fillRect(item.x - 50, item.y - 40, 100, 80);
+                    ctx.font = '40px sans-serif';
+                    ctx.fillText(item.icon, item.x, item.y + 15);
+                }
+            });
+            
+            if (gd.draggingItem) {
+                ctx.font = '60px sans-serif';
+                ctx.fillText(gd.draggingItem.icon, gd.draggingItem.x, gd.draggingItem.y + 20);
+            }
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Outfit, sans-serif';
+            ctx.fillText('Ordena los platos en los platos protocolarios del Kaiseki.', 400, 100);
+            ctx.fillText('Servicios logrados: ' + gd.correctServings + ' / 3', 400, 50);
+        }
+    },
+    inputKaisekiPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state !== 'play') return;
+        
+        for (let i = 0; i < gd.items.length; i++) {
+            const item = gd.items[i];
+            if (item.placed === -1 && Math.hypot(x - item.x, y - item.y) < 50) {
+                gd.draggingItem = item;
+                gd.dragOffset.x = x - item.x;
+                gd.dragOffset.y = y - item.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseKaiseki(x, y) {
+        const gd = this.gameData;
+        const item = gd.draggingItem;
+        if (!item) return;
+        gd.draggingItem = null;
+        
+        let snapped = false;
+        for (let i = 0; i < 5; i++) {
+            const px = 100 + i * 150;
+            const py = 250;
+            if (Math.hypot(x - px, y - py) < 65 && gd.current[i] === null) {
+                gd.current[i] = item.id;
+                item.placed = i;
+                snapped = true;
+                if (window.playProceduralSound) playProceduralSound('success');
+                break;
+            }
+        }
+        
+        if (!snapped) {
+            item.placed = -1;
+            item.x = 100 + item.id * 150;
+            item.y = 500;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        let placedCount = 0;
+        gd.current.forEach(c => { if (c !== null) placedCount++; });
+        if (placedCount === 5) {
+            let correct = true;
+            for (let i = 0; i < 5; i++) {
+                const itemPlaced = gd.items.find(x => x.id === gd.current[i]);
+                if (itemPlaced.name !== gd.target[i].name) {
+                    correct = false;
+                }
+            }
+            
+            if (correct) {
+                gd.correctServings++;
+                this.score = gd.correctServings;
+                if (gd.correctServings >= 3) {
+                    this.victory();
+                } else {
+                    this.setupKaiseki();
+                    gd.correctServings = this.score;
+                }
+            } else {
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('error');
+                gd.items.forEach(item => {
+                    item.placed = -1;
+                    item.x = 100 + item.id * 150;
+                    item.y = 500;
+                });
+                gd.current.fill(null);
+                gd.state = 'show';
+                gd.timer = 3.5;
+            }
+        }
+    },
+
+    // 6. day_11_spring: Rastreador de Manantiales
+    setupSpring() {
+        const springs = [];
+        while (springs.length < 3) {
+            const r = Math.floor(Math.random() * 6);
+            const c = Math.floor(Math.random() * 6);
+            if (!springs.some(s => s.r === r && s.c === c)) {
+                springs.push({ r: r, c: c });
+            }
+        }
+        
+        this.gameData = {
+            grid: Array(6).fill(null).map(() => Array(6).fill(-1)),
+            springs: springs,
+            probes: 15,
+            found: 0
+        };
+        this.score = 0;
+    },
+    updateSpring(dt) {},
+    drawSpring() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0a0e14';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 220;
+        const oy = 120;
+        const cs = 60;
+        
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+                const cx = ox + c * cs;
+                const cy = oy + r * cs;
+                const cellVal = gd.grid[r][c];
+                
+                if (cellVal === -1) {
+                    ctx.fillStyle = '#1c2833';
+                } else if (cellVal === 0) {
+                    ctx.fillStyle = '#ff1744';
+                } else if (cellVal === 1) {
+                    ctx.fillStyle = '#ff9100';
+                } else if (cellVal === 2) {
+                    ctx.fillStyle = '#ffea00';
+                } else {
+                    ctx.fillStyle = '#00e5ff';
+                }
+                
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 2;
+                ctx.fillRect(cx, cy, cs, cs);
+                ctx.strokeRect(cx, cy, cs, cs);
+                
+                if (cellVal === 0) {
+                    ctx.font = '28px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('♨️', cx + cs/2, cy + cs/2 + 9);
+                } else if (cellVal > 0) {
+                    ctx.fillStyle = '#1c2833';
+                    ctx.font = 'bold 20px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(cellVal, cx + cs/2, cy + cs/2 + 7);
+                }
+            }
+        }
+        
+        ctx.fillStyle = 'rgba(0,255,153,0.05)';
+        for (let i = 0; i < 600; i += 6) {
+            ctx.fillRect(0, i, 800, 2);
+        }
+        
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('RASTREADOR TÉRMICO OKUHIDA', 400, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '18px monospace';
+        ctx.fillText('Manantiales localizados: ' + gd.found + ' / 3', 400, 90);
+        ctx.fillText('Sondas Geotérmicas restantes: ' + gd.probes, 400, 515);
+        ctx.font = 'italic 15px monospace';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Sonar: Rojo = Manantial, Naranja = 1 casilla, Amarillo = 2 casillas', 400, 550);
+    },
+    inputSpringPress(x, y) {
+        const gd = this.gameData;
+        const ox = 220;
+        const oy = 120;
+        const cs = 60;
+        
+        const col = Math.floor((x - ox) / cs);
+        const row = Math.floor((y - oy) / cs);
+        
+        if (col >= 0 && col < 6 && row >= 0 && row < 6 && gd.grid[row][col] === -1) {
+            let minDist = 999;
+            gd.springs.forEach(s => {
+                const dist = Math.abs(s.r - row) + Math.abs(s.c - col);
+                if (dist < minDist) minDist = dist;
+            });
+            
+            gd.grid[row][col] = minDist;
+            gd.probes--;
+            
+            if (minDist === 0) {
+                gd.found++;
+                this.score = gd.found;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('success');
+                for (let i = 0; i < 15; i++) {
+                    this.particles.push({
+                        x: ox + col * cs + cs/2, y: oy + row * cs + cs/2,
+                        vx: (Math.random() - 0.5) * 80, vy: -50 - Math.random() * 50,
+                        size: 5 + Math.random() * 8, color: '#e0f7fa', life: 0.8, decay: 0.02
+                    });
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+            
+            if (gd.found === 3) {
+                this.victory();
+            } else if (gd.probes <= 0) {
+                this.gameOver();
+            }
+        }
+    },
+
+    // 7. day_11_architecture: Arquitectura Termal
+    setupArchitecture() {
+        this.gameData = {
+            grid: [
+                [ { type: 'L', angle: 0 }, { type: 'I', angle: 90 }, { type: 'L', angle: 90 }, { type: 'I', angle: 0 } ],
+                [ { type: 'I', angle: 0 }, { type: 'L', angle: 270 }, { type: 'I', angle: 90 }, { type: 'L', angle: 180 } ],
+                [ { type: 'L', angle: 90 }, { type: 'I', angle: 0 }, { type: 'L', angle: 0 }, { type: 'L', angle: 270 } ]
+            ],
+            completed: false
+        };
+        const angles = [0, 90, 180, 270];
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                if (r === 0 && c === 0) continue;
+                this.gameData.grid[r][c].angle = angles[Math.floor(Math.random() * 4)];
+            }
+        }
+        this.score = 0;
+        this.solveArchitecture();
+    },
+    solveArchitecture() {
+        const gd = this.gameData;
+        const getPorts = (cell, angle) => {
+            const localPorts = cell.type === 'I' ? [1, 3] : cell.type === 'L' ? [1, 2] : [0, 1, 2, 3];
+            const shift = Math.round(angle / 90) % 4;
+            return localPorts.map(p => (p + shift) % 4);
+        };
+        
+        const visited = Array(3).fill(null).map(() => Array(4).fill(false));
+        const check = (r, c, fromPort) => {
+            if (r < 0 || r >= 3 || c < 0 || c >= 4 || visited[r][c]) return false;
+            
+            const cell = gd.grid[r][c];
+            const ports = getPorts(cell, cell.angle);
+            
+            if (fromPort !== -1 && !ports.includes(fromPort)) return false;
+            
+            visited[r][c] = true;
+            cell.water = true;
+            
+            if (r === 2 && c === 3 && ports.includes(1)) {
+                return true;
+            }
+            
+            const dirs = [
+                { dr: -1, dc: 0, in: 2, out: 0 },
+                { dr: 0, dc: 1, in: 3, out: 1 },
+                { dr: 1, dc: 0, in: 0, out: 2 },
+                { dr: 0, dc: -1, in: 1, out: 3 }
+            ];
+            
+            for (let d = 0; d < 4; d++) {
+                if (ports.includes(dirs[d].out)) {
+                    if (check(r + dirs[d].dr, c + dirs[d].dc, dirs[d].in)) return true;
+                }
+            }
+            return false;
+        };
+        
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                gd.grid[r][c].water = false;
+            }
+        }
+        
+        const connected = check(0, 0, 3);
+        if (connected) {
+            gd.completed = true;
+            this.score = 1;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    updateArchitecture(dt) {},
+    drawArchitecture() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 160;
+        const oy = 160;
+        const cs = 120;
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(80, 205, 80, 30);
+        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
+        ctx.fillRect(80, 215, 80, 10);
+        
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                const cell = gd.grid[r][c];
+                const cx = ox + c * cs;
+                const cy = oy + r * cs;
+                
+                ctx.fillStyle = '#37474f';
+                ctx.strokeStyle = '#455a64';
+                ctx.fillRect(cx, cy, cs, cs);
+                ctx.strokeRect(cx, cy, cs, cs);
+                
+                ctx.save();
+                ctx.translate(cx + cs/2, cy + cs/2);
+                ctx.rotate(cell.angle * Math.PI / 180);
+                
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 26;
+                ctx.lineCap = 'round';
+                
+                if (cell.type === 'I') {
+                    ctx.beginPath();
+                    ctx.moveTo(-cs/2, 0);
+                    ctx.lineTo(cs/2, 0);
+                    ctx.stroke();
+                } else if (cell.type === 'L') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, cs/2);
+                    ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
+                    ctx.stroke();
+                }
+                
+                if (cell.water) {
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 10;
+                    if (cell.type === 'I') {
+                        ctx.beginPath();
+                        ctx.moveTo(-cs/2, 0);
+                        ctx.lineTo(cs/2, 0);
+                        ctx.stroke();
+                    } else if (cell.type === 'L') {
+                        ctx.beginPath();
+                        ctx.moveTo(0, cs/2);
+                        ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
+                        ctx.stroke();
+                    }
+                }
+                ctx.restore();
+            }
+        }
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 45, 80, 30);
+        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
+        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 55, 80, 10);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Construye el acueducto rotando los bambús!', 400, 60);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca las celdas para rotar los tubos 90 grados.', 400, 100);
+    },
+    inputArchitecturePress(x, y) {
+        const gd = this.gameData;
+        if (gd.completed) return;
+        
+        const ox = 160;
+        const oy = 160;
+        const cs = 120;
+        
+        const col = Math.floor((x - ox) / cs);
+        const row = Math.floor((y - oy) / cs);
+        
+        if (col >= 0 && col < 4 && row >= 0 && row < 3) {
+            const cell = gd.grid[row][col];
+            cell.angle = (cell.angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.solveArchitecture();
+        }
+    },
+
+    // 8. day_11_economy: Economía Alpina
+    setupEconomy() {
+        this.gameData = {
+            money: 300,
+            coal: 60,
+            timer: 45.0,
+            customers: [],
+            customerSpawnTimer: 0.5
+        };
+        this.score = 300;
+    },
+    updateEconomy(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        if (gd.money >= 1000) {
+            this.victory();
+        } else if (gd.timer <= 0) {
+            this.gameOver();
+        }
+        
+        gd.customers.forEach(c => {
+            c.patience -= dt * 0.08;
+        });
+        const beforeCount = gd.customers.length;
+        gd.customers = gd.customers.filter(c => c.patience > 0);
+        if (gd.customers.length < beforeCount) {
+            this.screenShake = 10;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        gd.customerSpawnTimer -= dt;
+        if (gd.customerSpawnTimer <= 0) {
+            gd.customers.push({
+                id: Date.now() + Math.random(),
+                x: 150 + Math.random() * 500,
+                y: 200 + Math.random() * 200,
+                patience: 1.0,
+                cost: 150,
+                coalRequired: 15
+            });
+            gd.customerSpawnTimer = 3.0 + Math.random() * 2.0;
+        }
+    },
+    drawEconomy() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#ffecb3';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(50, 150, 700, 320);
+        
+        gd.customers.forEach(c => {
+            ctx.fillStyle = '#a5d6a7';
+            ctx.beginPath();
+            ctx.ellipse(c.x, c.y + 40, 50, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.font = '45px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', c.x, c.y + 20);
+            
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillRect(c.x - 40, c.y - 45, 80, 8);
+            ctx.fillStyle = c.patience > 0.4 ? '#4caf50' : '#f44336';
+            ctx.fillRect(c.x - 40, c.y - 45, 80 * c.patience, 8);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(c.x + 30, c.y - 30, 80, 35);
+            ctx.strokeRect(c.x + 30, c.y - 30, 80, 35);
+            ctx.font = '15px sans-serif';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('♨️ 150¥', c.x + 70, c.y - 7);
+        });
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 500, 200, 60);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.fillText('Comprar Carbón (+20)', 250, 526);
+        ctx.font = '13px Outfit, sans-serif';
+        ctx.fillText('Coste: 50¥', 250, 546);
+        
+        ctx.fillStyle = '#0d1117';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Yenes Ganados: ' + gd.money + ' / 1000¥', 250, 60);
+        ctx.fillText('Carbón: ' + gd.coal + ' kg', 550, 60);
+        ctx.fillText('Tiempo: ' + Math.round(gd.timer) + 's', 400, 110);
+    },
+    inputEconomyPress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 150 && x < 350 && y > 500 && y < 560) {
+            if (gd.money >= 50) {
+                gd.money -= 50;
+                gd.coal += 20;
+                if (window.playProceduralSound) playProceduralSound('collect');
+            } else {
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+            return;
+        }
+        
+        gd.customers.forEach((c, idx) => {
+            if (Math.hypot(x - c.x, y - c.y) < 60) {
+                if (gd.coal >= c.coalRequired) {
+                    gd.coal -= c.coalRequired;
+                    gd.money += c.cost;
+                    this.score = gd.money;
+                    gd.customers.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                }
+            }
+        });
+    },
+
+    // 9. day_11_geta: El Equilibrio del Yukata
+    setupGeta() {
+        this.gameData = {
+            steps: [],
+            count: 0,
+            goal: 40,
+            activeFoot: 'left',
+            balance: 0.5,
+            balanceVel: 0,
+            spawnTimer: 0.2
+        };
+        this.score = 0;
+    },
+    updateGeta(dt) {
+        const gd = this.gameData;
+        
+        gd.balanceVel += (Math.random() - 0.5) * 1.5 * dt;
+        gd.balance += gd.balanceVel * dt;
+        
+        gd.balance = Math.max(0, Math.min(1, gd.balance));
+        
+        if (gd.balance <= 0.05 || gd.balance >= 0.95) {
+            gd.count = Math.max(0, gd.count - 4);
+            this.score = gd.count;
+            gd.balance = 0.5;
+            gd.balanceVel = 0;
+            this.screenShake = 15;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        gd.steps.forEach(s => {
+            s.y += 180 * dt;
+        });
+        gd.steps = gd.steps.filter(s => s.y < 550);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const side = Math.random() < 0.5 ? 'left' : 'right';
+            gd.steps.push({
+                y: -50,
+                side: side,
+                hit: false
+            });
+            gd.spawnTimer = 1.0 + Math.random() * 0.8;
+        }
+    },
+    drawGeta() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#b2ebf2';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#a1887f';
+        ctx.fillRect(200, 0, 400, 600);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(370, 40, 60, 15);
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(250 + gd.balance * 300 - 3, 30, 6, 35);
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(280, 120, 100, 380);
+        ctx.fillRect(420, 120, 100, 380);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(280, 440); ctx.lineTo(380, 440); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(420, 440); ctx.lineTo(520, 440); ctx.stroke();
+        
+        gd.steps.forEach(s => {
+            if (!s.hit) {
+                ctx.font = '35px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(s.side === 'left' ? '👣' : '👣', s.side === 'left' ? 330 : 470, s.y);
+            }
+        });
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(150, 510, 200, 70);
+        ctx.fillRect(450, 510, 200, 70);
+        
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👡 IZQUIERDO', 250, 550);
+        ctx.fillText('👡 DERECHO', 550, 550);
+        
+        ctx.fillText('Pasos en Geta: ' + gd.count + ' / ' + gd.goal, 400, 100);
+    },
+    inputGetaPress(x, y) {
+        const gd = this.gameData;
+        let pressedSide = '';
+        
+        if (x > 150 && x < 350 && y > 510 && y < 580) {
+            pressedSide = 'left';
+        } else if (x > 450 && x < 650 && y > 510 && y < 580) {
+            pressedSide = 'right';
+        }
+        
+        if (pressedSide !== '') {
+            if (pressedSide === 'left') {
+                gd.balanceVel -= 0.15;
+            } else {
+                gd.balanceVel += 0.15;
+            }
+            
+            let hit = false;
+            gd.steps.forEach(s => {
+                if (s.side === pressedSide && !s.hit && Math.abs(s.y - 440) < 40) {
+                    s.hit = true;
+                    hit = true;
+                    gd.count++;
+                    this.score = gd.count;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                }
+            });
+            
+            if (!hit) {
+                gd.balanceVel += (pressedSide === 'left' ? -0.2 : 0.2);
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+            
+            if (gd.count >= gd.goal) {
+                this.victory();
+            }
+        }
+    },
+
+    // ==========================================================
+    // DIA 12 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 10. day_12_silence: Silencio de los Kami
+    setupSilence() {
+        this.gameData = {
+            distance: 0,
+            targetDist: 200,
+            soundLevel: 0,
+            lives: 3,
+            state: 'play',
+            kamiDistance: 45
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        
+        gd.soundLevel = 10 + Math.sin(this.gameTime * 2.5) * 20 + Math.sin(this.gameTime * 0.8) * 15 + Math.random() * 8;
+        gd.soundLevel = Math.max(0, Math.min(100, gd.soundLevel));
+        
+        if (this.mouse.isDown) {
+            gd.distance += dt * 35;
+            this.score = Math.round(gd.distance);
+            
+            if (gd.soundLevel > 40) {
+                gd.lives--;
+                this.screenShake = 12;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.distance = Math.max(0, gd.distance - 20);
+                this.mouse.isDown = false;
+            }
+        }
+        
+        const nearestKami = Math.round(gd.distance / 50) * 50;
+        if (nearestKami > 0 && Math.abs(gd.distance - nearestKami) < 3) {
+            if (gd.soundLevel > 22 && this.mouse.isDown) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('error');
+                gd.distance = nearestKami - 10;
+                this.mouse.isDown = false;
+            }
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#111b15';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fillRect(200, 30, 400, 80);
+        
+        ctx.strokeStyle = gd.soundLevel > 40 ? '#ff1744' : '#00e5ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < 400; i += 10) {
+            const h = (Math.sin(i * 0.05 + this.gameTime * 5) * gd.soundLevel * 0.4);
+            ctx.moveTo(200 + i, 70 - h);
+            ctx.lineTo(200 + i, 70 + h);
+        }
+        ctx.stroke();
+        
+        ctx.strokeStyle = 'rgba(255,23,68,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(200, 50); ctx.lineTo(600, 50); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(200, 90); ctx.lineTo(600, 90); ctx.stroke();
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 380, 800, 220);
+        
+        const playerPx = 100 + (gd.distance % 50) * 10;
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(playerPx, 350, 20, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#ffd54f';
+        ctx.beginPath();
+        ctx.arc(playerPx + 15, 355, 6, 0, Math.PI*2);
+        ctx.fill();
+        
+        const nextKamiDist = Math.ceil(gd.distance / 50) * 50;
+        const kamiPx = 100 + ((nextKamiDist - gd.distance) * 10) + (playerPx - (gd.distance % 50) * 10);
+        if (kamiPx < 850) {
+            ctx.font = '60px sans-serif';
+            const isNear = Math.abs(gd.distance - nextKamiDist) < 8;
+            const waken = isNear && gd.soundLevel > 22;
+            ctx.fillText(waken ? '😱' : '😴', kamiPx, 300);
+            ctx.font = '22px sans-serif';
+            ctx.fillText('⛩️', kamiPx, 360);
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Camino Sigiloso: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 140);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 180);
+        
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        if (gd.soundLevel > 40) {
+            ctx.fillStyle = '#ff1744';
+            ctx.fillText('🚨 ¡RUIDO ALTO! ¡Sueltas para detenerte!', 400, 480);
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText('Mantén presionado para caminar sigilosamente.', 400, 480);
+        }
+    },
+    inputSilencePress() {},
+
+    // 11. day_12_sugidama: La Bola de Cedro
+    setupSugidama() {
+        const pts = [];
+        for (let i = 0; i < 70; i++) {
+            const angle = (i / 70) * Math.PI * 2;
+            const r = 130 + Math.random() * 50;
+            pts.push({ angle: angle, r: r });
+        }
+        this.gameData = {
+            points: pts,
+            targetRadius: 105,
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateSugidama(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown) {
+            gd.points.forEach(p => {
+                const px = 400 + Math.cos(p.angle) * p.r;
+                const py = 300 + Math.sin(p.angle) * p.r;
+                if (Math.hypot(this.mouse.x - px, this.mouse.y - py) < 45) {
+                    const prevR = p.r;
+                    p.r = Math.max(gd.targetRadius, p.r - dt * 65);
+                    
+                    if (prevR > p.r && Math.random() < 0.2) {
+                        this.particles.push({
+                            x: px, y: py,
+                            vx: (Math.random() - 0.5) * 50, vy: 20 + Math.random() * 30,
+                            size: 3 + Math.random() * 5, color: '#33691e', life: 0.7, decay: 0.02
+                        });
+                        if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                    }
+                }
+            });
+        }
+        
+        let diffSum = 0;
+        gd.points.forEach(p => {
+            diffSum += Math.abs(p.r - gd.targetRadius);
+        });
+        const avgDiff = diffSum / gd.points.length;
+        gd.accuracy = Math.max(0, Math.min(100, Math.round(100 - avgDiff * 1.5)));
+        this.score = gd.accuracy;
+        
+        if (gd.accuracy >= 96) {
+            this.victory();
+        }
+    },
+    drawSugidama() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(400, 300, gd.targetRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#1b5e20';
+        ctx.strokeStyle = '#2e7d32';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        gd.points.forEach((p, idx) => {
+            const px = 400 + Math.cos(p.angle) * p.r;
+            const py = 300 + Math.sin(p.angle) * p.r;
+            if (idx === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        if (this.mouse.isDown) {
+            ctx.fillStyle = '#b0bec5';
+            ctx.fillRect(this.mouse.x - 10, this.mouse.y - 4, 20, 8);
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Poda el arbusto para dar forma a la Sugidama!', 400, 50);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillStyle = gd.accuracy >= 96 ? '#00ff99' : '#ffeb3b';
+        ctx.fillText('Precisión Esférica: ' + gd.accuracy + '% / 96%', 400, 95);
+    },
+    inputSugidamaPress() {},
+
+    // 12. day_12_wood: Detective de Madera
+    setupWood() {
+        this.gameData = {
+            tiles: Array(9).fill(null).map((_, idx) => ({
+                id: idx,
+                angle: [90, 180, 270][Math.floor(Math.random() * 3)]
+            })),
+            cleared: false
+        };
+        this.score = 0;
+    },
+    updateWood(dt) {},
+    drawWood() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 250;
+        const oy = 150;
+        const ts = 100;
+        
+        gd.tiles.forEach(tile => {
+            const col = tile.id % 3;
+            const row = Math.floor(tile.id / 3);
+            const cx = ox + col * ts;
+            const cy = oy + row * ts;
+            
+            ctx.save();
+            ctx.translate(cx + ts/2, cy + ts/2);
+            ctx.rotate(tile.angle * Math.PI / 180);
+            
+            ctx.fillStyle = '#8d6e63';
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-ts/2, -ts/2, ts, ts);
+            ctx.strokeRect(-ts/2, -ts/2, ts, ts);
+            
+            ctx.fillStyle = '#4e342e';
+            ctx.font = '40px sans-serif';
+            ctx.textAlign = 'center';
+            const reliefs = ['🐅', '🐉', '🦅', '🐾', '🌸', '🎋', '⛩️', '🍥', '🦊'];
+            ctx.fillText(reliefs[tile.id], 0, 15);
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Restaura la talla feudal rotando los paneles!', 400, 60);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca los azulejos de madera para rotarlos.', 400, 100);
+    },
+    inputWoodPress(x, y) {
+        const gd = this.gameData;
+        if (gd.cleared) return;
+        
+        const ox = 250;
+        const oy = 150;
+        const ts = 100;
+        
+        const col = Math.floor((x - ox) / ts);
+        const row = Math.floor((y - oy) / ts);
+        
+        if (col >= 0 && col < 3 && row >= 0 && row < 3) {
+            const idx = row * 3 + col;
+            const tile = gd.tiles[idx];
+            tile.angle = (tile.angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+            
+            let solved = true;
+            gd.tiles.forEach(t => {
+                if (t.angle !== 0) solved = false;
+            });
+            
+            if (solved) {
+                gd.cleared = true;
+                this.score = 2;
+                setTimeout(() => this.victory(), 800);
+            }
+        }
+    },
+    releaseWood() {},
+
+    // 13. day_12_hida: Degustadora de Hida
+    setupHida() {
+        this.gameData = {
+            meats: [
+                { id: 0, x: 200, sideA: 0, sideB: 0, side: 'A', active: true },
+                { id: 1, x: 400, sideA: 0, sideB: 0, side: 'A', active: true },
+                { id: 2, x: 600, sideA: 0, sideB: 0, side: 'A', active: true }
+            ],
+            servedCount: 0,
+            goal: 5
+        };
+        this.score = 0;
+    },
+    updateHida(dt) {
+        const gd = this.gameData;
+        
+        gd.meats.forEach(m => {
+            if (m.active) {
+                if (m.side === 'A') {
+                    m.sideA += dt * 0.15;
+                } else {
+                    m.sideB += dt * 0.15;
+                }
+            }
+        });
+        
+        if (gd.servedCount >= gd.goal) {
+            this.victory();
+        }
+    },
+    drawHida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#1e1b18';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#424242';
+        ctx.fillRect(100, 200, 600, 260);
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(110, 210, 580, 240);
+        
+        ctx.strokeStyle = '#616161';
+        ctx.lineWidth = 3;
+        for (let x = 120; x < 700; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 200); ctx.lineTo(x, 460); ctx.stroke();
+        }
+        for (let y = 210; y < 460; y += 30) {
+            ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(700, y); ctx.stroke();
+        }
+        
+        gd.meats.forEach(m => {
+            if (m.active) {
+                const currentSideLvl = m.side === 'A' ? m.sideA : m.sideB;
+                
+                let color = '#d32f2f';
+                if (currentSideLvl > 0.4 && currentSideLvl <= 0.7) color = '#8d6e63';
+                else if (currentSideLvl > 0.7) color = '#212121';
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(m.x - 60, 280, 120, 70);
+                
+                if (currentSideLvl <= 0.4) {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(m.x - 40, 290); ctx.lineTo(m.x - 20, 340);
+                    ctx.moveTo(m.x, 290); ctx.lineTo(m.x + 20, 340);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                const statusStr = m.side === 'A' ? 'Lado A' : 'Lado B';
+                ctx.fillText(statusStr, m.x, 320);
+            }
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Cocina carne Wagyu de Hida perfectamente!', 400, 50);
+        ctx.fillText('Cortes perfectos servidos: ' + gd.servedCount + ' / ' + gd.goal, 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la carne para voltear o servir en su punto exacto.', 400, 140);
+    },
+    inputHidaPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.meats.forEach(m => {
+            if (m.active && x > m.x - 60 && x < m.x + 60 && y > 280 && y < 350) {
+                if (m.side === 'A') {
+                    m.side = 'B';
+                    if (window.playProceduralSound) playProceduralSound('click');
+                } else {
+                    const isSideACooked = m.sideA > 0.35 && m.sideA <= 0.7;
+                    const isSideBCooked = m.sideB > 0.35 && m.sideB <= 0.7;
+                    
+                    if (isSideACooked && isSideBCooked) {
+                        gd.servedCount++;
+                        this.score = gd.servedCount;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    }
+                    m.sideA = 0;
+                    m.sideB = 0;
+                    m.side = 'A';
+                }
+            }
+        });
+    },
+
+    // 14. day_12_carving: Talla en Madera
+    setupCarving() {
+        const kanji = [
+            [0,0,0,0,1,0,0,0,0],
+            [0,0,0,0,1,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1],
+            [0,0,0,1,1,1,0,0,0],
+            [0,0,1,0,1,0,1,0,0],
+            [0,1,0,0,1,0,0,1,0],
+            [1,0,0,0,1,0,0,0,1]
+        ];
+        
+        this.gameData = {
+            voxels: Array(15).fill(null).map(() => Array(15).fill(true)),
+            target: kanji,
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateCarving(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown && this.mouse.x > 250 && this.mouse.x < 550 && this.mouse.y > 150 && this.mouse.y < 450) {
+            const col = Math.floor((this.mouse.x - 250) / 20);
+            const row = Math.floor((this.mouse.y - 150) / 20);
+            
+            if (row >= 0 && row < 15 && col >= 0 && col < 15) {
+                if (gd.voxels[row][col]) {
+                    gd.voxels[row][col] = false;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    for (let i = 0; i < 3; i++) {
+                        this.particles.push({
+                            x: this.mouse.x, y: this.mouse.y,
+                            vx: (Math.random() - 0.5) * 80, vy: (Math.random() - 0.5) * 80,
+                            size: 2 + Math.random() * 4, color: '#8d6e63', life: 0.5, decay: 0.02
+                        });
+                    }
+                }
+            }
+        }
+        
+        let matched = 0;
+        let totalValids = 0;
+        
+        for (let r = 0; r < 15; r++) {
+            for (let c = 0; c < 15; c++) {
+                const kr = r - 4;
+                const kc = c - 3;
+                const isTemplateCell = (kr >= 0 && kr < 7 && kc >= 0 && kc < 9 && gd.target[kr][kc] === 1);
+                
+                if (isTemplateCell) {
+                    if (gd.voxels[r][c]) matched++;
+                    totalValids++;
+                } else {
+                    if (!gd.voxels[r][c]) matched++;
+                    totalValids++;
+                }
+            }
+        }
+        
+        gd.accuracy = Math.round((matched / totalValids) * 100);
+        this.score = gd.accuracy;
+        
+        if (gd.accuracy >= 86) {
+            this.victory();
+        }
+    },
+    drawCarving() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#2b1b18';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.15)';
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        
+        ctx.beginPath(); ctx.moveTo(400, 180); ctx.lineTo(400, 420); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(300, 260); ctx.lineTo(500, 260); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(320, 380); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(480, 380); ctx.stroke();
+        
+        for (let r = 0; r < 15; r++) {
+            for (let c = 0; c < 15; c++) {
+                if (gd.voxels[r][c]) {
+                    ctx.fillStyle = '#5c4033';
+                    ctx.strokeStyle = '#3d251d';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(250 + c * 20, 150 + r * 20, 20, 20);
+                    ctx.strokeRect(250 + c * 20, 150 + r * 20, 20, 20);
+                }
+            }
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Cincela el bloque para tallar el Kanji de la Madera: 木!', 400, 60);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillStyle = gd.accuracy >= 86 ? '#00ff99' : '#ffeb3b';
+        ctx.fillText('Precisión del tallado: ' + gd.accuracy + '% / 86%', 400, 110);
+    },
+    inputCarvingPress() {},
+
+    // 15. day_12_sake: Maestro Destilador
+    setupSake() {
+        this.gameData = {
+            temp: 20.0,
+            timer: 30.0,
+            riceCount: 0,
+            goal: 20,
+            basketX: 400,
+            items: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSake(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        gd.temp += (Math.random() - 0.5) * 6 * dt;
+        gd.temp = Math.max(10, Math.min(30, gd.temp));
+        
+        const inGreenZone = (gd.temp >= 16 && gd.temp <= 24);
+        if (!inGreenZone) {
+            gd.timer = Math.min(30.0, gd.timer + dt * 0.4);
+        }
+        
+        gd.items.forEach(item => {
+            item.y += 180 * dt;
+        });
+        
+        gd.items.forEach(item => {
+            if (item.y > 470 && item.y < 510 && Math.abs(item.x - gd.basketX) < 55) {
+                if (item.type === 'rice') {
+                    gd.riceCount++;
+                    this.score = gd.riceCount;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                } else {
+                    gd.riceCount = Math.max(0, gd.riceCount - 3);
+                    this.score = gd.riceCount;
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.screenShake = 12;
+                }
+                item.y = 999;
+            }
+        });
+        
+        gd.items = gd.items.filter(item => item.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const isRice = Math.random() < 0.7;
+            gd.items.push({
+                x: 100 + Math.random() * 600,
+                y: -20,
+                type: isRice ? 'rice' : 'stone',
+                emoji: isRice ? '🌾' : '🪨'
+            });
+            gd.spawnTimer = 0.5 + Math.random() * 0.5;
+        }
+        
+        gd.basketX += (this.mouse.x - gd.basketX) * 0.25;
+        
+        if (gd.riceCount >= gd.goal && gd.timer <= 0) {
+            this.victory();
+        }
+    },
+    drawSake() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#efeeb2';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#b78d6e';
+        ctx.fillRect(80, 150, 640, 360);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(90, 160, 620, 340);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(740, 150, 20, 300);
+        
+        const yGreenStart = 450 - 300 * (24 - 10)/20;
+        const yGreenHeight = 300 * (8 / 20);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(740, yGreenStart, 20, yGreenHeight);
+        
+        const yInd = 450 - 300 * (gd.temp - 10)/20;
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(735, yInd - 3, 30, 6);
+        
+        gd.items.forEach(item => {
+            ctx.font = '32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.emoji, item.x, item.y);
+        });
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(gd.basketX - 50, 490, 100, 20);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(200, 525, 150, 50);
+        ctx.fillStyle = '#42a5f5';
+        ctx.fillRect(450, 525, 150, 50);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('♨️ Calentar', 275, 555);
+        ctx.fillText('❄️ Enfriar', 525, 555);
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Fermentación: ' + Math.round(gd.riceCount) + ' / ' + gd.goal + ' granos', 400, 55);
+        ctx.fillText('Tiempo de cocción restante: ' + Math.max(0, Math.round(gd.timer)) + 's', 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Temp destilado: ' + gd.temp.toFixed(1) + '°C (Rango óptimo: 16-24°C)', 400, 130);
+    },
+    inputSakePress(x, y) {
+        const gd = this.gameData;
+        if (x > 200 && x < 350 && y > 525 && y < 575) {
+            gd.temp = Math.min(30, gd.temp + 2.5);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        if (x > 450 && x < 600 && y > 525 && y < 575) {
+            gd.temp = Math.max(10, gd.temp - 2.5);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 16. day_12_patrol: Patrulla Sanmachi Suji
+    setupPatrol() {
+        this.gameData = {
+            playerLane: 1,
+            targetX: 400,
+            obstacles: [],
+            spawnTimer: 0,
+            distance: 0,
+            targetDist: 500,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updatePatrol(dt) {
+        const gd = this.gameData;
+        gd.distance += dt * 50;
+        this.score = Math.round(gd.distance);
+        
+        const laneXs = [240, 400, 560];
+        gd.targetX = laneXs[gd.playerLane];
+        
+        gd.obstacles.forEach(obs => {
+            obs.y += 280 * dt;
+        });
+        
+        gd.obstacles.forEach(obs => {
+            if (obs.y > 460 && obs.y < 520 && obs.lane === gd.playerLane) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                obs.y = 999;
+            }
+        });
+        
+        gd.obstacles = gd.obstacles.filter(obs => obs.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.obstacles.push({
+                lane: Math.floor(Math.random() * 3),
+                y: -50,
+                emoji: Math.random() < 0.6 ? '🛢️' : '🛒'
+            });
+            gd.spawnTimer = 1.0 + Math.random() * 1.0;
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawPatrol() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#1e1c1a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#4e342e';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(320, 0); ctx.lineTo(160, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(640, 600); ctx.stroke();
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([20, 20]);
+        ctx.beginPath(); ctx.moveTo(373, 0); ctx.lineTo(320, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(427, 0); ctx.lineTo(480, 600); ctx.stroke();
+        ctx.setLineDash([]);
+        
+        gd.obstacles.forEach(obs => {
+            const laneXs = [240, 400, 560];
+            const ox = laneXs[obs.lane];
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(obs.emoji, ox, obs.y);
+        });
+        
+        ctx.font = '60px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🚲', gd.targetX, 500);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fillRect(0, 0, 300, 600);
+        ctx.fillRect(500, 0, 300, 600);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Patrulla Takayama: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 55);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Toca el lado IZQUIERDO o DERECHO para cambiar de carril.', 400, 570);
+    },
+    inputPatrolPress(x, y) {
+        const gd = this.gameData;
+        if (x < 300) {
+            gd.playerLane = Math.max(0, gd.playerLane - 1);
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (x > 500) {
+            gd.playerLane = Math.min(2, gd.playerLane + 1);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_12_appraisal: Tasador Feudal
+    setupAppraisal() {
+        this.gameData = {
+            targetWeight: 180,
+            currentWeight: 0,
+            placedCoins: [],
+            coins: [
+                { id: 0, weight: 10, name: 'Ten', x: 150, y: 520, ox: 150, oy: 520 },
+                { id: 1, weight: 20, name: 'Double', x: 250, y: 520, ox: 250, oy: 520 },
+                { id: 2, weight: 50, name: 'Koban', x: 350, y: 520, ox: 350, oy: 520 },
+                { id: 3, weight: 100, name: 'Oban', x: 450, y: 520, ox: 450, oy: 520 }
+            ],
+            draggingCoin: null,
+            dragOffset: { x: 0, y: 0 },
+            balancedRounds: 0
+        };
+        this.score = 0;
+    },
+    updateAppraisal(dt) {
+        const gd = this.gameData;
+        if (gd.draggingCoin) {
+            gd.draggingCoin.x = this.mouse.x - gd.dragOffset.x;
+            gd.draggingCoin.y = this.mouse.y - gd.dragOffset.y;
+        }
+        
+        let sum = 0;
+        gd.placedCoins.forEach(c => {
+            sum += c.weight;
+        });
+        gd.currentWeight = sum;
+        
+        if (gd.currentWeight === gd.targetWeight) {
+            gd.balancedRounds++;
+            this.score = gd.balancedRounds;
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            if (gd.balancedRounds >= 3) {
+                this.victory();
+            } else {
+                gd.targetWeight = [120, 160, 230, 270][Math.floor(Math.random() * 4)];
+                gd.placedCoins = [];
+                gd.coins.forEach(c => {
+                    c.x = c.ox;
+                    c.y = c.oy;
+                    c.placed = false;
+                });
+            }
+        }
+    },
+    drawAppraisal() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const pivotX = 400;
+        const pivotY = 300;
+        
+        const diff = gd.currentWeight - gd.targetWeight;
+        const tilt = Math.max(-0.25, Math.min(0.25, diff * 0.003));
+        
+        ctx.save();
+        ctx.strokeStyle = '#795548';
+        ctx.lineWidth = 8;
+        
+        ctx.beginPath(); ctx.moveTo(pivotX, pivotY); ctx.lineTo(pivotX, 450); ctx.stroke();
+        
+        ctx.translate(pivotX, pivotY);
+        ctx.rotate(tilt);
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        
+        ctx.save();
+        ctx.translate(-200, 0);
+        ctx.rotate(-tilt);
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
+        ctx.stroke(); ctx.fill();
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.targetWeight + 'g', 0, 100);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(200, 0);
+        ctx.rotate(-tilt);
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
+        ctx.stroke(); ctx.fill();
+        ctx.fillStyle = '#1b5e20';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.currentWeight + 'g', 0, 100);
+        ctx.restore();
+        
+        ctx.restore();
+        
+        gd.coins.forEach(c => {
+            if (!gd.placedCoins.includes(c)) {
+                ctx.fillStyle = '#ffca28';
+                ctx.strokeStyle = '#ff8f00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 25, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#5d4037';
+                ctx.font = 'bold 15px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.weight + 'g', c.x, c.y + 5);
+            }
+        });
+        
+        const rx = 600 + Math.cos(tilt) * 200;
+        const ry = 300 + Math.sin(tilt) * 200 + 100;
+        gd.placedCoins.forEach((c, idx) => {
+            ctx.fillStyle = '#ffca28';
+            ctx.strokeStyle = '#ff8f00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(rx + (idx - 1) * 20, ry - 15, 20, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(c.weight + 'g', rx + (idx - 1) * 20, ry - 11);
+        });
+        
+        if (gd.draggingCoin) {
+            ctx.fillStyle = '#ffca28';
+            ctx.beginPath();
+            ctx.arc(gd.draggingCoin.x, gd.draggingCoin.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Equilibra las balanzas para tasar la restauración!', 400, 50);
+        ctx.fillText('Tasaciones resueltas: ' + gd.balancedRounds + ' / 3', 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Arrastra las pesas de oro tradicionales a la bandeja derecha.', 400, 135);
+    },
+    inputAppraisalPress(x, y) {
+        const gd = this.gameData;
+        
+        for (let i = 0; i < gd.coins.length; i++) {
+            const c = gd.coins[i];
+            if (!gd.placedCoins.includes(c) && Math.hypot(x - c.x, y - c.y) < 25) {
+                gd.draggingCoin = c;
+                gd.dragOffset.x = x - c.x;
+                gd.dragOffset.y = y - c.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseAppraisal(x, y) {
+        const gd = this.gameData;
+        const c = gd.draggingCoin;
+        if (!c) return;
+        gd.draggingCoin = null;
+        
+        if (x > 500 && x < 700 && y > 240 && y < 450) {
+            gd.placedCoins.push(c);
+            if (window.playProceduralSound) playProceduralSound('success');
+        } else {
+            c.x = c.ox;
+            c.y = c.oy;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+
+    // 18. day_12_bridge: Cruzando el Miyagawa
+    setupBridge() {
+        this.gameData = {
+            p1: { x: 80, y: 250, jumping: false, targetY: 250 },
+            p2: { x: 80, y: 350, jumping: false, targetY: 350 },
+            logs: [
+                { id: 0, x: 220, y: 150, vy: 120 },
+                { id: 1, x: 340, y: 400, vy: -140 },
+                { id: 2, x: 460, y: 200, vy: 160 },
+                { id: 3, x: 580, y: 350, vy: -120 }
+            ],
+            currentPlayer: 'both'
+        };
+        this.score = 0;
+    },
+    updateBridge(dt) {
+        const gd = this.gameData;
+        
+        gd.logs.forEach(l => {
+            l.y += l.vy * dt;
+            if (l.y < 80 || l.y > 520) {
+                l.vy = -l.vy;
+            }
+        });
+        
+        [gd.p1, gd.p2].forEach(p => {
+            if (!p.jumping) {
+                gd.logs.forEach(l => {
+                    if (Math.abs(p.x - l.x) < 25) {
+                        p.y = l.y;
+                    }
+                });
+            } else {
+                p.x += 180 * dt;
+                if (p.x >= p.targetX) {
+                    p.x = p.targetX;
+                    p.jumping = false;
+                    
+                    let landedOnLog = false;
+                    gd.logs.forEach(l => {
+                        if (Math.abs(p.x - l.x) < 30 && Math.abs(p.y - l.y) < 55) {
+                            landedOnLog = true;
+                            p.y = l.y;
+                        }
+                    });
+                    
+                    if (p.x >= 700) {
+                        landedOnLog = true;
+                    }
+                    
+                    if (!landedOnLog) {
+                        p.x = 80;
+                        p.y = p.targetY;
+                        this.screenShake = 15;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                }
+            }
+        });
+        
+        if (gd.p1.x >= 700 && gd.p2.x >= 700) {
+            this.score = 1;
+            this.victory();
+        }
+    },
+    drawBridge() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#29b6f6';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 150, 600);
+        ctx.fillRect(680, 0, 120, 600);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(710, 0, 20, 600);
+        
+        gd.logs.forEach(l => {
+            ctx.fillStyle = '#5c4033';
+            ctx.fillRect(l.x - 20, l.y - 50, 40, 100);
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(l.x - 20, l.y - 50, 40, 8);
+            ctx.fillRect(l.x - 20, l.y + 42, 40, 8);
+        });
+        
+        ctx.font = '45px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦊', gd.p1.x, gd.p1.y + 15);
+        ctx.fillText('🐉', gd.p2.x, gd.p2.y + 15);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('¡Ayuda a ambos a cruzar saltando los troncos!', 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la pantalla para hacer que ambos salten al siguiente tronco.', 400, 95);
+    },
+    inputBridgePress(x, y) {
+        const gd = this.gameData;
+        
+        if (!gd.p1.jumping && gd.p1.x < 700) {
+            gd.p1.jumping = true;
+            gd.p1.targetX = gd.p1.x + 120;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+        if (!gd.p2.jumping && gd.p2.x < 700) {
+            gd.p2.jumping = true;
+            gd.p2.targetX = gd.p2.x + 120;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+
+    // ==========================================================
+    // DIA 13 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 19. day_13_stairs: La Escalada Chureito
+    setupStairs() {
+        this.gameData = {
+            stepsClimbed: 0,
+            targetSteps: 398,
+            playerY: 450,
+            playerVy: 0,
+            jumping: false,
+            obstacles: [],
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateStairs(dt) {
+        const gd = this.gameData;
+        
+        if (gd.lives > 0 && gd.stepsClimbed < gd.targetSteps) {
+            gd.stepsClimbed += dt * 30;
+            this.score = Math.min(398, Math.round(gd.stepsClimbed));
+        }
+        
+        if (gd.jumping) {
+            gd.playerVy += 1400 * dt;
+            gd.playerY += gd.playerVy * dt;
+            
+            if (gd.playerY >= 450) {
+                gd.playerY = 450;
+                gd.jumping = false;
+            }
+        }
+        
+        gd.obstacles.forEach(o => {
+            o.y += 240 * dt;
+        });
+        
+        gd.obstacles.forEach(o => {
+            if (o.y > 420 && o.y < 460 && Math.abs(o.x - 400) < 40 && gd.playerY > 410) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                o.y = 999;
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(o => o.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.obstacles.push({
+                x: 350 + Math.random() * 100,
+                y: 100,
+                emoji: Math.random() < 0.5 ? '🐒' : '🪨'
+            });
+            gd.spawnTimer = 1.2 + Math.random() * 1.0;
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.stepsClimbed >= gd.targetSteps) {
+            this.victory();
+        }
+    },
+    drawStairs() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#b3e5fc';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath();
+        ctx.moveTo(100, 400); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(500, 400);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(212, 250); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(388, 250);
+        ctx.fill();
+        
+        ctx.fillStyle = '#cfd8dc';
+        ctx.fillRect(300, 150, 200, 450);
+        
+        ctx.strokeStyle = '#90a4ae';
+        ctx.lineWidth = 4;
+        const offset = Math.round(gd.stepsClimbed * 4) % 40;
+        for (let y = 150; y < 600; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(300, y + offset);
+            ctx.lineTo(500, y + offset);
+            ctx.stroke();
+        }
+        
+        gd.obstacles.forEach(o => {
+            ctx.font = '35px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(o.emoji, o.x, o.y);
+        });
+        
+        ctx.font = '50px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦊', 400, gd.playerY);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Escalones Chureito: ' + Math.round(gd.stepsClimbed) + ' / 398', 400, 60);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 100);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca para SALTAR obstáculos y subir los escalones.', 400, 560);
+    },
+    inputStairsPress() {
+        const gd = this.gameData;
+        if (!gd.jumping) {
+            gd.jumping = true;
+            gd.playerVy = -500;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+
+    // 20. day_13_manhole: El Sello del Lago
+    setupManhole() {
+        this.gameData = {
+            colors: ['#cccccc', '#cccccc', '#cccccc', '#cccccc'],
+            targets: ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'],
+            selectedColor: '#e53935'
+        };
+        this.score = 0;
+    },
+    updateManhole(dt) {
+        const gd = this.gameData;
+        let match = true;
+        for (let i = 0; i < 4; i++) {
+            if (gd.colors[i] !== gd.targets[i]) match = false;
+        }
+        if (match) {
+            this.score = 100;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    drawManhole() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#cfd8dc';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(400, 260, 180, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const colors = gd.colors;
+        const angles = [
+            { s: -Math.PI * 0.75, e: -Math.PI * 0.25 },
+            { s: -Math.PI * 0.25, e: Math.PI * 0.25 },
+            { s: Math.PI * 0.25, e: Math.PI * 0.75 },
+            { s: Math.PI * 0.75, e: Math.PI * 1.25 }
+        ];
+        
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(400, 260);
+            ctx.arc(400, 260, 175, angles[i].s, angles[i].e);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+        
+        ctx.fillStyle = '#cfd8dc';
+        ctx.beginPath();
+        ctx.moveTo(350, 310); ctx.lineTo(400, 210); ctx.lineTo(450, 310); ctx.closePath();
+        ctx.fill();
+        
+        const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
+        brushColors.forEach((bc, idx) => {
+            ctx.fillStyle = bc;
+            ctx.fillRect(160 + idx * 130, 480, 80, 45);
+            ctx.strokeStyle = gd.selectedColor === bc ? '#ffffff' : '#37474f';
+            ctx.lineWidth = gd.selectedColor === bc ? 4 : 2;
+            ctx.strokeRect(160 + idx * 130, 480, 80, 45);
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Colorea la tapa de alcantarilla artística de Kawaguchiko!', 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Selecciona un esmalte abajo y toca las secciones del sello.', 400, 90);
+    },
+    inputManholePress(x, y) {
+        const gd = this.gameData;
+        
+        const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
+        for (let i = 0; i < 4; i++) {
+            const bx = 160 + i * 130;
+            if (x > bx && x < bx + 80 && y > 480 && y < 525) {
+                gd.selectedColor = brushColors[i];
+                if (window.playProceduralSound) playProceduralSound('click');
+                return;
+            }
+        }
+        
+        const dist = Math.hypot(x - 400, y - 260);
+        if (dist < 175) {
+            const angle = Math.atan2(y - 260, x - 400);
+            let sector = -1;
+            if (angle > -Math.PI * 0.75 && angle <= -Math.PI * 0.25) sector = 0;
+            else if (angle > -Math.PI * 0.25 && angle <= Math.PI * 0.25) sector = 1;
+            else if (angle > Math.PI * 0.25 && angle <= Math.PI * 0.75) sector = 2;
+            else sector = 3;
+            
+            if (sector !== -1) {
+                gd.colors[sector] = gd.selectedColor;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+
+    // 21. day_13_icecream: Helados Exóticos
+    setupIcecream() {
+        this.gameData = {
+            scoops: [],
+            lives: 3,
+            swingAngle: 0,
+            activeScoopColor: '#4caf50',
+            activeScoopName: 'Wasabi'
+        };
+        this.score = 0;
+        this.spawnNewScoop();
+    },
+    spawnNewScoop() {
+        const flavors = [
+            { c: '#81c784', name: 'Wasabi Verde' },
+            { c: '#ba68c8', name: 'Lavanda' },
+            { c: '#90a4ae', name: 'Sésamo Negro' },
+            { c: '#ffd54f', name: 'Melón Dorado' }
+        ];
+        const chosen = flavors[Math.floor(Math.random() * flavors.length)];
+        this.gameData.activeScoopColor = chosen.c;
+        this.gameData.activeScoopName = chosen.name;
+    },
+    updateIcecream(dt) {
+        const gd = this.gameData;
+        
+        gd.swingAngle = Math.sin(this.gameTime * 3) * 0.8;
+        
+        gd.scoops.forEach(s => {
+            if (s.state === 'dropping') {
+                s.y += 350 * dt;
+                
+                const targetY = gd.scoops.length === 1 ? 440 : gd.scoops[gd.scoops.indexOf(s) - 1].y - 35;
+                const targetX = gd.scoops.length === 1 ? 400 : gd.scoops[gd.scoops.indexOf(s) - 1].x;
+                
+                if (s.y >= targetY) {
+                    if (Math.abs(s.x - targetX) < 30) {
+                        s.state = 'stacked';
+                        s.y = targetY;
+                        this.score = gd.scoops.length;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        if (gd.scoops.length >= 6) {
+                            this.victory();
+                        } else {
+                            this.spawnNewScoop();
+                        }
+                    } else {
+                        gd.lives--;
+                        this.screenShake = 12;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        gd.scoops.pop();
+                        
+                        if (gd.lives <= 0) {
+                            this.gameOver();
+                        } else {
+                            this.spawnNewScoop();
+                        }
+                    }
+                }
+            }
+        });
+    },
+    drawIcecream() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#4db6ac';
+        ctx.beginPath();
+        ctx.moveTo(0, 480); ctx.lineTo(200, 300); ctx.lineTo(400, 480); ctx.closePath(); ctx.fill();
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.strokeStyle = '#8d6e63';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(370, 440); ctx.lineTo(430, 440); ctx.lineTo(400, 550); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        gd.scoops.forEach(s => {
+            if (s.state === 'stacked') {
+                ctx.fillStyle = s.color;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        
+        const active = gd.scoops.find(s => s.state === 'dropping');
+        if (active) {
+            ctx.fillStyle = active.color;
+            ctx.beginPath();
+            ctx.arc(active.x, active.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            const swingX = 400 + Math.sin(gd.swingAngle) * 150;
+            ctx.strokeStyle = '#37474f';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(400, 20); ctx.lineTo(swingX, 90); ctx.stroke();
+            
+            ctx.fillStyle = gd.activeScoopColor;
+            ctx.beginPath();
+            ctx.arc(swingX, 90, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#006064';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Bolas apiladas: ' + gd.scoops.filter(x => x.state === 'stacked').length + ' / 6', 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la pantalla para soltar la bola cuando esté alineada.', 400, 580);
+    },
+    inputIcecreamPress() {
+        const gd = this.gameData;
+        if (!gd.scoops.some(s => s.state === 'dropping')) {
+            const swingX = 400 + Math.sin(gd.swingAngle) * 150;
+            gd.scoops.push({
+                x: swingX,
+                y: 90,
+                color: gd.activeScoopColor,
+                state: 'dropping'
+            });
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+    releaseIcecream() {},
+
+    // 22. day_13_yokai: Filtro de Yōkai
+    setupYokai() {
+        const list = [];
+        for (let i = 0; i < 5; i++) {
+            list.push({
+                id: i,
+                x: 100 + Math.random() * 600,
+                y: 150 + Math.random() * 280,
+                emoji: ['👻', '🦊', '👺', '🐍', '🏮'][i],
+                found: false
+            });
+        }
+        this.gameData = {
+            yokais: list,
+            lensX: 400,
+            lensY: 300,
+            count: 0
+        };
+        this.score = 0;
+    },
+    updateYokai(dt) {
+        const gd = this.gameData;
+        gd.lensX += (this.mouse.x - gd.lensX) * 0.2;
+        gd.lensY += (this.mouse.y - gd.lensY) * 0.2;
+    },
+    drawYokai() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#08080c';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fillRect(150, 100, 40, 500);
+        ctx.fillRect(480, 50, 50, 550);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
+        ctx.clip();
+        
+        ctx.fillStyle = '#651fff';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillRect(150, 100, 40, 500);
+        ctx.fillRect(480, 50, 50, 550);
+        
+        gd.yokais.forEach(y => {
+            const dist = Math.hypot(y.x - gd.lensX, y.y - gd.lensY);
+            if (dist < 90 && !y.found) {
+                ctx.font = '55px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(y.emoji, y.x, y.y + 20);
+                
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(y.x - 30, y.y - 30, 60, 60);
+            }
+        });
+        ctx.restore();
+        
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        gd.yokais.forEach(y => {
+            if (y.found) {
+                ctx.font = '30px sans-serif';
+                ctx.fillText('📜', y.x, y.y);
+            }
+        });
+        
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Yokais capturados: ' + gd.count + ' / 5', 400, 50);
+        ctx.font = '15px monospace';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Desplaza el visor espectral y toca al Yokai para sellarlo.', 400, 560);
+    },
+    inputYokaiPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.yokais.forEach(yk => {
+            const lensDist = Math.hypot(yk.x - gd.lensX, yk.y - gd.lensY);
+            if (lensDist < 90 && !yk.found && Math.hypot(x - yk.x, y - yk.y) < 40) {
+                yk.found = true;
+                gd.count++;
+                this.score = gd.count;
+                if (window.playProceduralSound) playProceduralSound('collect');
+                
+                for (let i = 0; i < 8; i++) {
+                    this.particles.push({
+                        x: yk.x, y: yk.y,
+                        vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                        size: 3, color: '#00ff99', life: 0.6, decay: 0.02
+                    });
+                }
+                
+                if (gd.count >= 5) {
+                    this.victory();
+                }
+            }
+        });
+    },
+
+    // 23. day_13_perspective: Perspectiva del Gigante
+    setupPerspective() {
+        this.gameData = {
+            scale: 0.35,
+            x: 280,
+            y: 350,
+            targetX: 435,
+            targetY: 260,
+            isMoving: false
+        };
+        this.score = 0;
+    },
+    updatePerspective(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown) {
+            if (this.mouse.y > 480 && this.mouse.y < 520 && this.mouse.x > 150 && this.mouse.x < 350) {
+                gd.scale = 0.1 + ((this.mouse.x - 150) / 200) * 0.8;
+            }
+            else if (Math.hypot(this.mouse.x - gd.x, this.mouse.y - gd.y) < 60) {
+                gd.isMoving = true;
+            }
+            
+            if (gd.isMoving) {
+                gd.x = this.mouse.x;
+                gd.y = this.mouse.y;
+            }
+        } else {
+            gd.isMoving = false;
+        }
+        
+        const dist = Math.hypot(gd.x - gd.targetX, gd.y - gd.targetY);
+        const scaleDiff = Math.abs(gd.scale - 0.45);
+        
+        const accuracy = Math.round(Math.max(0, 100 - dist * 0.6 - scaleDiff * 80));
+        this.score = accuracy;
+    },
+    drawPerspective() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e1f5fe';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#5c6bc0';
+        ctx.beginPath();
+        ctx.moveTo(250, 420); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(650, 420);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(395, 280); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(515, 280);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 410, 800, 190);
+        
+        ctx.strokeStyle = 'rgba(255,23,68,0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.targetX, gd.targetY, 20, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(gd.x, gd.y);
+        ctx.scale(gd.scale, gd.scale);
+        
+        ctx.fillStyle = '#ff8a80';
+        ctx.fillRect(-25, -25, 50, 50);
+        ctx.fillStyle = '#ff8a65';
+        ctx.fillRect(25, -10, 30, 15);
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath(); ctx.arc(0, -50, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 510, 200, 10);
+        ctx.fillStyle = '#0288d1';
+        ctx.beginPath();
+        ctx.arc(150 + ((gd.scale - 0.1)/0.8)*200, 515, 12, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(520, 495, 160, 45);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.fillText('📸 DISPARAR', 600, 523);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ÓPTICA FUJI: ALINEACIÓN DE PERSPECTIVA', 400, 50);
+        ctx.fillText('Coincidencia del encuadre: ' + this.score + '% / 90%', 400, 95);
+        
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText('Escala', 250, 545);
+    },
+    inputPerspectivePress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 520 && x < 680 && y > 495 && y < 540) {
+            if (this.score >= 90) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.victory();
+            } else {
+                this.screenShake = 10;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    releasePerspective() {},
+
+    // 24. day_13_tunnels: Navegantes del Asfalto
+    setupTunnels() {
+        this.gameData = {
+            playerX: 400,
+            obstacles: [],
+            spawnTimer: 0,
+            distance: 0,
+            tunnelsPassed: 0,
+            targetTunnels: 3,
+            tunnelActive: true,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateTunnels(dt) {
+        const gd = this.gameData;
+        gd.distance += dt * 45;
+        
+        gd.obstacles.forEach(o => {
+            o.y += 240 * dt;
+        });
+        
+        gd.obstacles.forEach(o => {
+            if (o.y > 450 && o.y < 510 && Math.abs(o.x - gd.playerX) < 45) {
+                if (o.type === 'battery') {
+                    gd.distance += 40;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                } else {
+                    gd.lives--;
+                    this.screenShake = 15;
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                }
+                o.y = 999;
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(o => o.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const isBatt = Math.random() < 0.35;
+            gd.obstacles.push({
+                x: 200 + Math.random() * 400,
+                y: -50,
+                type: isBatt ? 'battery' : 'barrier',
+                emoji: isBatt ? '⚡' : '🚧'
+            });
+            gd.spawnTimer = 0.8 + Math.random() * 0.8;
+        }
+        
+        const tunnelThreshold = (gd.tunnelsPassed + 1) * 150;
+        if (gd.distance >= tunnelThreshold) {
+            gd.tunnelsPassed++;
+            this.score = gd.tunnelsPassed;
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            if (gd.tunnelsPassed >= gd.targetTunnels) {
+                this.victory();
+            }
+        }
+        
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.25;
+        gd.playerX = Math.max(150, Math.min(650, gd.playerX));
+    },
+    drawTunnels() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#08080a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(650, 0); ctx.lineTo(650, 600); ctx.stroke();
+        
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 235, 59, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(gd.playerX, 480);
+        ctx.lineTo(gd.playerX - 160, 0);
+        ctx.lineTo(gd.playerX + 160, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        gd.obstacles.forEach(o => {
+            const inLight = (o.y > 100 || Math.abs(o.x - gd.playerX) < 120);
+            if (inLight) {
+                ctx.font = '45px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(o.emoji, o.x, o.y);
+            }
+        });
+        
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.playerX - 25, 480, 50, 80);
+        ctx.fillStyle = '#ffd54f';
+        ctx.fillRect(gd.playerX - 20, 480, 8, 8);
+        ctx.fillRect(gd.playerX + 12, 480, 8, 8);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Túneles atravesados: ' + gd.tunnelsPassed + ' / ' + gd.targetTunnels, 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+    },
+    inputTunnelsPress() {},
+
+    // 25. day_13_volcano: Análisis Vulcanológico
+    setupVolcano() {
+        this.gameData = {
+            pressure: 30,
+            bubbles: [],
+            spawnTimer: 0,
+            timer: 30.0
+        };
+        this.score = 0;
+    },
+    updateVolcano(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        gd.pressure += dt * 3.5;
+        
+        gd.bubbles.forEach(b => {
+            b.y -= 120 * dt;
+        });
+        
+        gd.bubbles.forEach(b => {
+            if (b.y <= 180) {
+                gd.pressure = Math.min(100, gd.pressure + 15);
+                this.screenShake = 10;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                b.y = -999;
+            }
+        });
+        gd.bubbles = gd.bubbles.filter(b => b.y > 0);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.bubbles.push({
+                x: 250 + Math.random() * 300,
+                y: 500,
+                r: 15 + Math.random() * 15,
+                id: Date.now() + Math.random()
+            });
+            gd.spawnTimer = 0.6 + Math.random() * 0.6;
+        }
+        
+        if (gd.pressure >= 100) {
+            this.gameOver();
+        } else if (gd.timer <= 0) {
+            this.score = 100;
+            this.victory();
+        }
+    },
+    drawVolcano() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#d50000';
+        ctx.beginPath();
+        ctx.arc(400, 480, 150, 0, Math.PI, true);
+        ctx.fill();
+        
+        ctx.fillRect(360, 200, 80, 280);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(100, 80, 600, 20);
+        ctx.fillStyle = gd.pressure > 75 ? '#ff1744' : gd.pressure > 45 ? '#ffeb3b' : '#00e5ff';
+        ctx.fillRect(100, 80, 600 * (gd.pressure / 100), 20);
+        
+        gd.bubbles.forEach(b => {
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.6)';
+            ctx.strokeStyle = '#ffd54f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+        });
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(100, 520, 200, 55);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('💨 ABRIR VÁLVULA A', 200, 553);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('MONTE FUJI: ALIVIO DE PRESIÓN GEOLÓGICA', 400, 40);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('Presión del Magma: ' + Math.round(gd.pressure) + '% / 100%', 400, 130);
+        ctx.fillText('Mantener a salvo: ' + Math.max(0, Math.round(gd.timer)) + 's', 400, 170);
+    },
+    inputVolcanoPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.bubbles.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < b.r + 20) {
+                gd.bubbles.splice(idx, 1);
+                gd.pressure = Math.max(0, gd.pressure - 6);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                
+                for (let i = 0; i < 5; i++) {
+                    this.particles.push({
+                        x: b.x, y: b.y,
+                        vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                        size: 2, color: '#ffeb3b', life: 0.5, decay: 0.02
+                    });
+                }
+            }
+        });
+        
+        if (x > 100 && x < 300 && y > 520 && y < 575) {
+            gd.pressure = Math.max(0, gd.pressure - 12);
+            if (window.playProceduralSound) playProceduralSound('success');
+            for (let i = 0; i < 8; i++) {
+                this.particles.push({
+                    x: 400, y: 200,
+                    vx: (Math.random() - 0.5) * 40, vy: -60 - Math.random() * 40,
+                    size: 6, color: 'rgba(255,255,255,0.4)', life: 0.7, decay: 0.02
+                });
+            }
+        }
+    },
+
+    // 26. day_13_triangulation: Triangulación del Fuji
+    setupTriangulation() {
+        this.gameData = {
+            angle1: 15,
+            angle2: 60,
+            angle3: 110,
+            target1: 45,
+            target2: 45,
+            target3: 45,
+            isDraggingAngle: 0
+        };
+        this.score = 0;
+    },
+    updateTriangulation(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown && this.mouse.y > 480 && this.mouse.y < 530) {
+            if (this.mouse.x > 80 && this.mouse.x < 280) {
+                gd.angle1 = Math.round(((this.mouse.x - 80) / 200) * 180);
+            } else if (this.mouse.x > 300 && this.mouse.x < 500) {
+                gd.angle2 = Math.round(((this.mouse.x - 300) / 200) * 180);
+            } else if (this.mouse.x > 520 && this.mouse.x < 720) {
+                gd.angle3 = Math.round(((this.mouse.x - 520) / 200) * 180);
+            }
+        }
+        
+        const diff1 = Math.abs(gd.angle1 - gd.target1);
+        const diff2 = Math.abs(gd.angle2 - gd.target2);
+        const diff3 = Math.abs(gd.angle3 - gd.target3);
+        
+        if (diff1 <= 2 && diff2 <= 2 && diff3 <= 2) {
+            this.score = 1;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    drawTriangulation() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(400, 350, 15, 0, Math.PI * 2); ctx.stroke();
+        
+        const sats = [
+            { x: 150, y: 120, a: gd.angle1, color: '#ff3d00' },
+            { x: 400, y: 80, a: gd.angle2, color: '#ffd600' },
+            { x: 650, y: 120, a: gd.angle3, color: '#2979ff' }
+        ];
+        
+        sats.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.fillRect(s.x - 20, s.y - 10, 40, 20);
+            
+            const targetAngleRad = Math.atan2(350 - s.y, 400 - s.x);
+            const actualAngleRad = targetAngleRad + (s.a - 45) * 0.02;
+            
+            ctx.strokeStyle = s.color + '66';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x + Math.cos(actualAngleRad) * 600, s.y + Math.sin(actualAngleRad) * 600);
+            ctx.stroke();
+        });
+        
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(80, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(80 + (gd.angle1/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#ffd600';
+        ctx.fillRect(300, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(300 + (gd.angle2/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#2979ff';
+        ctx.fillRect(520, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(520 + (gd.angle3/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('TRIANGULACIÓN DE MICROONDAS SATELITAL', 400, 45);
+        ctx.font = '16px monospace';
+        ctx.fillText('Ajusta los diales para cruzar los 3 haces en el cráter.', 400, 460);
+    },
+    inputTriangulationPress() {},
+
+    // 27. day_13_oishi: Oishi Park en Flor
+    setupOishi() {
+        this.gameData = {
+            cloudX: 180,
+            cloudVx: 35,
+            butterflyX: 0,
+            butterflyY: 320,
+            butterflyVx: 120,
+            butterflyVy: 0,
+            photoTaken: false
+        };
+        this.score = 0;
+    },
+    updateOishi(dt) {
+        const gd = this.gameData;
+        
+        gd.cloudX += gd.cloudVx * dt;
+        if (gd.cloudX > 850) gd.cloudX = -150;
+        
+        gd.butterflyX += gd.butterflyVx * dt;
+        gd.butterflyY += Math.sin(this.gameTime * 4) * 80 * dt;
+        if (gd.butterflyX > 850) gd.butterflyX = -50;
+    },
+    drawOishi() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e3f2fd';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#7986cb';
+        ctx.beginPath();
+        ctx.moveTo(150, 400); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(650, 400);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(336, 250); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(464, 250);
+        ctx.fill();
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath();
+        ctx.arc(gd.cloudX, 230, 45, 0, Math.PI*2);
+        ctx.arc(gd.cloudX + 50, 230, 60, 0, Math.PI*2);
+        ctx.arc(gd.cloudX + 100, 230, 45, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 390, 800, 90);
+        
+        ctx.fillStyle = '#7c4dff';
+        for (let x = 0; x < 800; x += 15) {
+            const h = 80 + Math.sin(x * 0.05 + this.gameTime) * 15;
+            ctx.fillRect(x, 600 - h, 12, h);
+        }
+        
+        ctx.font = '35px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦋', gd.butterflyX, gd.butterflyY);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(50, 100, 700, 350);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(320, 510, 160, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText('📸 DISPARAR', 400, 541);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('OISHI PARK: ENCUADRE DE LAVANDA Y FUJI', 400, 50);
+    },
+    inputOishiPress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 320 && x < 480 && y > 510 && y < 560) {
+            const cloudDist = Math.abs(gd.cloudX - 400);
+            const butterflyInFrame = (gd.butterflyX > 100 && gd.butterflyX < 700 && gd.butterflyY > 150 && gd.butterflyY < 400);
+            
+            let rating = 30;
+            if (cloudDist > 180) rating += 35;
+            if (butterflyInFrame) rating += 35;
+            
+            this.score = rating;
+            if (rating >= 80) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.victory();
+            } else {
+                this.screenShake = 12;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    releaseOishi() {},
+
+    // ==========================================================
+    // DIA 14 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 28. day_14_rock: Buscador de Magma
+    setupRock() {
+        this.gameData = {
+            rocks: [],
+            bins: [
+                { x: 200, color: '#ffeb3b', name: 'Amarillo' },
+                { x: 400, color: '#ff5722', name: 'Naranja' },
+                { x: 600, color: '#9e9e9e', name: 'Gris' }
+            ],
+            sulphur: [],
+            spawnTimer: 0,
+            draggingIdx: -1,
+            count: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateRock(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.2 + Math.random() * 0.8;
+            if (Math.random() < 0.6) {
+                const colors = ['#ffeb3b', '#ff5722', '#9e9e9e'];
+                gd.rocks.push({
+                    x: 100 + Math.random() * 600,
+                    y: 620,
+                    color: colors[Math.floor(Math.random() * 3)],
+                    r: 25 + Math.random() * 15,
+                    vy: -100 - Math.random() * 80
+                });
+            } else {
+                gd.sulphur.push({
+                    x: 100 + Math.random() * 600,
+                    y: 620,
+                    r: 30 + Math.random() * 15,
+                    vy: -120 - Math.random() * 60,
+                    phase: Math.random() * 10
+                });
+            }
+        }
+
+        // Update rocks
+        gd.rocks.forEach((r, idx) => {
+            if (idx === gd.draggingIdx) {
+                r.x = this.mouse.x;
+                r.y = this.mouse.y;
+            } else {
+                r.y += r.vy * dt;
+            }
+        });
+
+        // Filter off-screen rocks
+        gd.rocks = gd.rocks.filter((r, idx) => idx === gd.draggingIdx || r.y > -50);
+
+        // Update sulphur bubbles
+        gd.sulphur.forEach(s => {
+            s.y += s.vy * dt;
+            s.x += Math.sin(this.gameTime * 3 + s.phase) * 50 * dt;
+        });
+        gd.sulphur = gd.sulphur.filter(s => s.y > -50);
+
+        // Check if dragging rock hits sulphur
+        if (gd.draggingIdx !== -1) {
+            const r = gd.rocks[gd.draggingIdx];
+            gd.sulphur.forEach((s, sIdx) => {
+                const d = Math.hypot(r.x - s.x, r.y - s.y);
+                if (d < r.r + s.r) {
+                    this.createExplosion(s.x, s.y, '#ccff33', 15);
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    gd.sulphur.splice(sIdx, 1);
+                    gd.draggingIdx = -1;
+                    gd.lives--;
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            });
+        }
+    },
+    drawRock() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Volcanic background
+        ctx.fillStyle = '#1a0505';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw hot steam lines rising
+        ctx.strokeStyle = 'rgba(255,87,34,0.08)';
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 8; i++) {
+            const x = (i * 100 + this.gameTime * 40) % 850 - 50;
+            ctx.beginPath();
+            ctx.moveTo(x, 600);
+            ctx.quadraticCurveTo(x + 30, 400, x - 20, 200);
+            ctx.quadraticCurveTo(x + 10, 100, x, 0);
+            ctx.stroke();
+        }
+
+        // Draw bins at top
+        gd.bins.forEach(b => {
+            ctx.fillStyle = 'rgba(20,20,30,0.8)';
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(b.x, 100, 60, 0, Math.PI, true);
+            ctx.lineTo(b.x - 60, 50);
+            ctx.lineTo(b.x + 60, 50);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = b.color + '22';
+            ctx.beginPath();
+            ctx.arc(b.x, 70, 40, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(b.name, b.x, 40);
+        });
+
+        // Draw rocks
+        gd.rocks.forEach(r => {
+            ctx.fillStyle = r.color;
+            ctx.strokeStyle = '#ffffff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 8; i++) {
+                const angle = (i * Math.PI) / 4;
+                const offset = 1 + Math.sin(angle * 3 + r.r) * 0.15;
+                const px = r.x + Math.cos(angle) * r.r * offset;
+                const py = r.y + Math.sin(angle) * r.r * offset;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#00000022';
+            ctx.beginPath();
+            ctx.arc(r.x - r.r * 0.2, r.y - r.r * 0.2, r.r * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw sulphur bubbles
+        gd.sulphur.forEach(s => {
+            ctx.fillStyle = 'rgba(204,255,51,0.2)';
+            ctx.strokeStyle = '#ccff33';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffffbb';
+            ctx.beginPath();
+            ctx.arc(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Piedras Clasificadas: ${gd.count}/${this.goal}`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputRockPress(x, y) {
+        const gd = this.gameData;
+        gd.rocks.forEach((r, idx) => {
+            if (Math.hypot(r.x - x, r.y - y) < r.r + 15) {
+                gd.draggingIdx = idx;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+        gd.sulphur.forEach((s, idx) => {
+            if (Math.hypot(s.x - x, s.y - y) < s.r + 15) {
+                this.createExplosion(s.x, s.y, '#ccff33', 15);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.sulphur.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(10);
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+    },
+    releaseRock(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingIdx !== -1) {
+            const r = gd.rocks[gd.draggingIdx];
+            gd.bins.forEach(b => {
+                if (Math.hypot(r.x - b.x, r.y - 70) < 70) {
+                    if (r.color === b.color) {
+                        gd.count++;
+                        this.score = Math.round((gd.count / this.goal) * 100);
+                        this.createExplosion(b.x, 80, b.color, 20);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        gd.rocks.splice(gd.draggingIdx, 1);
+                        if (gd.count >= this.goal) {
+                            setTimeout(() => this.victory(), 500);
+                        }
+                    } else {
+                        this.triggerShake(10);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    }
+                }
+            });
+            gd.draggingIdx = -1;
+        }
+    },
+
+    // 29. day_14_kid9_echo: Eco del Silencio
+    setupEcho() {
+        this.gameData = {
+            ripples: [],
+            successCount: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateEcho(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.4 + Math.random() * 0.4;
+            gd.ripples.push({
+                cx: 400,
+                cy: 300,
+                r: 10,
+                v: 140,
+                active: true,
+                tapped: false
+            });
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+
+        gd.ripples.forEach((rp, rIdx) => {
+            rp.r += rp.v * dt;
+            if (rp.r > 230 && rp.active && !rp.tapped) {
+                rp.active = false;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('error');
+                gd.lives--;
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+
+        gd.ripples = gd.ripples.filter(rp => rp.r < 300);
+    },
+    drawEcho() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a140d';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#2e7d32';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.arc(400, 300, 200, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.arc(400, 300, 200, -0.4, 0.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(400, 300, 200, Math.PI - 0.4, Math.PI + 0.4);
+        ctx.stroke();
+
+        gd.ripples.forEach(rp => {
+            ctx.strokeStyle = rp.tapped ? 'rgba(0,255,153,0.3)' : (rp.active ? 'rgba(96,239,255,0.7)' : 'rgba(255,51,51,0.6)');
+            ctx.lineWidth = rp.active ? 4 : 2;
+            ctx.beginPath();
+            ctx.arc(400, 300, rp.r, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+
+        ctx.font = '50px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👏', 400, 315);
+
+        ctx.strokeStyle = 'rgba(255,215,0,0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(400, 300, 180, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(400, 300, 220, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Silencios Capturados: ${gd.successCount}/${this.goal}`, 400, 540);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputEchoPress(x, y) {
+        const gd = this.gameData;
+        let hit = false;
+        gd.ripples.forEach(rp => {
+            if (rp.active && !rp.tapped && rp.r >= 170 && rp.r <= 230) {
+                rp.tapped = true;
+                hit = true;
+                gd.successCount++;
+                this.score = Math.round((gd.successCount / this.goal) * 100);
+                this.createExplosion(400 + (x-400)*0.5, 300 + (y-300)*0.5, '#00ff99', 15);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                if (gd.successCount >= this.goal) {
+                    setTimeout(() => this.victory(), 500);
+                }
+            }
+        });
+        if (!hit) {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(5);
+        }
+    },
+    releaseEcho() {},
+
+    // 30. day_14_root: Raíces del Guardián
+    setupRoot() {
+        this.gameData = {
+            path: [{ x: 400, y: 80 }],
+            rocks: [
+                { x: 280, y: 220, r: 50 },
+                { x: 520, y: 240, r: 60 },
+                { x: 380, y: 350, r: 55 },
+                { x: 260, y: 460, r: 40 },
+                { x: 540, y: 450, r: 45 }
+            ],
+            waters: [
+                { x: 400, y: 170, collected: false },
+                { x: 300, y: 300, collected: false },
+                { x: 500, y: 320, collected: false },
+                { x: 400, y: 440, collected: false }
+            ],
+            soilY: 530,
+            gatheredWater: 0,
+            drawing: false,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateRoot(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown && gd.drawing) {
+            const last = gd.path[gd.path.length - 1];
+            const d = Math.hypot(this.mouse.x - last.x, this.mouse.y - last.y);
+            if (d > 12 && d < 60) {
+                const nextPt = { x: this.mouse.x, y: this.mouse.y };
+                
+                let collides = false;
+                gd.rocks.forEach(rk => {
+                    if (Math.hypot(nextPt.x - rk.x, nextPt.y - rk.y) < rk.r + 10) {
+                        collides = true;
+                    }
+                });
+
+                if (collides) {
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    gd.lives--;
+                    gd.path = [{ x: 400, y: 80 }];
+                    gd.drawing = false;
+                    gd.waters.forEach(w => w.collected = false);
+                    gd.gatheredWater = 0;
+                    if (gd.lives <= 0) this.gameOver();
+                } else {
+                    gd.path.push(nextPt);
+                    
+                    gd.waters.forEach(w => {
+                        if (!w.collected && Math.hypot(nextPt.x - w.x, nextPt.y - w.y) < 25) {
+                            w.collected = true;
+                            gd.gatheredWater++;
+                            if (window.playProceduralSound) playProceduralSound('collect');
+                            this.createExplosion(w.x, w.y, '#33b5e5', 12);
+                        }
+                    });
+
+                    if (nextPt.y >= gd.soilY) {
+                        gd.drawing = false;
+                        if (gd.gatheredWater >= 3) {
+                            this.score = 100;
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            setTimeout(() => this.victory(), 500);
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            gd.path = [{ x: 400, y: 80 }];
+                            gd.waters.forEach(w => w.collected = false);
+                            gd.gatheredWater = 0;
+                        }
+                    }
+                }
+            }
+        }
+    },
+    drawRoot() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.rocks.forEach(rk => {
+            ctx.fillStyle = '#4e342e';
+            ctx.strokeStyle = '#ff330044';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(rk.x, rk.y, rk.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#37221e';
+            ctx.beginPath();
+            ctx.arc(rk.x - rk.r*0.2, rk.y - rk.r*0.2, rk.r*0.5, 0, Math.PI*2);
+            ctx.fill();
+        });
+
+        gd.waters.forEach(w => {
+            if (!w.collected) {
+                ctx.fillStyle = 'rgba(51,181,229,0.3)';
+                ctx.strokeStyle = '#00ddff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(w.x, w.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
+
+        ctx.fillStyle = '#1b5e20';
+        ctx.fillRect(0, gd.soilY, 800, 70);
+
+        if (gd.path.length > 1) {
+            ctx.strokeStyle = '#81c784';
+            ctx.lineWidth = 14;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            ctx.moveTo(gd.path[0].x, gd.path[0].y);
+            for (let i = 1; i < gd.path.length; i++) {
+                ctx.lineTo(gd.path[i].x, gd.path[i].y);
+            }
+            ctx.stroke();
+
+            ctx.strokeStyle = '#e8f5e9';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(gd.path[0].x, gd.path[0].y);
+            for (let i = 1; i < gd.path.length; i++) {
+                ctx.lineTo(gd.path[i].x, gd.path[i].y);
+            }
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(400, 80, 15, 0, Math.PI*2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Agua recolectada: ${gd.gatheredWater}/3`, 35, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 765, 45);
+
+        ctx.textAlign = 'center';
+        ctx.font = '14px monospace';
+        ctx.fillText('Arrastra desde el nodo blanco hasta el fondo fértil verde.', 400, 30);
+    },
+    inputRootPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 400, y - 80) < 30) {
+            gd.drawing = true;
+            gd.path = [{ x: 400, y: 80 }];
+            gd.gatheredWater = 0;
+            gd.waters.forEach(w => w.collected = false);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseRoot(x, y) {
+        this.gameData.drawing = false;
+    },
+
+    // 31. day_14_compass: Vuelo a la Cima
+    setupCompass() {
+        this.gameData = {
+            balloonX: 400,
+            balloonY: 450,
+            vx: 0,
+            windAngle: 0,
+            altitude: 0,
+            obstacles: [],
+            spawnTimer: 0,
+            controlAngle: 0,
+            isDraggingDial: false,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCompass(dt) {
+        const gd = this.gameData;
+        gd.altitude += dt * 100;
+        this.score = Math.min(100, Math.round((gd.altitude / this.goal) * 100));
+
+        if (gd.altitude >= this.goal) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+
+        gd.windAngle = Math.sin(this.gameTime * 1.5) * 0.8;
+
+        const windPower = 180;
+        const controlPower = 280;
+
+        gd.vx = Math.sin(gd.windAngle) * windPower + Math.sin(gd.controlAngle) * controlPower;
+        gd.balloonX += gd.vx * dt;
+        gd.balloonX = Math.max(80, Math.min(720, gd.balloonX));
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0 + Math.random() * 0.8;
+            gd.obstacles.push({
+                x: 100 + Math.random() * 600,
+                y: -50,
+                r: 25 + Math.random() * 15,
+                vy: 150 + Math.random() * 100
+            });
+        }
+
+        gd.obstacles.forEach((ob, idx) => {
+            ob.y += ob.vy * dt;
+            if (Math.hypot(ob.x - gd.balloonX, ob.y - gd.balloonY) < ob.r + 30) {
+                gd.obstacles.splice(idx, 1);
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.lives--;
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(ob => ob.y < 650);
+
+        if (this.mouse.isDown && gd.isDraggingDial) {
+            const dx = this.mouse.x - 400;
+            const dy = this.mouse.y - 540;
+            gd.controlAngle = Math.atan2(dx, -dy);
+        } else {
+            gd.isDraggingDial = false;
+        }
+    },
+    drawCompass() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#001122');
+        grad.addColorStop(1, '#003366');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            const x = (i * 180 + this.gameTime * 200) % 850 - 50;
+            const y = (i * 90 + this.gameTime * 80) % 450;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.sin(gd.windAngle) * 50, y + 30);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#0a2135';
+        ctx.beginPath();
+        ctx.moveTo(100, 480);
+        ctx.lineTo(350, 200);
+        ctx.lineTo(450, 200);
+        ctx.lineTo(700, 480);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(314, 240);
+        ctx.lineTo(350, 200);
+        ctx.lineTo(450, 200);
+        ctx.lineTo(486, 240);
+        ctx.lineTo(440, 260);
+        ctx.lineTo(420, 230);
+        ctx.lineTo(380, 270);
+        ctx.lineTo(350, 230);
+        ctx.closePath();
+        ctx.fill();
+
+        gd.obstacles.forEach(ob => {
+            ctx.fillStyle = '#78909c';
+            ctx.strokeStyle = '#cfd8dc';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(ob.x, ob.y, ob.r, 0, Math.PI * 2);
+            ctx.arc(ob.x - ob.r*0.5, ob.y, ob.r*0.7, 0, Math.PI * 2);
+            ctx.arc(ob.x + ob.r*0.5, ob.y, ob.r*0.7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffd600';
+            ctx.beginPath();
+            ctx.moveTo(ob.x - 5, ob.y - ob.r * 0.4);
+            ctx.lineTo(ob.x - 12, ob.y + 2);
+            ctx.lineTo(ob.x - 2, ob.y + 2);
+            ctx.lineTo(ob.x - 8, ob.y + ob.r * 0.5);
+            ctx.lineTo(ob.x + 8, ob.y - 2);
+            ctx.lineTo(ob.x - 2, ob.y - 2);
+            ctx.closePath();
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#ff7b54';
+        ctx.beginPath();
+        ctx.arc(gd.balloonX, gd.balloonY - 20, 25, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.ellipse(gd.balloonX, gd.balloonY - 20, 10, 25, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(gd.balloonX - 8, gd.balloonY + 12, 16, 12);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(gd.balloonX - 6, gd.balloonY + 5); ctx.lineTo(gd.balloonX - 6, gd.balloonY + 12);
+        ctx.moveTo(gd.balloonX + 6, gd.balloonY + 5); ctx.lineTo(gd.balloonX + 6, gd.balloonY + 12);
+        ctx.stroke();
+
+        ctx.fillStyle = '#112233';
+        ctx.fillRect(0, 480, 800, 120);
+
+        ctx.strokeStyle = '#00bcd4';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(400, 540, 45, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(400, 540);
+        ctx.lineTo(400 + Math.sin(gd.controlAngle)*40, 540 - Math.cos(gd.controlAngle)*40);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(100, 540);
+        ctx.lineTo(100 + Math.sin(gd.windAngle)*30, 540 - Math.cos(gd.windAngle)*30);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('DIRECCIÓN DEL VIENTO', 100, 505);
+        ctx.fillText('TIMÓN DE VIENTOS', 400, 490);
+        ctx.fillText('Arrastra el timón para equilibrar el vuelo.', 400, 592);
+
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}/${this.goal}m`, 25, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 775, 45);
+    },
+    inputCompassPress(x, y) {
+        if (Math.hypot(x - 400, y - 540) < 60) {
+            this.gameData.isDraggingDial = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseCompass() {},
+
+    // 32. day_14_radar: Punto Ciego de Datos
+    setupRadar() {
+        this.gameData = {
+            playerX: 400,
+            playerY: 350,
+            buildings: [
+                { x: 180, y: 150, w: 120, h: 100 },
+                { x: 500, y: 120, w: 140, h: 120 },
+                { x: 340, y: 320, w: 120, h: 90 }
+            ],
+            sats: [
+                { x: 400, y: 50, scanAngle: 0, rotSpeed: 0.6, sweepRange: 0.8 },
+                { x: 150, y: 450, scanAngle: Math.PI/4, rotSpeed: -0.4, sweepRange: 0.6 },
+                { x: 650, y: 450, scanAngle: Math.PI, rotSpeed: 0.5, sweepRange: 0.7 }
+            ],
+            signal: 0,
+            isDetected: false
+        };
+        this.score = 0;
+    },
+    updateRadar(dt) {
+        const gd = this.gameData;
+
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.1;
+        gd.playerY += (this.mouse.y - gd.playerY) * 0.1;
+        gd.playerX = Math.max(20, Math.min(780, gd.playerX));
+        gd.playerY = Math.max(20, Math.min(580, gd.playerY));
+
+        gd.buildings.forEach(b => {
+            if (gd.playerX > b.x && gd.playerX < b.x + b.w && gd.playerY > b.y && gd.playerY < b.y + b.h) {
+                const dl = gd.playerX - b.x;
+                const dr = b.x + b.w - gd.playerX;
+                const dt = gd.playerY - b.y;
+                const db = b.y + b.h - gd.playerY;
+                const min = Math.min(dl, dr, dt, db);
+                if (min === dl) gd.playerX = b.x - 2;
+                else if (min === dr) gd.playerX = b.x + b.w + 2;
+                else if (min === dt) gd.playerY = b.y - 2;
+                else if (min === db) gd.playerY = b.y + b.h + 2;
+            }
+        });
+
+        gd.sats.forEach(s => {
+            s.scanAngle += s.rotSpeed * dt;
+        });
+
+        let insideAnyBeam = false;
+        let insideAnyShadow = false;
+
+        gd.sats.forEach(s => {
+            const angleToPlayer = Math.atan2(gd.playerY - s.y, gd.playerX - s.x);
+            let diff = Math.abs(angleToPlayer - s.scanAngle);
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            diff = Math.abs(diff);
+
+            if (diff < s.sweepRange / 2) {
+                insideAnyBeam = true;
+
+                let LoSBlocked = false;
+                gd.buildings.forEach(b => {
+                    for (let step = 1; step <= 8; step++) {
+                        const px = s.x + (gd.playerX - s.x) * (step / 8);
+                        const py = s.y + (gd.playerY - s.y) * (step / 8);
+                        if (px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h) {
+                            LoSBlocked = true;
+                            break;
+                        }
+                    }
+                });
+
+                if (LoSBlocked) {
+                    insideAnyShadow = true;
+                }
+            }
+        });
+
+        gd.isDetected = insideAnyBeam && !insideAnyShadow;
+
+        if (gd.isDetected) {
+            gd.signal = Math.max(0, gd.signal - dt * 25);
+            if (Math.random() < 0.15) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(3);
+            }
+        } else {
+            gd.signal = Math.min(100, gd.signal + dt * 12);
+            this.score = Math.round(gd.signal);
+            if (Math.random() < 0.05) {
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        }
+
+        if (gd.signal >= 100) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+    },
+    drawRadar() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050c05';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#00ff5511';
+        ctx.lineWidth = 1;
+        for (let r = 100; r < 700; r += 100) {
+            ctx.beginPath();
+            ctx.arc(400, 300, r, 0, Math.PI*2);
+            ctx.stroke();
+        }
+
+        gd.sats.forEach(s => {
+            gd.buildings.forEach(b => {
+                const corners = [
+                    { x: b.x, y: b.y },
+                    { x: b.x + b.w, y: b.y },
+                    { x: b.x + b.w, y: b.y + b.h },
+                    { x: b.x, y: b.y + b.h }
+                ];
+                
+                const proj = corners.map(c => {
+                    const dx = c.x - s.x;
+                    const dy = c.y - s.y;
+                    const len = Math.hypot(dx, dy);
+                    return {
+                        x: s.x + (dx / len) * 1000,
+                        y: s.y + (dy / len) * 1000
+                    };
+                });
+
+                ctx.fillStyle = 'rgba(0,100,0,0.1)';
+                ctx.beginPath();
+                ctx.moveTo(corners[0].x, corners[0].y);
+                ctx.lineTo(proj[0].x, proj[0].y);
+                ctx.lineTo(proj[2].x, proj[2].y);
+                ctx.lineTo(corners[2].x, corners[2].y);
+                ctx.closePath();
+                ctx.fill();
+            });
+
+            ctx.fillStyle = 'rgba(0,255,85,0.06)';
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.arc(s.x, s.y, 800, s.scanAngle - s.sweepRange/2, s.scanAngle + s.sweepRange/2);
+            ctx.closePath();
+            ctx.fill();
+        });
+
+        gd.buildings.forEach(b => {
+            ctx.fillStyle = '#223322';
+            ctx.strokeStyle = '#00ff5555';
+            ctx.lineWidth = 3;
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
+        });
+
+        gd.sats.forEach(s => {
+            ctx.fillStyle = '#00e676';
+            ctx.beginPath(); ctx.arc(s.x, s.y, 14, 0, Math.PI*2); ctx.fill();
+            
+            ctx.strokeStyle = '#ffd600';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x + Math.cos(s.scanAngle)*40, s.y + Math.sin(s.scanAngle)*40);
+            ctx.stroke();
+        });
+
+        ctx.fillStyle = gd.isDetected ? '#ff1744' : '#00e5ff';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(gd.playerX, gd.playerY, 10, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NODO CIEGO: DESCARGA DE SATÉLITES', 400, 35);
+        ctx.font = '15px monospace';
+        ctx.fillText('Escóndete en las sombras de los edificios para descargar los datos.', 400, 565);
+
+        ctx.fillStyle = '#113311';
+        ctx.fillRect(150, 500, 500, 25);
+        ctx.fillStyle = '#00e676';
+        ctx.fillRect(150, 500, gd.signal * 5, 25);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(150, 500, 500, 25);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(`DESCARGA: ${Math.round(gd.signal)}%`, 400, 517);
+
+        if (gd.isDetected) {
+            ctx.fillStyle = '#ff1744';
+            ctx.font = 'bold 24px monospace';
+            ctx.fillText('⚠️ SEÑAL EXPUESTA: ESCANEO EN PROGRESO', 400, 460);
+        }
+    },
+    inputRadarPress(x, y) {},
+
+    // 33. day_14_pressure: Presurizador Alpino
+    setupPressure() {
+        this.gameData = {
+            pressure: 50,
+            timer: 20,
+            molecules: []
+        };
+        for (let i = 0; i < 15; i++) {
+            this.gameData.molecules.push({
+                x: 300 + Math.random() * 200,
+                y: 200 + Math.random() * 200,
+                vx: (Math.random() - 0.5) * 200,
+                vy: (Math.random() - 0.5) * 200,
+                r: 12,
+                state: 'normal'
+            });
+        }
+        this.score = 0;
+    },
+    updatePressure(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+
+        if (gd.timer <= 0) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+            return;
+        }
+
+        if (Math.random() < 0.05) {
+            const normalMols = gd.molecules.filter(m => m.state === 'normal');
+            if (normalMols.length > 0) {
+                const choice = normalMols[Math.floor(Math.random() * normalMols.length)];
+                choice.state = 'hot';
+                choice.vx *= 2.0;
+                choice.vy *= 2.0;
+            }
+        }
+
+        const hotCount = gd.molecules.filter(m => m.state === 'hot').length;
+        gd.pressure += (hotCount * 4 - 3) * dt;
+        gd.pressure = Math.max(10, Math.min(100, gd.pressure));
+
+        this.score = Math.round(((20 - gd.timer) / 20) * 100);
+
+        const bagScale = 1.0 + (gd.pressure / 100) * 0.45;
+        const bagW = 400 * bagScale;
+        const bagH = 300 * bagScale;
+        const minX = 400 - bagW/2 + 20;
+        const maxX = 400 + bagW/2 - 20;
+        const minY = 300 - bagH/2 + 20;
+        const maxY = 300 + bagH/2 - 20;
+
+        gd.molecules.forEach(m => {
+            m.x += m.vx * dt;
+            m.y += m.vy * dt;
+
+            if (m.x < minX) { m.x = minX; m.vx = -m.vx; }
+            if (m.x > maxX) { m.x = maxX; m.vx = -m.vx; }
+            if (m.y < minY) { m.y = minY; m.vy = -m.vy; }
+            if (m.y > maxY) { m.y = maxY; m.vy = -m.vy; }
+        });
+
+        if (gd.pressure >= 100) {
+            this.triggerShake(30);
+            if (window.playProceduralSound) playProceduralSound('error');
+            gd.pressure = 50;
+            gd.molecules.forEach(m => {
+                m.state = 'normal';
+                m.vx = (Math.random() - 0.5) * 200;
+                m.vy = (Math.random() - 0.5) * 200;
+            });
+            gd.timer = Math.min(20, gd.timer + 4);
+        }
+    },
+    drawPressure() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#80deea');
+        grad.addColorStop(1, '#006064');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        const bagScale = 1.0 + (gd.pressure / 100) * 0.45;
+        const w = 400 * bagScale;
+        const h = 300 * bagScale;
+
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = gd.pressure > 80 ? '#ff1744' : '#e0f7fa';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.roundRect(400 - w/2, 300 - h/2, w, h, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255,215,0,0.3)';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('CRISP CHIPS 🥔', 400, 300);
+
+        gd.molecules.forEach(m => {
+            ctx.fillStyle = m.state === 'hot' ? '#ff1744' : '#00e5ff';
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffffbb';
+            ctx.beginPath();
+            ctx.arc(m.x - 3, m.y - 3, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`PRESIÓN: ${Math.round(gd.pressure)}%`, 400, 65);
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(200, 80, 400, 20);
+        ctx.fillStyle = gd.pressure > 80 ? '#ff1744' : '#ffd600';
+        ctx.fillRect(200, 80, gd.pressure * 4, 20);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(200, 80, 400, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px monospace';
+        ctx.fillText('¡Toca las moléculas rojas calientes para enfriar la bolsa!', 400, 565);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`TIEMPO RESTANTE: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 520);
+    },
+    inputPressurePress(x, y) {
+        const gd = this.gameData;
+        gd.molecules.forEach(m => {
+            if (m.state === 'hot' && Math.hypot(m.x - x, m.y - y) < m.r + 20) {
+                m.state = 'normal';
+                m.vx *= 0.5;
+                m.vy *= 0.5;
+                gd.pressure = Math.max(10, gd.pressure - 6);
+                this.createExplosion(m.x, m.y, '#00e5ff', 8);
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        });
+    },
+
+    // 34. day_14_altimeter: Hackeo de Altímetro
+    setupAltimeter() {
+        this.gameData = {
+            digits: [0, 0, 0, 0],
+            locked: [false, false, false, false],
+            targets: [1, 4, 7, 6],
+            speeds: [16, 22, 28, 34]
+        };
+        this.score = 0;
+    },
+    updateAltimeter(dt) {
+        const gd = this.gameData;
+        
+        let allLocked = true;
+        for (let i = 0; i < 4; i++) {
+            if (!gd.locked[i]) {
+                allLocked = false;
+                gd.digits[i] = (gd.digits[i] + dt * gd.speeds[i]) % 10;
+            }
+        }
+
+        if (allLocked) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    drawAltimeter() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050a05';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#00ff3322';
+        ctx.lineWidth = 1;
+        for (let y = 0; y < 600; y += 30) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('MONITOR DE ALTITUD: MONTE FUJI', 400, 50);
+
+        ctx.fillStyle = '#ffd600';
+        ctx.font = '20px monospace';
+        ctx.fillText('ESTACIÓN: 2300m | CIMA: 3776m | OBJETIVO: 1476m', 400, 95);
+
+        const reelX = [220, 340, 460, 580];
+        
+        for (let col = 0; col < 4; col++) {
+            ctx.fillStyle = '#112211';
+            ctx.fillRect(reelX[col] - 40, 160, 80, 240);
+            ctx.strokeStyle = gd.locked[col] ? '#00e676' : '#ff1744';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(reelX[col] - 40, 160, 80, 240);
+
+            ctx.strokeStyle = '#ffffff88';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(reelX[col] - 45, 250, 90, 60);
+
+            const val = gd.digits[col];
+            const offset = (val % 1) * 60;
+            const baseDigit = Math.floor(val);
+
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 36px monospace';
+            
+            for (let row = -2; row <= 2; row++) {
+                const digitToDraw = (baseDigit + row + 10) % 10;
+                const dy = 280 + row * 60 - offset;
+                
+                if (dy > 165 && dy < 395) {
+                    ctx.fillStyle = gd.locked[col] ? '#00e676' : (Math.abs(dy - 280) < 15 ? '#ffeb3b' : 'rgba(0,255,51,0.25)');
+                    ctx.fillText(String(digitToDraw), reelX[col], dy);
+                }
+            }
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px monospace';
+        ctx.fillText('Toca los carretes cuando el dígito objetivo coincida en el cuadro.', 400, 480);
+        ctx.font = 'bold 26px monospace';
+        ctx.fillStyle = '#00ff33';
+        ctx.fillText(`DESNIVEL CONSEGUIDO: ${gd.locked.map((l, i) => l ? gd.targets[i] : '?').join('')} metros`, 400, 440);
+    },
+    inputAltimeterPress(x, y) {
+        const gd = this.gameData;
+        const reelX = [220, 340, 460, 580];
+        
+        for (let col = 0; col < 4; col++) {
+            if (x > reelX[col] - 45 && x < reelX[col] + 45 && y > 160 && y < 400) {
+                if (gd.locked[col]) continue;
+                
+                const curVal = Math.round(gd.digits[col]) % 10;
+                if (curVal === gd.targets[col]) {
+                    gd.locked[col] = true;
+                    gd.digits[col] = gd.targets[col];
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(reelX[col], 280, '#00e676', 15);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(8);
+                }
+            }
+        }
+    },
+
+    // 35. day_14_kid14_echo: Laberinto de Absorción
+    setupEcho2() {
+        this.gameData = {
+            waves: [],
+            barriers: [],
+            spawnTimer: 0,
+            absorbed: 0,
+            hits: 0,
+            maxHits: 5,
+            goal: 15,
+            wasMouseDown: false
+        };
+        this.score = 0;
+    },
+    updateEcho2(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0 + Math.random() * 0.5;
+            gd.waves.push({
+                x: 50 + Math.random() * 700,
+                y: 50 + Math.random() * 150,
+                r: 10,
+                vx: (Math.random() - 0.5) * 200,
+                vy: 120 + Math.random() * 80
+            });
+        }
+
+        // Draw barrier release logic
+        if (!this.mouse.isDown && gd.wasMouseDown) {
+            if (this.mouse.startY < 480 && Math.hypot(this.mouse.x - this.mouse.startX, this.mouse.y - this.mouse.startY) > 20) {
+                gd.barriers.push({
+                    x1: this.mouse.startX,
+                    y1: this.mouse.startY,
+                    x2: this.mouse.x,
+                    y2: this.mouse.y,
+                    life: 2.5
+                });
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        }
+        gd.wasMouseDown = this.mouse.isDown;
+
+        gd.barriers.forEach(b => {
+            b.life -= dt;
+        });
+        gd.barriers = gd.barriers.filter(b => b.life > 0);
+
+        gd.waves.forEach((w, idx) => {
+            w.x += w.vx * dt;
+            w.y += w.vy * dt;
+
+            if (w.x < 15) { w.x = 15; w.vx = -w.vx; }
+            if (w.x > 785) { w.x = 785; w.vx = -w.vx; }
+            if (w.y < 15) { w.y = 15; w.vy = -w.vy; }
+
+            if (w.y > 480) {
+                gd.waves.splice(idx, 1);
+                gd.hits++;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('error');
+                if (gd.hits >= gd.maxHits) this.gameOver();
+                return;
+            }
+
+            gd.barriers.forEach(b => {
+                const A = w.x - b.x1;
+                const B = w.y - b.y1;
+                const C = b.x2 - b.x1;
+                const D = b.y2 - b.y1;
+
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                let param = -1;
+                if (lenSq !== 0) param = dot / lenSq;
+
+                let xx, yy;
+                if (param < 0) {
+                    xx = b.x1;
+                    yy = b.y1;
+                } else if (param > 1) {
+                    xx = b.x2;
+                    yy = b.y2;
+                } else {
+                    xx = b.x1 + param * C;
+                    yy = b.y1 + param * D;
+                }
+
+                const dist = Math.hypot(w.x - xx, w.y - yy);
+                if (dist < w.r + 8) {
+                    this.createExplosion(w.x, w.y, '#81c784', 12);
+                    gd.waves.splice(idx, 1);
+                    gd.absorbed++;
+                    this.score = Math.round((gd.absorbed / gd.goal) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    if (gd.absorbed >= gd.goal) {
+                        setTimeout(() => this.victory(), 500);
+                    }
+                }
+            });
+        });
+    },
+    drawEcho2() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1b3420';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#552222';
+        ctx.fillRect(0, 480, 800, 120);
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(0, 480, 800, 4);
+
+        gd.barriers.forEach(b => {
+            ctx.strokeStyle = `rgba(129,199,132,${b.life})`;
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(b.x1, b.y1);
+            ctx.lineTo(b.x2, b.y2);
+            ctx.stroke();
+        });
+
+        if (this.mouse.isDown && this.mouse.y < 480) {
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(this.mouse.startX, this.mouse.startY);
+            ctx.lineTo(this.mouse.x, this.mouse.y);
+            ctx.stroke();
+        }
+
+        gd.waves.forEach(w => {
+            ctx.fillStyle = 'rgba(178,223,219,0.3)';
+            ctx.strokeStyle = '#b2dfdb';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('ATENUACIÓN ACÚSTICA: EVITA EL ECO', 400, 35);
+        ctx.font = '16px monospace';
+        ctx.fillText('Dibuja líneas de musgo absorbente arrastrando el dedo por la pantalla.', 400, 470);
+        ctx.fillText(`Ondas Atenuadas: ${gd.absorbed}/${gd.goal}`, 200, 545);
+        ctx.fillText(`Margen de Eco: ${'💔'.repeat(gd.maxHits - gd.hits)}`, 600, 545);
+    },
+    inputEcho2Press(x, y) {
+        if (y < 480) {
+            this.mouse.startX = x;
+            this.mouse.startY = y;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 36. day_14_oxygen: Sincronía de Apnea
+    setupOxygen() {
+        this.gameData = {
+            phase1: 0,
+            phase2: Math.PI / 2,
+            speed1: 2.0,
+            speed2: 3.2,
+            syncCount: 0,
+            feedbackTimer: 0,
+            feedbackColor: '#ffffff'
+        };
+        this.score = 0;
+    },
+    updateOxygen(dt) {
+        const gd = this.gameData;
+        gd.phase1 += dt * gd.speed1;
+        gd.phase2 += dt * gd.speed2;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+    },
+    drawOxygen() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#e0f7fa');
+        grad.addColorStop(1, '#80deea');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        const scale1 = 1.0 + Math.sin(gd.phase1) * 0.35;
+        const scale2 = 1.0 + Math.sin(gd.phase2) * 0.35;
+
+        ctx.strokeStyle = gd.feedbackTimer > 0 ? gd.feedbackColor : 'rgba(76,175,80,0.4)';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(400, 260, 150, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(0,172,193,0.3)';
+        ctx.beginPath(); ctx.arc(320, 260, 100 * scale1, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = 'rgba(0,229,255,0.3)';
+        ctx.beginPath(); ctx.arc(480, 260, 100 * scale2, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#006064';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`DIFERENCIA: ${Math.round(Math.abs(scale1 - scale2)*100)}%`, 400, 450);
+
+        ctx.fillStyle = '#006064';
+        ctx.fillRect(150, 480, 500, 25);
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(150, 480, (gd.syncCount / this.goal) * 500, 25);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(150, 480, 500, 25);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.fillText(`Sincronizaciones: ${gd.syncCount}/${this.goal}`, 400, 497);
+
+        ctx.fillStyle = '#006064';
+        ctx.font = '16px monospace';
+        ctx.fillText('Toca la pantalla cuando ambos círculos tengan el mismo tamaño.', 400, 545);
+
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText('RETO DE APNEA FAMILIAR', 400, 45);
+    },
+    inputOxygenPress(x, y) {
+        const gd = this.gameData;
+        const scale1 = 1.0 + Math.sin(gd.phase1) * 0.35;
+        const scale2 = 1.0 + Math.sin(gd.phase2) * 0.35;
+        const diff = Math.abs(scale1 - scale2);
+
+        if (diff < 0.12) {
+            gd.syncCount++;
+            this.score = Math.round((gd.syncCount / this.goal) * 100);
+            gd.feedbackTimer = 0.5;
+            gd.feedbackColor = '#4caf50';
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            gd.speed1 = 1.8 + Math.random() * 1.0;
+            gd.speed2 = 1.8 + Math.random() * 1.5;
+
+            this.createExplosion(400, 260, '#4caf50', 25);
+
+            if (gd.syncCount >= this.goal) {
+                setTimeout(() => this.victory(), 500);
+            }
+        } else {
+            gd.feedbackTimer = 0.5;
+            gd.feedbackColor = '#f44336';
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(10);
+        }
+    },
+
+    // ==========================================================
+    // DIA 15 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 37. day_15_waterfall: Arpa de Shiraito
+    setupWaterfall() {
+        this.gameData = {
+            notes: [],
+            channels: [160, 320, 480, 640],
+            targetY: 480,
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateWaterfall(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8 + Math.random() * 0.5;
+            gd.notes.push({
+                x: gd.channels[Math.floor(Math.random() * 4)],
+                y: -30,
+                vy: 240 + Math.random() * 80,
+                active: true
+            });
+        }
+
+        gd.notes.forEach((n, idx) => {
+            n.y += n.vy * dt;
+            if (n.y > 540 && n.active) {
+                n.active = false;
+                if (window.playProceduralSound) playProceduralSound('error');
+                this.triggerShake(5);
+            }
+        });
+
+        gd.notes = gd.notes.filter(n => n.y < 650);
+    },
+    drawWaterfall() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#011627';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.channels.forEach(chX => {
+            ctx.strokeStyle = 'rgba(0,191,255,0.15)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(chX, 0);
+            ctx.lineTo(chX, 600);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(chX - 10, (this.gameTime*200) % 600);
+            ctx.lineTo(chX - 10, ((this.gameTime*200) + 150) % 600);
+            ctx.moveTo(chX + 10, ((this.gameTime*180) + 300) % 600);
+            ctx.lineTo(chX + 10, ((this.gameTime*180) + 420) % 600);
+            ctx.stroke();
+        });
+
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(100, gd.targetY);
+        ctx.lineTo(700, gd.targetY);
+        ctx.stroke();
+
+        gd.notes.forEach(n => {
+            ctx.fillStyle = n.active ? '#00e5ff' : '#546e7a';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(n.x, n.y - 18);
+            ctx.quadraticCurveTo(n.x - 12, n.y + 6, n.x, n.y + 12);
+            ctx.quadraticCurveTo(n.x + 12, n.y + 6, n.x, n.y - 18);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('ARPA DE SHIRAITO: NOTAS DE AGUA', 400, 45);
+        ctx.font = '16px monospace';
+        ctx.fillText('Toca los canales cuando la gota esté justo cruzando la barra azul.', 400, 565);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Puntos: ${gd.score}/${this.goal}`, 400, 95);
+    },
+    inputWaterfallPress(x, y) {
+        const gd = this.gameData;
+        
+        let hit = false;
+        gd.notes.forEach(n => {
+            if (n.active && Math.abs(x - n.x) < 50 && Math.abs(y - gd.targetY) < 50 && Math.abs(n.y - gd.targetY) < 40) {
+                n.active = false;
+                hit = true;
+                gd.score++;
+                this.score = Math.round((gd.score / this.goal) * 100);
+                this.createExplosion(n.x, n.y, '#e0f7fa', 15);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                if (gd.score >= this.goal) {
+                    setTimeout(() => this.victory(), 500);
+                }
+            }
+        });
+
+        if (!hit) {
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+    releaseWaterfall() {},
+
+    // 38. day_15_thatch: Techador de Shirakawa
+    setupThatch() {
+        this.gameData = {
+            stacked: [],
+            blockX: 400,
+            blockY: 120,
+            vy: 0,
+            swingAngle: 0,
+            isFalling: false,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateThatch(dt) {
+        const gd = this.gameData;
+
+        if (!gd.isFalling) {
+            gd.swingAngle = Math.sin(this.gameTime * 3.5) * 0.7;
+            gd.blockX = 400 + Math.sin(gd.swingAngle) * 180;
+            gd.blockY = 60 + Math.cos(gd.swingAngle) * 180;
+        } else {
+            gd.vy += 800 * dt;
+            gd.blockY += gd.vy * dt;
+
+            const targetWidth = 90;
+            const targetHeight = 25;
+            let hitTarget = null;
+
+            if (gd.stacked.length === 0) {
+                if (gd.blockY >= 480) {
+                    if (Math.abs(gd.blockX - 400) < targetWidth / 2 + 10) {
+                        hitTarget = { x: 400, y: 500 };
+                    } else {
+                        hitTarget = 'fail';
+                    }
+                }
+            } else {
+                const topBlock = gd.stacked[gd.stacked.length - 1];
+                if (gd.blockY >= topBlock.y - targetHeight) {
+                    if (Math.abs(gd.blockX - topBlock.x) < targetWidth / 2 + 10) {
+                        hitTarget = { x: topBlock.x, y: topBlock.y - targetHeight };
+                    } else {
+                        hitTarget = 'fail';
+                    }
+                }
+            }
+
+            if (hitTarget) {
+                gd.isFalling = false;
+                gd.vy = 0;
+                if (hitTarget === 'fail') {
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    gd.lives--;
+                    if (gd.lives <= 0) this.gameOver();
+                } else {
+                    gd.stacked.push({ x: gd.blockX, y: hitTarget.y });
+                    this.score = Math.round((gd.stacked.length / this.goal) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    this.createExplosion(gd.blockX, hitTarget.y, '#ffd600', 12);
+                    if (gd.stacked.length >= this.goal) {
+                        setTimeout(() => this.victory(), 500);
+                    }
+                }
+            }
+        }
+    },
+    drawThatch() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#fbe9e7');
+        grad.addColorStop(1, '#ffab91');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#4e342e';
+        ctx.beginPath();
+        ctx.moveTo(350, 600);
+        ctx.lineTo(350, 520);
+        ctx.lineTo(450, 520);
+        ctx.lineTo(450, 600);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(350, 500, 100, 20);
+
+        if (!gd.isFalling) {
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(400, 60);
+            ctx.lineTo(gd.blockX, gd.blockY);
+            ctx.stroke();
+        }
+
+        gd.stacked.forEach((b, idx) => {
+            ctx.fillStyle = '#ffb300';
+            ctx.strokeStyle = '#e65100';
+            ctx.lineWidth = 3;
+            ctx.fillRect(b.x - 45, b.y - 12, 90, 24);
+            ctx.strokeRect(b.x - 45, b.y - 12, 90, 24);
+        });
+
+        ctx.fillStyle = '#ffe082';
+        ctx.strokeStyle = '#ff8f00';
+        ctx.lineWidth = 3;
+        ctx.fillRect(gd.blockX - 45, gd.blockY - 12, 90, 24);
+        ctx.strokeRect(gd.blockX - 45, gd.blockY - 12, 90, 24);
+
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('TECHADOR DE SHIRAKAWA: APILAMIENTO', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la pantalla para soltar la paja y construir el tejado.', 400, 570);
+
+        ctx.textAlign = 'left';
+        ctx.fillText(`Pajas: ${gd.stacked.length}/${this.goal}`, 30, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 45);
+    },
+    inputThatchPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.isFalling) {
+            gd.isFalling = true;
+            gd.vy = 200;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+    releaseThatch() {},
+
+    // 39. day_15_fish: El Pez de Cristal
+    setupFish() {
+        this.gameData = {
+            fishes: [
+                { x: 300, y: 300, vx: (Math.random()-0.5)*100, vy: (Math.random()-0.5)*100, saved: false, r: 14 },
+                { x: 500, y: 300, vx: (Math.random()-0.5)*100, vy: (Math.random()-0.5)*100, saved: false, r: 14 },
+                { x: 400, y: 400, vx: (Math.random()-0.5)*100, vy: (Math.random()-0.5)*100, saved: false, r: 14 }
+            ],
+            ripples: [],
+            sanctuary: { x: 400, y: 150, r: 80 },
+            savedCount: 0
+        };
+        this.score = 0;
+    },
+    updateFish(dt) {
+        const gd = this.gameData;
+
+        gd.ripples.forEach(rp => {
+            rp.r += 120 * dt;
+            rp.life -= dt;
+        });
+        gd.ripples = gd.ripples.filter(rp => rp.life > 0);
+
+        gd.fishes.forEach(f => {
+            if (f.saved) return;
+
+            f.vx += (Math.random() - 0.5) * 35 * dt;
+            f.vy += (Math.random() - 0.5) * 35 * dt;
+
+            gd.ripples.forEach(rp => {
+                const dist = Math.hypot(f.x - rp.x, f.y - rp.y);
+                if (dist < rp.r && dist > 10) {
+                    const pushForce = (1.0 - (dist / rp.r)) * 1200 * dt;
+                    const angle = Math.atan2(f.y - rp.y, f.x - rp.x);
+                    f.vx += Math.cos(angle) * pushForce;
+                    f.vy += Math.sin(angle) * pushForce;
+                }
+            });
+
+            const speed = Math.hypot(f.vx, f.vy);
+            if (speed > 160) {
+                f.vx = (f.vx / speed) * 160;
+                f.vy = (f.vy / speed) * 160;
+            }
+
+            f.x += f.vx * dt;
+            f.y += f.vy * dt;
+
+            if (f.x < 30) { f.x = 30; f.vx = -f.vx; }
+            if (f.x > 770) { f.x = 770; f.vx = -f.vx; }
+            if (f.y < 30) { f.y = 30; f.vy = -f.vy; }
+            if (f.y > 570) { f.y = 570; f.vy = -f.vy; }
+
+            if (Math.hypot(f.x - gd.sanctuary.x, f.y - gd.sanctuary.y) < gd.sanctuary.r - 10) {
+                f.saved = true;
+                gd.savedCount++;
+                this.score = Math.round((gd.savedCount / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(f.x, f.y, '#e0f7fa', 20);
+                if (gd.savedCount >= 3) {
+                    setTimeout(() => this.victory(), 800);
+                }
+            }
+        });
+    },
+    drawFish() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#00acc1';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#1b5e20';
+        ctx.beginPath();
+        ctx.arc(150, 450, 45, 0.2, Math.PI * 2 - 0.2);
+        ctx.lineTo(150, 450);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(680, 220, 35, 0.4, Math.PI * 2 - 0.4);
+        ctx.lineTo(680, 220);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.strokeStyle = '#fff8e1';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(gd.sanctuary.x, gd.sanctuary.y, gd.sanctuary.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ZONA SEGURA', gd.sanctuary.x, gd.sanctuary.y + 6);
+
+        gd.ripples.forEach(rp => {
+            ctx.strokeStyle = `rgba(255,255,255,${rp.life})`;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+
+        gd.fishes.forEach(f => {
+            if (f.saved) return;
+
+            const angle = Math.atan2(f.vy, f.vx);
+
+            ctx.save();
+            ctx.translate(f.x, f.y);
+            ctx.rotate(angle);
+
+            ctx.fillStyle = '#ff7b54';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 18, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(-16, 0);
+            ctx.lineTo(-24, -8);
+            ctx.lineTo(-21, 0);
+            ctx.lineTo(-24, 8);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(10, -4, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(10, 4, 2, 0, Math.PI*2); ctx.fill();
+
+            ctx.restore();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('EL PEZ DE CRISTAL: GUÍA EN EL ESTANQUE', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Haz clic/toca en el agua para crear ondas que empujen los peces hacia la zona segura.', 400, 560);
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText(`Peces a Salvo: ${gd.savedCount}/3`, 400, 95);
+    },
+    inputFishPress(x, y) {
+        const gd = this.gameData;
+        gd.ripples.push({
+            x: x,
+            y: y,
+            r: 10,
+            life: 0.6
+        });
+        if (window.playProceduralSound) playProceduralSound('jump');
+    },
+    releaseFish() {},
+
+    // 13. day_15_shogun: Equilibrio del Shogun
+    setupShogun() {
+        this.gameData = {
+            shogunAngle: 0,
+            targetAngle: 0,
+            swords: [],
+            lives: 3,
+            timer: 15,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateShogun(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        this.score = Math.min(100, Math.round(((15 - gd.timer) / 15) * 100));
+
+        if (gd.timer <= 0) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+            return;
+        }
+
+        gd.shogunAngle += gd.targetAngle * dt;
+        gd.targetAngle += (Math.random() - 0.5) * dt * 0.8;
+        gd.shogunAngle = Math.max(-0.6, Math.min(0.6, gd.shogunAngle));
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0 + Math.random() * 0.8;
+            gd.swords.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 180 + Math.random() * 100,
+                active: true
+            });
+        }
+
+        gd.swords.forEach((sw, idx) => {
+            sw.y += sw.vy * dt;
+            if (sw.active && sw.y > 380 && Math.abs(sw.x - 400) < 140) {
+                sw.active = false;
+                gd.targetAngle += (sw.x < 400 ? -0.45 : 0.45);
+                this.triggerShake(8);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.lives--;
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.swords = gd.swords.filter(sw => sw.y < 620);
+
+        if (Math.abs(gd.shogunAngle) > 0.45) {
+            gd.lives -= dt * 2.0;
+            if (Math.random() < 0.2) {
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    drawShogun() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1c1b1b';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#efd07b';
+        ctx.fillRect(0, 480, 800, 120);
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 480, 800, 6);
+
+        ctx.save();
+        ctx.translate(400, 480);
+        ctx.rotate(gd.shogunAngle);
+
+        ctx.fillStyle = '#d84315';
+        ctx.fillRect(-100, -25, 200, 25);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(-100, -25, 200, 25);
+
+        ctx.font = '60px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🧘', 0, -32);
+
+        ctx.restore();
+
+        gd.swords.forEach(sw => {
+            if (sw.active) {
+                ctx.fillStyle = '#ef5350';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(sw.x, sw.y, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+        });
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(250, 130, 300, 20);
+        
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(360, 130, 80, 20);
+
+        const needleX = 400 + gd.shogunAngle * 250;
+        ctx.fillStyle = '#ffd600';
+        ctx.fillRect(needleX - 4, 120, 8, 40);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('EQUILIBRIO DEL SHOGUN', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca los lados izquierdo/derecho para enderezar el Shogun o destruir los orbes.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`Sobrevive: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 95);
+    },
+    inputShogunPress(x, y) {
+        const gd = this.gameData;
+        
+        let hit = false;
+        gd.swords.forEach((sw, idx) => {
+            if (sw.active && Math.hypot(sw.x - x, sw.y - y) < 45) {
+                sw.active = false;
+                hit = true;
+                this.createExplosion(sw.x, sw.y, '#e53935', 12);
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        });
+
+        if (!hit) {
+            if (x < 400) {
+                gd.targetAngle += 0.22;
+            } else {
+                gd.targetAngle -= 0.22;
+            }
+            if (window.playProceduralSound) playProceduralSound('rotate');
+        }
+    },
+    releaseShogun() {},
+
+    // 14. day_15_deity: Sello de los Cerezos
+    setupDeity() {
+        this.gameData = {
+            letters: [],
+            path: [],
+            targetWord: 'KONOHANA',
+            currentIdx: 0
+        };
+        const chars = 'KONOHANA';
+        for (let i = 0; i < 8; i++) {
+            this.gameData.letters.push({
+                char: chars[i],
+                idx: i,
+                x: 100 + Math.random() * 600,
+                y: 120 + Math.random() * 320,
+                vx: (Math.random() - 0.5) * 50,
+                vy: (Math.random() - 0.5) * 50,
+                r: 25
+            });
+        }
+        this.score = 0;
+    },
+    updateDeity(dt) {
+        const gd = this.gameData;
+
+        gd.letters.forEach(lt => {
+            lt.x += lt.vx * dt;
+            lt.y += lt.vy * dt;
+
+            if (lt.x < 30 || lt.x > 770) lt.vx = -lt.vx;
+            if (lt.y < 90 || lt.y > 510) lt.vy = -lt.vy;
+        });
+
+        if (this.mouse.isDown) {
+            const currentLetterChar = gd.targetWord[gd.currentIdx];
+            gd.letters.forEach(lt => {
+                if (lt.char === currentLetterChar && lt.idx === gd.currentIdx) {
+                    const dist = Math.hypot(this.mouse.x - lt.x, this.mouse.y - lt.y);
+                    if (dist < lt.r + 15) {
+                        gd.path.push({ x: lt.x, y: lt.y });
+                        gd.currentIdx++;
+                        this.score = Math.round((gd.currentIdx / 8) * 100);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        this.createExplosion(lt.x, lt.y, '#f06292', 15);
+
+                        if (gd.currentIdx >= 8) {
+                            setTimeout(() => this.victory(), 500);
+                        }
+                    }
+                }
+            });
+        } else {
+            if (gd.path.length > 0) {
+                gd.path = [];
+                gd.currentIdx = 0;
+                this.score = 0;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    drawDeity() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#f8bbd0');
+        grad.addColorStop(1, '#ffcdd2');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (gd.path.length > 1) {
+            ctx.strokeStyle = '#e91e63';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(gd.path[0].x, gd.path[0].y);
+            for (let i = 1; i < gd.path.length; i++) {
+                ctx.lineTo(gd.path[i].x, gd.path[i].y);
+            }
+            if (this.mouse.isDown) {
+                ctx.lineTo(this.mouse.x, this.mouse.y);
+            }
+            ctx.stroke();
+        }
+
+        gd.letters.forEach(lt => {
+            const isCompleted = lt.idx < gd.currentIdx;
+            const isNextTarget = lt.idx === gd.currentIdx;
+
+            ctx.fillStyle = isCompleted ? '#e91e63' : (isNextTarget ? '#f06292' : '#ffffff');
+            ctx.strokeStyle = '#e91e63';
+            ctx.lineWidth = 3;
+
+            ctx.save();
+            ctx.translate(lt.x, lt.y);
+            ctx.beginPath();
+            ctx.moveTo(0, -lt.r);
+            ctx.bezierCurveTo(-lt.r * 0.8, -lt.r, -lt.r, lt.r * 0.4, 0, lt.r);
+            ctx.bezierCurveTo(lt.r, lt.r * 0.4, lt.r * 0.8, -lt.r, 0, -lt.r);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = isCompleted ? '#ffffff' : '#e91e63';
+            ctx.font = 'bold 22px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(lt.char, 0, 8);
+            ctx.restore();
+        });
+
+        ctx.fillStyle = '#880e4f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SELLO DE LOS CEREZOS: PALABRA MÁGICA', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Arrastra el dedo conectando los pétalos para deletrear: "KONOHANA"', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`Palabra: ${gd.targetWord.slice(0, gd.currentIdx)}${'_'.repeat(8 - gd.currentIdx)}`, 400, 95);
+    },
+    inputDeityPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseDeity(x, y) {},
+
+    // 15. day_15_honcho: Encuadre de Perspectiva
+    setupHoncho() {
+        this.gameData = {
+            curX: 100, targetX: 400,
+            curY: 100, targetY: 300,
+            curZoom: 0.3, targetZoom: 1.0,
+            curBlur: 10, targetBlur: 0,
+            sliders: [100, 100, 30, 100],
+            matchPct: 0
+        };
+        this.score = 0;
+    },
+    updateHoncho(dt) {
+        const gd = this.gameData;
+
+        gd.curX = gd.sliders[0] * 4;
+        gd.curY = gd.sliders[1] * 3;
+        gd.curZoom = 0.2 + (gd.sliders[2] / 100) * 1.5;
+        gd.curBlur = (gd.sliders[3] / 100) * 15;
+
+        const diffX = Math.abs(gd.curX - gd.targetX);
+        const diffY = Math.abs(gd.curY - gd.targetY);
+        const diffZoom = Math.abs(gd.curZoom - gd.targetZoom);
+        const diffBlur = Math.abs(gd.curBlur - gd.targetBlur);
+
+        const totalDiff = (diffX / 400) + (diffY / 300) + (diffZoom / 1.5) + (diffBlur / 15);
+        gd.matchPct = Math.max(0, Math.round(100 - (totalDiff * 60)));
+        this.score = gd.matchPct;
+
+        if (gd.matchPct >= 96) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+
+        if (this.mouse.isDown) {
+            for (let i = 0; i < 4; i++) {
+                const sx = 100 + i * 180;
+                const sy = 515;
+                if (Math.hypot(this.mouse.x - (sx + gd.sliders[i] * 1.2), this.mouse.y - sy) < 30) {
+                    gd.sliders[i] = Math.max(0, Math.min(100, ((this.mouse.x - sx) / 1.2)));
+                }
+            }
+        }
+    },
+    drawHoncho() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        const blurAmt = gd.curBlur;
+        ctx.globalAlpha = 0.5;
+
+        for (let copy = 0; copy < (blurAmt > 1 ? 3 : 1); copy++) {
+            ctx.save();
+            const ox = (copy - 1) * blurAmt * 0.4;
+            const oy = (copy - 1) * blurAmt * 0.3;
+            ctx.translate(gd.curX + ox, gd.curY + oy);
+            ctx.scale(gd.curZoom, gd.curZoom);
+
+            ctx.fillStyle = '#455a64';
+            ctx.beginPath();
+            ctx.moveTo(-150, 0); ctx.lineTo(0, -180); ctx.lineTo(150, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(-42, -130); ctx.lineTo(0, -180); ctx.lineTo(42, -130);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#263238';
+            ctx.fillRect(70, -80, 50, 80);
+            ctx.fillStyle = '#d84315';
+            ctx.fillRect(60, -90, 70, 10);
+            ctx.fillRect(55, -60, 80, 8);
+            ctx.restore();
+        }
+        ctx.restore();
+
+        ctx.strokeStyle = '#ffffff88';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(50, 80, 700, 340);
+
+        ctx.beginPath();
+        ctx.moveTo(380, 250); ctx.lineTo(420, 250);
+        ctx.moveTo(400, 230); ctx.lineTo(400, 270);
+        ctx.stroke();
+
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(0, 440, 800, 160);
+
+        const labels = ['POS X', 'POS Y', 'ZOOM', 'ENFOQUE'];
+        for (let i = 0; i < 4; i++) {
+            const sx = 100 + i * 180;
+            ctx.fillStyle = '#444444';
+            ctx.fillRect(sx, 510, 120, 10);
+
+            ctx.fillStyle = '#ffb300';
+            ctx.beginPath();
+            ctx.arc(sx + gd.sliders[i] * 1.2, 515, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], sx + 60, 485);
+        }
+
+        ctx.fillStyle = gd.matchPct > 80 ? '#00ff66' : '#ff3300';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`ALINEACIÓN COMPOSICIÓN: ${gd.matchPct}%`, 400, 435);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('ENCUADRE DE PERSPECTIVA: HONCHO STREET', 400, 45);
+    },
+    inputHonchoPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseHoncho() {},
+
+    // 16. day_15_flow: Control de Caudal
+    setupFlow() {
+        this.gameData = {
+            level: 50,
+            valve1: 0.4,
+            valve2: 0.6,
+            timer: 15,
+            goal: 15,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateFlow(dt) {
+        const gd = this.gameData;
+
+        const inflow = 30 + Math.sin(this.gameTime * 2.2) * 16;
+        const outflow = (gd.valve1 + gd.valve2) * 35;
+        
+        gd.level += (inflow - outflow) * dt;
+        gd.level = Math.max(0, Math.min(100, gd.level));
+
+        const inLimits = gd.level >= 40 && gd.level <= 60;
+        if (inLimits) {
+            gd.timer -= dt;
+            this.score = Math.round(((15 - gd.timer) / 15) * 100);
+            if (gd.timer <= 0) {
+                this.score = 100;
+                if (window.playProceduralSound) playProceduralSound('success');
+                setTimeout(() => this.victory(), 500);
+            }
+        } else {
+            gd.timer = 15;
+        }
+
+        if (this.mouse.isDown) {
+            if (this.mouse.x > 180 && this.mouse.x < 240 && this.mouse.y > 100 && this.mouse.y < 460) {
+                gd.valve1 = Math.max(0, Math.min(1, (400 - this.mouse.y) / 250));
+            }
+            if (this.mouse.x > 560 && this.mouse.x < 620 && this.mouse.y > 100 && this.mouse.y < 460) {
+                gd.valve2 = Math.max(0, Math.min(1, (400 - this.mouse.y) / 250));
+            }
+        }
+
+        if (gd.level <= 0 || gd.level >= 100) {
+            this.triggerShake(20);
+            if (window.playProceduralSound) playProceduralSound('error');
+            gd.level = 50;
+            gd.lives--;
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    drawFlow() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 120, 200, 280);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(300, 120, 200, 280);
+
+        ctx.fillStyle = 'rgba(76,175,80,0.15)';
+        ctx.fillRect(300, 280 - 28, 200, 56);
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(300, 280 - 28, 200, 56);
+
+        const waterHeight = gd.level * 2.8;
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(302, 400 - waterHeight, 196, waterHeight);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`NIVEL: ${Math.round(gd.level)}%`, 400, 390);
+
+        const valves = [
+            { label: 'VÁLVULA 1', x: 200, v: gd.valve1 },
+            { label: 'VÁLVULA 2', x: 600, v: gd.valve2 }
+        ];
+
+        valves.forEach(val => {
+            ctx.strokeStyle = '#b0bec5';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(val.x, 150);
+            ctx.lineTo(val.x, 400);
+            ctx.stroke();
+
+            const knobY = 400 - val.v * 250;
+            ctx.fillStyle = '#ffd600';
+            ctx.beginPath();
+            ctx.arc(val.x, knobY, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(val.label, val.x, 130);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('CONTROL DE CAUDAL Y PRESIÓN', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Ajusta los deslizadores de las válvulas para mantener el agua en la zona verde.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`Mantén en zona verde: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 88);
+    },
+    inputFlowPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseFlow() {},
+
+    // 17. day_15_roof: Ingeniería de Nieve
+    setupRoof() {
+        this.gameData = {
+            roofAngle: 30,
+            snowWeight: 0,
+            timer: 20,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateRoof(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        this.score = Math.min(100, Math.round(((20 - gd.timer) / 20) * 100));
+
+        if (gd.timer <= 0) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+            return;
+        }
+
+        gd.snowWeight += dt * 18;
+
+        const rad = (gd.roofAngle * Math.PI) / 180;
+        const slideSpeed = Math.sin(rad) * 22;
+        gd.snowWeight = Math.max(0, gd.snowWeight - slideSpeed * dt);
+
+        const stress = gd.snowWeight * Math.cos(rad) * 1.5;
+
+        if (this.mouse.isDown && this.mouse.y > 480 && this.mouse.y < 530) {
+            if (this.mouse.x > 200 && this.mouse.x < 600) {
+                gd.roofAngle = 10 + ((this.mouse.x - 200) / 400) * 50;
+            }
+        }
+
+        if (stress >= 100) {
+            this.triggerShake(25);
+            if (window.playProceduralSound) playProceduralSound('error');
+            gd.snowWeight = 0;
+            gd.lives--;
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    drawRoof() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#eceff1');
+        grad.addColorStop(1, '#b0bec5');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 20; i++) {
+            const x = (i * 50 + this.gameTime * 60) % 850 - 50;
+            const y = (i * 30 + this.gameTime * 120) % 450;
+            ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+        }
+
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(300, 320, 200, 120);
+
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(380, 360, 40, 80);
+
+        const rRad = (gd.roofAngle * Math.PI) / 180;
+        const roofH = Math.tan(rRad) * 110;
+
+        ctx.strokeStyle = '#3e2723';
+        ctx.fillStyle = '#d84315';
+        ctx.lineWidth = 10;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(280, 320);
+        ctx.lineTo(400, 320 - roofH);
+        ctx.lineTo(520, 320);
+        ctx.stroke();
+        ctx.fill();
+
+        const snowThick = Math.min(25, gd.snowWeight * 0.4);
+        if (snowThick > 2) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = snowThick;
+            ctx.beginPath();
+            ctx.moveTo(280, 320);
+            ctx.lineTo(400, 320 - roofH);
+            ctx.lineTo(520, 320);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 440, 800, 160);
+
+        const rad = (gd.roofAngle * Math.PI) / 180;
+        const stress = gd.snowWeight * Math.cos(rad) * 1.5;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(250, 130, 300, 16);
+        ctx.fillStyle = stress > 75 ? '#ff1744' : '#00e676';
+        ctx.fillRect(250, 130, Math.min(100, stress) * 3, 16);
+        ctx.strokeStyle = '#3e2723';
+        ctx.strokeRect(250, 130, 300, 16);
+
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(200, 500, 400, 10);
+        
+        const sliderKnobX = 200 + ((gd.roofAngle - 10) / 50) * 400;
+        ctx.fillStyle = '#d84315';
+        ctx.beginPath(); ctx.arc(sliderKnobX, 505, 14, 0, Math.PI*2); ctx.fill();
+
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('INGENIERÍA DE TEJADO: PRESIÓN DE NIEVE', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Modifica la inclinación del tejado usando el slider para evacuar la nieve.', 400, 550);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`ESTRÉS ESTRUCTURAL: ${Math.round(stress)}%`, 400, 100);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Ángulo: ${Math.round(gd.roofAngle)}°`, 400, 480);
+    },
+    inputRoofPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseRoof() {},
+
+    // 18. day_15_dragon: El Vuelo del Dragón
+    releaseDragon() {},
+
+    // ==========================================================
+    // DIA 16 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 46. day_16_cat: Linterna del Neko
+    setupCat() {
+        this.gameData = {
+            catX: 400,
+            catY: 300,
+            showTimer: 1.5,
+            found: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCat(dt) {
+        const gd = this.gameData;
+        gd.showTimer -= dt;
+        if (gd.showTimer <= 0) {
+            gd.catX = 100 + Math.random() * 600;
+            gd.catY = 120 + Math.random() * 320;
+            gd.showTimer = 1.4 + Math.random() * 0.8;
+        }
+    },
+    drawCat() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#070a14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(255, 0, 128, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(100, 100); ctx.lineTo(0, 50);
+        ctx.moveTo(700, 600); ctx.lineTo(700, 120); ctx.lineTo(800, 70);
+        ctx.stroke();
+
+        const dist = Math.hypot(gd.catX - this.mouse.x, gd.catY - this.mouse.y);
+        const visibility = Math.max(0, 1.0 - dist / 110);
+
+        if (visibility > 0) {
+            ctx.save();
+            ctx.globalAlpha = visibility;
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🐈‍⬛', gd.catX, gd.catY + 15);
+            ctx.restore();
+        }
+
+        ctx.save();
+        const beam = ctx.createRadialGradient(this.mouse.x, this.mouse.y, 10, this.mouse.x, this.mouse.y, 110);
+        beam.addColorStop(0, 'rgba(255, 255, 200, 0.25)');
+        beam.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.arc(this.mouse.x, this.mouse.y, 110, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('LINTERNA DEL NEKO: ENCUENTRA AL GATO', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Mueve la linterna y toca al gato negro antes de que se esconda.', 400, 560);
+        
+        ctx.textAlign = 'left';
+        ctx.fillText(`Gatos Encontrados: ${gd.found}/${this.goal}`, 30, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 45);
+    },
+    inputCatPress(x, y) {
+        const gd = this.gameData;
+        const dist = Math.hypot(gd.catX - x, gd.catY - y);
+        const beamDist = Math.hypot(gd.catX - this.mouse.x, gd.catY - this.mouse.y);
+        
+        if (dist < 45 && beamDist < 100) {
+            gd.found++;
+            this.score = Math.round((gd.found / this.goal) * 100);
+            this.createExplosion(gd.catX, gd.catY, '#ffb300', 15);
+            if (window.playProceduralSound) playProceduralSound('collect');
+            
+            gd.catX = 100 + Math.random() * 600;
+            gd.catY = 120 + Math.random() * 320;
+            gd.showTimer = 1.4 + Math.random() * 0.8;
+
+            if (gd.found >= this.goal) {
+                setTimeout(() => this.victory(), 500);
+            }
+        } else {
+            gd.lives--;
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(8);
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    releaseCat() {},
+
+    // 47. day_16_skyscraper: Ascensor de la Torre
+    setupSkyscraper() {
+        this.gameData = {
+            liftX: 400,
+            floor: 0,
+            vx: 0,
+            wind: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSkyscraper(dt) {
+        const gd = this.gameData;
+        gd.floor += dt * 4;
+        this.score = Math.min(100, Math.round((gd.floor / this.goal) * 100));
+
+        if (gd.floor >= this.goal) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+            return;
+        }
+
+        gd.wind = Math.sin(this.gameTime * 2.2) * 220;
+        gd.vx += gd.wind * dt;
+        gd.vx *= 0.94;
+        gd.liftX += gd.vx * dt;
+
+        const offset = Math.abs(gd.liftX - 400);
+        if (offset > 120) {
+            this.triggerShake(5);
+            if (window.playProceduralSound && Math.random() < 0.15) playProceduralSound('damage');
+            gd.lives -= dt * 1.2;
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    drawSkyscraper() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#020024');
+        grad.addColorStop(1, '#090979');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#03031e';
+        ctx.fillRect(100, 200, 140, 400);
+        ctx.fillRect(560, 150, 160, 450);
+
+        ctx.fillStyle = '#00f5ff33';
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 3; c++) {
+                ctx.fillRect(120 + c * 35, 230 + r * 60, 20, 30);
+                ctx.fillRect(580 + c * 40, 180 + r * 70, 25, 40);
+            }
+        }
+
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(400, 0);
+        ctx.lineTo(400, 600);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(0, 255, 100, 0.15)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(280, 0); ctx.lineTo(280, 600);
+        ctx.moveTo(520, 0); ctx.lineTo(520, 600);
+        ctx.stroke();
+
+        ctx.strokeStyle = gd.wind > 0 ? '#ff174444' : '#00e5ff44';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+            const wy = 150 + i * 110;
+            const wx = (this.gameTime * gd.wind) % 900 - 50;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.lineTo(wx + 80, wy);
+            ctx.stroke();
+        }
+
+        const offset = Math.abs(gd.liftX - 400);
+        ctx.fillStyle = offset > 100 ? '#ff1744' : '#00e5ff';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.fillRect(gd.liftX - 35, 280, 70, 70);
+        ctx.strokeRect(gd.liftX - 35, 280, 70, 70);
+
+        ctx.fillStyle = '#11111188';
+        ctx.fillRect(gd.liftX - 30, 290, 25, 50);
+        ctx.fillRect(gd.liftX + 5, 290, 25, 50);
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(40, 480, 120, 60);
+        ctx.fillRect(640, 480, 120, 60);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('◀ IZQ', 100, 518);
+        ctx.fillText('DER ▶', 700, 518);
+
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('ASCENSOR DE LA TORRE: ESTABILIZACIÓN', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca IZQ o DER para contrarrestar las ráfagas de viento y seguir en el raíl.', 400, 570);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Piso: ${Math.round(gd.floor)}/${this.goal}F`, 400, 95);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(Math.ceil(gd.lives))}`, 770, 95);
+    },
+    inputSkyscraperPress(x, y) {
+        const gd = this.gameData;
+        if (x < 300) {
+            gd.vx -= 190;
+            if (window.playProceduralSound) playProceduralSound('jump');
+            this.createExplosion(100, 510, '#00e5ff', 8);
+        } else if (x > 500) {
+            gd.vx += 190;
+            if (window.playProceduralSound) playProceduralSound('jump');
+            this.createExplosion(700, 510, '#00e5ff', 8);
+        }
+    },
+    releaseSkyscraper() {},
+
+    // 48. day_16_colors: Mezclador de Neón
+    setupColors() {
+        this.gameData = {
+            targetR: 255, targetG: 0, targetB: 128,
+            curR: 128, curG: 128, curB: 128,
+            sliders: [50, 50, 50],
+            stage: 1,
+            colorNames: ['PÚRPURA NEÓN', 'VERDE AGUA', 'NARANJA CIBER']
+        };
+        this.score = 0;
+    },
+    updateColors(dt) {
+        const gd = this.gameData;
+
+        gd.curR = Math.round(gd.sliders[0] * 2.55);
+        gd.curG = Math.round(gd.sliders[1] * 2.55);
+        gd.curB = Math.round(gd.sliders[2] * 2.55);
+
+        const diffR = Math.abs(gd.curR - gd.targetR);
+        const diffG = Math.abs(gd.curG - gd.targetG);
+        const diffB = Math.abs(gd.curB - gd.targetB);
+
+        const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+        this.score = Math.round(((gd.stage - 1) / 3) * 100) + (aligned ? 15 : 0);
+
+        if (this.mouse.isDown && this.mouse.y > 440 && this.mouse.y < 520) {
+            for (let i = 0; i < 3; i++) {
+                const sx = 180 + i * 180;
+                if (Math.abs(this.mouse.x - sx) < 40) {
+                    gd.sliders[i] = Math.max(0, Math.min(100, (480 - this.mouse.y) / 2.5));
+                }
+            }
+        }
+    },
+    drawColors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0d0d1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#ffffff55';
+        ctx.fillStyle = `rgb(${gd.curR}, ${gd.curG}, ${gd.curB})`;
+        ctx.beginPath();
+        ctx.moveTo(350, 160);
+        ctx.lineTo(380, 200);
+        ctx.lineTo(380, 280);
+        ctx.lineTo(340, 320);
+        ctx.lineTo(460, 320);
+        ctx.lineTo(420, 280);
+        ctx.lineTo(420, 200);
+        ctx.lineTo(450, 160);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = `rgb(${gd.targetR}, ${gd.targetG}, ${gd.targetB})`;
+        ctx.fillRect(560, 160, 160, 80);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(560, 160, 160, 80);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('COLOR OBJETIVO', 640, 140);
+        ctx.fillText(gd.colorNames[gd.stage - 1], 640, 270);
+
+        const sliderColors = ['#ff1744', '#00e676', '#2979ff'];
+        const labels = ['RED', 'GREEN', 'BLUE'];
+
+        for (let i = 0; i < 3; i++) {
+            const sx = 180 + i * 180;
+            ctx.strokeStyle = '#424242';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(sx, 230);
+            ctx.lineTo(sx, 480);
+            ctx.stroke();
+
+            const knobY = 480 - gd.sliders[i] * 2.5;
+            ctx.fillStyle = sliderColors[i];
+            ctx.beginPath();
+            ctx.arc(sx, knobY, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(labels[i], sx, 515);
+        }
+
+        const diffR = Math.abs(gd.curR - gd.targetR);
+        const diffG = Math.abs(gd.curG - gd.targetG);
+        const diffB = Math.abs(gd.curB - gd.targetB);
+        const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+
+        ctx.fillStyle = aligned ? '#00e676' : '#546e7a';
+        ctx.fillRect(320, 530, 160, 45);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText('¡MEZCLAR!', 400, 558);
+
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('MEZCLADOR DE NEÓN: SINTONÍA RGB', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Ajusta los sliders RGB para replicar el color del panel superior derecho.', 400, 105);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Fase: ${gd.stage}/3`, 120, 190);
+    },
+    inputColorsPress(x, y) {
+        const gd = this.gameData;
+        if (x > 320 && x < 480 && y > 530 && y < 575) {
+            const diffR = Math.abs(gd.curR - gd.targetR);
+            const diffG = Math.abs(gd.curG - gd.targetG);
+            const diffB = Math.abs(gd.curB - gd.targetB);
+            const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+
+            if (aligned) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 240, `rgb(${gd.targetR}, ${gd.targetG}, ${gd.targetB})`, 25);
+                gd.stage++;
+                if (gd.stage > 3) {
+                    this.score = 100;
+                    setTimeout(() => this.victory(), 500);
+                } else {
+                    if (gd.stage === 2) {
+                        gd.targetR = 0; gd.targetG = 220; gd.targetB = 220;
+                    } else {
+                        gd.targetR = 255; gd.targetG = 140; gd.targetB = 0;
+                    }
+                    gd.sliders = [40, 50, 60];
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('error');
+                this.triggerShake(10);
+            }
+        }
+    },
+    releaseColors() {},
+
+    // 49. day_16_traffic: Paso de Cebra de Shibuya
+    setupTraffic() {
+        this.gameData = {
+            pedestrians: [
+                { y: 550, speed: 60, targetX: 200, active: true },
+                { y: 550, speed: 45, targetX: 300, active: true },
+                { y: 550, speed: 50, targetX: 400, active: true },
+                { y: 550, speed: 55, targetX: 500, active: true },
+                { y: 550, speed: 40, targetX: 600, active: true }
+            ],
+            cars: [],
+            lightTimer: 4.0,
+            signal: 'red',
+            crossed: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTraffic(dt) {
+        const gd = this.gameData;
+
+        gd.lightTimer -= dt;
+        if (gd.lightTimer <= 0) {
+            if (gd.signal === 'red') {
+                gd.signal = 'green';
+                gd.lightTimer = 5.0;
+            } else {
+                gd.signal = 'red';
+                gd.lightTimer = 4.0;
+            }
+        }
+
+        if (gd.signal === 'green') {
+            gd.spawnTimer -= dt;
+            if (gd.spawnTimer <= 0) {
+                gd.spawnTimer = 1.0 + Math.random() * 0.8;
+                gd.cars.push({
+                    x: Math.random() < 0.5 ? -100 : 900,
+                    y: 200 + Math.floor(Math.random() * 2) * 80,
+                    vx: 240,
+                    dir: Math.random() < 0.5 ? 1 : -1,
+                    active: true
+                });
+            }
+        }
+
+        gd.cars.forEach(car => {
+            car.x += car.vx * car.dir * dt;
+        });
+        gd.cars = gd.cars.filter(car => car.x > -150 && car.x < 950);
+
+        gd.pedestrians.forEach((p, idx) => {
+            if (!p.active) return;
+
+            if (gd.signal === 'red' || p.speed > 80) {
+                p.y -= p.speed * dt;
+            }
+
+            gd.cars.forEach(car => {
+                const dist = Math.hypot(p.targetX - car.x, p.y - car.y);
+                if (dist < 40) {
+                    p.y = 550;
+                    p.speed = 40 + Math.random() * 20;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.createExplosion(p.targetX, p.y, '#e53935', 10);
+                }
+            });
+
+            if (p.y <= 120) {
+                p.active = false;
+                gd.crossed++;
+                this.score = Math.round((gd.crossed / this.goal) * 100);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                this.createExplosion(p.targetX, p.y, '#00ff66', 15);
+                
+                if (gd.crossed >= this.goal) {
+                    setTimeout(() => this.victory(), 500);
+                } else {
+                    setTimeout(() => {
+                        gd.pedestrians[idx] = {
+                            y: 550,
+                            speed: 40 + Math.random() * 20,
+                            targetX: 150 + Math.random() * 500,
+                            active: true
+                        };
+                    }, 1000);
+                }
+            }
+        });
+    },
+    drawTraffic() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let x = 120; x < 700; x += 60) {
+            ctx.fillRect(x, 180, 30, 160);
+        }
+
+        ctx.fillStyle = '#546e7a';
+        ctx.fillRect(0, 0, 800, 140);
+        ctx.fillRect(0, 380, 800, 220);
+
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(720, 20, 60, 100);
+        
+        ctx.fillStyle = gd.signal === 'red' ? '#ff1744' : '#212121';
+        ctx.beginPath(); ctx.arc(750, 45, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = gd.signal === 'green' ? '#00e676' : '#212121';
+        ctx.beginPath(); ctx.arc(750, 95, 18, 0, Math.PI*2); ctx.fill();
+
+        gd.cars.forEach(car => {
+            ctx.fillStyle = '#fbc02d';
+            ctx.fillRect(car.x - 40, car.y - 20, 80, 40);
+            ctx.strokeStyle = '#000000';
+            ctx.strokeRect(car.x - 40, car.y - 20, 80, 40);
+            
+            ctx.fillStyle = '#e0f7fa';
+            ctx.fillRect(car.x + (car.dir > 0 ? 15 : -30), car.y - 15, 15, 30);
+        });
+
+        gd.pedestrians.forEach(p => {
+            if (!p.active) return;
+            ctx.fillStyle = '#00e5ff';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(p.targetX, p.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('🏃', p.targetX, p.y + 4);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CRUCE DE SHIBUYA: TRAFICO URBANO', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca los peatones para acelerar su paso. Cruza solo con semáforo rojo (autos parados).', 400, 570);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Evacuados: ${gd.crossed}/${this.goal}`, 400, 95);
+    },
+    inputTrafficPress(x, y) {
+        const gd = this.gameData;
+        gd.pedestrians.forEach(p => {
+            if (p.active && Math.hypot(x - p.targetX, y - p.y) < 40) {
+                p.speed = 175;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseTraffic() {},
+
+    // 50. day_16_vortex: Filtro Temporal
+    setupVortex() {
+        this.gameData = {
+            curAngle: 0, targetAngle: 180,
+            curScale: 0.4, targetScale: 1.0,
+            curX: 200, targetX: 400,
+            curY: 150, targetY: 300,
+            sliders: [10, 20, 20, 20],
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateVortex(dt) {
+        const gd = this.gameData;
+
+        gd.curAngle = (gd.sliders[0] / 100) * 360;
+        gd.curScale = 0.3 + (gd.sliders[1] / 100) * 1.4;
+        gd.curX = gd.sliders[2] * 8;
+        gd.curY = gd.sliders[3] * 6;
+
+        const diffAngle = Math.abs(gd.curAngle - gd.targetAngle);
+        const diffScale = Math.abs(gd.curScale - gd.targetScale);
+        const diffX = Math.abs(gd.curX - gd.targetX);
+        const diffY = Math.abs(gd.curY - gd.targetY);
+
+        const error = (diffAngle / 180) + (diffScale / 1.0) + (diffX / 400) + (diffY / 300);
+        gd.accuracy = Math.max(0, Math.round(100 - (error * 55)));
+        this.score = gd.accuracy;
+
+        if (gd.accuracy >= 95) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+
+        if (this.mouse.isDown) {
+            for (let i = 0; i < 4; i++) {
+                const sx = 100 + i * 180;
+                if (Math.hypot(this.mouse.x - (sx + gd.sliders[i] * 1.2), this.mouse.y - 515) < 30) {
+                    gd.sliders[i] = Math.max(0, Math.min(100, (this.mouse.x - sx) / 1.2));
+                }
+            }
+        }
+    },
+    drawVortex() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#ffffff05';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(800, i); ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.translate(gd.targetX, gd.targetY);
+        ctx.scale(gd.targetScale, gd.targetScale);
+        ctx.rotate((gd.targetAngle * Math.PI) / 180);
+
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-60, -80, 120, 160);
+        ctx.beginPath();
+        ctx.moveTo(-60, -80); ctx.lineTo(0, -140); ctx.lineTo(60, -80);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(gd.curX, gd.curY);
+        ctx.scale(gd.curScale, gd.curScale);
+        ctx.rotate((gd.curAngle * Math.PI) / 180);
+
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-60, -80, 120, 160);
+        ctx.beginPath();
+        ctx.moveTo(-90, -40); ctx.lineTo(90, -40);
+        ctx.moveTo(-90, 20); ctx.lineTo(90, 20);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.strokeStyle = '#ffffff44';
+        ctx.strokeRect(50, 80, 700, 340);
+
+        ctx.fillStyle = '#111118';
+        ctx.fillRect(0, 440, 800, 160);
+
+        const labels = ['ROTACIÓN', 'ESCALA', 'ALINEAR X', 'ALINEAR Y'];
+        for (let i = 0; i < 4; i++) {
+            const sx = 100 + i * 180;
+            ctx.fillStyle = '#212121';
+            ctx.fillRect(sx, 510, 120, 10);
+
+            ctx.fillStyle = '#ff1744';
+            ctx.beginPath();
+            ctx.arc(sx + gd.sliders[i] * 1.2, 515, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], sx + 60, 485);
+        }
+
+        ctx.fillStyle = gd.accuracy > 85 ? '#00e676' : '#ff1744';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`SINCRO FILTRO TEMPORAL: ${gd.accuracy}%`, 400, 435);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('FILTRO TEMPORAL: ANOMALÍA DE SHINJUKU', 400, 45);
+    },
+    inputVortexPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseVortex() {},
+
+    // 51. day_16_combat: Corte Kenjutsu
+    setupCombat() {
+        this.gameData = {
+            targetX1: 150, targetY1: 150,
+            targetX2: 650, targetY2: 380,
+            points: [],
+            slashed: 0,
+            goal: 10,
+            wasMouseDown: false
+        };
+        this.score = 0;
+    },
+    updateCombat(dt) {
+        const gd = this.gameData;
+
+        if (this.mouse.isDown) {
+            gd.points.push({ x: this.mouse.x, y: this.mouse.y });
+            if (gd.points.length > 25) gd.points.shift();
+        } else {
+            if (gd.wasMouseDown && gd.points.length > 3) {
+                let cutSuccess = false;
+                
+                const startPt = gd.points[0];
+                const endPt = gd.points[gd.points.length - 1];
+
+                const det = (gd.targetX2 - gd.targetX1) * (endPt.y - startPt.y) - (gd.targetY2 - gd.targetY1) * (endPt.x - startPt.x);
+                if (Math.abs(det) > 100) {
+                    const midTargetX = (gd.targetX1 + gd.targetX2) / 2;
+                    const midTargetY = (gd.targetY1 + gd.targetY2) / 2;
+                    const midSwipeX = (startPt.x + endPt.x) / 2;
+                    const midSwipeY = (startPt.y + endPt.y) / 2;
+
+                    if (Math.hypot(midTargetX - midSwipeX, midTargetY - midSwipeY) < 140) {
+                        cutSuccess = true;
+                    }
+                }
+
+                if (cutSuccess) {
+                    gd.slashed++;
+                    this.score = Math.round((gd.slashed / gd.goal) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(400, 260, '#ff1744', 20);
+
+                    if (gd.slashed >= gd.goal) {
+                        setTimeout(() => this.victory(), 500);
+                    } else {
+                        const sides = [
+                            { x1: 150, y1: 120, x2: 650, y2: 440 },
+                            { x1: 650, y1: 120, x2: 150, y2: 440 },
+                            { x1: 400, y1: 90, x2: 400, y2: 480 },
+                            { x1: 100, y1: 280, x2: 700, y2: 280 }
+                        ];
+                        const nextCut = sides[Math.floor(Math.random() * sides.length)];
+                        gd.targetX1 = nextCut.x1;
+                        gd.targetY1 = nextCut.y1;
+                        gd.targetX2 = nextCut.x2;
+                        gd.targetY2 = nextCut.y2;
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(5);
+                }
+
+                gd.points = [];
+            }
+        }
+
+        gd.wasMouseDown = this.mouse.isDown;
+    },
+    drawCombat() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#08000a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.shadowColor = '#ff1744';
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(gd.targetX1, gd.targetY1);
+        ctx.lineTo(gd.targetX2, gd.targetY2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(gd.targetX1, gd.targetY1, 10, 0, Math.PI * 2);
+        ctx.arc(gd.targetX2, gd.targetY2, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (gd.points.length > 1) {
+            ctx.save();
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(gd.points[0].x, gd.points[0].y);
+            for (let i = 1; i < gd.points.length; i++) {
+                ctx.lineTo(gd.points[i].x, gd.points[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('KENJUTSU: ENTRENAMIENTO DE CORTE', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Desliza el dedo siguiendo y cortando la línea roja de neón.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`Cortes: ${gd.slashed}/${gd.goal}`, 400, 95);
+    },
+    inputCombatPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseCombat() {},
+
+    // 52. day_16_shinjuku: Escape de Shinjuku
+    setupShinjuku() {
+        this.gameData = {
+            playerX: 80,
+            playerY: 480,
+            goalX: 720,
+            goalY: 120,
+            crowds: [],
+            timer: 30,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateShinjuku(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+
+        if (gd.timer <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        this.score = Math.round(((30 - gd.timer) / 30) * 100);
+
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.15;
+        gd.playerY += (this.mouse.y - gd.playerY) * 0.15;
+        
+        gd.playerX = Math.max(30, Math.min(770, gd.playerX));
+        gd.playerY = Math.max(30, Math.min(570, gd.playerY));
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.3 + Math.random() * 0.25;
+            gd.crowds.push({
+                x: 400 + Math.random() * 400,
+                y: -30,
+                vy: 160 + Math.random() * 120,
+                r: 12 + Math.random() * 8
+            });
+        }
+
+        gd.crowds.forEach((c, idx) => {
+            c.y += c.vy * dt;
+            c.x -= 80 * dt;
+
+            const dist = Math.hypot(gd.playerX - c.x, gd.playerY - c.y);
+            if (dist < c.r + 14) {
+                gd.crowds.splice(idx, 1);
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.timer -= 1.8;
+            }
+        });
+        gd.crowds = gd.crowds.filter(c => c.y < 650 && c.x > -50);
+
+        if (Math.hypot(gd.playerX - gd.goalX, gd.playerY - gd.goalY) < 40) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+    },
+    drawShinjuku() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#01579b';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#0288d1';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 30) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(800, i); ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgba(76,175,80,0.3)';
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(gd.goalX, gd.goalY, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('EXIT GATE', gd.goalX, gd.goalY - 50);
+
+        gd.crowds.forEach(c => {
+            ctx.fillStyle = '#ff1744';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        ctx.fillStyle = '#ffd600';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.playerX, gd.playerY, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('ESCAPE DE SHINJUKU: FLUJO PEATONAL', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Guía tu avatar amarillo hacia la salida verde esquivando las olas rojas.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`TIEMPO: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 95);
+    },
+    inputShinjukuPress(x, y) {},
+    releaseShinjuku() {},
+
+    // 53. day_16_density: Contador Shibuya
+    setupDensity() {
+        this.gameData = {
+            dots: [],
+            count: 0,
+            options: [],
+            timer: 3.5,
+            answered: false,
+            score: 0,
+            goal: 4,
+            spawnedCount: 0
+        };
+        
+        const count = 16 + Math.floor(Math.random() * 12);
+        this.gameData.count = count;
+        
+        for (let i = 0; i < count; i++) {
+            this.gameData.dots.push({
+                x: -30 - Math.random() * 200,
+                y: 150 + Math.random() * 280,
+                vx: 180 + Math.random() * 120,
+                r: 10,
+                color: '#00e5ff'
+            });
+        }
+        this.score = 0;
+    },
+    updateDensity(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+
+        if (gd.timer > 0) {
+            gd.dots.forEach(d => {
+                d.x += d.vx * dt;
+            });
+        } else if (!gd.answered && gd.options.length === 0) {
+            const correct = gd.count;
+            const opt1 = correct + 3 + Math.floor(Math.random() * 3);
+            const opt2 = Math.max(5, correct - 3 - Math.floor(Math.random() * 3));
+            
+            const arr = [correct, opt1, opt2];
+            arr.sort(() => Math.random() - 0.5);
+            gd.options = arr;
+        }
+    },
+    drawDensity() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#111118';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (gd.timer > 0) {
+            gd.dots.forEach(d => {
+                ctx.fillStyle = d.color;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`ESCANEO EN PROGRESO: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 300);
+        } else {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('¿Cuántos peatones cruzaron el paso de cebra?', 400, 200);
+
+            gd.options.forEach((opt, idx) => {
+                const bx = 160 + idx * 180;
+                const by = 280;
+
+                ctx.fillStyle = '#263238';
+                ctx.strokeStyle = '#ffd600';
+                ctx.lineWidth = 3;
+                ctx.fillRect(bx, by, 120, 60);
+                ctx.strokeRect(bx, by, 120, 60);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 24px monospace';
+                ctx.fillText(String(opt), bx + 60, by + 38);
+            });
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CENSADO URBANO: DENSIDAD SHIBUYA', 400, 45);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Rondas: ${gd.score}/${gd.goal}`, 400, 95);
+    },
+    inputDensityPress(x, y) {
+        const gd = this.gameData;
+        if (gd.timer <= 0 && !gd.answered) {
+            gd.options.forEach((opt, idx) => {
+                const bx = 160 + idx * 180;
+                const by = 280;
+
+                if (x > bx && x < bx + 120 && y > by && y < by + 60) {
+                    gd.answered = true;
+                    if (opt === gd.count) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / gd.goal) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        if (gd.score >= gd.goal) {
+                            setTimeout(() => this.victory(), 500);
+                        } else {
+                            setTimeout(() => {
+                                this.setupDensity();
+                            }, 800);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        this.triggerShake(12);
+                        setTimeout(() => {
+                            this.setupDensity();
+                        }, 800);
+                    }
+                }
+            });
+        }
+    },
+    releaseDensity() {},
+
+    // 54. day_16_tocho: Constelación de Tokio
+    setupTocho() {
+        this.gameData = {
+            stars: [
+                { x: 260, y: 420, idx: 0, connected: false },
+                { x: 260, y: 180, idx: 1, connected: false },
+                { x: 400, y: 260, idx: 2, connected: false },
+                { x: 540, y: 180, idx: 3, connected: false },
+                { x: 540, y: 420, idx: 4, connected: false }
+            ],
+            path: [],
+            currentIdx: 0
+        };
+        this.score = 0;
+    },
+    updateTocho(dt) {
+        const gd = this.gameData;
+
+        if (this.mouse.isDown) {
+            const nextTarget = gd.stars[gd.currentIdx];
+            const dist = Math.hypot(this.mouse.x - nextTarget.x, this.mouse.y - nextTarget.y);
+            
+            if (dist < 35) {
+                nextTarget.connected = true;
+                gd.path.push({ x: nextTarget.x, y: nextTarget.y });
+                gd.currentIdx++;
+                this.score = Math.round((gd.currentIdx / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                this.createExplosion(nextTarget.x, nextTarget.y, '#ffd600', 12);
+
+                if (gd.currentIdx >= 5) {
+                    setTimeout(() => this.victory(), 500);
+                }
+            }
+        } else {
+            if (gd.path.length > 0) {
+                gd.path = [];
+                gd.currentIdx = 0;
+                gd.stars.forEach(s => s.connected = false);
+                this.score = 0;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    drawTocho() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0b001a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#04000b';
+        ctx.beginPath();
+        ctx.moveTo(0, 600);
+        ctx.lineTo(200, 600); ctx.lineTo(200, 360); ctx.lineTo(340, 360); ctx.lineTo(340, 600);
+        ctx.lineTo(460, 600); ctx.lineTo(460, 360); ctx.lineTo(600, 360); ctx.lineTo(600, 600);
+        ctx.closePath();
+        ctx.fill();
+
+        if (gd.path.length > 1) {
+            ctx.strokeStyle = '#ffd600';
+            ctx.lineWidth = 5;
+            ctx.shadowColor = '#ffd600';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(gd.path[0].x, gd.path[0].y);
+            for (let i = 1; i < gd.path.length; i++) {
+                ctx.lineTo(gd.path[i].x, gd.path[i].y);
+            }
+            if (this.mouse.isDown) {
+                ctx.lineTo(this.mouse.x, this.mouse.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        gd.stars.forEach(s => {
+            ctx.fillStyle = s.connected ? '#ffd600' : '#ffffff';
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = s.connected ? 15 : 5;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('TOCHO STAR: CONSTELACIÓN METROPOLITANA', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Une las estrellas en orden arrastrando para trazar la estructura de la torre Tocho.', 400, 560);
+    },
+    inputTochoPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // ==========================================================
+    // DÍAS 17, 18 Y 19: DETALLE DE MINIJUEGOS PREMIUM (CANVAS)
+    // ==========================================================
+
+    // ==========================================================
+    // DÍA 17: SENSO-JI, AKIHABARA Y SKYTREE
+    // ==========================================================
+
+    // 1. day_17_omikuji: Destino Omikuji
+    setupOmikuji() {
+        this.gameData = {
+            shakeProgress: 0,
+            shaking: false,
+            processedCount: 0,
+            stickShown: false,
+            stickType: '', // 'Buena', 'Regular', 'Mala'
+            stickY: 0,
+            ties: [], // {x, y} where bad luck is tied
+            lastMouseX: 400,
+            shakeWobble: 0
+        };
+        this.score = 0;
+    },
+    updateOmikuji(dt) {
+        const gd = this.gameData;
+        if (gd.shaking) {
+            gd.shakeWobble = Math.sin(this.gameTime * 25) * 15;
+            gd.shakeProgress += dt * 35;
+            if (gd.shakeProgress >= 100) {
+                gd.shaking = false;
+                gd.stickShown = true;
+                gd.stickY = 280;
+                const r = Math.random();
+                gd.stickType = r < 0.33 ? 'Buena Suerte' : (r < 0.66 ? 'Suerte Regular' : 'Mala Suerte');
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        } else {
+            gd.shakeWobble = 0;
+        }
+
+        if (gd.stickShown) {
+            if (gd.stickY > 200) gd.stickY -= dt * 100;
+        }
+    },
+    drawOmikuji() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background: Temple wall
+        ctx.fillStyle = '#4a1212';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Golden/red temple frame
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(10, 10, 780, 580);
+
+        // Draw wires for tying bad luck
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 3;
+        for (let y = 120; y <= 180; y += 30) {
+            ctx.beginPath();
+            ctx.moveTo(50, y);
+            ctx.lineTo(750, y);
+            ctx.stroke();
+        }
+
+        // Draw ties
+        gd.ties.forEach(t => {
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#aaaaaa';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(t.x, t.y, 10, 4, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // Draw the hexagonal box
+        ctx.save();
+        ctx.translate(400 + gd.shakeWobble, 400);
+        ctx.fillStyle = '#b57c1e';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        // Hexagon
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            const x = Math.cos(angle) * 80;
+            const y = Math.sin(angle) * 120;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Details on the box
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('御みくじ', 0, 10);
+        ctx.restore();
+
+        // Draw stick if shown
+        if (gd.stickShown) {
+            ctx.fillStyle = '#ffe0b2';
+            ctx.strokeStyle = '#b57c1e';
+            ctx.lineWidth = 3;
+            ctx.fillRect(385, gd.stickY, 30, 120);
+            ctx.strokeRect(385, gd.stickY, 30, 120);
+
+            ctx.fillStyle = gd.stickType === 'Mala Suerte' ? '#e53935' : '#4caf50';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.stickType, 400, gd.stickY + 60);
+
+            // Drag indicator for Mala Suerte
+            if (gd.stickType === 'Mala Suerte') {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText('¡Mala Suerte! Arrástrala a los cables superiores para atarla', 400, gd.stickY - 20);
+            } else {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText('¡Toca la fortuna para guardarla!', 400, gd.stickY - 20);
+            }
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fortunas procesadas: ${gd.processedCount}/3`, 30, 560);
+        
+        if (!gd.stickShown && !gd.shaking) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText('¡Arrastra la caja rápidamente para agitarla!', 400, 220);
+        }
+    },
+    inputOmikujiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.shaking && !gd.stickShown) {
+            gd.shaking = true;
+            gd.shakeProgress = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (gd.stickShown) {
+            if (gd.stickType !== 'Mala Suerte') {
+                gd.processedCount++;
+                this.score = Math.round((gd.processedCount / 3) * 100);
+                gd.stickShown = false;
+                if (window.playProceduralSound) playProceduralSound('collect');
+                if (gd.processedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        }
+    },
+    releaseOmikuji(x, y) {
+        const gd = this.gameData;
+        if (gd.stickShown && gd.stickType === 'Mala Suerte') {
+            if (y < 200 && x > 40 && x < 760) {
+                gd.ties.push({ x, y });
+                gd.processedCount++;
+                this.score = Math.round((gd.processedCount / 3) * 100);
+                gd.stickShown = false;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.processedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        }
+    },
+
+    // 2. day_17_incense: Humo de la Fortuna
+    setupIncense() {
+        this.gameData = {
+            playerX: 400,
+            score: 0,
+            particles: [],
+            embers: [],
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateIncense(dt) {
+        const gd = this.gameData;
+        // Follow mouse/touch
+        gd.playerX = this.mouse.x;
+        if (gd.playerX < 50) gd.playerX = 50;
+        if (gd.playerX > 750) gd.playerX = 750;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            // Spawn smoke
+            gd.particles.push({
+                x: 400 + (Math.random() - 0.5) * 60,
+                y: 350,
+                vx: (Math.random() - 0.5) * 80,
+                vy: -150 - Math.random() * 100,
+                r: 10 + Math.random() * 15,
+                alpha: 0.8
+            });
+            // Spawn ember
+            if (Math.random() < 0.25) {
+                gd.embers.push({
+                    x: Math.random() * 800,
+                    y: 0,
+                    vy: 180 + Math.random() * 100,
+                    r: 8
+                });
+            }
+        }
+
+        // Update smoke
+        gd.particles.forEach((p, idx) => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 0.6;
+            
+            // Collision with player
+            if (p.y > 450 && p.y < 550 && Math.abs(p.x - gd.playerX) < 40) {
+                gd.score++;
+                this.score = Math.min(100, gd.score);
+                gd.particles.splice(idx, 1);
+                if (window.playProceduralSound && gd.score % 10 === 0) playProceduralSound('collect');
+                if (gd.score >= 100) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0 && p.y > 0);
+
+        // Update embers
+        gd.embers.forEach((em, idx) => {
+            em.y += em.vy * dt;
+            
+            // Collision with player
+            if (em.y > 470 && em.y < 530 && Math.abs(em.x - gd.playerX) < 30) {
+                gd.embers.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        });
+        gd.embers = gd.embers.filter(em => em.y < 650);
+    },
+    drawIncense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background
+        ctx.fillStyle = '#1e1a1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw incense burner
+        ctx.fillStyle = '#8d6e63';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 390, 60, 0, Math.PI, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#b57c1e';
+        ctx.fillRect(390, 390, 20, 40);
+
+        // Draw smoke particles
+        gd.particles.forEach(p => {
+            ctx.fillStyle = `rgba(240, 240, 245, ${p.alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw embers
+        gd.embers.forEach(em => {
+            ctx.fillStyle = '#ff3d00';
+            ctx.shadowColor = '#ff3d00';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(em.x, em.y, em.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw Player (Laura waving hands)
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath();
+        ctx.arc(gd.playerX, 500, 25, 0, Math.PI * 2);
+        ctx.fill();
+        // Hands
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(gd.playerX - 25, 500 + Math.sin(this.gameTime * 10) * 10, 8, 0, Math.PI * 2);
+        ctx.arc(gd.playerX + 25, 500 + Math.cos(this.gameTime * 10) * 10, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Humo Sagrado: ${gd.score}/100`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputIncensePress(x, y) {},
+
+    // 3. day_17_gashapon: Gashapon Perfecto
+    setupGashapon() {
+        this.gameData = {
+            dialAngle: 0,
+            dragStartAngle: 0,
+            turnProgress: 0,
+            machineState: 'idle', // 'idle', 'turning', 'dropping', 'open'
+            capsules: [], // pegs physics
+            figuresCollected: [],
+            figIndex: 0,
+            capY: 150,
+            capX: 400,
+            capVy: 0,
+            openedFigure: null
+        };
+        this.score = 0;
+        // Populate display capsules in machine top
+        for (let i = 0; i < 15; i++) {
+            this.gameData.capsules.push({
+                x: 350 + Math.random() * 100,
+                y: 120 + Math.random() * 60,
+                color: ['#ff1744', '#00e5ff', '#ffea00', '#d500f9'][Math.floor(Math.random() * 4)]
+            });
+        }
+    },
+    updateGashapon(dt) {
+        const gd = this.gameData;
+        if (gd.machineState === 'turning') {
+            gd.dialAngle += dt * 5;
+            if (gd.dialAngle >= Math.PI * 2) {
+                gd.dialAngle = 0;
+                gd.machineState = 'dropping';
+                gd.capY = 220;
+                gd.capX = 400;
+                gd.capVy = 0;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'dropping') {
+            gd.capVy += 500 * dt;
+            gd.capY += gd.capVy * dt;
+            if (gd.capY >= 460) {
+                gd.capY = 460;
+                gd.machineState = 'open';
+                const list = ['Shiba Inu 🐕', 'Gato Sushi 🍣', 'Origami Crane 🦢', 'Maneki Neko 🐱'];
+                gd.openedFigure = list[gd.figIndex % list.length];
+                gd.figIndex++;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+    drawGashapon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw machine red cabinet
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(280, 50, 240, 450);
+
+        // Glass sphere
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 160, 100, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw display capsules inside machine
+        gd.capsules.forEach(c => {
+            ctx.fillStyle = c.color;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw Dial/Crank
+        ctx.save();
+        ctx.translate(400, 310);
+        ctx.rotate(gd.dialAngle);
+        ctx.fillStyle = '#eeeeee';
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Dial handle
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(-8, -45, 16, 90);
+        ctx.restore();
+
+        // Exit chute
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(360, 430, 80, 60);
+
+        // Dropping capsule
+        if (gd.machineState === 'dropping') {
+            ctx.fillStyle = '#ffea00';
+            ctx.beginPath();
+            ctx.arc(gd.capX, gd.capY, 18, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Show collection in HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 18px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Coleccionados: ${gd.figuresCollected.length}/3`, 30, 560);
+
+        // Modal for open figure
+        if (gd.machineState === 'open') {
+            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillRect(0, 0, 800, 600);
+
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 30px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡NUEVO PREMIO!', 400, 200);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 45px monospace';
+            ctx.fillText(gd.openedFigure, 400, 300);
+
+            ctx.font = '20px monospace';
+            ctx.fillText('¡Toca la pantalla para guardar en el álbum!', 400, 420);
+        } else if (gd.machineState === 'idle') {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡Haz click en la manivela para girarla!', 400, 390);
+        }
+    },
+    inputGashaponPress(x, y) {
+        const gd = this.gameData;
+        if (gd.machineState === 'idle') {
+            if (Math.hypot(x - 400, y - 310) < 50) {
+                gd.machineState = 'turning';
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'open') {
+            if (!gd.figuresCollected.includes(gd.openedFigure)) {
+                gd.figuresCollected.push(gd.openedFigure);
+                this.score = Math.round((gd.figuresCollected.length / 3) * 100);
+            }
+            gd.machineState = 'idle';
+            if (gd.figuresCollected.length >= 3) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+    },
+    releaseGashapon(x, y) {},
+
+    // 4. day_17_p2p_receiver: Sincronización P2P (Receptor)
+    setupP2PReceiver() {
+        this.gameData = {
+            bits: [],
+            receiverCol: 1, // 0, 1, 2, 3
+            receiverColor: 'red', // 'red', 'blue', 'green', 'yellow'
+            score: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateP2PReceiver(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            const colors = ['red', 'blue', 'green', 'yellow'];
+            gd.bits.push({
+                x: 160 + Math.floor(Math.random() * 4) * 160,
+                y: 0,
+                color: colors[Math.floor(Math.random() * 4)],
+                vy: 180 + Math.random() * 100
+            });
+        }
+
+        // Update bits
+        gd.bits.forEach((b, idx) => {
+            b.y += b.vy * dt;
+            if (b.y > 480 && b.y < 530) {
+                const col = Math.round((b.x - 160) / 160);
+                if (col === gd.receiverCol) {
+                    gd.bits.splice(idx, 1);
+                    if (b.color === gd.receiverColor) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / 20) * 100);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        if (gd.score >= 20) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        gd.lives--;
+                        this.triggerShake(10);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            }
+        });
+        gd.bits = gd.bits.filter(b => b.y < 600);
+    },
+    drawP2PReceiver() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Neon background
+        ctx.fillStyle = '#0d0d15';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw 4 columns / lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+            const x = 160 + i * 160;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 500);
+            ctx.stroke();
+        }
+
+        // Draw falling bits
+        gd.bits.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.shadowColor = b.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw receiver
+        const rx = 160 + gd.receiverCol * 160;
+        ctx.fillStyle = gd.receiverColor;
+        ctx.shadowColor = gd.receiverColor;
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(rx, 500, 24, 0, Math.PI, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // UI Instructions
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Pulsa los botones del panel para cambiar columna y color', 400, 560);
+
+        // Buttons representation at base
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(100 + i * 160, 520, 120, 20);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Datos Sincros: ${gd.score}/20`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputP2PReceiverPress(x, y) {
+        const gd = this.gameData;
+        const col = Math.floor(x / 200);
+        gd.receiverCol = col;
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        gd.receiverColor = colors[Math.floor(Math.random() * 4)];
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 5. day_17_retro: Arqueología Gamer
+    setupRetro() {
+        this.gameData = {
+            cartridges: [],
+            revealedCount: 0,
+            goldCount: 0,
+            budget: 12000,
+            sweptProgress: {} // id -> progress [0-100]
+        };
+        this.score = 0;
+        
+        // Spawn 12 cartridges in a shelf grid
+        const names = ['MARIO', 'ZELDA', 'METROID', 'MEGAMAN', 'KIRBY', 'POKEMON', 'CASTLEVANIA', 'DONKEY KONG', 'FINAL FANTASY', 'CHRONO', 'DRAGON QUEST', 'TETRIS'];
+        for (let i = 0; i < 12; i++) {
+            const isGold = i < 3; // 3 golden cartridges
+            this.gameData.cartridges.push({
+                id: i,
+                name: names[i],
+                x: 150 + (i % 4) * 160,
+                y: 150 + Math.floor(i / 4) * 140,
+                isGold: isGold,
+                dust: 100,
+                price: isGold ? 3500 : 800 + Math.floor(Math.random() * 1500),
+                bought: false
+            });
+        }
+    },
+    updateRetro(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.cartridges.forEach(c => {
+                if (!c.bought && Math.hypot(this.mouse.x - c.x, this.mouse.y - c.y) < 60) {
+                    c.dust = Math.max(0, c.dust - dt * 250);
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                }
+            });
+        }
+    },
+    drawRetro() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Shelf background
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw shelf planks
+        ctx.fillStyle = '#271206';
+        for (let y = 240; y <= 540; y += 140) {
+            ctx.fillRect(50, y, 700, 15);
+        }
+
+        // Draw cartridges
+        gd.cartridges.forEach(c => {
+            if (c.bought) return;
+
+            // Draw shell
+            ctx.fillStyle = c.isGold && c.dust < 20 ? '#ffd700' : '#757575';
+            ctx.strokeStyle = '#212121';
+            ctx.lineWidth = 3;
+            ctx.fillRect(c.x - 50, c.y - 40, 100, 80);
+            ctx.strokeRect(c.x - 50, c.y - 40, 100, 80);
+
+            // Label
+            if (c.dust < 30) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.name, c.x, c.y - 10);
+                ctx.fillText(`${c.price} ¥`, c.x, c.y + 15);
+            }
+
+            // Draw dust layer
+            if (c.dust > 0) {
+                ctx.fillStyle = `rgba(180, 170, 160, ${c.dust / 100})`;
+                ctx.fillRect(c.x - 48, c.y - 38, 96, 76);
+            }
+        });
+
+        // HUD
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cartuchos de oro: ${gd.goldCount}/3`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Presupuesto: ${gd.budget} ¥`, 770, 40);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Limpia el polvo arrastrando sobre los juegos y compra los dorados!', 400, 570);
+    },
+    inputRetroPress(x, y) {
+        const gd = this.gameData;
+        gd.cartridges.forEach(c => {
+            if (!c.bought && c.dust < 30 && Math.hypot(x - c.x, y - c.y) < 50) {
+                if (c.isGold) {
+                    if (gd.budget >= c.price) {
+                        c.bought = true;
+                        gd.budget -= c.price;
+                        gd.goldCount++;
+                        this.score = Math.round((gd.goldCount / 3) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.goldCount >= 3) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        showAlert('Error', '¡No tienes suficientes yenes!');
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('Error', '¡Ese juego no es el legendario cartucho de oro!');
+                }
+            }
+        });
+    },
+
+    // 6. day_17_skytree: Cervicales de Acero
+    setupSkytree() {
+        this.gameData = {
+            altitude: 0,
+            elevatorX: 400,
+            obstacles: [],
+            windForce: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSkytree(dt) {
+        const gd = this.gameData;
+        
+        // Climb elevator
+        gd.altitude += dt * 100;
+        this.score = Math.min(100, Math.round((gd.altitude / 634) * 100));
+
+        if (gd.altitude >= 634) {
+            gd.altitude = 634;
+            setTimeout(() => this.win(), 600);
+            return;
+        }
+
+        // Slide stabilizer
+        gd.elevatorX = lerp(gd.elevatorX, this.mouse.x, 0.1);
+        if (gd.elevatorX < 200) gd.elevatorX = 200;
+        if (gd.elevatorX > 600) gd.elevatorX = 600;
+
+        // Wind force
+        gd.windForce = Math.sin(this.gameTime * 2) * 200;
+        gd.elevatorX += gd.windForce * dt;
+
+        // Obstacles
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            gd.obstacles.push({
+                x: 200 + Math.random() * 400,
+                y: -50,
+                w: 60 + Math.random() * 40,
+                h: 20
+            });
+        }
+
+        gd.obstacles.forEach((ob, idx) => {
+            ob.y += dt * 250;
+            // Collision
+            if (ob.y > 430 && ob.y < 470 && gd.elevatorX > ob.x - 30 && gd.elevatorX < ob.x + ob.w + 30) {
+                gd.obstacles.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(ob => ob.y < 650);
+    },
+    drawSkytree() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#001122');
+        grad.addColorStop(1, '#003366');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Skytree metal tower structure lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(180, 0); ctx.lineTo(250, 600);
+        ctx.moveTo(620, 0); ctx.lineTo(550, 600);
+        ctx.stroke();
+
+        // Cross beams
+        for (let y = (this.gameTime * 150) % 150; y < 600; y += 150) {
+            ctx.beginPath();
+            ctx.moveTo(200, y); ctx.lineTo(600, y + 100);
+            ctx.moveTo(600, y); ctx.lineTo(200, y + 100);
+            ctx.stroke();
+        }
+
+        // Draw obstacles (girders)
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 2;
+        gd.obstacles.forEach(ob => {
+            ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+            ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        });
+
+        // Draw elevator
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.fillRect(gd.elevatorX - 25, 430, 50, 60);
+        ctx.strokeRect(gd.elevatorX - 25, 430, 50, 60);
+
+        // Windows of elevator
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.elevatorX - 18, 440, 36, 20);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}m / 634m`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputSkytreePress(x, y) {},
+
+    // 7. day_17_p2p_sender: Sincronización P2P (Emisor)
+    setupP2PSender() {
+        this.gameData = {
+            nodes: [
+                { id: 'R', color: 'red', x: 150, y: 150 },
+                { id: 'B', color: 'blue', x: 150, y: 250 },
+                { id: 'G', color: 'green', x: 150, y: 350 },
+                { id: 'Y', color: 'yellow', x: 150, y: 450 }
+            ],
+            targets: [
+                { id: 'R', color: 'red', x: 650, y: 250 },
+                { id: 'B', color: 'blue', x: 650, y: 150 },
+                { id: 'G', color: 'green', x: 650, y: 450 },
+                { id: 'Y', color: 'yellow', x: 650, y: 350 }
+            ],
+            draggingNode: null,
+            connections: {} // color -> targetId (locked)
+        };
+        this.score = 0;
+    },
+    updateP2PSender(dt) {},
+    drawP2PSender() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Connected lines
+        ctx.lineWidth = 5;
+        gd.nodes.forEach(n => {
+            const targetColor = gd.connections[n.color];
+            if (targetColor) {
+                const t = gd.targets.find(tg => tg.color === targetColor);
+                ctx.strokeStyle = n.color;
+                ctx.beginPath();
+                ctx.moveTo(n.x, n.y);
+                ctx.bezierCurveTo(n.x + 150, n.y, t.x - 150, t.y, t.x, t.y);
+                ctx.stroke();
+            }
+        });
+
+        // Dragging line
+        if (gd.draggingNode) {
+            ctx.strokeStyle = gd.draggingNode.color;
+            ctx.beginPath();
+            ctx.moveTo(gd.draggingNode.x, gd.draggingNode.y);
+            ctx.lineTo(this.mouse.x, this.mouse.y);
+            ctx.stroke();
+        }
+
+        // Draw nodes
+        gd.nodes.forEach(n => {
+            ctx.fillStyle = n.color;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw targets
+        gd.targets.forEach(t => {
+            ctx.fillStyle = t.color;
+            ctx.beginPath();
+            ctx.rect(t.x - 20, t.y - 20, 40, 40);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Une los nodos emisores con sus receptores del mismo color', 400, 80);
+    },
+    inputP2PSenderPress(x, y) {
+        const gd = this.gameData;
+        gd.nodes.forEach(n => {
+            if (Math.hypot(x - n.x, y - n.y) < 30) {
+                gd.draggingNode = n;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseP2PSender(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingNode) {
+            gd.targets.forEach(t => {
+                if (Math.hypot(x - t.x, y - t.y) < 35) {
+                    if (t.color === gd.draggingNode.color) {
+                        gd.connections[gd.draggingNode.color] = t.color;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        const count = Object.keys(gd.connections).length;
+                        this.score = Math.round((count / 4) * 100);
+                        if (count === 4) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    }
+                }
+            });
+            gd.draggingNode = null;
+        }
+    },
+
+    // 8. day_17_height: Altura del Cielo
+    setupHeight() {
+        this.gameData = {
+            knobA: 0, // 0 - 360 coarse
+            knobB: 0, // 0 - 360 fine
+            targetA: 180,
+            targetB: 90,
+            focusProgress: 0,
+            draggingKnob: null // 'A', 'B'
+        };
+        this.score = 0;
+    },
+    updateHeight(dt) {
+        const gd = this.gameData;
+        const diffA = Math.abs(gd.knobA - gd.targetA);
+        const diffB = Math.abs(gd.knobB - gd.targetB);
+        
+        if (diffA < 10 && diffB < 8) {
+            gd.focusProgress += dt * 35;
+            this.score = Math.min(100, Math.round(gd.focusProgress));
+            if (gd.focusProgress >= 100) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.focusProgress = Math.max(0, gd.focusProgress - dt * 20);
+        }
+    },
+    drawHeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Blurry/focus representation of Skytree
+        const focus = gd.focusProgress / 100;
+        ctx.fillStyle = `rgba(3, 169, 244, ${0.1 + focus * 0.9})`;
+        ctx.beginPath();
+        ctx.moveTo(350, 450);
+        ctx.lineTo(450, 450);
+        ctx.lineTo(405, 50);
+        ctx.closePath();
+        ctx.fill();
+
+        // Knobs drawing
+        // Knob A (Coarse)
+        ctx.save();
+        ctx.translate(200, 500);
+        ctx.fillStyle = '#555555';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.knobA * Math.PI) / 180);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(-4, -40, 8, 20);
+        ctx.restore();
+
+        // Knob B (Fine)
+        ctx.save();
+        ctx.translate(600, 500);
+        ctx.fillStyle = '#555555';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.knobB * Math.PI) / 180);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(-4, -40, 8, 20);
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Ajusta los diales para calibrar el enfoque telemétrico', 400, 480);
+        
+        ctx.font = '16px monospace';
+        ctx.fillText('Calibración Gruesa', 200, 560);
+        ctx.fillText('Calibración Fina', 600, 560);
+
+        // Focus meter
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, 2 * gd.focusProgress, 15);
+    },
+    inputHeightPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 200, y - 500) < 50) {
+            gd.draggingKnob = 'A';
+        } else if (Math.hypot(x - 600, y - 500) < 50) {
+            gd.draggingKnob = 'B';
+        }
+    },
+    releaseHeight(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingKnob) {
+            const cx = gd.draggingKnob === 'A' ? 200 : 600;
+            const cy = 500;
+            const angle = Math.atan2(y - cy, x - cx) * 180 / Math.PI + 90;
+            if (gd.draggingKnob === 'A') {
+                gd.knobA = (angle + 360) % 360;
+            } else {
+                gd.knobB = (angle + 360) % 360;
+            }
+            gd.draggingKnob = null;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 9. day_17_sumida: Navegando el Sumida
+    setupSumida() {
+        this.gameData = {
+            boatX: 400,
+            progress: 0,
+            obstacles: [],
+            petals: [],
+            bridges: [
+                { y: -300, name: 'Azuma Bridge', color: '#ff1744', crossed: false },
+                { y: -700, name: 'Kiyosu Bridge', color: '#2979ff', crossed: false },
+                { y: -1100, name: 'Eitai Bridge', color: '#00e676', crossed: false },
+                { y: -1500, name: 'Tsukiji Bridge', color: '#d500f9', crossed: false }
+            ],
+            crossedCount: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSumida(dt) {
+        const gd = this.gameData;
+        gd.boatX = lerp(gd.boatX, this.mouse.x, 0.1);
+        if (gd.boatX < 150) gd.boatX = 150;
+        if (gd.boatX > 650) gd.boatX = 650;
+
+        // Move water/bridges down
+        gd.bridges.forEach(b => {
+            b.y += dt * 150;
+            if (b.y > 450 && !b.crossed) {
+                b.crossed = true;
+                // Check if boat is in middle lane (300 to 500)
+                if (gd.boatX > 320 && gd.boatX < 480) {
+                    gd.crossedCount++;
+                    this.score = Math.round((gd.crossedCount / 4) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.crossedCount >= 4) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+    },
+    drawSumida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // River blue
+        ctx.fillStyle = '#00acc1';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // River borders
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 0, 120, 600);
+        ctx.fillRect(680, 0, 120, 600);
+
+        // Draw bridges
+        gd.bridges.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.fillRect(120, b.y, 560, 40);
+            
+            // Central arches where the boat should cross
+            ctx.fillStyle = '#00acc1';
+            ctx.fillRect(320, b.y, 160, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(b.name, 400, b.y + 25);
+        });
+
+        // Draw Boat (Himiko)
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(gd.boatX, 440);
+        ctx.lineTo(gd.boatX - 20, 500);
+        ctx.lineTo(gd.boatX + 20, 500);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Puentes: ${gd.crossedCount}/4`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Navega exactamente bajo los arcos de los puentes!', 400, 570);
+    },
+    inputSumidaPress(x, y) {},
+
+
+    // ==========================================================
+    // DÍA 18: SHIBUYA, HARAJUKU Y MEIJI JINGU
+    // ==========================================================
+
+    // 10. day_18_shibuya: La Marea Humana
+    setupShibuya() {
+        this.gameData = {
+            pedestrians: [],
+            counted: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateShibuya(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            gd.pedestrians.push({
+                x: Math.random() < 0.5 ? -30 : 830,
+                y: 100 + Math.random() * 350,
+                vx: (Math.random() * 80 + 40) * (Math.random() < 0.5 ? 1 : -1),
+                glasses: Math.random() < 0.4
+            });
+        }
+
+        gd.pedestrians.forEach(p => {
+            p.x += p.vx * dt;
+        });
+        gd.pedestrians = gd.pedestrians.filter(p => p.x > -50 && p.x < 850);
+    },
+    drawShibuya() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Scramble background lines
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 15; i++) {
+            ctx.fillRect(100 + i * 40, 150, 20, 300);
+        }
+
+        // Draw pedestrians
+        gd.pedestrians.forEach(p => {
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair/details
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(p.x - 14, p.y - 18, 28, 12);
+
+            if (p.glasses) {
+                // Sunglasses
+                ctx.fillStyle = '#111111';
+                ctx.fillRect(p.x - 12, p.y - 5, 10, 8);
+                ctx.fillRect(p.x + 2, p.y - 5, 10, 8);
+                ctx.strokeStyle = '#000';
+                ctx.beginPath(); ctx.moveTo(p.x - 2, p.y - 1); ctx.lineTo(p.x + 2, p.y - 1); ctx.stroke();
+            }
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Con Gafas: ${gd.counted}/20`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputShibuyaPress(x, y) {
+        const gd = this.gameData;
+        let hit = false;
+        gd.pedestrians.forEach((p, idx) => {
+            if (Math.hypot(x - p.x, y - p.y) < 25) {
+                hit = true;
+                gd.pedestrians.splice(idx, 1);
+                if (p.glasses) {
+                    gd.counted++;
+                    this.score = Math.round((gd.counted / 20) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    if (gd.counted >= 20) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(10);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        if (!hit && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 11. day_18_hachiko: Guardián Hachiko
+    setupHachiko() {
+        this.gameData = {
+            happiness: 40,
+            leaves: [],
+            spawnTimer: 0,
+            petProgress: 0,
+            isPetting: false
+        };
+        this.score = 40;
+    },
+    updateHachiko(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.leaves.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 100 + Math.random() * 80,
+                sway: Math.random() * 5
+            });
+        }
+
+        // Mouse petting
+        if (this.mouse.isDown && Math.hypot(this.mouse.x - 400, this.mouse.y - 320) < 120) {
+            gd.happiness = Math.min(100, gd.happiness + dt * 12);
+            this.score = Math.round(gd.happiness);
+            if (window.playProceduralSound && Math.random() < 0.15) playProceduralSound('collect');
+            if (gd.happiness >= 100) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+
+        // Update leaves
+        gd.leaves.forEach((l, idx) => {
+            l.y += l.vy * dt;
+            l.x += Math.sin(this.gameTime * 2 + l.sway) * 40 * dt;
+            
+            // Check hit Hachiko
+            if (l.y > 280 && l.y < 350 && Math.abs(l.x - 400) < 80) {
+                gd.leaves.splice(idx, 1);
+                gd.happiness = Math.max(0, gd.happiness - 15);
+                this.score = Math.round(gd.happiness);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.leaves = gd.leaves.filter(l => l.y < 600);
+    },
+    drawHachiko() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Park background
+        ctx.fillStyle = '#81c784';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Statue stand
+        ctx.fillStyle = '#90a4ae';
+        ctx.fillRect(320, 360, 160, 150);
+
+        // Draw Hachiko sitting (simplified procedural shape)
+        ctx.fillStyle = '#ffb74d'; // Akita gold
+        ctx.beginPath();
+        // Body
+        ctx.ellipse(400, 310, 45, 60, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Head
+        ctx.beginPath();
+        ctx.arc(400, 230, 30, 0, Math.PI * 2);
+        ctx.fill();
+        // Ears
+        ctx.fillStyle = '#ffa726';
+        ctx.beginPath();
+        ctx.moveTo(375, 210); ctx.lineTo(365, 185); ctx.lineTo(390, 205);
+        ctx.moveTo(425, 210); ctx.lineTo(435, 185); ctx.lineTo(410, 205);
+        ctx.fill();
+
+        // Draw falling leaves
+        ctx.fillStyle = '#ff7043';
+        gd.leaves.forEach(l => {
+            ctx.beginPath();
+            ctx.ellipse(l.x, l.y, 10, 6, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Happiness bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 20);
+        ctx.fillStyle = '#e91e63';
+        ctx.fillRect(250, 40, 3 * gd.happiness, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Acaricia a Hachiko con el ratón y elimina las hojas que caen sobre él', 400, 560);
+    },
+    inputHachikoPress(x, y) {
+        const gd = this.gameData;
+        gd.leaves.forEach((l, idx) => {
+            if (Math.hypot(x - l.x, y - l.y) < 30) {
+                gd.leaves.splice(idx, 1);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseHachiko(x, y) {},
+
+    // 12. day_18_ema: Deseo en el Ema
+    setupEma() {
+        this.gameData = {
+            angle: 0,
+            hungCount: 0,
+            isReleasing: false,
+            emaY: 100,
+            targetX: 400,
+            targetY: 350
+        };
+        this.score = 0;
+    },
+    updateEma(dt) {
+        const gd = this.gameData;
+        if (!gd.isReleasing) {
+            gd.angle = Math.sin(this.gameTime * 3.5) * 45;
+        } else {
+            gd.emaY += dt * 350;
+            if (gd.emaY >= gd.targetY) {
+                gd.isReleasing = false;
+                // Check if aligned with center hanger
+                const hangX = 400 + Math.sin((gd.angle * Math.PI) / 180) * 150;
+                if (Math.abs(hangX - 400) < 30) {
+                    gd.hungCount++;
+                    this.score = Math.round((gd.hungCount / 3) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.hungCount >= 3) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(10);
+                }
+                gd.emaY = 100;
+            }
+        }
+    },
+    drawEma() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Wooden wall background
+        ctx.fillStyle = '#b57c1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Hanger hooks
+        ctx.fillStyle = '#222';
+        ctx.beginPath(); ctx.arc(400, 350, 8, 0, Math.PI * 2); ctx.fill();
+
+        // Draw pendular board
+        ctx.save();
+        if (!gd.isReleasing) {
+            ctx.translate(400, 100);
+            ctx.rotate((gd.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+            
+            // Draw wooden board
+            ctx.fillStyle = '#ffecb3';
+            ctx.fillRect(-60, 150, 120, 80);
+            ctx.strokeRect(-60, 150, 120, 80);
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Desear 🌸', 0, 200);
+        } else {
+            // Drop representation
+            ctx.translate(400, gd.emaY);
+            ctx.fillStyle = '#ffecb3';
+            ctx.fillRect(-60, 0, 120, 80);
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Desear 🌸', 0, 50);
+        }
+        ctx.restore();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Tablillas colgadas: ${gd.hungCount}/3`, 30, 560);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Toca la pantalla cuando oscile justo en el centro del gancho!', 400, 500);
+    },
+    inputEmaPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.isReleasing) {
+            gd.isReleasing = true;
+            gd.emaY = 100;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 13. day_18_crepe: Crepe de Harajuku
+    setupCrepe() {
+        this.gameData = {
+            crepeX: 400,
+            items: [],
+            spawnTimer: 0,
+            stacked: [], // elements stacked {offsetY, type, emoji}
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCrepe(dt) {
+        const gd = this.gameData;
+        gd.crepeX = lerp(gd.crepeX, this.mouse.x, 0.15);
+        if (gd.crepeX < 80) gd.crepeX = 80;
+        if (gd.crepeX > 720) gd.crepeX = 720;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.6;
+            const isGood = Math.random() < 0.75;
+            const goods = [
+                { emoji: '🍓', name: 'Fresas' },
+                { emoji: '🍦', name: 'Nata' },
+                { emoji: '🍨', name: 'Helado' },
+                { emoji: '🍫', name: 'Sirope' }
+            ];
+            const bads = [
+                { emoji: '🐟', name: 'Espinas' },
+                { emoji: '🗑️', name: 'Lata' }
+            ];
+            const item = isGood ? goods[Math.floor(Math.random() * goods.length)] : bads[Math.floor(Math.random() * bads.length)];
+            gd.items.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 200 + Math.random() * 80,
+                emoji: item.emoji,
+                isGood: isGood
+            });
+        }
+
+        // Update items
+        gd.items.forEach((it, idx) => {
+            it.y += it.vy * dt;
+            const baseHeight = 450 - gd.stacked.length * 15;
+            if (it.y > baseHeight && Math.abs(it.x - gd.crepeX) < 40) {
+                gd.items.splice(idx, 1);
+                if (it.isGood) {
+                    gd.stacked.push({ emoji: it.emoji });
+                    this.score = Math.round((gd.stacked.length / 15) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    if (gd.stacked.length >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    gd.stacked = gd.stacked.slice(0, Math.max(0, gd.stacked.length - 3)); // Lose some stack
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        gd.items = gd.items.filter(it => it.y < 600);
+    },
+    drawCrepe() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Pink sky
+        ctx.fillStyle = '#fce4ec';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Falling items
+        ctx.font = '28px monospace';
+        ctx.textAlign = 'center';
+        gd.items.forEach(it => {
+            ctx.fillText(it.emoji, it.x, it.y);
+        });
+
+        // Draw Crepe cup/cone
+        ctx.fillStyle = '#ffecb3';
+        ctx.strokeStyle = '#ec407a';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.crepeX - 30, 480);
+        ctx.lineTo(gd.crepeX + 30, 480);
+        ctx.lineTo(gd.crepeX, 550);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw stack inside
+        gd.stacked.forEach((st, idx) => {
+            ctx.font = '24px monospace';
+            ctx.fillText(st.emoji, gd.crepeX + (idx % 2 === 0 ? 5 : -5), 470 - idx * 16);
+        });
+
+        // HUD
+        ctx.fillStyle = '#ec407a';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ingredientes: ${gd.stacked.length}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputCrepePress(x, y) {},
+    releaseCrepe(x, y) {},
+
+    // 14. day_18_radio: Intercepción de Radio
+    setupRadio() {
+        this.gameData = {
+            freq: 10,
+            amp: 50,
+            targetFreq: 35,
+            targetAmp: 120,
+            solvedCount: 0,
+            successTimer: 0,
+            draggingDial: null // 'F', 'A'
+        };
+        this.score = 0;
+    },
+    updateRadio(dt) {
+        const gd = this.gameData;
+        const diffF = Math.abs(gd.freq - gd.targetFreq);
+        const diffA = Math.abs(gd.amp - gd.targetAmp);
+
+        if (diffF < 2 && diffA < 8) {
+            gd.successTimer += dt;
+            if (gd.successTimer >= 1.5) {
+                gd.successTimer = 0;
+                gd.solvedCount++;
+                this.score = Math.round((gd.solvedCount / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.solvedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.targetFreq = 15 + Math.random() * 45;
+                    gd.targetAmp = 40 + Math.random() * 140;
+                }
+            }
+        } else {
+            gd.successTimer = 0;
+        }
+    },
+    drawRadio() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark grey metal
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Oscilloscope grid
+        ctx.fillStyle = '#0a1910';
+        ctx.fillRect(100, 50, 600, 300);
+
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.15)';
+        ctx.lineWidth = 1;
+        for (let x = 100; x <= 700; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 50); ctx.lineTo(x, 350); ctx.stroke();
+        }
+        for (let y = 50; y <= 350; y += 30) {
+            ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(700, y); ctx.stroke();
+        }
+
+        // Draw Target Wave
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 2) {
+            const y = 200 + Math.sin((x * gd.targetFreq) / 100) * gd.targetAmp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Draw Player Wave
+        ctx.strokeStyle = '#00e676';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00e676';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 2) {
+            const y = 200 + Math.sin((x * gd.freq) / 100) * gd.amp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        // Dial F
+        ctx.save();
+        ctx.translate(250, 480);
+        ctx.fillStyle = '#37474f';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.freq * Math.PI) / 30);
+        ctx.fillStyle = '#00e676';
+        ctx.fillRect(-3, -38, 6, 20);
+        ctx.restore();
+
+        // Dial A
+        ctx.save();
+        ctx.translate(550, 480);
+        ctx.fillStyle = '#37474f';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.amp * Math.PI) / 100);
+        ctx.fillStyle = '#00e676';
+        ctx.fillRect(-3, -38, 6, 20);
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Iguala la onda verde con la roja usando los diales', 400, 400);
+
+        ctx.font = '16px monospace';
+        ctx.fillText('Frecuencia', 250, 550);
+        ctx.fillText('Amplitud', 550, 550);
+
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sintonizados: ${gd.solvedCount}/3`, 30, 40);
+    },
+    inputRadioPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 250, y - 480) < 50) {
+            gd.draggingDial = 'F';
+        } else if (Math.hypot(x - 550, y - 480) < 50) {
+            gd.draggingDial = 'A';
+        }
+    },
+
+    // 15. day_18_trend: Cazatendencias
+    setupTrend() {
+        this.gameData = {
+            targetTrend: 'Lolita Rosa',
+            photoCount: 0,
+            models: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTrend(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.2;
+            const trends = ['Lolita Rosa', 'Cyberpunk', 'Kitsch'];
+            gd.models.push({
+                x: -50,
+                y: 300,
+                vx: 120 + Math.random() * 80,
+                trend: trends[Math.floor(Math.random() * 3)]
+            });
+        }
+
+        gd.models.forEach(m => {
+            m.x += m.vx * dt;
+        });
+        gd.models = gd.models.filter(m => m.x < 850);
+    },
+    drawTrend() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#ffecb3';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shop backgrounds
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(50, 100, 700, 150);
+
+        // Draw walking models
+        gd.models.forEach(m => {
+            ctx.fillStyle = m.trend === 'Lolita Rosa' ? '#ec407a' : (m.trend === 'Cyberpunk' ? '#00e5ff' : '#ffd700');
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(m.trend, m.x, m.y - 35);
+        });
+
+        // Viewfinder target box in middle
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(300, 200, 200, 200);
+
+        // HUD info
+        ctx.fillStyle = '#111';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Target: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos válidas: ${gd.photoCount}/5`, 770, 40);
+    },
+    inputTrendPress(x, y) {
+        const gd = this.gameData;
+        let snap = false;
+        gd.models.forEach((m, idx) => {
+            if (m.x > 300 && m.x < 500 && m.y > 200 && m.y < 400) {
+                snap = true;
+                gd.models.splice(idx, 1);
+                if (m.trend === gd.targetTrend) {
+                    gd.photoCount++;
+                    this.score = Math.round((gd.photoCount / 5) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.photoCount >= 5) {
+                        setTimeout(() => this.win(), 600);
+                    } else {
+                        const list = ['Lolita Rosa', 'Cyberpunk', 'Kitsch'];
+                        gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(10);
+                }
+            }
+        });
+        if (!snap && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 16. day_18_flow: Flujo del Cruce
+    setupFlow18() {
+        this.gameData = {
+            pedestrians: [],
+            cars: [],
+            lightGreen: true,
+            pEscaped: 0,
+            cEscaped: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateFlow18(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            if (Math.random() < 0.6) {
+                gd.pedestrians.push({ x: 100 + Math.random() * 600, y: 0, vy: 80 + Math.random() * 40 });
+            } else {
+                gd.cars.push({ x: -80, y: 300 + (Math.random() - 0.5) * 60, vx: 180 + Math.random() * 100 });
+            }
+        }
+
+        // Update pedestrians
+        gd.pedestrians.forEach((p, idx) => {
+            if (gd.lightGreen) {
+                p.y += p.vy * dt;
+                if (p.y >= 500) {
+                    gd.pedestrians.splice(idx, 1);
+                    gd.pEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+        });
+
+        // Update cars
+        gd.cars.forEach((c, idx) => {
+            if (!gd.lightGreen || c.x < 300 || c.x > 500) {
+                c.x += c.vx * dt;
+                if (c.x >= 850) {
+                    gd.cars.splice(idx, 1);
+                    gd.cEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+
+            // Check collision with pedestrians
+            gd.pedestrians.forEach((p, pIdx) => {
+                if (Math.hypot(c.x - p.x, c.y - p.y) < 30) {
+                    gd.pedestrians.splice(pIdx, 1);
+                    gd.lives--;
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            });
+        });
+    },
+    drawFlow18() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Zebra lines
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 10; i++) {
+            ctx.fillRect(150 + i * 50, 150, 30, 300);
+        }
+
+        // Draw pedestrians
+        ctx.fillStyle = '#81c784';
+        gd.pedestrians.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw cars
+        ctx.fillStyle = '#e53935';
+        gd.cars.forEach(c => {
+            ctx.fillRect(c.x - 20, c.y - 12, 40, 24);
+        });
+
+        // Draw traffic light button
+        ctx.fillStyle = gd.lightGreen ? '#4caf50' : '#f44336';
+        ctx.fillRect(350, 500, 100, 40);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.lightGreen ? 'PEATÓN' : 'VEHÍCULO', 400, 525);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Peatones: ${gd.pEscaped}/50  Coches: ${gd.cEscaped}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputFlow18Press(x, y) {
+        const gd = this.gameData;
+        if (x > 350 && x < 450 && y > 500 && y < 540) {
+            gd.lightGreen = !gd.lightGreen;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_18_silence: Silencio en la Ciudad
+    setupSilence() {
+        this.gameData = {
+            noise: 80,
+            bubbles: [],
+            trees: [],
+            spawnTimer: 0,
+            calmTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.6;
+            gd.bubbles.push({
+                x: 0,
+                y: 100 + Math.random() * 400,
+                vx: 150 + Math.random() * 80,
+                r: 15 + Math.random() * 10
+            });
+        }
+
+        // Update noise bubbles
+        gd.bubbles.forEach((b, idx) => {
+            b.x += b.vx * dt;
+            
+            // Check tree absorption
+            gd.trees.forEach(t => {
+                if (Math.hypot(b.x - t.x, b.y - t.y) < t.r) {
+                    gd.bubbles.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                }
+            });
+
+            // Reached sanctuary
+            if (b.x >= 700) {
+                gd.bubbles.splice(idx, 1);
+                gd.noise = Math.min(100, gd.noise + 12);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+
+        // Decay noise
+        gd.noise = Math.max(0, gd.noise - dt * 6);
+
+        if (gd.noise < 10) {
+            gd.calmTimer += dt;
+            this.score = Math.min(100, Math.round((gd.calmTimer / 5) * 100));
+            if (gd.calmTimer >= 5) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.calmTimer = 0;
+            this.score = 0;
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Sanctuary arch on right
+        ctx.fillStyle = '#e53935';
+        ctx.fillRect(720, 100, 20, 400);
+
+        // Trees
+        gd.trees.forEach(t => {
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.2)';
+            ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+            
+            ctx.fillStyle = '#2e7d32';
+            ctx.beginPath(); ctx.arc(t.x, t.y, 15, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Noise bubbles
+        ctx.fillStyle = 'rgba(244, 67, 54, 0.4)';
+        ctx.strokeStyle = '#f44336';
+        ctx.lineWidth = 2;
+        gd.bubbles.forEach(b => {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Noise bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 20, 400, 20);
+        ctx.fillStyle = gd.noise > 50 ? '#ff1744' : '#00ff99';
+        ctx.fillRect(200, 20, 4 * gd.noise, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Nivel de Ruido: ${Math.round(gd.noise)}%`, 400, 70);
+        ctx.fillText('¡Planta árboles tocando la pantalla para disolver el ruido!', 400, 560);
+    },
+    inputSilencePress(x, y) {
+        const gd = this.gameData;
+        if (x < 650 && gd.trees.length < 5) {
+            gd.trees.push({ x, y, r: 80 });
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 18. day_18_crossing: Cruzando Shibuya
+    setupCrossing() {
+        this.gameData = {
+            familyX: 150,
+            familyY: 500,
+            crowd: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrossing(dt) {
+        const gd = this.gameData;
+        gd.familyX = lerp(gd.familyX, this.mouse.x, 0.08);
+        gd.familyY = lerp(gd.familyY, this.mouse.y, 0.08);
+
+        // Limit range
+        if (gd.familyX < 150) gd.familyX = 150;
+        if (gd.familyX > 650) gd.familyX = 650;
+        if (gd.familyY < 80) gd.familyY = 80;
+        if (gd.familyY > 520) gd.familyY = 520;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.4;
+            gd.crowd.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 120 + Math.random() * 80
+            });
+        }
+
+        gd.crowd.forEach(p => {
+            p.y += p.vy * dt;
+            // Collision pushback
+            if (Math.hypot(p.x - gd.familyX, p.y - gd.familyY) < 35) {
+                gd.familyY = Math.min(500, gd.familyY + 30);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.crowd = gd.crowd.filter(p => p.y < 600);
+
+        // Win condition: reach top y < 120
+        if (gd.familyY <= 120) {
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            this.score = Math.round(((500 - gd.familyY) / 380) * 100);
+        }
+    },
+    drawCrossing() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#555';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Stripes
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 40, 120, 20, 360);
+        }
+
+        // Draw crowd
+        ctx.fillStyle = '#bdbdbd';
+        gd.crowd.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Target zone
+        ctx.fillStyle = 'rgba(0, 255, 153, 0.2)';
+        ctx.fillRect(150, 50, 500, 70);
+
+        // Draw Family (4 circles holding hands)
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath(); ctx.arc(gd.familyX, gd.familyY, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.familyX - 25, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#00ff99';
+        ctx.beginPath(); ctx.arc(gd.familyX + 25, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Guía a la familia a la zona verde superior esquivando a la marea', 400, 560);
+    },
+    inputCrossingPress(x, y) {},
+
+
+    // ==========================================================
+    // DÍA 19: ODAIBA Y TEAMLAB
+    // ==========================================================
+
+    // 19. day_19_gundam: Piloto de Mechas
+    setupGundam() {
+        this.gameData = {
+            aimX: 400,
+            aimY: 300,
+            drones: [],
+            spawnTimer: 0,
+            score: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateGundam(dt) {
+        const gd = this.gameData;
+        gd.aimX = lerp(gd.aimX, this.mouse.x, 0.15);
+        gd.aimY = lerp(gd.aimY, this.mouse.y, 0.15);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.drones.push({
+                x: 100 + Math.random() * 600,
+                y: 50 + Math.random() * 180,
+                vx: (Math.random() < 0.5 ? 1 : -1) * 60,
+                r: 20
+            });
+        }
+
+        gd.drones.forEach(d => {
+            d.x += d.vx * dt;
+            if (d.x < 50 || d.x > 750) d.vx *= -1;
+        });
+    },
+    drawGundam() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Space/Odaiba night
+        ctx.fillStyle = '#000a12';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw drones
+        gd.drones.forEach(d => {
+            ctx.fillStyle = '#cfd8dc';
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Viewfinder reticle
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.aimX, gd.aimY, 30, 0, Math.PI * 2);
+        ctx.moveTo(gd.aimX - 45, gd.aimY); ctx.lineTo(gd.aimX - 15, gd.aimY);
+        ctx.moveTo(gd.aimX + 15, gd.aimY); ctx.lineTo(gd.aimX + 45, gd.aimY);
+        ctx.moveTo(gd.aimX, gd.aimY - 45); ctx.lineTo(gd.aimX, gd.aimY - 15);
+        ctx.moveTo(gd.aimX, gd.aimY + 15); ctx.lineTo(gd.aimX, gd.aimY + 45);
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Drones derribados: ${gd.score}/15`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputGundamPress(x, y) {
+        const gd = this.gameData;
+        let hit = false;
+        gd.drones.forEach((d, idx) => {
+            if (Math.hypot(gd.aimX - d.x, gd.aimY - d.y) < d.r + 20) {
+                hit = true;
+                gd.drones.splice(idx, 1);
+                gd.score++;
+                this.score = Math.round((gd.score / 15) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.score >= 15) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+        if (!hit && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 20. day_19_color: Cazador de Luz
+    setupColor() {
+        this.gameData = {
+            charX: 400,
+            platforms: [
+                { x: 200, color: 'red', name: 'Rojo' },
+                { x: 400, color: 'blue', name: 'Azul' },
+                { x: 600, color: 'green', name: 'Verde' }
+            ],
+            targetColor: 'blue',
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateColor(dt) {
+        const gd = this.gameData;
+        gd.charX = lerp(gd.charX, this.mouse.x, 0.1);
+        if (gd.charX < 150) gd.charX = 150;
+        if (gd.charX > 650) gd.charX = 650;
+    },
+    drawColor() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark neon room
+        ctx.fillStyle = '#050510';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Columns of light
+        gd.platforms.forEach(p => {
+            ctx.fillStyle = p.color === 'red' ? 'rgba(255, 23, 68, 0.15)' : (p.color === 'blue' ? 'rgba(41, 121, 255, 0.15)' : 'rgba(0, 230, 118, 0.15)');
+            ctx.fillRect(p.x - 50, 0, 100, 500);
+
+            ctx.fillStyle = p.color === 'red' ? '#ff1744' : (p.color === 'blue' ? '#2979ff' : '#00e676');
+            ctx.fillRect(p.x - 60, 480, 120, 20);
+        });
+
+        // Player
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(gd.charX, 460, 16, 0, Math.PI * 2); ctx.fill();
+
+        // Target UI
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`COLÓCATE EN LA COLUMNA:`, 400, 80);
+
+        ctx.fillStyle = gd.targetColor === 'red' ? '#ff1744' : (gd.targetColor === 'blue' ? '#2979ff' : '#00e676');
+        ctx.fillText(gd.targetColor.toUpperCase(), 400, 120);
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Aciertos: ${gd.score}/15`, 30, 560);
+    },
+    inputColorPress(x, y) {
+        const gd = this.gameData;
+        const colX = gd.platforms.find(p => p.color === gd.targetColor).x;
+        if (Math.abs(gd.charX - colX) < 60) {
+            gd.score++;
+            this.score = Math.round((gd.score / 15) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.score >= 15) {
+                setTimeout(() => this.win(), 600);
+            } else {
+                const list = ['red', 'blue', 'green'];
+                gd.targetColor = list[Math.floor(Math.random() * 3)];
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(10);
+        }
+    },
+
+    // 21. day_19_teamlab: Sueños Digitales
+    setupTeamLab() {
+        this.gameData = {
+            petals: [],
+            butterflies: [],
+            coverage: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTeamLab(dt) {
+        const gd = this.gameData;
+        
+        // Spawn butterflies
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.butterflies.push({
+                x: Math.random() * 800,
+                y: Math.random() * 400,
+                targetX: Math.random() * 800,
+                targetY: Math.random() * 400,
+                r: 10
+            });
+        }
+
+        // Draw petals by dragging
+        if (this.mouse.isDown) {
+            gd.petals.push({
+                x: this.mouse.x + (Math.random() - 0.5) * 20,
+                y: this.mouse.y + (Math.random() - 0.5) * 20,
+                r: 6 + Math.random() * 10,
+                color: `hsla(${Math.random() * 360}, 100%, 70%, 0.8)`
+            });
+            gd.coverage = Math.min(100, gd.coverage + dt * 15);
+            this.score = Math.round(gd.coverage);
+            if (gd.coverage >= 95) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+
+        // Update butterflies
+        gd.butterflies.forEach(b => {
+            b.x = lerp(b.x, b.targetX, 0.05);
+            b.y = lerp(b.y, b.targetY, 0.05);
+            if (Math.hypot(b.x - b.targetX, b.y - b.targetY) < 10) {
+                b.targetX = Math.random() * 800;
+                b.targetY = Math.random() * 400;
+            }
+        });
+    },
+    drawTeamLab() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#05050f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw petals
+        gd.petals.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw butterflies
+        ctx.fillStyle = '#d500f9';
+        gd.butterflies.forEach(b => {
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cobertura digital: ${Math.round(gd.coverage)}% / 95%`, 30, 560);
+    },
+    inputTeamLabPress(x, y) {
+        const gd = this.gameData;
+        gd.butterflies.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < 30) {
+                gd.butterflies.splice(idx, 1);
+                // Spread petals
+                for (let i = 0; i < 20; i++) {
+                    gd.petals.push({
+                        x: b.x + (Math.random() - 0.5) * 120,
+                        y: b.y + (Math.random() - 0.5) * 120,
+                        r: 8 + Math.random() * 12,
+                        color: '#d500f9'
+                    });
+                }
+                gd.coverage = Math.min(100, gd.coverage + 10);
+                this.score = Math.round(gd.coverage);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.coverage >= 95) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+    },
+    releaseTeamLab(x, y) {},
+
+    // 22. day_19_liberty: La Libertad Nipona
+    setupLiberty() {
+        this.gameData = {
+            handX: 200,
+            handY: 300,
+            targetX: 400,
+            targetY: 200,
+            alignTimer: 0,
+            dragging: false
+        };
+        this.score = 0;
+    },
+    updateLiberty(dt) {
+        const gd = this.gameData;
+        if (gd.dragging) {
+            gd.handX = this.mouse.x;
+            gd.handY = this.mouse.y;
+        }
+
+        // Check alignment
+        if (Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY) < 25) {
+            gd.alignTimer += dt;
+            this.score = Math.min(100, Math.round((gd.alignTimer / 2.5) * 100));
+            if (gd.alignTimer >= 2.5) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.alignTimer = Math.max(0, gd.alignTimer - dt * 25);
+            this.score = 0;
+        }
+    },
+    drawLiberty() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky and sea
+        ctx.fillStyle = '#b3e5fc';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 400, 800, 200);
+
+        // Statue in background
+        ctx.fillStyle = '#80cbc4';
+        ctx.fillRect(gd.targetX - 20, gd.targetY, 40, 200);
+        // Torch
+        ctx.fillStyle = '#ffb300';
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, 15, 0, Math.PI * 2); ctx.fill();
+
+        // Hand in foreground (draggable)
+        ctx.fillStyle = '#ffe0b2';
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(gd.handX, gd.handY, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra el visor circular para tapar la antorcha con tu mano', 400, 500);
+
+        // Focus meter
+        ctx.fillStyle = '#444';
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, 2 * gd.alignTimer * 40, 15);
+    },
+    inputLibertyPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - gd.handX, y - gd.handY) < 40) {
+            gd.dragging = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseLiberty(x, y) {
+        this.gameData.dragging = false;
+    },
+
+    // 23. day_19_crypto: Desencriptar Protocolo
+    setupCrypto() {
+        this.gameData = {
+            columns: [
+                { id: 0, target: 15, current: 0, blocks: [], x: 150 },
+                { id: 1, target: 20, current: 0, blocks: [], x: 310 },
+                { id: 2, target: 10, current: 0, blocks: [], x: 470 },
+                { id: 3, target: 25, current: 0, blocks: [], x: 630 }
+            ],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrypto(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const col = gd.columns[Math.floor(Math.random() * 4)];
+            col.blocks.push({
+                y: 0,
+                val: Math.floor(Math.random() * 9) + 1,
+                vy: 100 + Math.random() * 50
+            });
+        }
+
+        gd.columns.forEach(col => {
+            col.blocks.forEach(b => {
+                b.y += b.vy * dt;
+            });
+            col.blocks = col.blocks.filter(b => b.y < 500);
+        });
+    },
+    drawCrypto() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050a05';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.columns.forEach(col => {
+            // Draw column lines
+            ctx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
+            ctx.strokeRect(col.x - 50, 50, 100, 420);
+
+            // Target sum indicator
+            ctx.fillStyle = col.current === col.target ? '#00ff99' : '#ffffff';
+            ctx.font = 'bold 18px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${col.current} / ${col.target}`, col.x, 500);
+
+            // Draw blocks
+            col.blocks.forEach(b => {
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(col.x - 30, b.y - 15, 60, 30);
+                
+                ctx.fillStyle = '#000000';
+                ctx.fillText(b.val, col.x, b.y + 6);
+            });
+        });
+
+        // Instructions
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('Dispara a los bloques numéricos para lograr la suma exacta', 400, 550);
+    },
+    inputCryptoPress(x, y) {
+        const gd = this.gameData;
+        gd.columns.forEach(col => {
+            col.blocks.forEach((b, idx) => {
+                if (x > col.x - 30 && x < col.x + 30 && y > b.y - 15 && y < b.y + 15) {
+                    col.blocks.splice(idx, 1);
+                    col.current += b.val;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (col.current > col.target) {
+                        col.current = 0;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else if (col.current === col.target) {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        // Check if all solved
+                        const solved = gd.columns.filter(c => c.current === c.target).length;
+                        this.score = Math.round((solved / 4) * 100);
+                        if (solved === 4) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    }
+                }
+            });
+        });
+    },
+
+    // 24. day_19_mirrors: Lógica de Iluminación
+    setupMirrors() {
+        this.gameData = {
+            mirrors: [
+                { x: 250, y: 150, angle: 45 },
+                { x: 550, y: 150, angle: 90 },
+                { x: 550, y: 450, angle: 0 },
+                { x: 250, y: 450, angle: 45 }
+            ],
+            emitter: { x: 100, y: 150 },
+            receiver: { x: 400, y: 300 },
+            isSolved: false
+        };
+        this.score = 0;
+    },
+    updateMirrors(dt) {
+        const gd = this.gameData;
+        // Simple light check: if 45 -> 135 -> 45 sequence
+        if (gd.mirrors[0].angle === 45 && gd.mirrors[1].angle === 135 && gd.mirrors[2].angle === 45) {
+            gd.isSolved = true;
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            gd.isSolved = false;
+        }
+    },
+    drawMirrors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050510';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw mirrors
+        gd.mirrors.forEach(m => {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate((m.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Draw laser path
+        ctx.strokeStyle = gd.isSolved ? '#ff1744' : '#ffea00';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.emitter.x, gd.emitter.y);
+        ctx.lineTo(gd.mirrors[0].x, gd.mirrors[0].y);
+        if (gd.mirrors[0].angle === 45) {
+            ctx.lineTo(gd.mirrors[1].x, gd.mirrors[1].y);
+            if (gd.mirrors[1].angle === 135) {
+                ctx.lineTo(gd.mirrors[2].x, gd.mirrors[2].y);
+                if (gd.mirrors[2].angle === 45) {
+                    ctx.lineTo(gd.receiver.x, gd.receiver.y);
+                }
+            }
+        }
+        ctx.stroke();
+
+        // Draw receiver & emitter
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath(); ctx.arc(gd.emitter.x, gd.emitter.y, 15, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath(); ctx.arc(gd.receiver.x, gd.receiver.y, 20, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rota los espejos pulsándolos para dirigir el láser al centro', 400, 540);
+    },
+    inputMirrorsPress(x, y) {
+        const gd = this.gameData;
+        gd.mirrors.forEach(m => {
+            if (Math.hypot(x - m.x, y - m.y) < 40) {
+                m.angle = (m.angle + 45) % 360;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseMirrors(x, y) {},
+
+    // 25. day_19_weight: Estructura de Gundam
+    setupWeight() {
+        this.gameData = {
+            girders: [], // stacked blocks {x, y, w, h}
+            currentX: 400,
+            craneSpeed: 180,
+            craneDirection: 1,
+            wobble: 0
+        };
+        this.score = 0;
+    },
+    updateWeight(dt) {
+        const gd = this.gameData;
+        
+        // Move crane girder left-right
+        gd.currentX += gd.craneSpeed * gd.craneDirection * dt;
+        if (gd.currentX < 200 || gd.currentX > 600) {
+            gd.craneDirection *= -1;
+        }
+
+        // Wobble decay
+        gd.wobble *= 0.95;
+        if (Math.abs(gd.wobble) > 25) {
+            this.gameOver();
+        }
+    },
+    drawWeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky and cranes
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw stacked girders
+        ctx.save();
+        ctx.translate(gd.wobble, 0);
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#263238';
+        ctx.lineWidth = 3;
+        gd.girders.forEach((gir, idx) => {
+            ctx.fillRect(gir.x - gir.w / 2, 450 - idx * 40, gir.w, 40);
+            ctx.strokeRect(gir.x - gir.w / 2, 450 - idx * 40, gir.w, 40);
+        });
+        ctx.restore();
+
+        // Draw swinging crane girder
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(gd.currentX - 50, 80, 100, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pisos construidos: ${gd.girders.length}/8`, 400, 500);
+        ctx.fillText('¡Toca la pantalla para soltar la viga y apilar la torre!', 400, 560);
+    },
+    inputWeightPress(x, y) {
+        const gd = this.gameData;
+        const newY = 450 - gd.girders.length * 40;
+        
+        let targetX = 400;
+        if (gd.girders.length > 0) {
+            targetX = gd.girders[gd.girders.length - 1].x;
+        }
+
+        const offset = Math.abs(gd.currentX - targetX);
+        gd.girders.push({ x: gd.currentX, y: newY, w: 100, h: 40 });
+        gd.wobble += (gd.currentX - targetX) * 1.5;
+
+        this.score = Math.round((gd.girders.length / 8) * 100);
+        if (window.playProceduralSound) playProceduralSound('success');
+
+        if (gd.girders.length >= 8) {
+            setTimeout(() => this.win(), 600);
+        }
+    },
+    releaseWeight(x, y) {},
+
+    // 26. day_19_monorail: Monorriel Yurikamome
+    setupMonorail() {
+        this.gameData = {
+            speed: 0,
+            distance: 1000,
+            throttle: 0,
+            stationIndex: 0
+        };
+        this.score = 0;
+    },
+    updateMonorail(dt) {
+        const gd = this.gameData;
+        gd.speed = gd.throttle * 80;
+        gd.distance = Math.max(0, gd.distance - gd.speed * dt);
+
+        if (gd.distance <= 10 && gd.speed < 10) {
+            gd.distance = 1000;
+            gd.stationIndex++;
+            this.score = Math.round((gd.stationIndex / 3) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.stationIndex >= 3) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+    },
+    drawMonorail() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Train rail lines
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(350, 200);
+        ctx.moveTo(700, 600); ctx.lineTo(450, 200);
+        ctx.stroke();
+
+        // Rainbow Bridge representation in sky
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(400, 300, 250, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Throttle slide
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(700, 200, 30, 200);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(695, 400 - gd.throttle * 200, 40, 20);
+
+        // HUD speed & distance
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Estaciones: ${gd.stationIndex}/3`, 30, 40);
+        ctx.fillText(`Velocidad: ${Math.round(gd.speed)} km/h`, 30, 80);
+        ctx.fillText(`Distancia a estación: ${Math.round(gd.distance)}m`, 30, 120);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra el regulador derecho para acelerar y frenar en el andén', 400, 560);
+    },
+    inputMonorailPress(x, y) {
+        const gd = this.gameData;
+        if (x > 680 && x < 750 && y > 200 && y < 400) {
+            gd.throttle = (400 - y) / 200;
+            if (gd.throttle < 0) gd.throttle = 0;
+            if (gd.throttle > 1) gd.throttle = 1;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseMonorail(x, y) {},
+
+    // 27. day_19_immersive: Inmersión Total
+    setupImmersive() {
+        this.gameData = {
+            streams: [],
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateImmersive(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            gd.streams.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 250 + Math.random() * 100,
+                color: `hsla(${Math.random() * 360}, 100%, 75%, 0.9)`,
+                deflected: false
+            });
+        }
+
+        // Move streams
+        gd.streams.forEach((s, idx) => {
+            s.y += s.vy * dt;
+            
+            // Check dragging collision
+            if (this.mouse.isDown && Math.hypot(s.x - this.mouse.x, s.y - this.mouse.y) < 50) {
+                s.x = lerp(s.x, 400, 0.15); // deflecting towards center family
+                if (!s.deflected) {
+                    s.deflected = true;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 30) * 100);
+                    if (window.playProceduralSound && gd.score % 5 === 0) playProceduralSound('collect');
+                    if (gd.score >= 30) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+        });
+        gd.streams = gd.streams.filter(s => s.y < 600);
+    },
+    drawImmersive() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Purple dark room
+        ctx.fillStyle = '#0d0714';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Family outline in center
+        ctx.strokeStyle = '#bb86fc';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 380, 60, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw streams
+        gd.streams.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Armonía Inmersiva: ${gd.score}/30`, 30, 560);
+    },
+    inputImmersivePress(x, y) {},
+
+    
+
+    releaseTocho() {},
+
+    // ==========================================================
+    // MINIJUEGOS PREMIUM DE ALTO NIVEL - DÍAS 17, 18 Y 19
+    // ==========================================================
+
+    // 1. day_17_omikuji: Destino Omikuji (Agitado con inercia, tablilla caligráfica y atado circular Shimenawa)
+    setupOmikuji() {
+        this.gameData = {
+            boxX: 400, boxY: 385, boxAngle: 0, boxVx: 0, boxVy: 0,
+            shakeProgress: 0, shaking: false,
+            stickShown: false, stickType: '', stickX: 400, stickY: 250,
+            draggingStick: false, draggingBox: false,
+            ties: [],
+            sticks: Array.from({length: 15}, () => ({
+                x: (Math.random() - 0.5) * 50,
+                y: (Math.random() - 0.5) * 80,
+                angle: (Math.random() - 0.5) * 0.5
+            })),
+            processedCount: 0,
+            tieProgress: 0,
+            targetNode: { x: 400, y: 130 }
+        };
+        this.score = 0;
+    },
+    updateOmikuji(dt) {
+        const gd = this.gameData;
+        if (gd.draggingBox) {
+            const dx = this.mouse.x - gd.boxX;
+            const dy = this.mouse.y - gd.boxY;
+            gd.boxVx = dx / dt * 0.15;
+            gd.boxVy = dy / dt * 0.15;
+            gd.boxX = this.mouse.x;
+            gd.boxY = this.mouse.y;
+            gd.boxAngle = (dx * 0.003);
+            
+            const speed = Math.hypot(gd.boxVx, gd.boxVy);
+            if (speed > 180) {
+                gd.shakeProgress = Math.min(100, gd.shakeProgress + speed * dt * 0.05);
+                if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+            }
+        } else {
+            // Spring back to center
+            const ax = (400 - gd.boxX) * 180;
+            const ay = (385 - gd.boxY) * 180;
+            gd.boxVx = (gd.boxVx + ax * dt) * 0.85;
+            gd.boxVy = (gd.boxVy + ay * dt) * 0.85;
+            gd.boxX += gd.boxVx * dt;
+            gd.boxY += gd.boxVy * dt;
+            gd.boxAngle = lerp(gd.boxAngle, 0, 0.1);
+        }
+
+        // Shaking sticks simulation
+        const shakeIntensity = Math.min(30, Math.hypot(gd.boxVx, gd.boxVy) * 0.05);
+        gd.sticks.forEach(s => {
+            s.x += (Math.random() - 0.5) * shakeIntensity * 0.3;
+            s.y += (Math.random() - 0.5) * shakeIntensity * 0.3;
+            s.x = Math.max(-25, Math.min(25, s.x));
+            s.y = Math.max(-45, Math.min(45, s.y));
+            s.angle += (Math.random() - 0.5) * shakeIntensity * 0.02;
+        });
+
+        if (gd.shakeProgress >= 100 && !gd.stickShown) {
+            gd.stickShown = true;
+            gd.stickX = 400;
+            gd.stickY = 240;
+            const r = Math.random();
+            gd.stickType = r < 0.2 ? '大吉 (Gran Suerte)' : (r < 0.5 ? '吉 (Suerte)' : '凶 (Mala Suerte)');
+            if (window.playProceduralSound) playProceduralSound('collect');
+        }
+
+        if (gd.draggingStick) {
+            gd.stickX = this.mouse.x;
+            gd.stickY = this.mouse.y;
+            
+            // Check tie circular gesture near target node
+            if (gd.stickType === '凶 (Mala Suerte)') {
+                const dist = Math.hypot(gd.stickX - gd.targetNode.x, gd.stickY - gd.targetNode.y);
+                if (dist < 40) {
+                    gd.tieProgress += dt * 80;
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                    if (gd.tieProgress >= 100) {
+                        gd.ties.push({ x: gd.targetNode.x, y: gd.targetNode.y });
+                        gd.processedCount++;
+                        this.score = Math.round((gd.processedCount / 3) * 100);
+                        gd.stickShown = false;
+                        gd.draggingStick = false;
+                        gd.shakeProgress = 0;
+                        gd.tieProgress = 0;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.processedCount >= 3) this.win();
+                    }
+                }
+            }
+        }
+    },
+    drawOmikuji() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Japanese traditional red wood background
+        ctx.fillStyle = '#2b1010';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Drawing Shimenawa sacred rope
+        ctx.strokeStyle = '#d4b26f';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(100, 110);
+        ctx.bezierCurveTo(250, 150, 550, 150, 700, 110);
+        ctx.stroke();
+
+        // Shimenawa fringes
+        ctx.fillStyle = '#ffffff';
+        for (let x = 200; x <= 600; x += 100) {
+            ctx.fillRect(x - 5, 130, 10, 40);
+        }
+
+        // Draw ties
+        gd.ties.forEach(t => {
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(t.x, t.y + 20, 18, 6, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+        });
+
+        // Box Omikuji
+        ctx.save();
+        ctx.translate(gd.boxX, gd.boxY);
+        ctx.rotate(gd.boxAngle);
+        ctx.fillStyle = '#d4b26f';
+        ctx.strokeStyle = '#1f1300';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            ctx.lineTo(Math.cos(angle) * 75, Math.sin(angle) * 115);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Draw internal sticks shaking (visual projection)
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 3;
+        gd.sticks.forEach(s => {
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(s.angle);
+            ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(0, 25); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Box gold text decoration
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('吉凶', 0, 10);
+        ctx.restore();
+
+        // Drawn Stick
+        if (gd.stickShown) {
+            ctx.save();
+            ctx.translate(gd.stickX, gd.stickY);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.strokeStyle = '#b57c1e';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-15, -60, 30, 120);
+            ctx.strokeRect(-15, -60, 30, 120);
+
+            // Calligraphy text
+            ctx.fillStyle = gd.stickType.includes('凶') ? '#c62828' : '#2e7d32';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.stickType, 0, 0);
+            ctx.restore();
+
+            // Circular tie indicator
+            if (gd.stickType.includes('凶')) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('¡Mala Suerte! Arrastra y mantén la tablilla sobre la cuerda para atarla.', 400, 220);
+                
+                // Tie progress bar
+                ctx.fillStyle = '#555';
+                ctx.fillRect(300, 240, 200, 10);
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(300, 240, 2 * gd.tieProgress, 10);
+            } else {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('¡Buena Suerte! Toca la tablilla para guardarla en tu álbum.', 400, 220);
+            }
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fortunas: ${gd.processedCount}/3`, 30, 560);
+        if (!gd.stickShown) {
+            ctx.fillStyle = '#ffd700';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Progreso del agitado: ${Math.round(gd.shakeProgress)}%`, 400, 500);
+            ctx.fillText('¡Arrastra la caja rápidamente para agitarla!', 400, 530);
+        }
+    },
+    inputOmikujiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.stickShown) {
+            if (Math.hypot(x - gd.boxX, y - gd.boxY) < 100) {
+                gd.draggingBox = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else {
+            if (Math.hypot(x - gd.stickX, y - gd.stickY) < 60) {
+                if (gd.stickType.includes('凶')) {
+                    gd.draggingStick = true;
+                } else {
+                    gd.processedCount++;
+                    this.score = Math.round((gd.processedCount / 3) * 100);
+                    gd.stickShown = false;
+                    gd.shakeProgress = 0;
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.processedCount >= 3) this.win();
+                }
+            }
+        }
+    },
+    releaseOmikuji(x, y) {
+        const gd = this.gameData;
+        gd.draggingBox = false;
+        gd.draggingStick = false;
+    },
+
+    // 2. day_17_incense: Humo de la Fortuna (Humo fluido, abanico Uchiha con deflectores)
+    setupIncense() {
+        this.gameData = {
+            playerX: 400,
+            particles: [],
+            embers: [],
+            lives: 3,
+            score: 0,
+            fanActive: false,
+            fanX: 400,
+            fanAngle: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateIncense(dt) {
+        const gd = this.gameData;
+        gd.playerX = lerp(gd.playerX, this.mouse.x, 0.12);
+        if (gd.playerX < 150) gd.playerX = 150;
+        if (gd.playerX > 650) gd.playerX = 650;
+
+        // Swipe creates wind velocity field
+        const swipeVx = (this.mouse.x - gd.fanX) * 1.5;
+        gd.fanX = this.mouse.x;
+        gd.fanAngle = clamp(swipeVx * 0.005, -0.6, 0.6);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.1;
+            // Spawn smoke rising from Jokoro
+            gd.particles.push({
+                x: 400 + (Math.random() - 0.5) * 60,
+                y: 490,
+                vx: (Math.random() - 0.5) * 50,
+                vy: -150 - Math.random() * 80,
+                r: 10 + Math.random() * 15,
+                alpha: 0.9
+            });
+
+            // Embers falling
+            if (Math.random() < 0.35) {
+                gd.embers.push({
+                    x: 150 + Math.random() * 500,
+                    y: 0,
+                    vy: 180 + Math.random() * 100,
+                    r: 9
+                });
+            }
+        }
+
+        // Update smoke with wind force field
+        gd.particles.forEach((p, idx) => {
+            if (this.mouse.isDown && Math.abs(this.mouse.y - p.y) < 100) {
+                p.vx += swipeVx * dt * 3.0; // Apply wind force from Uchiha swipe
+            }
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 0.45;
+
+            // Laura collects smoke at y=250
+            if (p.y > 220 && p.y < 280 && Math.abs(p.x - gd.playerX) < 40) {
+                gd.particles.splice(idx, 1);
+                gd.score++;
+                this.score = Math.min(100, gd.score);
+                if (window.playProceduralSound && gd.score % 10 === 0) playProceduralSound('collect');
+                if (gd.score >= 100) this.win();
+            }
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0);
+
+        // Update embers (wind pushes them away)
+        gd.embers.forEach((em, idx) => {
+            if (this.mouse.isDown && Math.hypot(this.mouse.x - em.x, this.mouse.y - em.y) < 80) {
+                em.x += swipeVx * dt * 4.0; // Deflect embers
+            }
+            em.y += em.vy * dt;
+
+            // Damage player at y=250
+            if (em.y > 230 && em.y < 270 && Math.abs(em.x - gd.playerX) < 32) {
+                gd.embers.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(14);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.embers = gd.embers.filter(em => em.y < 600);
+    },
+    drawIncense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Senso-ji lantern courtyard aesthetics
+        ctx.fillStyle = '#1c0a00';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Jokoro
+        ctx.fillStyle = '#b57c1e';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(400, 520, 75, 0, Math.PI, false);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Smoke
+        gd.particles.forEach(p => {
+            ctx.fillStyle = `rgba(230, 220, 240, ${p.alpha})`;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Embers
+        gd.embers.forEach(em => {
+            ctx.fillStyle = '#ff3d00';
+            ctx.shadowColor = '#ffa000';
+            ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(em.x, em.y, em.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Player (Laura Chibi)
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.playerX, 250, 25, 0, Math.PI * 2); ctx.fill();
+
+        // Uchiha Fan (drawn when clicking/swiping)
+        if (this.mouse.isDown) {
+            ctx.save();
+            ctx.translate(this.mouse.x, this.mouse.y);
+            ctx.rotate(gd.fanAngle);
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#d32f2f';
+            ctx.lineWidth = 3;
+            // Draw traditional fan
+            ctx.beginPath();
+            ctx.arc(0, -20, 25, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#d32f2f';
+            ctx.beginPath(); ctx.arc(0, -20, 8, 0, Math.PI * 2); ctx.fill(); // Crimson dot center
+            // Handle
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(0, 30); ctx.stroke();
+            ctx.restore();
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Humo Sagrado: ${gd.score}/100`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('¡Arrastra el abanico Uchiha para empujar el humo e interceptar las brasas!', 400, 30);
+    },
+    inputIncensePress(x, y) {},
+    releaseIncense() {},
+
+    // 3. day_17_gashapon: Gashapon Perfecto (Rebotes Pachinko, manivela con torque, apertura animada)
+    setupGashapon() {
+        this.gameData = {
+            dialAngle: 0,
+            turnProgress: 0,
+            draggingDial: false,
+            lastAngle: 0,
+            machineState: 'idle', // 'idle', 'dropping', 'open'
+            capsules: [],
+            fallingCapsule: null,
+            figuresCollected: [],
+            pegs: [],
+            openedFigure: null,
+            glowProgress: 0
+        };
+        this.score = 0;
+
+        // Build Pachinko Pegs Grid
+        for (let row = 0; row < 5; row++) {
+            const cols = row % 2 === 0 ? 5 : 4;
+            const startX = row % 2 === 0 ? 330 : 355;
+            for (let col = 0; col < cols; col++) {
+                this.gameData.pegs.push({
+                    x: startX + col * 35,
+                    y: 220 + row * 40
+                });
+            }
+        }
+        
+        // Populate display capsules
+        for (let i = 0; i < 15; i++) {
+            this.gameData.capsules.push({
+                x: 340 + Math.random() * 120,
+                y: 110 + Math.random() * 70,
+                color: ['#ff1744', '#00e5ff', '#ffea00', '#d500f9'][Math.floor(Math.random() * 4)]
+            });
+        }
+    },
+    updateGashapon(dt) {
+        const gd = this.gameData;
+        if (gd.draggingDial) {
+            const angle = Math.atan2(this.mouse.y - 390, this.mouse.x - 400);
+            let diff = angle - gd.lastAngle;
+            if (diff < -Math.PI) diff += Math.PI * 2;
+            if (diff > Math.PI) diff -= Math.PI * 2;
+
+            if (diff > 0) {
+                gd.turnProgress += diff;
+                gd.dialAngle += diff;
+                if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+            }
+            gd.lastAngle = angle;
+
+            if (gd.turnProgress >= Math.PI * 4) {
+                gd.draggingDial = false;
+                gd.turnProgress = 0;
+                gd.machineState = 'dropping';
+                gd.fallingCapsule = {
+                    x: 400,
+                    y: 180,
+                    vx: (Math.random() - 0.5) * 40,
+                    vy: 50,
+                    color: '#ffd700'
+                };
+            }
+        }
+
+        if (gd.machineState === 'dropping' && gd.fallingCapsule) {
+            const c = gd.fallingCapsule;
+            c.vy += 450 * dt; // Gravity
+            c.x += c.vx * dt;
+            c.y += c.vy * dt;
+
+            // Bounce on Pegs
+            gd.pegs.forEach(peg => {
+                const dist = Math.hypot(c.x - peg.x, c.y - peg.y);
+                if (dist < 22) { // capsule radius 14 + peg radius 8
+                    const angle = Math.atan2(c.y - peg.y, c.x - peg.x);
+                    c.x = peg.x + Math.cos(angle) * 22.1;
+                    c.y = peg.y + Math.sin(angle) * 22.1;
+                    // Physics restitution bounce
+                    const speed = Math.hypot(c.vx, c.vy);
+                    c.vx = Math.cos(angle) * speed * 0.6 + (Math.random() - 0.5) * 30;
+                    c.vy = Math.sin(angle) * speed * 0.6;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+
+            // Left/Right guides bounds
+            if (c.x < 310) { c.x = 310; c.vx *= -0.5; }
+            if (c.x > 490) { c.x = 490; c.vx *= -0.5; }
+
+            if (c.y >= 460) {
+                gd.machineState = 'open';
+                const list = ['Shiba Inu 🐕 (Común)', 'Gato Sushi 🍣 (Raro)', 'Grulla Origami 🦢 (Legendario)'];
+                gd.openedFigure = list[gd.figuresCollected.length % list.length];
+                gd.fallingCapsule = null;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+
+        if (gd.machineState === 'open') {
+            gd.glowProgress = Math.min(1.0, gd.glowProgress + dt * 2);
+        } else {
+            gd.glowProgress = 0;
+        }
+    },
+    drawGashapon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1a1a24';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Gashapon Red cabinet
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(270, 40, 260, 460);
+
+        // Glass sphere
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.strokeStyle = '#cfd8dc';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 150, 110, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Toy display
+        gd.capsules.forEach(c => {
+            ctx.fillStyle = c.color;
+            ctx.beginPath(); ctx.arc(c.x, c.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Pegs
+        ctx.fillStyle = '#ffffff';
+        gd.pegs.forEach(peg => {
+            ctx.beginPath(); ctx.arc(peg.x, peg.y, 4, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Crank Dial
+        ctx.save();
+        ctx.translate(400, 390);
+        ctx.rotate(gd.dialAngle);
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-8, -45, 16, 90);
+        ctx.restore();
+
+        // Chute
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(365, 440, 70, 60);
+
+        if (gd.fallingCapsule) {
+            ctx.fillStyle = '#00e5ff';
+            ctx.beginPath(); ctx.arc(gd.fallingCapsule.x, gd.fallingCapsule.y, 14, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Open Screen Modal
+        if (gd.machineState === 'open') {
+            ctx.fillStyle = `rgba(0, 0, 0, ${gd.glowProgress * 0.85})`;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Confetti / Radial light rays
+            ctx.save();
+            ctx.translate(400, 270);
+            ctx.rotate(this.gameTime * 0.6);
+            ctx.strokeStyle = 'rgba(255,215,0,0.15)';
+            ctx.lineWidth = 30;
+            for (let i = 0; i < 12; i++) {
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 300); ctx.stroke();
+                ctx.rotate(Math.PI / 6);
+            }
+            ctx.restore();
+
+            // Collectible float
+            const floatY = 270 + Math.sin(this.gameTime * 4) * 15;
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 36px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.openedFigure, 400, floatY);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '20px Outfit, sans-serif';
+            ctx.fillText('¡Toca la pantalla para agregarlo al álbum!', 400, floatY + 90);
+        } else {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Arrastra en círculos sobre la manivela para dispensar', 400, 42);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Colección: ${gd.figuresCollected.length}/3`, 30, 560);
+    },
+    inputGashaponPress(x, y) {
+        const gd = this.gameData;
+        if (gd.machineState === 'idle') {
+            if (Math.hypot(x - 400, y - 390) < 55) {
+                gd.draggingDial = true;
+                gd.lastAngle = Math.atan2(y - 390, x - 400);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'open') {
+            if (!gd.figuresCollected.includes(gd.openedFigure)) {
+                gd.figuresCollected.push(gd.openedFigure);
+                this.score = Math.round((gd.figuresCollected.length / 3) * 100);
+            }
+            gd.machineState = 'idle';
+            if (gd.figuresCollected.length >= 3) this.win();
+        }
+    },
+    releaseGashapon() {
+        this.gameData.draggingDial = false;
+    },
+
+    // 4. day_17_p2p_receiver: Sincronización P2P Receptor (Guitar Hero de Frecuencias)
+    setupP2PReceiver() {
+        this.gameData = {
+            bits: [],
+            receiverX: 400,
+            receiverHue: 0, // 0 to 360 mapped in wavelength
+            score: 0,
+            lives: 3,
+            spawnTimer: 0,
+            lanes: [160, 320, 480, 640]
+        };
+        this.score = 0;
+    },
+    updateP2PReceiver(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const targetHue = [0, 120, 240][Math.floor(Math.random() * 3)]; // Red, Green, Blue
+            gd.bits.push({
+                x: gd.lanes[Math.floor(Math.random() * 4)],
+                y: 0,
+                hue: targetHue,
+                vy: 220 + Math.random() * 80
+            });
+        }
+
+        // Adjust receiver wavelength with slider (representing color capture)
+        if (this.mouse.isDown && this.mouse.y > 520 && this.mouse.y < 570) {
+            const relX = (this.mouse.x - 200) / 400;
+            gd.receiverHue = Math.max(0, Math.min(360, relX * 360));
+        }
+
+        // Smooth receiver horizontal tracking
+        gd.receiverX = lerp(gd.receiverX, this.mouse.x, 0.15);
+        if (gd.receiverX < 120) gd.receiverX = 120;
+        if (gd.receiverX > 680) gd.receiverX = 680;
+
+        gd.bits.forEach((b, idx) => {
+            b.y += b.vy * dt;
+            if (b.y > 450 && b.y < 490) {
+                // Check if receiver is aligned to the correct lane
+                if (Math.abs(b.x - gd.receiverX) < 45) {
+                    gd.bits.splice(idx, 1);
+                    // Check if spectrum wavelength matches (tolerance of color match)
+                    const bitHue = b.hue;
+                    const diffHue = Math.abs(gd.receiverHue - bitHue);
+                    if (diffHue < 40 || diffHue > 320) { // Color match threshold
+                        gd.score++;
+                        this.score = Math.round((gd.score / 20) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.score >= 20) this.win();
+                    } else {
+                        gd.lives--;
+                        this.triggerShake(14);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            }
+        });
+        gd.bits = gd.bits.filter(b => b.y < 600);
+    },
+    drawP2PReceiver() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cyberpunk grid
+        ctx.fillStyle = '#06060f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+        ctx.lineWidth = 4;
+        gd.lanes.forEach(x => {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 500); ctx.stroke();
+        });
+
+        // Draw bits
+        gd.bits.forEach(b => {
+            ctx.fillStyle = `hsla(${b.hue}, 100%, 60%, 1)`;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(b.x, b.y, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw receiver
+        ctx.fillStyle = `hsla(${gd.receiverHue}, 100%, 50%, 1)`;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.arc(gd.receiverX, 470, 25, 0, Math.PI, true); ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Color Spectrum slider
+        const grad = ctx.createLinearGradient(200, 0, 600, 0);
+        grad.addColorStop(0, 'red');
+        grad.addColorStop(0.33, 'green');
+        grad.addColorStop(0.66, 'blue');
+        grad.addColorStop(1, 'red');
+        ctx.fillStyle = grad;
+        ctx.fillRect(200, 530, 400, 16);
+
+        const sliderX = 200 + (gd.receiverHue / 360) * 400;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(sliderX, 538, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Desliza abajo para sintonizar el color y mueve el ratón para atrapar los bits', 400, 515);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sincronización: ${gd.score}/20`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputP2PReceiverPress(x, y) {},
+    releaseP2PReceiver() {},
+
+    // 5. day_17_retro: Arqueología Gamer (Soplido, algodón y CRT shader de cartuchos retro)
+    setupRetro() {
+        this.gameData = {
+            cartridges: [],
+            selectedCartridge: null,
+            activeTool: 'blow', // 'blow', 'swab', 'wipe'
+            blowProgress: 0,
+            cleanProgress: 0,
+            polishProgress: 0,
+            goldCount: 0,
+            budget: 15000,
+            particles: []
+        };
+        this.score = 0;
+
+        const names = ['SUPER MARIO', 'ZELDA RETRO', 'METROID II', 'MEGAMAN X', 'KIRBY WORLD', 'POKEMON BLUE', 'DRAGON QUEST', 'CHRONO TRIGGER', 'FINAL FANTASY', 'TETRIS DX', 'CONTRA III', 'STAR FOX'];
+        for (let i = 0; i < 12; i++) {
+            const isGold = i < 3;
+            this.gameData.cartridges.push({
+                id: i,
+                name: names[i],
+                x: 160 + (i % 4) * 160,
+                y: 150 + Math.floor(i / 4) * 140,
+                isGold: isGold,
+                dust: 100,
+                oxide: 100,
+                labelDirty: 100,
+                price: isGold ? 3500 : 1000 + Math.floor(Math.random() * 800),
+                bought: false
+            });
+        }
+    },
+    updateRetro(dt) {
+        const gd = this.gameData;
+
+        // Particle dynamics for blowing dust
+        gd.particles.forEach(p => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 2.0;
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0);
+
+        if (gd.selectedCartridge) {
+            const c = gd.selectedCartridge;
+            if (this.mouse.isDown) {
+                if (gd.activeTool === 'blow' && this.mouse.y > 450) {
+                    // Swipe back and forth horizontally at the pins
+                    c.dust = Math.max(0, c.dust - dt * 200);
+                    // Spawn dust particles
+                    if (Math.random() < 0.3) {
+                        gd.particles.push({
+                            x: this.mouse.x, y: this.mouse.y,
+                            vx: (Math.random() - 0.5) * 150, vy: -100 - Math.random() * 100,
+                            alpha: 1.0
+                        });
+                    }
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                } else if (gd.activeTool === 'swab' && this.mouse.y > 450) {
+                    c.oxide = Math.max(0, c.oxide - dt * 100);
+                    if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                } else if (gd.activeTool === 'wipe' && this.mouse.y > 150 && this.mouse.y < 350) {
+                    c.labelDirty = Math.max(0, c.labelDirty - dt * 100);
+                    if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                }
+            }
+        }
+    },
+    drawRetro() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark shelf room
+        ctx.fillStyle = '#261c14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (!gd.selectedCartridge) {
+            // Draw wooden shelves
+            ctx.fillStyle = '#120b05';
+            for (let y = 230; y <= 510; y += 140) {
+                ctx.fillRect(40, y, 720, 16);
+            }
+
+            gd.cartridges.forEach(c => {
+                if (c.bought) return;
+
+                // Cartridge shell outline
+                ctx.fillStyle = (c.isGold && c.dust < 20) ? '#ffd700' : '#cfd8dc';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 4;
+                ctx.fillRect(c.x - 55, c.y - 40, 110, 80);
+                ctx.strokeRect(c.x - 55, c.y - 40, 110, 80);
+
+                if (c.dust < 50) {
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 11px Outfit, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(c.name, c.x, c.y - 10);
+                } else {
+                    ctx.fillStyle = '#7d6b5e';
+                    ctx.font = '14px Outfit, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('SUCIO', c.x, c.y);
+                }
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Toca un cartucho para llevarlo al laboratorio de restauración', 400, 50);
+        } else {
+            // Restoration room
+            const c = gd.selectedCartridge;
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Draw large cartridge being restored
+            ctx.fillStyle = (c.isGold && c.dust < 20) ? '#ffd700' : '#90a4ae';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.fillRect(200, 100, 400, 380);
+            ctx.strokeRect(200, 100, 400, 380);
+
+            // Connector pins at the bottom
+            ctx.fillStyle = '#b57c1e';
+            ctx.fillRect(220, 450, 360, 30);
+            
+            // Gold pins
+            ctx.fillStyle = c.oxide < 30 ? '#ffd700' : '#795548';
+            for (let i = 0; i < 30; i++) {
+                ctx.fillRect(230 + i * 11, 450, 6, 25);
+            }
+
+            // Draw label
+            ctx.fillStyle = '#cfd8dc';
+            ctx.fillRect(240, 140, 320, 240);
+            if (c.labelDirty < 30) {
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 24px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.name, 400, 250);
+                ctx.font = '18px Outfit, sans-serif';
+                ctx.fillText(`Precio: ${c.price} ¥`, 400, 300);
+            } else {
+                ctx.fillStyle = 'rgba(121, 85, 72, 0.8)';
+                ctx.fillRect(240, 140, 320, 240); // dirty overlay
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Etiqueta Embarrada', 400, 260);
+            }
+
+            // Draw dust on pins
+            if (c.dust > 0) {
+                ctx.fillStyle = `rgba(180, 180, 180, ${c.dust / 100})`;
+                ctx.fillRect(218, 448, 364, 34);
+            }
+
+            // Draw blowing dust particles
+            ctx.fillStyle = '#ffffff';
+            gd.particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Action tool button selectors
+            const tools = ['blow', 'swab', 'wipe'];
+            const names = ['🌬️ SOPLAR', '🧹 LIMPIAR', '🧽 PULIR'];
+            for (let i = 0; i < 3; i++) {
+                ctx.fillStyle = gd.activeTool === tools[i] ? '#00e5ff' : '#37474f';
+                ctx.fillRect(50 + i * 180, 520, 160, 40);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 15px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(names[i], 130 + i * 180, 545);
+            }
+
+            // Return/Buy button
+            ctx.fillStyle = '#2e7d32';
+            ctx.fillRect(600, 520, 150, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(c.isGold ? '🛒 COMPRAR' : '↩️ VOLVER', 675, 545);
+
+            // Instructions HUD
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 18px Outfit, sans-serif';
+            ctx.fillText(`Polvo: ${Math.round(c.dust)}%  Óxido: ${Math.round(c.oxide)}%  Suciedad: ${Math.round(c.labelDirty)}%`, 400, 40);
+        }
+
+        // Apply retro CRT filter overlay
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        for (let y = 0; y < 600; y += 4) {
+            ctx.fillRect(0, y, 800, 2);
+        }
+
+        // HUD Main
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Juegos de Oro: ${gd.goldCount}/3`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Yenes: ${gd.budget} ¥`, 770, 40);
+    },
+    inputRetroPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.selectedCartridge) {
+            gd.cartridges.forEach(c => {
+                if (!c.bought && Math.hypot(x - c.x, y - c.y) < 55) {
+                    gd.selectedCartridge = c;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+        } else {
+            // Select active tool
+            if (y > 520 && y < 560) {
+                if (x > 50 && x < 210) gd.activeTool = 'blow';
+                if (x > 230 && x < 390) gd.activeTool = 'swab';
+                if (x > 410 && x < 570) gd.activeTool = 'wipe';
+                if (x > 600 && x < 750) {
+                    const c = gd.selectedCartridge;
+                    // Buy cartridge if fully clean and gold
+                    if (c.isGold && c.dust < 20 && c.oxide < 20 && c.labelDirty < 20) {
+                        if (gd.budget >= c.price) {
+                            c.bought = true;
+                            gd.budget -= c.price;
+                            gd.goldCount++;
+                            this.score = Math.round((gd.goldCount / 3) * 100);
+                            gd.selectedCartridge = null;
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            if (gd.goldCount >= 3) this.win();
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                        }
+                    } else {
+                        // Return to shelf
+                        gd.selectedCartridge = null;
+                    }
+                }
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        }
+    },
+    releaseRetro() {},
+
+    // 6. day_17_skytree: Cervicales de Acero (Propulsores de balance contra viento y atardecer progresivos)
+    setupSkytree() {
+        this.gameData = {
+            altitude: 0,
+            elevatorX: 400,
+            wind: 0,
+            obstacles: [],
+            spawnTimer: 0,
+            lives: 3,
+            invulnTimer: 0,
+            thrusterPower: 180,
+            engineTemp: 0
+        };
+        this.score = 0;
+    },
+    updateSkytree(dt) {
+        const gd = this.gameData;
+        gd.altitude += dt * 120;
+        this.score = Math.min(100, Math.round((gd.altitude / 634) * 100));
+
+        if (gd.altitude >= 634) {
+            gd.altitude = 634;
+            this.win();
+            return;
+        }
+
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+
+        // Winds dynamic
+        gd.wind = Math.sin(this.gameTime * 3) * 220 + Math.cos(this.gameTime * 7) * 80;
+        gd.elevatorX += gd.wind * dt;
+
+        // Thruster balance slider simulation
+        if (this.mouse.isDown) {
+            const dragForce = (this.mouse.x - 400) * 1.5;
+            gd.elevatorX += dragForce * dt;
+        }
+
+        if (gd.elevatorX < 180) gd.elevatorX = 180;
+        if (gd.elevatorX > 620) gd.elevatorX = 620;
+
+        // Obstacles
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.65;
+            gd.obstacles.push({
+                x: 180 + Math.random() * 340,
+                y: -40,
+                w: 60 + Math.random() * 60,
+                h: 20
+            });
+        }
+
+        gd.obstacles.forEach((ob, idx) => {
+            ob.y += dt * 290;
+            if (gd.invulnTimer <= 0 && ob.y > 425 && ob.y < 465 && gd.elevatorX > ob.x - 20 && gd.elevatorX < ob.x + ob.w + 20) {
+                gd.obstacles.splice(idx, 1);
+                gd.lives--;
+                gd.invulnTimer = 1.0; // 1s safety invulnerability
+                this.triggerShake(15);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(ob => ob.y < 650);
+    },
+    drawSkytree() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky Sunset/Night gradual transition based on altitude
+        const altProgress = gd.altitude / 634;
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        if (altProgress < 0.5) {
+            // Evening Sun
+            grad.addColorStop(0, '#f97316');
+            grad.addColorStop(1, '#ffedd5');
+        } else {
+            // Purple Night Sky
+            grad.addColorStop(0, '#0b0f19');
+            grad.addColorStop(0.6, '#311042');
+            grad.addColorStop(1, '#f97316');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Skytree structural pillars
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(170, 0); ctx.lineTo(240, 600);
+        ctx.moveTo(630, 0); ctx.lineTo(560, 600);
+        ctx.stroke();
+
+        // Parallax lattice details
+        for (let y = (this.gameTime * 240) % 240; y < 600; y += 240) {
+            ctx.beginPath();
+            ctx.moveTo(200, y); ctx.lineTo(600, y + 120);
+            ctx.moveTo(600, y); ctx.lineTo(200, y + 120);
+            ctx.stroke();
+        }
+
+        // Obstacles (floating girder beams)
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        gd.obstacles.forEach(ob => {
+            ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+            ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        });
+
+        // Draw elevator
+        ctx.save();
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
+            ctx.globalAlpha = 0.4;
+        }
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.fillRect(gd.elevatorX - 25, 420, 50, 65);
+        ctx.strokeRect(gd.elevatorX - 25, 420, 50, 65);
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.elevatorX - 18, 430, 36, 20);
+        ctx.restore();
+
+        // Engine heat / Wind vector HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Vector del Viento: ${Math.round(gd.wind)} N`, 400, 500);
+
+        // HUD Alt
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}m / 634m`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Estabilizadores: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputSkytreePress(x, y) {},
+
+    // 7. day_17_p2p_sender: Sincronización P2P Emisor (Centralita con cables elásticos y chispas)
+    setupP2PSender() {
+        this.gameData = {
+            nodes: [
+                { id: 'R', color: 'red', x: 150, y: 180 },
+                { id: 'B', color: 'blue', x: 150, y: 280 },
+                { id: 'G', color: 'green', x: 150, y: 380 },
+                { id: 'Y', color: 'yellow', x: 150, y: 480 }
+            ],
+            relays: [
+                { id: 'N1', x: 400, y: 230, color: null },
+                { id: 'N2', x: 400, y: 430, color: null }
+            ],
+            targets: [
+                { id: 'R', color: 'red', x: 650, y: 280 },
+                { id: 'B', color: 'blue', x: 650, y: 180 },
+                { id: 'G', color: 'green', x: 650, y: 480 },
+                { id: 'Y', color: 'yellow', x: 650, y: 380 }
+            ],
+            draggingNode: null,
+            connections: {} // sourceColor -> { relayId, targetColor }
+        };
+        this.score = 0;
+    },
+    updateP2PSender(dt) {},
+    drawP2PSender() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Connections pathing
+        ctx.lineWidth = 5;
+        gd.nodes.forEach(n => {
+            const conn = gd.connections[n.color];
+            if (conn) {
+                ctx.strokeStyle = n.color;
+                const relay = gd.relays.find(r => r.id === conn.relayId);
+                const t = gd.targets.find(tg => tg.color === conn.targetColor);
+                
+                // Draw dynamic catenary/spring curve from source to relay
+                ctx.beginPath();
+                ctx.moveTo(n.x, n.y);
+                ctx.quadraticCurveTo((n.x + relay.x)/2, (n.y + relay.y)/2 + 20, relay.x, relay.y);
+                ctx.stroke();
+
+                // From relay to target
+                if (t) {
+                    ctx.beginPath();
+                    ctx.moveTo(relay.x, relay.y);
+                    ctx.quadraticCurveTo((relay.x + t.x)/2, (relay.y + t.y)/2 + 20, t.x, t.y);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // Draw dragging wire with catenary sag
+        if (gd.draggingNode) {
+            ctx.strokeStyle = gd.draggingNode.color;
+            ctx.beginPath();
+            ctx.moveTo(gd.draggingNode.x, gd.draggingNode.y);
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            ctx.quadraticCurveTo((gd.draggingNode.x + mx)/2, (gd.draggingNode.y + my)/2 + 25, mx, my);
+            ctx.stroke();
+        }
+
+        // Draw relays
+        gd.relays.forEach(r => {
+            ctx.fillStyle = r.color ? r.color : '#37474f';
+            ctx.beginPath(); ctx.arc(r.x, r.y, 25, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        });
+
+        // Draw emitters
+        gd.nodes.forEach(n => {
+            ctx.fillStyle = n.color;
+            ctx.beginPath(); ctx.arc(n.x, n.y, 18, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw targets
+        gd.targets.forEach(t => {
+            ctx.fillStyle = t.color;
+            ctx.fillRect(t.x - 18, t.y - 18, 36, 36);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rutea los cables de red pasando por un nodo repetidor intermedio', 400, 80);
+    },
+    inputP2PSenderPress(x, y) {
+        const gd = this.gameData;
+        gd.nodes.forEach(n => {
+            if (Math.hypot(x - n.x, y - n.y) < 25) {
+                gd.draggingNode = n;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseP2PSender(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingNode) {
+            let hit = false;
+            
+            // Check connection to relay
+            gd.relays.forEach(relay => {
+                if (Math.hypot(x - relay.x, y - relay.y) < 35) {
+                    gd.connections[gd.draggingNode.color] = { relayId: relay.id, targetColor: null };
+                    relay.color = gd.draggingNode.color;
+                    hit = true;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+
+            // If already connected to relay, try connecting relay to target
+            if (!hit) {
+                const conn = gd.connections[gd.draggingNode.color];
+                if (conn && conn.relayId) {
+                    gd.targets.forEach(t => {
+                        if (Math.hypot(x - t.x, y - t.y) < 35) {
+                            if (t.color === gd.draggingNode.color) {
+                                conn.targetColor = t.color;
+                                if (window.playProceduralSound) playProceduralSound('success');
+                                const count = Object.values(gd.connections).filter(c => c.targetColor !== null).length;
+                                this.score = Math.round((count / 4) * 100);
+                                if (count === 4) this.win();
+                            } else {
+                                if (window.playProceduralSound) playProceduralSound('error');
+                            }
+                        }
+                    });
+                }
+            }
+            gd.draggingNode = null;
+        }
+    },
+
+    // 8. day_17_height: Altura del Cielo (Elevación, azimut y fase láser en vector scope de radar)
+    setupHeight() {
+        this.gameData = {
+            pitch: 20,
+            yaw: 80,
+            phase: 45,
+            targetPitch: 140,
+            targetYaw: 220,
+            targetPhase: 180,
+            focusProgress: 0,
+            draggingKnob: null // 'P', 'Y', 'F'
+        };
+        this.score = 0;
+    },
+    updateHeight(dt) {
+        const gd = this.gameData;
+        if (gd.draggingKnob) {
+            const cx = gd.draggingKnob === 'P' ? 180 : (gd.draggingKnob === 'Y' ? 400 : 620);
+            const cy = 490;
+            const angle = Math.atan2(this.mouse.y - cy, this.mouse.x - cx) * 180 / Math.PI + 90;
+            const val = (angle + 360) % 360;
+
+            if (gd.draggingKnob === 'P') gd.pitch = val;
+            if (gd.draggingKnob === 'Y') gd.yaw = val;
+            if (gd.draggingKnob === 'F') gd.phase = val;
+        }
+
+        const diffP = Math.abs(gd.pitch - gd.targetPitch);
+        const diffY = Math.abs(gd.yaw - gd.targetYaw);
+        const diffF = Math.abs(gd.phase - gd.targetPhase);
+
+        if (diffP < 10 && diffY < 10 && diffF < 10) {
+            gd.focusProgress += dt * 45;
+            this.score = Math.min(100, Math.round(gd.focusProgress));
+            if (gd.focusProgress >= 100) this.win();
+        } else {
+            gd.focusProgress = Math.max(0, gd.focusProgress - dt * 20);
+        }
+    },
+    drawHeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark sci-fi oscilloscope screen
+        ctx.fillStyle = '#040d0f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Vector/Oscilloscope grid lines
+        ctx.strokeStyle = 'rgba(0, 255, 150, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(150, 60, 500, 320);
+        for (let x = 150; x <= 650; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x, 380); ctx.stroke();
+        }
+
+        // Draw Lissajous target figures (Láser Lock)
+        // Red target pattern
+        ctx.strokeStyle = '#d32f2f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 2; t += 0.05) {
+            const x = 400 + Math.sin(t * 3) * 120;
+            const y = 220 + Math.cos(t * 2 + (gd.targetPhase * Math.PI / 180)) * 100;
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Green player pattern (based on real-time knob values)
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00ff99';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 2; t += 0.05) {
+            const freqRatioX = gd.pitch * 0.02;
+            const freqRatioY = gd.yaw * 0.01;
+            const x = 400 + Math.sin(t * freqRatioX) * 120;
+            const y = 220 + Math.cos(t * freqRatioY + (gd.phase * Math.PI / 180)) * 100;
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        const dials = ['P', 'Y', 'F'];
+        const values = [gd.pitch, gd.yaw, gd.phase];
+        const labels = ['Elevación (Pitch)', 'Azimut (Yaw)', 'Fase Láser'];
+        const colors = ['#00e5ff', '#ffd700', '#e040fb'];
+        for (let i = 0; i < 3; i++) {
+            const cx = 180 + i * 220;
+            const cy = 490;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = '#37474f';
+            ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 2); ctx.fill();
+            ctx.rotate((values[i] * Math.PI) / 180);
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(-3, -40, 6, 20);
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], cx, 560);
+        }
+
+        // Focus meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 20, 300, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(250, 20, 3 * gd.focusProgress, 15);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.fillText('Ajusta el osciloscopio alineando las ondas telemétricas', 400, 420);
+    },
+    inputHeightPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 180, y - 490) < 50) gd.draggingKnob = 'P';
+        if (Math.hypot(x - 400, y - 490) < 50) gd.draggingKnob = 'Y';
+        if (Math.hypot(x - 620, y - 490) < 50) gd.draggingKnob = 'F';
+        if (gd.draggingKnob && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseHeight() {
+        this.gameData.draggingKnob = null;
+    },
+
+    // 9. day_17_sumida: Navegando el Sumida (Deriva hidrodinámica del Himiko y Sakura petals vortex)
+    setupSumida() {
+        this.gameData = {
+            boatX: 400,
+            boatAngle: 0,
+            boatVx: 0,
+            progress: 0,
+            crossedCount: 0,
+            bridgesPassed: 0,
+            lives: 3,
+            maxLives: 5,
+            
+            // Shooting
+            bullets: [],
+            shootCooldown: 0,
+            
+            // Power-ups state
+            shieldActive: false,
+            doubleShotTimer: 0,
+            
+            // Obstacles
+            obstacles: [],
+            obstacleSpawnTimer: 1.0,
+            
+            // Power-ups in the water
+            powerups: [],
+            
+            // Custom particles (wake foam, score text)
+            customParticles: [],
+            
+            // Historic Sumida bridges
+            bridges: [
+                { y: -300, name: 'Azuma Bridge (Rojo)', color: '#ff1744', gateX: 260, gateWidth: 140, crossed: false },
+                { y: -900, name: 'Kiyosu Bridge (Azul)', color: '#2979ff', gateX: 540, gateWidth: 140, crossed: false },
+                { y: -1500, name: 'Eitai Bridge (Verde)', color: '#00e676', gateX: 330, gateWidth: 140, crossed: false },
+                { y: -2100, name: 'Kachidoki Bridge (Gris)', color: '#78909c', gateX: 470, gateWidth: 140, crossed: false },
+                { y: -2700, name: 'Tsukiji Bridge (Blanco)', color: '#eceff1', gateX: 400, gateWidth: 140, crossed: false }
+            ],
+            
+            // Floating sakura petals
+            sakuraPetals: Array.from({length: 30}, () => ({
+                x: 150 + Math.random() * 500,
+                y: Math.random() * 600,
+                vy: 80 + Math.random() * 40,
+                rotSpeed: 0.5 + Math.random() * 1.5,
+                angle: Math.random() * Math.PI * 2,
+                size: 3 + Math.random() * 5
+            })),
+            
+            waterScroll: 0,
+            invulnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSumida(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+        
+        // Cooldowns and invulnerability timers
+        if (gd.shootCooldown > 0) gd.shootCooldown -= dt;
+        if (gd.doubleShotTimer > 0) gd.doubleShotTimer -= dt;
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+        
+        // Water scroll and engine time
+        gd.waterScroll = (gd.waterScroll + dt * 150) % 600;
+        
+        // Boat drift physics
+        const targetX = this.mouse.x;
+        const dx = targetX - gd.boatX;
+        gd.boatAngle = lerp(gd.boatAngle, dx * 0.003, 0.08); // Tilt on turn
+        gd.boatVx = lerp(gd.boatVx, dx * 2.2, 0.05); // Latency drift
+        gd.boatX += gd.boatVx * dt;
+
+        if (gd.boatX < 180) { gd.boatX = 180; gd.boatVx = 0; }
+        if (gd.boatX > 620) { gd.boatX = 620; gd.boatVx = 0; }
+
+        // Spawn boat wake foam particles
+        if (Math.random() < 0.3) {
+            gd.customParticles.push({
+                x: gd.boatX + (Math.random() - 0.5) * 12,
+                y: 505,
+                vx: (Math.random() - 0.5) * 15,
+                vy: 120 + Math.random() * 40,
+                size: 3 + Math.random() * 5,
+                alpha: 0.6,
+                life: 1.0,
+                decay: 1.8, // dies in ~0.55s
+                type: 'foam'
+            });
+        }
+
+        // Update custom particles
+        for (let i = gd.customParticles.length - 1; i >= 0; i--) {
+            const p = gd.customParticles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.life -= dt * (p.decay || 1);
+            if (p.life <= 0) {
+                gd.customParticles.splice(i, 1);
+            }
+        }
+
+        // Update sakura petals (swirl when near boat)
+        gd.sakuraPetals.forEach(p => {
+            p.y += p.vy * dt;
+            p.angle += p.rotSpeed * dt;
+            
+            // Swirl around the boat's tail
+            if (p.y > 440 && p.y < 530 && Math.abs(p.x - gd.boatX) < 70) {
+                p.x += (p.x > gd.boatX ? 60 : -60) * dt;
+            }
+            if (p.y > 600) {
+                p.y = 0;
+                p.x = 150 + Math.random() * 500;
+            }
+        });
+
+        // Spawn obstacles
+        gd.obstacleSpawnTimer -= dt;
+        if (gd.obstacleSpawnTimer <= 0) {
+            // Spawn timer gets shorter as player crosses more bridges
+            gd.obstacleSpawnTimer = 1.4 + Math.random() * 1.2 - (gd.bridgesPassed * 0.18);
+            if (gd.obstacleSpawnTimer < 0.75) gd.obstacleSpawnTimer = 0.75;
+            
+            const types = ['bomb', 'bomb', 'boat', 'airplane'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = 190 + Math.random() * (610 - 190);
+            
+            let obstacle = {
+                id: Math.random(),
+                x: x,
+                y: -50,
+                type: type,
+                vx: 0,
+                vy: 0,
+                hp: 1,
+                maxHp: 1,
+                animTime: Math.random() * 10
+            };
+            
+            if (type === 'bomb') {
+                obstacle.vy = 90 + Math.random() * 40;
+            } else if (type === 'boat') {
+                obstacle.vy = 120 + Math.random() * 40;
+                obstacle.hp = 3;
+                obstacle.maxHp = 3;
+            } else if (type === 'airplane') {
+                obstacle.vy = 260 + Math.random() * 70;
+                obstacle.vx = (Math.random() - 0.5) * 80; // fly diagonally
+            }
+            
+            gd.obstacles.push(obstacle);
+        }
+
+        // Update bullets
+        for (let i = gd.bullets.length - 1; i >= 0; i--) {
+            const b = gd.bullets[i];
+            b.y += b.vy * dt;
+            
+            if (b.y < -20) {
+                gd.bullets.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with obstacles
+            let bulletRemoved = false;
+            for (let j = gd.obstacles.length - 1; j >= 0; j--) {
+                const o = gd.obstacles[j];
+                let collided = false;
+                
+                if (o.type === 'bomb') {
+                    collided = Math.hypot(b.x - o.x, b.y - o.y) < 16;
+                } else if (o.type === 'boat') {
+                    collided = b.x > o.x - 18 && b.x < o.x + 18 && b.y > o.y - 30 && b.y < o.y + 30;
+                } else if (o.type === 'airplane') {
+                    collided = b.x > o.x - 20 && b.x < o.x + 20 && b.y > o.y - 20 && b.y < o.y + 20;
+                }
+                
+                if (collided) {
+                    o.hp--;
+                    this.createExplosion(b.x, b.y, '#ffffff', 5, 0.4);
+                    
+                    if (o.hp <= 0) {
+                        // Destroy obstacle
+                        const color = o.type === 'bomb' ? '#ff3d00' : (o.type === 'boat' ? '#ffb300' : '#b0bec5');
+                        this.createExplosion(o.x, o.y, color, 15, 1.0);
+                        
+                        // Drop powerup
+                        this.dropSumidaPowerup(o.x, o.y);
+                        
+                        // Add points
+                        let pts = 10;
+                        if (o.type === 'boat') pts = 30;
+                        if (o.type === 'airplane') pts = 20;
+                        this.score += pts;
+                        this.addSumidaTextParticle(o.x, o.y, `+${pts}`, '#ffd54f');
+                        
+                        if (window.playProceduralSound) window.playProceduralSound('error'); // Deep boom
+                        gd.obstacles.splice(j, 1);
+                    } else {
+                        if (window.playProceduralSound) window.playProceduralSound('click');
+                    }
+                    
+                    gd.bullets.splice(i, 1);
+                    bulletRemoved = true;
+                    break;
+                }
+            }
+        }
+
+        // Update obstacles & player collisions
+        for (let i = gd.obstacles.length - 1; i >= 0; i--) {
+            const o = gd.obstacles[i];
+            o.y += o.vy * dt;
+            o.x += o.vx * dt;
+            
+            // Bounce on river borders
+            if (o.x < 170) { o.x = 170; o.vx = -o.vx; }
+            if (o.x > 630) { o.x = 630; o.vx = -o.vx; }
+            
+            if (o.y > 620) {
+                gd.obstacles.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with player boat (center at gd.boatX, 480)
+            let hit = false;
+            if (o.type === 'bomb') {
+                hit = Math.hypot(gd.boatX - o.x, 480 - o.y) < 28;
+            } else if (o.type === 'boat') {
+                hit = Math.abs(gd.boatX - o.x) < 32 && Math.abs(480 - o.y) < 45;
+            } else if (o.type === 'airplane') {
+                hit = Math.hypot(gd.boatX - o.x, 480 - o.y) < 32;
+            }
+            
+            if (hit) {
+                // Destroy obstacle
+                this.createExplosion(o.x, o.y, '#ff3d00', 15, 1.1);
+                gd.obstacles.splice(i, 1);
+                
+                // Damage player
+                if (gd.invulnTimer <= 0) {
+                    if (gd.shieldActive) {
+                        gd.shieldActive = false;
+                        gd.invulnTimer = 1.0;
+                        this.triggerShake(12);
+                        this.addSumidaTextParticle(gd.boatX, 430, "¡Escudo Roto!", "#00e5ff");
+                        if (window.playProceduralSound) window.playProceduralSound('error');
+                        this.createExplosion(gd.boatX, 480, '#00e5ff', 20, 1.1);
+                    } else {
+                        gd.lives--;
+                        gd.invulnTimer = 1.5;
+                        this.triggerShake(20);
+                        this.addSumidaTextParticle(gd.boatX, 430, "-1 Vida", "#ff1744");
+                        if (window.playProceduralSound) window.playProceduralSound('damage');
+                        this.createExplosion(gd.boatX, 480, '#ff1744', 30, 1.4);
+                        
+                        if (gd.lives <= 0) {
+                            this.gameOver();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update powerups
+        for (let i = gd.powerups.length - 1; i >= 0; i--) {
+            const p = gd.powerups[i];
+            p.y += p.vy * dt;
+            p.pulseTime += dt;
+            
+            if (p.y > 620) {
+                gd.powerups.splice(i, 1);
+                continue;
+            }
+            
+            if (Math.hypot(gd.boatX - p.x, 480 - p.y) < 30) {
+                // Collected!
+                if (p.type === 'shield') {
+                    gd.shieldActive = true;
+                    this.addSumidaTextParticle(p.x, p.y, "+ESCUDO", "#00e5ff");
+                } else if (p.type === 'double') {
+                    gd.doubleShotTimer = 6.0;
+                    this.addSumidaTextParticle(p.x, p.y, "+DOBLE DISPARO", "#ff9100");
+                } else if (p.type === 'heart') {
+                    gd.lives = Math.min(gd.maxLives, gd.lives + 1);
+                    this.addSumidaTextParticle(p.x, p.y, "+1 VIDA", "#ff4081");
+                }
+                
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(p.x, p.y, p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081'), 12, 0.8);
+                gd.powerups.splice(i, 1);
+            }
+        }
+
+        // Update bridges
+        gd.bridges.forEach(b => {
+            b.y += dt * 170;
+            
+            if (b.y > 440 && !b.crossed) {
+                b.crossed = true;
+                gd.bridgesPassed++;
+                
+                const inGate = (gd.boatX >= b.gateX - b.gateWidth / 2) && (gd.boatX <= b.gateX + b.gateWidth / 2);
+                
+                if (inGate) {
+                    gd.crossedCount++;
+                    this.score = Math.round((gd.crossedCount / 5) * 100);
+                    this.addSumidaTextParticle(gd.boatX, 420, "¡Excelente!", "#00e676");
+                    if (window.playProceduralSound) window.playProceduralSound('success');
+                } else {
+                    if (gd.invulnTimer <= 0) {
+                        if (gd.shieldActive) {
+                            gd.shieldActive = false;
+                            gd.invulnTimer = 1.2;
+                            this.triggerShake(15);
+                            this.addSumidaTextParticle(gd.boatX, 420, "¡Escudo Roto!", "#00e5ff");
+                            if (window.playProceduralSound) window.playProceduralSound('error');
+                            this.createExplosion(gd.boatX, 480, '#00e5ff', 25, 1.2);
+                        } else {
+                            gd.lives--;
+                            gd.invulnTimer = 1.8;
+                            this.triggerShake(25);
+                            this.addSumidaTextParticle(gd.boatX, 420, "-1 Vida", "#ff1744");
+                            if (window.playProceduralSound) window.playProceduralSound('damage');
+                            this.createExplosion(gd.boatX, 480, '#ff1744', 30, 1.4);
+                            
+                            if (gd.lives <= 0) {
+                                this.gameOver();
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // Win check: when all 5 bridges have passed, win the game if alive
+                if (gd.bridgesPassed >= 5 && gd.lives > 0) {
+                    setTimeout(() => this.win(), 800);
+                }
+            }
+        });
+    },
+    drawSumida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        // River water background
+        ctx.fillStyle = '#00838f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Water current wave lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 7; i++) {
+            const y = (gd.waterScroll + i * 100) % 600;
+            ctx.beginPath();
+            ctx.moveTo(150, y);
+            ctx.lineTo(650, y);
+            ctx.stroke();
+        }
+
+        // River banks (concrete shores)
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 0, 150, 600);
+        ctx.fillRect(650, 0, 150, 600);
+        
+        // Bank walkways lines
+        ctx.strokeStyle = '#546e7a';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(150, 0); ctx.lineTo(150, 600);
+        ctx.moveTo(650, 0); ctx.lineTo(650, 600);
+        ctx.stroke();
+
+        // Draw scrolling cherry blossom trees on the banks
+        const drawTree = (ctx, tx, ty, animTime) => {
+            ctx.save();
+            ctx.shadowBlur = 0;
+            
+            // Trunk
+            ctx.fillStyle = '#5d4037';
+            ctx.beginPath();
+            ctx.moveTo(tx - 6, ty + 40);
+            ctx.lineTo(tx + 6, ty + 40);
+            ctx.lineTo(tx + 4, ty - 10);
+            ctx.lineTo(tx - 4, ty - 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Branches
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(tx - 15, ty - 20);
+            ctx.moveTo(tx, ty - 5);
+            ctx.lineTo(tx + 18, ty - 25);
+            ctx.stroke();
+            
+            // Foliage (Sakura clouds)
+            const wobble = Math.sin(animTime * 1.5) * 3;
+            const foliage = [
+                { dx: 0, dy: -25, r: 24, c: '#ff80ab' },
+                { dx: -15, dy: -18, r: 20, c: '#f8bbd0' },
+                { dx: 15, dy: -22, r: 22, c: '#f8bbd0' },
+                { dx: -8, dy: -32, r: 18, c: '#ff4081' },
+                { dx: 8, dy: -30, r: 20, c: '#ff80ab' }
+            ];
+            
+            foliage.forEach(f => {
+                ctx.fillStyle = f.c;
+                ctx.beginPath();
+                ctx.arc(tx + f.dx + wobble, ty + f.dy, f.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            ctx.restore();
+        };
+
+        for (let i = 0; i < 4; i++) {
+            const y = (i * 200 + gd.waterScroll) % 700 - 80;
+            drawTree(ctx, 60, y, this.gameTime + i);
+            drawTree(ctx, 740, y, this.gameTime + i + 2.5);
+        }
+
+        // Bridges
+        gd.bridges.forEach(b => {
+            // Support pillars on shore
+            ctx.fillStyle = '#455a64';
+            ctx.fillRect(115, b.y, 35, 50);
+            ctx.fillRect(650, b.y, 35, 50);
+            
+            // Bridge deck (Left and Right parts leaving the gate passage empty)
+            ctx.fillStyle = b.color;
+            ctx.fillRect(150, b.y + 10, b.gateX - b.gateWidth / 2 - 150, 30);
+            ctx.fillRect(b.gateX + b.gateWidth / 2, b.y + 10, 650 - (b.gateX + b.gateWidth / 2), 30);
+            
+            // Steel arch above bridge spanning the entire width
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(400, b.y + 65, 255, Math.PI + 0.3, Math.PI * 2 - 0.3);
+            ctx.stroke();
+            
+            // Vertical hanger cables
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1.5;
+            for (let x = 175; x < 625; x += 30) {
+                if (x < b.gateX - b.gateWidth / 2 || x > b.gateX + b.gateWidth / 2) {
+                    const dist = Math.abs(400 - x);
+                    const archY = b.y - 30 + (dist * dist) * 0.00085;
+                    if (archY < b.y + 10) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, b.y + 10);
+                        ctx.lineTo(x, archY);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Glowing navigation passage borders
+            ctx.save();
+            ctx.strokeStyle = '#00ff99';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00ff99';
+            ctx.shadowBlur = 8;
+            
+            ctx.beginPath();
+            ctx.moveTo(b.gateX - b.gateWidth / 2, b.y - 10);
+            ctx.lineTo(b.gateX - b.gateWidth / 2, b.y + 60);
+            ctx.moveTo(b.gateX + b.gateWidth / 2, b.y - 10);
+            ctx.lineTo(b.gateX + b.gateWidth / 2, b.y + 60);
+            ctx.stroke();
+            
+            // Pulsing green navigation arrows
+            const arrowPulse = Math.floor(this.gameTime * 7) % 3;
+            ctx.fillStyle = '#00ff99';
+            for (let i = 0; i < 2; i++) {
+                const arrY = b.y + i * 18 - 8 + arrowPulse;
+                ctx.beginPath();
+                ctx.moveTo(b.gateX - 8, arrY);
+                ctx.lineTo(b.gateX, arrY + 8);
+                ctx.lineTo(b.gateX + 8, arrY);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Bridge labels
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(b.name, 400, b.y + 30);
+            ctx.shadowBlur = 0;
+        });
+
+        // Sakura petals floating on water
+        ctx.fillStyle = '#ff80ab';
+        gd.sakuraPetals.forEach(p => {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Draw custom particles (foam, text)
+        gd.customParticles.forEach(p => {
+            ctx.save();
+            ctx.globalAlpha = p.alpha * p.life;
+            if (p.type === 'foam') {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * (1.3 - p.life * 0.4), 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.type === 'text') {
+                ctx.fillStyle = p.color || '#ffffff';
+                ctx.font = `bold ${p.size}px Outfit, sans-serif`;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 5;
+                ctx.textAlign = 'center';
+                ctx.fillText(p.text, p.x, p.y);
+            }
+            ctx.restore();
+        });
+
+        // Bullets (Laser beams)
+        gd.bullets.forEach(b => {
+            ctx.save();
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y);
+            ctx.lineTo(b.x, b.y + 15);
+            ctx.stroke();
+            
+            // White core
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y + 2);
+            ctx.lineTo(b.x, b.y + 13);
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        // Obstacles
+        gd.obstacles.forEach(o => {
+            if (o.type === 'bomb') {
+                // Floating naval mine
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Spikes
+                ctx.strokeStyle = '#546e7a';
+                ctx.lineWidth = 2.5;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(a) * 17, Math.sin(a) * 17);
+                    ctx.stroke();
+                    
+                    // Spike tips
+                    ctx.fillStyle = '#ff1744';
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * 17, Math.sin(a) * 17, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Mine body
+                ctx.fillStyle = '#37474f';
+                ctx.strokeStyle = '#212121';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Glowing pulsing LED
+                const flash = Math.sin(this.gameTime * 14) > 0;
+                ctx.fillStyle = flash ? '#ff1744' : '#37000b';
+                ctx.shadowColor = '#ff1744';
+                ctx.shadowBlur = flash ? 8 : 0;
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+            } else if (o.type === 'boat') {
+                // Traditional Yakatabune pleasure boat
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Foam wake (on top/rear since it bajan)
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.beginPath();
+                ctx.arc(0, -32, 10 + Math.sin(this.gameTime * 10) * 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Wooden hull
+                ctx.fillStyle = '#8d6e63';
+                ctx.strokeStyle = '#3e2723';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(0, 32); // Pointy bow pointing down
+                ctx.lineTo(-14, 20);
+                ctx.lineTo(-14, -28); // stern
+                ctx.lineTo(14, -28);
+                ctx.lineTo(14, 20);
+                ctx.closePath();
+                ctx.fill(); ctx.stroke();
+                
+                // Cabin structure
+                ctx.fillStyle = '#4e342e';
+                ctx.fillRect(-10, -22, 20, 38);
+                
+                // Cabin windows/yellow lanterns rows on sides
+                for (let ly = -18; ly <= 10; ly += 7) {
+                    ctx.fillStyle = '#ffd54f';
+                    ctx.shadowColor = '#ffd54f';
+                    ctx.shadowBlur = 4;
+                    ctx.beginPath();
+                    ctx.arc(-11, ly, 2.5, 0, Math.PI * 2);
+                    ctx.arc(11, ly, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                
+                // Boss HP bar (only if damaged)
+                if (o.hp < o.maxHp) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(-15, -36, 30, 4);
+                    ctx.fillStyle = '#00e676';
+                    ctx.fillRect(-15, -36, 30 * (o.hp / o.maxHp), 4);
+                }
+                ctx.restore();
+                
+            } else if (o.type === 'airplane') {
+                // Overhead commercial plane
+                // 1. Water shadow (drawn offset)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+                ctx.save();
+                ctx.translate(o.x, o.y + 45);
+                ctx.beginPath();
+                // Fuselage shadow
+                ctx.ellipse(0, 0, 22, 6, 0, 0, Math.PI * 2);
+                // Wings shadow
+                ctx.ellipse(0, 0, 6, 22, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // 2. High altitude plane fuselage
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Wings
+                ctx.fillStyle = '#b0bec5';
+                ctx.strokeStyle = '#455a64';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 5, 23, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Fuselage body
+                ctx.fillStyle = '#eceff1';
+                ctx.strokeStyle = '#455a64';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 24, 7, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Tail wings
+                ctx.beginPath();
+                ctx.ellipse(-18, 0, 3, 9, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Blinking wingtip nav lights
+                const flash = Math.floor(this.gameTime * 8) % 2 === 0;
+                if (flash) {
+                    // Left wing (port) red light
+                    ctx.fillStyle = '#ff1744';
+                    ctx.beginPath(); ctx.arc(0, -22, 3, 0, Math.PI * 2); ctx.fill();
+                    // Right wing (starboard) green light
+                    ctx.fillStyle = '#00e676';
+                    ctx.beginPath(); ctx.arc(0, 22, 3, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        });
+
+        // Draw Power-ups
+        gd.powerups.forEach(p => {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            // Neon pulse outer circle
+            ctx.strokeStyle = p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 16 + Math.sin(p.pulseTime * 8) * 3, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner square
+            ctx.fillStyle = 'rgba(33, 33, 33, 0.85)';
+            ctx.strokeStyle = p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081');
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            
+            // Icon
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let symbol = '🛡️';
+            if (p.type === 'double') symbol = '⚡';
+            if (p.type === 'heart') symbol = '❤️';
+            ctx.fillText(symbol, 0, 0);
+            ctx.restore();
+        });
+
+        // Draw Boat Himiko
+        ctx.save();
+        ctx.translate(gd.boatX, 480);
+        ctx.rotate(gd.boatAngle);
+        
+        // Thruster flame
+        if (gd.lives > 0) {
+            const flameSize = 14 + Math.sin(this.gameTime * 22) * 7;
+            ctx.fillStyle = '#00e5ff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.moveTo(-7, 30);
+            ctx.lineTo(0, 30 + flameSize);
+            ctx.lineTo(7, 30);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(-3, 30);
+            ctx.lineTo(0, 30 + flameSize * 0.6);
+            ctx.lineTo(3, 30);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Side stabilizers (wings)
+        ctx.fillStyle = '#9e9e9e';
+        ctx.strokeStyle = '#424242';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-16, 5);
+        ctx.lineTo(-25, 20);
+        ctx.lineTo(-16, 25);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(16, 5);
+        ctx.lineTo(25, 20);
+        ctx.lineTo(16, 25);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Main metal hull
+        ctx.fillStyle = '#e0e0e0';
+        ctx.strokeStyle = '#424242';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -35); // Pointy nose
+        ctx.bezierCurveTo(-16, -20, -16, 15, -16, 30); // Left side
+        ctx.lineTo(16, 30); // Rear
+        ctx.bezierCurveTo(16, 15, 16, -20, 0, -35); // Right side
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Detail panel lines
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -35);
+        ctx.lineTo(0, -10);
+        ctx.moveTo(-16, 10);
+        ctx.lineTo(16, 10);
+        ctx.stroke();
+
+        // Canopy windows (Green emerald glass)
+        ctx.fillStyle = 'rgba(0, 230, 118, 0.35)';
+        ctx.strokeStyle = '#00e676';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.bezierCurveTo(-10, -8, -10, 12, -10, 24);
+        ctx.lineTo(10, 24);
+        ctx.bezierCurveTo(10, 12, 10, -8, 0, -18);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Reflection highlights
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(-4, 0, 2, 12, Math.PI / 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shield bubble
+        if (gd.shieldActive) {
+            ctx.restore();
+            ctx.save();
+            ctx.translate(gd.boatX, 480);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 3 + Math.sin(this.gameTime * 6) * 0.8;
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(0, 0, 42 + Math.sin(this.gameTime * 8) * 1.5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(0, 229, 255, 0.08)';
+            ctx.fill();
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(gd.boatX, 480);
+            ctx.rotate(gd.boatAngle);
+        }
+        
+        // Flash red when invulnerable
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
+            ctx.fillStyle = 'rgba(255, 23, 73, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(0, -35);
+            ctx.bezierCurveTo(-16, -20, -16, 15, -16, 30);
+            ctx.lineTo(16, 30);
+            ctx.bezierCurveTo(16, 15, 16, -20, 0, -35);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // HUD Layout
+        // 1. Score
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 3;
+        ctx.fillText(`Puntos: ${this.score}`, 180, 35);
+        
+        // 2. Upcoming Bridge
+        if (gd.bridgesPassed < 5) {
+            const nextB = gd.bridges[gd.bridgesPassed];
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Siguiente: ${nextB.name}`, 400, 35);
+            
+            // Double shot timer remaining
+            if (gd.doubleShotTimer > 0) {
+                ctx.fillStyle = '#ff9100';
+                ctx.font = '14px Outfit, sans-serif';
+                ctx.fillText(`Doble Disparo: ${gd.doubleShotTimer.toFixed(1)}s`, 400, 565);
+            }
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("¡Ruta Completada!", 400, 35);
+        }
+        
+        // 3. Lives hearts (top right)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText("Vidas: ", 700, 34);
+        for (let i = 0; i < gd.maxLives; i++) {
+            ctx.fillStyle = i < gd.lives ? '#ff4081' : 'rgba(255, 255, 255, 0.2)';
+            ctx.font = '18px Outfit, sans-serif';
+            ctx.fillText("❤️", 715 + i * 22, 36);
+        }
+        ctx.shadowBlur = 0;
+
+        // 4. Progression Timeline on Left Bank
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(40, 130);
+        ctx.lineTo(40, 470);
+        ctx.stroke();
+        
+        const shortNames = ['Azuma', 'Kiyosu', 'Eitai', 'Kachidoki', 'Tsukiji'];
+        for (let i = 0; i < 5; i++) {
+            const tickY = 130 + i * 85;
+            ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : '#ffffff';
+            ctx.beginPath();
+            ctx.arc(40, tickY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : 'rgba(255, 255, 255, 0.6)';
+            ctx.font = '10px Outfit, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(shortNames[i], 52, tickY + 3);
+        }
+        
+        let timelineFrac = 0;
+        if (gd.bridgesPassed < 5) {
+            const nextBridge = gd.bridges[gd.bridgesPassed];
+            const startY = gd.bridgesPassed === 0 ? -300 : (gd.bridgesPassed === 1 ? -900 : (gd.bridgesPassed === 2 ? -1500 : (gd.bridgesPassed === 3 ? -2100 : -2700)));
+            const range = 440 - startY;
+            const currentTravel = nextBridge.y - startY;
+            timelineFrac = clamp(currentTravel / range, 0, 1.0);
+        }
+        
+        const playerTimelineY = 130 + gd.bridgesPassed * 85 + (gd.bridgesPassed < 5 ? timelineFrac * 85 : 0);
+        ctx.fillStyle = '#ff9100';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(40, clamp(playerTimelineY, 130, 470), 7, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+    },
+    inputSumidaPress(x, y) {
+        const gd = this.gameData;
+        if (!gd || gd.lives <= 0 || this.state !== 'playing') return;
+        
+        if (gd.shootCooldown <= 0) {
+            if (gd.doubleShotTimer > 0) {
+                gd.bullets.push({ x: gd.boatX - 15, y: 440, vy: -550 });
+                gd.bullets.push({ x: gd.boatX + 15, y: 440, vy: -550 });
+            } else {
+                gd.bullets.push({ x: gd.boatX, y: 440, vy: -550 });
+            }
+            gd.shootCooldown = 0.22;
+            if (window.playProceduralSound) window.playProceduralSound('jump');
+        }
+    },
+    dropSumidaPowerup(x, y) {
+        const gd = this.gameData;
+        if (!gd || Math.random() > 0.25) return;
+        
+        const types = ['shield', 'double', 'heart'];
+        const weights = [0.5, 0.35, 0.15];
+        
+        const rand = Math.random();
+        let type = 'shield';
+        if (rand < weights[0]) {
+            type = 'shield';
+        } else if (rand < weights[0] + weights[1]) {
+            type = 'double';
+        } else {
+            type = 'heart';
+        }
+        
+        gd.powerups.push({
+            x: x,
+            y: y,
+            vy: 110,
+            type: type,
+            pulseTime: 0
+        });
+    },
+    addSumidaTextParticle(x, y, text, color) {
+        const gd = this.gameData;
+        if (!gd) return;
+        
+        gd.customParticles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 20,
+            vy: -70 - Math.random() * 30,
+            text: text,
+            color: color,
+            alpha: 1.0,
+            size: 15,
+            life: 1.0,
+            decay: 1.6,
+            type: 'text'
+        });
+    },
+
+    // 10. day_18_shibuya: La Marea Humana (Lente lupa de zoom fotográfico en Shibuya Crossing)
+    setupShibuya() {
+        this.gameData = {
+            chibis: [],
+            magnifierX: 400,
+            magnifierY: 300,
+            targetTrend: 'Lolita con Paraguas ☂️',
+            photoCount: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateShibuya(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            const trends = ['Lolita con Paraguas ☂️', 'Salaryman con maleta 💼', 'Turista con sombrero 👒'];
+            gd.chibis.push({
+                x: Math.random() < 0.5 ? -30 : 830,
+                y: 100 + Math.random() * 320,
+                vx: (Math.random() * 80 + 60) * (Math.random() < 0.5 ? 1 : -1),
+                style: trends[Math.floor(Math.random() * 3)],
+                rot: Math.random() * 5
+            });
+        }
+
+        gd.chibis.forEach(c => {
+            c.x += c.vx * dt;
+        });
+        gd.chibis = gd.chibis.filter(c => c.x > -50 && c.x < 850);
+
+        // Move magnifier camera
+        gd.magnifierX = this.mouse.x;
+        gd.magnifierY = this.mouse.y;
+    },
+    drawShibuya() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Crossing stripes
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 45, 120, 20, 320);
+        }
+
+        // Draw chibis in street
+        gd.chibis.forEach(c => {
+            ctx.fillStyle = c.style.includes('Lolita') ? '#ec407a' : (c.style.includes('Salaryman') ? '#1e88e5' : '#7cb342');
+            ctx.beginPath(); ctx.arc(c.x, c.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Viewfinder Lente de Lupa de Zoom
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(gd.magnifierX, gd.magnifierY, 95, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Draw detailed zoomed version of characters inside lens
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 45, 120, 20, 320);
+        }
+
+        gd.chibis.forEach(c => {
+            // Draw zoomed items
+            ctx.fillStyle = c.style.includes('Lolita') ? '#ec407a' : (c.style.includes('Salaryman') ? '#1e88e5' : '#7cb342');
+            ctx.beginPath(); ctx.arc(c.x, c.y, 28, 0, Math.PI * 2); ctx.fill();
+
+            // Accessories detailed
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '22px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            if (c.style.includes('Umbrella') || c.style.includes('Paraguas')) ctx.fillText('☂️', c.x, c.y + 8);
+            if (c.style.includes('maleta')) ctx.fillText('💼', c.x, c.y + 8);
+            if (c.style.includes('sombrero')) ctx.fillText('👒', c.x, c.y + 8);
+        });
+        ctx.restore();
+
+        // Render Lens Rim
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(gd.magnifierX, gd.magnifierY, 95, 0, Math.PI * 2); ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Target: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos: ${gd.photoCount}/5`, 770, 40);
+        ctx.textAlign = 'center';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 400, 560);
+    },
+    inputShibuyaPress(x, y) {
+        const gd = this.gameData;
+        let snap = false;
+        gd.chibis.forEach((c, idx) => {
+            // Check if clicked inside viewfinder and close to character
+            if (Math.hypot(x - gd.magnifierX, y - gd.magnifierY) < 95 && Math.hypot(x - c.x, y - c.y) < 35) {
+                snap = true;
+                gd.chibis.splice(idx, 1);
+                if (c.style === gd.targetTrend) {
+                    gd.photoCount++;
+                    this.score = Math.round((gd.photoCount / 5) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.photoCount >= 5) {
+                        this.win();
+                    } else {
+                        const list = ['Lolita con Paraguas ☂️', 'Salaryman con maleta 💼', 'Turista con sombrero 👒'];
+                        gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(14);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        if (!snap && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseShibuya() {},
+
+    // 11. day_18_hachiko: Guardián Hachiko (Cuidado de clima, paño seco, caricias y galletas)
+    setupHachiko() {
+        this.gameData = {
+            happiness: 40,
+            rain: [],
+            treats: [],
+            spawnTimer: 0,
+            activeTool: 'pet', // 'pet', 'cloth', 'treat'
+            petValue: 0
+        };
+        this.score = 40;
+    },
+    updateHachiko(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            gd.rain.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 200 + Math.random() * 80
+            });
+        }
+
+        // Wipe tool
+        if (this.mouse.isDown && gd.activeTool === 'cloth') {
+            gd.rain.forEach((r, idx) => {
+                if (Math.hypot(this.mouse.x - r.x, this.mouse.y - r.y) < 45) {
+                    gd.rain.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+        }
+
+        // Petting Hachiko
+        if (this.mouse.isDown && gd.activeTool === 'pet' && Math.hypot(this.mouse.x - 400, this.mouse.y - 250) < 90) {
+            gd.happiness = Math.min(100, gd.happiness + dt * 15);
+            this.score = Math.round(gd.happiness);
+            if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('collect');
+            if (gd.happiness >= 100) this.win();
+        }
+
+        // Update rain falling
+        gd.rain.forEach((r, idx) => {
+            r.y += r.vy * dt;
+            // If hits Hachiko pedestal
+            if (r.y > 220 && r.y < 350 && Math.abs(r.x - 400) < 80) {
+                gd.rain.splice(idx, 1);
+                gd.happiness = Math.max(0, gd.happiness - 10);
+                this.score = Math.round(gd.happiness);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.rain = gd.rain.filter(r => r.y < 600);
+    },
+    drawHachiko() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#558b2f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Pedestal
+        ctx.fillStyle = '#90a4ae';
+        ctx.fillRect(320, 360, 160, 140);
+
+        // Hachiko
+        ctx.fillStyle = '#ffb74d';
+        ctx.beginPath(); ctx.ellipse(400, 310, 46, 60, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(400, 230, 30, 0, Math.PI * 2); ctx.fill();
+        // Ears
+        ctx.fillStyle = '#e65100';
+        ctx.beginPath();
+        ctx.moveTo(375, 210); ctx.lineTo(365, 185); ctx.lineTo(390, 205);
+        ctx.moveTo(425, 210); ctx.lineTo(435, 185); ctx.lineTo(410, 205);
+        ctx.fill();
+
+        // Draw Rain
+        ctx.strokeStyle = '#b3e5fc';
+        ctx.lineWidth = 2;
+        gd.rain.forEach(r => {
+            ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - 5, r.y + 15); ctx.stroke();
+        });
+
+        // Happiness Bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 20);
+        ctx.fillStyle = '#e91e63';
+        ctx.fillRect(250, 40, 3 * gd.happiness, 20);
+
+        // Tools panel selector
+        const tools = ['pet', 'cloth', 'treat'];
+        const names = ['🫳 ACARICIAR', '🧽 SECAR', '🍖 PREMIO'];
+        for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = gd.activeTool === tools[i] ? '#81c784' : '#37474f';
+            ctx.fillRect(100 + i * 220, 520, 180, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(names[i], 190 + i * 220, 545);
+        }
+    },
+    inputHachikoPress(x, y) {
+        const gd = this.gameData;
+        if (y > 520 && y < 560) {
+            if (x > 100 && x < 280) gd.activeTool = 'pet';
+            if (x > 320 && x < 500) gd.activeTool = 'cloth';
+            if (x > 540 && x < 720) {
+                gd.activeTool = 'treat';
+                // Feed treat instantly
+                gd.happiness = Math.min(100, gd.happiness + 15);
+                this.score = Math.round(gd.happiness);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.happiness >= 100) this.win();
+            }
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseHachiko() {},
+
+    // 12. day_18_ema: Deseo en el Ema (Móvil balanceado de deseos de Shinto con gravedad de pesos)
+    setupEma() {
+        this.gameData = {
+            hangerAngle: 0,
+            hangerSpeed: 0,
+            placed: [],
+            currentWeight: 10,
+            cursorX: 400
+        };
+        this.score = 0;
+    },
+    updateEma(dt) {
+        const gd = this.gameData;
+        gd.cursorX = this.mouse.x;
+
+        // Hanger balancing physics (tilt depends on net torque)
+        let torque = 0;
+        gd.placed.forEach(e => {
+            // torque = weight * distance from center
+            torque += e.weight * (e.x - 400);
+        });
+
+        // Hanger sway acceleration
+        const angularAcc = torque * 0.0003 - gd.hangerAngle * 0.5;
+        gd.hangerSpeed = (gd.hangerSpeed + angularAcc * dt) * 0.95;
+        gd.hangerAngle += gd.hangerSpeed * dt;
+
+        if (Math.abs(gd.hangerAngle) > 0.45) { // Too much tilt -> collapse
+            gd.placed = [];
+            gd.hangerAngle = 0;
+            gd.hangerSpeed = 0;
+            this.triggerShake(15);
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+    drawEma() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shrine hook frame
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(400, 50); ctx.lineTo(400, 100); ctx.stroke();
+
+        ctx.save();
+        ctx.translate(400, 100);
+        ctx.rotate(gd.hangerAngle);
+
+        // Hanger balance beam
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+
+        // Hooks on beam
+        ctx.fillStyle = '#111';
+        for (let x = -160; x <= 160; x += 80) {
+            ctx.beginPath(); ctx.arc(x, 10, 6, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Draw placed Emas
+        gd.placed.forEach(e => {
+            ctx.save();
+            ctx.translate(e.x - 400, 15);
+            ctx.fillStyle = '#ffecb3';
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-30, 0, 60, 45);
+            ctx.strokeRect(-30, 0, 60, 45);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.label, 0, 25);
+            ctx.restore();
+        });
+
+        ctx.restore();
+
+        // Dropping preview ema
+        ctx.fillStyle = 'rgba(255, 236, 179, 0.6)';
+        ctx.fillRect(gd.cursorX - 30, 150, 60, 45);
+
+        // Tilt limit safety gauges
+        ctx.strokeStyle = '#d32f2f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(400, 100, 220, Math.PI - 0.45, Math.PI + 0.45);
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Tablillas colgadas: ${gd.placed.length}/4`, 30, 560);
+        ctx.textAlign = 'center';
+        ctx.fillText('Cuelga las tablillas de deseos balanceando el peso a izquierda y derecha', 400, 520);
+    },
+    inputEmaPress(x, y) {
+        const gd = this.gameData;
+        if (gd.placed.length < 4) {
+            const labels = ['福 (Suerte)', '寿 (Salud)', '禄 (Riqueza)', '愛 (Amor)'];
+            const w = 15 + Math.random() * 20; // Random weights
+            gd.placed.push({
+                x: x,
+                weight: w,
+                label: labels[gd.placed.length]
+            });
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.score = Math.round((gd.placed.length / 4) * 100);
+            if (gd.placed.length === 4) this.win();
+        }
+    },
+
+    // 13. day_18_crepe: Crepe de Harajuku (Esparcido concéntrico, doblado y apilamiento con centro de masa)
+    setupCrepe() {
+        this.gameData = {
+            step: 'batter', // 'batter', 'fold', 'stack'
+            batterProgress: 0,
+            foldCount: 0,
+            crepeX: 400,
+            toppings: [],
+            stacked: [],
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCrepe(dt) {
+        const gd = this.gameData;
+        if (gd.step === 'batter') {
+            if (this.mouse.isDown) {
+                const dist = Math.hypot(this.mouse.x - 400, this.mouse.y - 300);
+                if (dist < 150) {
+                    gd.batterProgress += dt * 38;
+                    if (gd.batterProgress >= 100) {
+                        gd.step = 'fold';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                }
+            }
+        } else if (gd.step === 'fold') {
+            // Requires swiping left and right
+        } else if (gd.step === 'stack') {
+            gd.crepeX = lerp(gd.crepeX, this.mouse.x, 0.15);
+            if (gd.crepeX < 120) gd.crepeX = 120;
+            if (gd.crepeX > 680) gd.crepeX = 680;
+
+            // Spawn dynamic toppings
+            if (Math.random() < 0.05) {
+                const isGood = Math.random() < 0.75;
+                const items = isGood ? ['🍓', '🍦', '🍨', '🍫'] : ['🗑️', '🐟'];
+                gd.toppings.push({
+                    x: 150 + Math.random() * 500,
+                    y: 0,
+                    vy: 200 + Math.random() * 100,
+                    emoji: items[Math.floor(Math.random() * items.length)],
+                    isGood: isGood
+                });
+            }
+
+            // Top stack height calculation
+            gd.toppings.forEach((top, idx) => {
+                top.y += top.vy * dt;
+                const stackY = 460 - gd.stacked.length * 15;
+                if (Math.abs(top.y - stackY) < 18 && Math.abs(top.x - gd.crepeX) < 45) {
+                    gd.toppings.splice(idx, 1);
+                    if (top.isGood) {
+                        gd.stacked.push({ emoji: top.emoji });
+                        this.score = Math.round((gd.stacked.length / 15) * 100);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        if (gd.stacked.length >= 15) this.win();
+                    } else {
+                        gd.lives--;
+                        gd.stacked = gd.stacked.slice(0, Math.max(0, gd.stacked.length - 2));
+                        this.triggerShake(12);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            });
+            gd.toppings = gd.toppings.filter(t => t.y < 600);
+        }
+    },
+    drawCrepe() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cute pink design
+        ctx.fillStyle = '#fce4ec';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (gd.step === 'batter') {
+            ctx.fillStyle = '#eceff1';
+            ctx.beginPath(); ctx.arc(400, 300, 160, 0, Math.PI * 2); ctx.fill();
+            
+            // Raw yellow batter expanding
+            ctx.fillStyle = '#fff9c4';
+            ctx.beginPath(); ctx.arc(400, 300, 1.6 * gd.batterProgress, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Paso 1: Arrastra en círculos para esparcir la masa del Crepe', 400, 80);
+        } else if (gd.step === 'fold') {
+            ctx.fillStyle = '#fff9c4';
+            ctx.beginPath();
+            ctx.moveTo(300, 450); ctx.lineTo(500, 450); ctx.lineTo(400, 200);
+            ctx.closePath(); ctx.fill();
+
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Paso 2: Desliza horizontalmente para doblar el crepe', 400, 80);
+        } else if (gd.step === 'stack') {
+            // Draw crepe cone
+            ctx.fillStyle = '#ffe082';
+            ctx.strokeStyle = '#c2185b';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(gd.crepeX - 35, 480);
+            ctx.lineTo(gd.crepeX + 35, 480);
+            ctx.lineTo(gd.crepeX, 550);
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+
+            // Draw stack
+            gd.stacked.forEach((st, idx) => {
+                ctx.font = '26px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(st.emoji, gd.crepeX + (idx % 2 === 0 ? 5 : -5), 470 - idx * 15);
+            });
+
+            // Falling toppings
+            gd.toppings.forEach(t => {
+                ctx.font = '28px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t.emoji, t.x, t.y);
+            });
+
+            // HUD
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Dulces: ${gd.stacked.length}/15`, 30, 40);
+            ctx.textAlign = 'right';
+            ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+        }
+    },
+    inputCrepePress(x, y) {
+        const gd = this.gameData;
+        if (gd.step === 'fold') {
+            gd.foldCount++;
+            if (window.playProceduralSound) playProceduralSound('click');
+            if (gd.foldCount >= 3) {
+                gd.step = 'stack';
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+    releaseCrepe() {},
+
+    // 14. day_18_radio: Intercepción de Radio (Filtro de Ruido de Audio)
+    setupRadio() {
+        this.gameData = {
+            freq: 12,
+            amp: 40,
+            phase: 0,
+            targetFreq: 33,
+            targetAmp: 110,
+            targetPhase: 160,
+            lockTimer: 0,
+            draggingDial: null
+        };
+        this.score = 0;
+    },
+    updateRadio(dt) {
+        const gd = this.gameData;
+        if (gd.draggingDial) {
+            const cx = gd.draggingDial === 'F' ? 180 : (gd.draggingDial === 'A' ? 400 : 620);
+            const cy = 480;
+            const angle = Math.atan2(this.mouse.y - cy, this.mouse.x - cx) * 180 / Math.PI + 90;
+            const norm = (angle + 360) % 360;
+
+            if (gd.draggingDial === 'F') gd.freq = 5 + (norm / 360) * 55;
+            if (gd.draggingDial === 'A') gd.amp = 20 + (norm / 360) * 160;
+            if (gd.draggingDial === 'P') gd.phase = norm;
+        }
+
+        const diffF = Math.abs(gd.freq - gd.targetFreq);
+        const diffA = Math.abs(gd.amp - gd.targetAmp);
+        const diffP = Math.abs(gd.phase - gd.targetPhase);
+
+        if (diffF < 3 && diffA < 12 && diffP < 15) {
+            gd.lockTimer += dt;
+            this.score = Math.min(100, Math.round((gd.lockTimer / 2.0) * 100));
+            if (gd.lockTimer >= 2.0) this.win();
+        } else {
+            gd.lockTimer = Math.max(0, gd.lockTimer - dt * 25);
+        }
+    },
+    drawRadio() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1c2833';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // CRT Screen
+        ctx.fillStyle = '#0b1611';
+        ctx.fillRect(100, 40, 600, 300);
+
+        // Signal grid
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 100; x <= 700; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, 340); ctx.stroke();
+        }
+
+        // Target Wave (Red)
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 4) {
+            const y = 190 + Math.sin((x * gd.targetFreq) / 100 + (gd.targetPhase * Math.PI / 180)) * gd.targetAmp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Player Wave (Green)
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 4) {
+            const y = 190 + Math.sin((x * gd.freq) / 100 + (gd.phase * Math.PI / 180)) * gd.amp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        const dials = ['F', 'A', 'P'];
+        const values = [gd.freq, gd.amp, gd.phase];
+        const limits = [55, 160, 360];
+        const labels = ['Frecuencia', 'Amplitud', 'Fase'];
+        for (let i = 0; i < 3; i++) {
+            const cx = 180 + i * 220;
+            const cy = 480;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+            ctx.rotate((values[i] / limits[i]) * Math.PI * 2);
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillRect(-3, -38, 6, 20);
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], cx, 550);
+        }
+
+        // Lock progress
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 360, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 360, gd.lockTimer * 100, 15);
+    },
+    inputRadioPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 180, y - 480) < 45) gd.draggingDial = 'F';
+        if (Math.hypot(x - 400, y - 480) < 45) gd.draggingDial = 'A';
+        if (Math.hypot(x - 620, y - 480) < 45) gd.draggingDial = 'P';
+        if (gd.draggingDial && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseRadio() {
+        this.gameData.draggingDial = null;
+    },
+
+    // 15. day_18_trend: Cazatendencias (Enfoque de Cámara Réflex)
+    setupTrend() {
+        this.gameData = {
+            targetTrend: 'Lolita Rosa',
+            photoCount: 0,
+            models: [],
+            spawnTimer: 0,
+            focusLevel: 1.0,
+            targetFocus: 2.0,
+            draggingSlider: false
+        };
+        this.score = 0;
+    },
+    updateTrend(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            const trends = ['Lolita Rosa', 'Cyberpunk Visor', 'Kitsch Retro'];
+            gd.models.push({
+                x: -50,
+                y: 300,
+                vx: 140 + Math.random() * 60,
+                style: trends[Math.floor(Math.random() * 3)]
+            });
+        }
+
+        gd.models.forEach(m => {
+            m.x += m.vx * dt;
+        });
+        gd.models = gd.models.filter(m => m.x < 850);
+
+        if (gd.draggingSlider) {
+            const relX = (this.mouse.x - 250) / 300;
+            gd.focusLevel = 1.0 + Math.max(0, Math.min(1, relX)) * 2.0; // Focus range 1.0 to 3.0
+        }
+    },
+    drawTrend() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background street
+        ctx.fillStyle = '#eceff1';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Blurring effect simulator based on focus error
+        const focusError = Math.abs(gd.focusLevel - gd.targetFocus);
+        ctx.save();
+        if (focusError > 0.15) {
+            ctx.filter = `blur(${focusError * 12}px)`;
+        }
+
+        // Draw shops facade
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(50, 80, 700, 160);
+
+        // Draw walking models
+        gd.models.forEach(m => {
+            ctx.fillStyle = m.style === 'Lolita Rosa' ? '#ec407a' : (m.style === 'Cyberpunk Visor' ? '#00e5ff' : '#ffd700');
+            ctx.beginPath(); ctx.arc(m.x, m.y, 24, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.restore();
+
+        // Viewfinder lines (HUD above blur)
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(300, 200, 200, 200);
+
+        // Draw slider for Focus adjustment
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 520, 300, 8);
+        const sliderX = 250 + ((gd.focusLevel - 1.0) / 2.0) * 300;
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(sliderX, 524, 10, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Calibración del Objetivo: Enfoque ${gd.focusLevel.toFixed(1)}x / 2.0x`, 400, 500);
+
+        // HUD
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Objetivo: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos: ${gd.photoCount}/5`, 770, 40);
+    },
+    inputTrendPress(x, y) {
+        const gd = this.gameData;
+        if (y > 500 && y < 550 && x > 230 && x < 570) {
+            gd.draggingSlider = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else {
+            let hit = false;
+            gd.models.forEach((m, idx) => {
+                // Focus must be sharp (low error) to take a valid photo
+                const focusError = Math.abs(gd.focusLevel - gd.targetFocus);
+                if (focusError < 0.25 && m.x > 300 && m.x < 500 && m.y > 200 && m.y < 400) {
+                    hit = true;
+                    gd.models.splice(idx, 1);
+                    if (m.style === gd.targetTrend) {
+                        gd.photoCount++;
+                        this.score = Math.round((gd.photoCount / 5) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.photoCount >= 5) {
+                            this.win();
+                        } else {
+                            const list = ['Lolita Rosa', 'Cyberpunk Visor', 'Kitsch Retro'];
+                            gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        this.triggerShake(10);
+                    }
+                }
+            });
+            if (!hit && window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseTrend() {
+        this.gameData.draggingSlider = false;
+    },
+
+    // 16. day_18_flow: Flujo del Cruce (Controlador del Scramble)
+    setupFlow18() {
+        this.gameData = {
+            pedestrians: [],
+            cars: [],
+            lightGreen: true,
+            pEscaped: 0,
+            cEscaped: 0,
+            spawnTimer: 0,
+            lives: 3,
+            impatience: 0
+        };
+        this.score = 0;
+    },
+    updateFlow18(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            if (Math.random() < 0.65) {
+                gd.pedestrians.push({ x: 120 + Math.random() * 560, y: 0, vy: 70 + Math.random() * 40 });
+            } else {
+                gd.cars.push({ x: -80, y: 300 + (Math.random() - 0.5) * 50, vx: 180 + Math.random() * 80 });
+            }
+        }
+
+        // Increase impatience if red lights are held too long
+        if (!gd.lightGreen) {
+            gd.impatience = Math.min(100, gd.impatience + dt * 10);
+            if (gd.impatience >= 100) {
+                // Pedestrians start crossing illegally!
+                gd.lightGreen = true;
+                gd.impatience = 0;
+            }
+        } else {
+            gd.impatience = Math.max(0, gd.impatience - dt * 15);
+        }
+
+        gd.pedestrians.forEach((p, idx) => {
+            if (gd.lightGreen) {
+                p.y += p.vy * dt;
+                if (p.y >= 500) {
+                    gd.pedestrians.splice(idx, 1);
+                    gd.pEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                }
+            }
+        });
+
+        gd.cars.forEach((c, idx) => {
+            if (!gd.lightGreen || c.x < 280 || c.x > 520) {
+                c.x += c.vx * dt;
+                if (c.x >= 850) {
+                    gd.cars.splice(idx, 1);
+                    gd.cEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                }
+            }
+
+            // Hit box
+            gd.pedestrians.forEach((p, pIdx) => {
+                if (Math.hypot(c.x - p.x, c.y - p.y) < 32) {
+                    gd.pedestrians.splice(pIdx, 1);
+                    gd.lives--;
+                    this.triggerShake(14);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            });
+        });
+    },
+    drawFlow18() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Zebra lines
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 9; i++) {
+            ctx.fillRect(160 + i * 55, 140, 25, 320);
+        }
+
+        gd.pedestrians.forEach(p => {
+            ctx.fillStyle = '#81c784';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+        });
+
+        gd.cars.forEach(c => {
+            ctx.fillStyle = '#e53935';
+            ctx.fillRect(c.x - 22, c.y - 12, 44, 24);
+        });
+
+        // Controller light node
+        ctx.fillStyle = gd.lightGreen ? '#4caf50' : '#f44336';
+        ctx.fillRect(340, 490, 120, 40);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.lightGreen ? 'PEATONES' : 'VEHÍCULOS', 400, 515);
+
+        // Impatience meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 470, 300, 8);
+        ctx.fillStyle = '#ff9100';
+        ctx.fillRect(250, 470, 3 * gd.impatience, 8);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Peatones: ${gd.pEscaped}/50  Coches: ${gd.cEscaped}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputFlow18Press(x, y) {
+        const gd = this.gameData;
+        if (x > 340 && x < 460 && y > 490 && y < 530) {
+            gd.lightGreen = !gd.lightGreen;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_18_silence: Silencio en la Ciudad (Laberinto acústico con reflexión y absorción)
+    setupSilence() {
+        this.gameData = {
+            noise: 80,
+            bubbles: [],
+            trees: [],
+            spawnTimer: 0,
+            calmTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            gd.bubbles.push({
+                x: 0,
+                y: 120 + Math.random() * 350,
+                vx: 180 + Math.random() * 60,
+                vy: (Math.random() - 0.5) * 40,
+                r: 14
+            });
+        }
+
+        gd.bubbles.forEach((b, idx) => {
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+
+            // Reflect on stone walls / absorb on hedges
+            gd.trees.forEach(t => {
+                if (Math.hypot(b.x - t.x, b.y - t.y) < t.r) {
+                    if (t.type === 'hedge') {
+                        // Absorbed
+                        gd.bubbles.splice(idx, 1);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                    } else if (t.type === 'stone') {
+                        // Bounce reflect
+                        const angle = Math.atan2(b.y - t.y, b.x - t.x);
+                        b.vx = Math.cos(angle) * 200;
+                        b.vy = Math.sin(angle) * 200;
+                        b.x = t.x + Math.cos(angle) * (t.r + 2);
+                        b.y = t.y + Math.sin(angle) * (t.r + 2);
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            });
+
+            if (b.x >= 710) {
+                gd.bubbles.splice(idx, 1);
+                gd.noise = Math.min(100, gd.noise + 12);
+                this.triggerShake(6);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+
+        gd.noise = Math.max(0, gd.noise - dt * 8);
+
+        if (gd.noise < 12) {
+            gd.calmTimer += dt;
+            this.score = Math.min(100, Math.round((gd.calmTimer / 5.0) * 100));
+            if (gd.calmTimer >= 5.0) this.win();
+        } else {
+            gd.calmTimer = 0;
+            this.score = 0;
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shrine inner sanctuary gate
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(720, 100, 20, 400);
+
+        // Barriers
+        gd.trees.forEach(t => {
+            if (t.type === 'hedge') {
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.2)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#2e7d32';
+                ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI * 2); ctx.fill();
+            } else {
+                ctx.fillStyle = 'rgba(144, 164, 174, 0.3)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#546e7a';
+                ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // Sound wave bubbles
+        ctx.fillStyle = 'rgba(244, 67, 54, 0.45)';
+        ctx.strokeStyle = '#f44336';
+        ctx.lineWidth = 2;
+        gd.bubbles.forEach(b => {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Noise meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 25, 400, 20);
+        ctx.fillStyle = gd.noise > 50 ? '#f44336' : '#00ff99';
+        ctx.fillRect(200, 25, 4 * gd.noise, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Volumen de Ruido: ${Math.round(gd.noise)}%`, 400, 75);
+        ctx.fillText('Haz click en el mapa: Planta setos absorbedores o muros de piedra rebotantes', 400, 560);
+    },
+    inputSilencePress(x, y) {
+        const gd = this.gameData;
+        if (x < 650 && gd.trees.length < 6) {
+            const isHedge = Math.random() < 0.5;
+            gd.trees.push({
+                x: x,
+                y: y,
+                r: isHedge ? 80 : 50,
+                type: isHedge ? 'hedge' : 'stone'
+            });
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 18. day_18_crossing: Cruzando Shibuya (Formación familiar de escolta con control de paso)
+    setupCrossing() {
+        this.gameData = {
+            familyX: 150,
+            familyY: 500,
+            formation: 'tight', // 'tight', 'spread'
+            crowd: [],
+            spawnTimer: 0,
+            invulnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrossing(dt) {
+        const gd = this.gameData;
+        gd.familyX = lerp(gd.familyX, this.mouse.x, 0.08);
+        gd.familyY = lerp(gd.familyY, this.mouse.y, 0.08);
+
+        if (gd.familyX < 150) gd.familyX = 150;
+        if (gd.familyX > 650) gd.familyX = 650;
+        if (gd.familyY < 80) gd.familyY = 80;
+        if (gd.familyY > 520) gd.familyY = 520;
+
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.4;
+            gd.crowd.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 140 + Math.random() * 80
+            });
+        }
+
+        // Click sets formation width
+        if (this.mouse.isDown) {
+            gd.formation = 'tight';
+        } else {
+            gd.formation = 'spread';
+        }
+
+        const width = gd.formation === 'tight' ? 18 : 35;
+
+        gd.crowd.forEach(p => {
+            p.y += p.vy * dt;
+            if (gd.invulnTimer <= 0 && Math.hypot(p.x - gd.familyX, p.y - gd.familyY) < (width + 15)) {
+                gd.familyY = Math.min(500, gd.familyY + 80); // Push back
+                gd.invulnTimer = 0.8;
+                this.triggerShake(10);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.crowd = gd.crowd.filter(p => p.y < 600);
+
+        if (gd.familyY <= 110) {
+            this.score = 100;
+            this.win();
+        } else {
+            this.score = Math.round(((500 - gd.familyY) / 390) * 100);
+        }
+    },
+    drawCrossing() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 11; i++) {
+            ctx.fillRect(160 + i * 45, 110, 22, 380);
+        }
+
+        ctx.fillStyle = '#cfd8dc';
+        gd.crowd.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Target
+        ctx.fillStyle = 'rgba(0, 230, 118, 0.2)';
+        ctx.fillRect(150, 45, 500, 65);
+
+        // Draw Escorted Family based on formation
+        const w = gd.formation === 'tight' ? 14 : 32;
+        ctx.save();
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 12) % 2 === 0) {
+            ctx.globalAlpha = 0.4;
+        }
+
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath(); ctx.arc(gd.familyX, gd.familyY, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.familyX - w, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(gd.familyX + w, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Mantén pulsado para agrupar estrechamente a la familia y esquivar la multitud', 400, 560);
+    },
+    inputCrossingPress(x, y) {},
+
+    // 19. day_19_gundam: Piloto de Mechas (Fijación de blancos múltiple Lock-On y misiles vectoriales)
+    setupGundam() {
+        this.gameData = {
+            aimX: 400,
+            aimY: 300,
+            drones: [],
+            locks: [], // locked drone indices
+            missiles: [],
+            spawnTimer: 0,
+            destroyed: 0,
+            shield: 100
+        };
+        this.score = 0;
+    },
+    updateGundam(dt) {
+        const gd = this.gameData;
+        gd.aimX = lerp(gd.aimX, this.mouse.x, 0.18);
+        gd.aimY = lerp(gd.aimY, this.mouse.y, 0.18);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.85;
+            gd.drones.push({
+                x: 120 + Math.random() * 560,
+                y: 60 + Math.random() * 160,
+                vx: (Math.random() < 0.5 ? 1 : -1) * 90,
+                locked: false
+            });
+        }
+
+        gd.drones.forEach((d, idx) => {
+            d.x += d.vx * dt;
+            if (d.x < 100 || d.x > 700) d.vx *= -1;
+
+            // Lock target by hovering
+            if (Math.hypot(gd.aimX - d.x, gd.aimY - d.y) < 40 && !d.locked) {
+                d.locked = true;
+                gd.locks.push(d);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+
+        // Launch missiles on click release/trigger
+        if (gd.locks.length >= 4 || (this.mouse.isDown && gd.locks.length > 0)) {
+            // fire barrage
+            gd.locks.forEach(d => {
+                gd.missiles.push({
+                    x: 400,
+                    y: 550,
+                    tx: d.x,
+                    ty: d.y,
+                    progress: 0
+                });
+            });
+            gd.locks = [];
+            gd.drones.forEach(d => d.locked = false);
+        }
+
+        // Update missiles
+        gd.missiles.forEach((m, idx) => {
+            m.progress += dt * 3.5;
+            if (m.progress >= 1.0) {
+                gd.missiles.splice(idx, 1);
+                // Blow up close drones
+                gd.drones.forEach((d, dIdx) => {
+                    if (Math.hypot(m.tx - d.x, m.ty - d.y) < 45) {
+                        gd.drones.splice(dIdx, 1);
+                        gd.destroyed++;
+                        this.score = Math.round((gd.destroyed / 15) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.destroyed >= 15) this.win();
+                    }
+                });
+            }
+        });
+    },
+    drawGundam() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cockpit screen
+        ctx.fillStyle = '#02050f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Circular sweep radar in cockpit
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(400, 300, 250, 0, Math.PI * 2); ctx.stroke();
+
+        // Draw drones
+        gd.drones.forEach(d => {
+            ctx.fillStyle = d.locked ? '#ff9100' : '#455a64';
+            ctx.strokeStyle = d.locked ? '#ff3d00' : '#cfd8dc';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Missile lines
+        ctx.lineWidth = 3;
+        gd.missiles.forEach(m => {
+            ctx.strokeStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(400, 550);
+            ctx.quadraticCurveTo(200, 300, m.tx, m.ty);
+            ctx.stroke();
+        });
+
+        // Lock-on Viewfinder crosshair
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(gd.aimX, gd.aimY, 28, 0, Math.PI * 2);
+        ctx.moveTo(gd.aimX - 40, gd.aimY); ctx.lineTo(gd.aimX - 12, gd.aimY);
+        ctx.moveTo(gd.aimX + 12, gd.aimY); ctx.lineTo(gd.aimX + 40, gd.aimY);
+        ctx.moveTo(gd.aimX, gd.aimY - 40); ctx.lineTo(gd.aimX, gd.aimY - 12);
+        ctx.moveTo(gd.aimX, gd.aimY + 12); ctx.lineTo(gd.aimX, gd.aimY + 40);
+        ctx.stroke();
+
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Drones Derribados: ${gd.destroyed}/15`, 400, 500);
+        ctx.fillText('Desliza sobre los drones para fijar objetivos (Lock-on) y suelta para disparar', 400, 540);
+    },
+    inputGundamPress(x, y) {},
+
+    // 20. day_19_color: Cazador de Luz (Plataformas flotantes y pulsos de resonancia cromática)
+    setupColor() {
+        this.gameData = {
+            charX: 400,
+            targetX: 400,
+            platforms: [
+                { x: 200, color: 'red', name: 'Rojo' },
+                { x: 400, color: 'blue', name: 'Azul' },
+                { x: 600, color: 'green', name: 'Verde' }
+            ],
+            targetColor: 'blue',
+            score: 0,
+            jumpY: 460,
+            jumpTime: 0,
+            isJumping: false
+        };
+        this.score = 0;
+    },
+    updateColor(dt) {
+        const gd = this.gameData;
+        if (gd.isJumping) {
+            gd.jumpTime += dt * 3.5;
+            gd.charX = lerp(gd.charX, gd.targetX, 0.12);
+            gd.jumpY = 460 - Math.sin(gd.jumpTime * Math.PI) * 100;
+
+            if (gd.jumpTime >= 1.0) {
+                gd.isJumping = false;
+                gd.charX = gd.targetX;
+                gd.jumpY = 460;
+
+                const platform = gd.platforms.find(p => Math.abs(gd.charX - p.x) < 20);
+                if (platform && platform.color === gd.targetColor) {
+                    gd.score++;
+                    this.score = Math.round((gd.score / 15) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.score >= 15) {
+                        this.win();
+                    } else {
+                        const list = ['red', 'blue', 'green'];
+                        gd.targetColor = list[Math.floor(Math.random() * 3)];
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(14);
+                }
+            }
+        }
+    },
+    drawColor() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#06060c';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.platforms.forEach(p => {
+            ctx.fillStyle = p.color === 'red' ? 'rgba(255,23,68,0.12)' : (p.color === 'blue' ? 'rgba(41,121,255,0.12)' : 'rgba(0,230,118,0.12)');
+            ctx.fillRect(p.x - 55, 0, 110, 500);
+
+            ctx.fillStyle = p.color === 'red' ? '#ff1744' : (p.color === 'blue' ? '#2979ff' : '#00e676');
+            ctx.fillRect(p.x - 65, 480, 130, 20);
+        });
+
+        // Player
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(gd.charX, gd.jumpY, 18, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SALTA AL COLOR DE LUZ:', 400, 80);
+        ctx.fillStyle = gd.targetColor === 'red' ? '#ff1744' : (gd.targetColor === 'blue' ? '#2979ff' : '#00e676');
+        ctx.fillText(gd.targetColor.toUpperCase(), 400, 120);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Aciertos: ${gd.score}/15`, 30, 560);
+    },
+    inputColorPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.isJumping) {
+            const platform = gd.platforms.reduce((prev, curr) => Math.abs(x - curr.x) < Math.abs(x - prev.x) ? curr : prev);
+            gd.targetX = platform.x;
+            gd.isJumping = true;
+            gd.jumpTime = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 21. day_19_teamlab: Sueños Digitales (Ramas fractales L-System y polinización de mariposas)
+    setupTeamLab() {
+        this.gameData = {
+            branches: [],
+            butterflies: [],
+            coverage: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTeamLab(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.butterflies.push({
+                x: Math.random() * 800,
+                y: Math.random() * 400,
+                targetX: Math.random() * 800,
+                targetY: Math.random() * 400,
+                r: 12
+            });
+        }
+
+        // Draw fractal flowers on drag
+        if (this.mouse.isDown) {
+            gd.branches.push({
+                x: this.mouse.x,
+                y: this.mouse.y,
+                r: 6 + Math.random() * 12,
+                color: `hsla(${330 + Math.random() * 40}, 100%, 75%, 0.85)`
+            });
+            gd.coverage = Math.min(100, gd.coverage + dt * 12);
+            this.score = Math.round(gd.coverage);
+            if (gd.coverage >= 95) this.win();
+        }
+
+        gd.butterflies.forEach(b => {
+            b.x = lerp(b.x, b.targetX, 0.04);
+            b.y = lerp(b.y, b.targetY, 0.04);
+            if (Math.hypot(b.x - b.targetX, b.y - b.targetY) < 15) {
+                b.targetX = Math.random() * 800;
+                b.targetY = Math.random() * 400;
+            }
+        });
+    },
+    drawTeamLab() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#060614';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Fractal branches
+        gd.branches.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Butterflies
+        ctx.fillStyle = '#e040fb';
+        gd.butterflies.forEach(b => {
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cobertura: ${Math.round(gd.coverage)}% / 95%`, 30, 560);
+    },
+    inputTeamLabPress(x, y) {
+        const gd = this.gameData;
+        gd.butterflies.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < 35) {
+                gd.butterflies.splice(idx, 1);
+                // Spawn flower fractal burst
+                for (let i = 0; i < 25; i++) {
+                    gd.branches.push({
+                        x: b.x + (Math.random() - 0.5) * 140,
+                        y: b.y + (Math.random() - 0.5) * 140,
+                        r: 8 + Math.random() * 10,
+                        color: '#e040fb'
+                    });
+                }
+                gd.coverage = Math.min(100, gd.coverage + 10);
+                this.score = Math.round(gd.coverage);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.coverage >= 95) this.win();
+            }
+        });
+    },
+    releaseTeamLab() {},
+
+    // 22. day_19_liberty: La Libertad Nipona (Perspectiva forzada con zoom)
+    setupLiberty() {
+        this.gameData = {
+            handX: 200,
+            handY: 300,
+            targetX: 400,
+            targetY: 180,
+            zoom: 1.0,
+            targetZoom: 2.0,
+            alignTimer: 0,
+            dragging: false,
+            draggingSlider: false
+        };
+        this.score = 0;
+    },
+    updateLiberty(dt) {
+        const gd = this.gameData;
+        if (gd.dragging) {
+            gd.handX = this.mouse.x;
+            gd.handY = this.mouse.y;
+        }
+        if (gd.draggingSlider) {
+            const relX = (this.mouse.x - 250) / 300;
+            gd.zoom = 1.0 + Math.max(0, Math.min(1, relX)) * 2.0; // 1.0x to 3.0x
+        }
+
+        const distance = Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY);
+        const zoomError = Math.abs(gd.zoom - gd.targetZoom);
+
+        if (distance < 25 && zoomError < 0.25) {
+            gd.alignTimer += dt;
+            this.score = Math.min(100, Math.round((gd.alignTimer / 2.5) * 100));
+            if (gd.alignTimer >= 2.5) this.win();
+        } else {
+            gd.alignTimer = Math.max(0, gd.alignTimer - dt * 25);
+            this.score = 0;
+        }
+    },
+    drawLiberty() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.translate(400, 180);
+        ctx.scale(gd.zoom, gd.zoom);
+        ctx.translate(-400, -180);
+
+        // Statue in background
+        ctx.fillStyle = '#80cbc4';
+        ctx.fillRect(gd.targetX - 16, gd.targetY, 32, 160);
+        ctx.fillStyle = '#ffb300';
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        // Foreground Hand
+        ctx.fillStyle = '#ffe0b2';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(gd.handX, gd.handY, 22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Slider
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 520, 300, 8);
+        const knobX = 250 + ((gd.zoom - 1.0) / 2.0) * 300;
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(knobX, 524, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Lente Zoom: ${gd.zoom.toFixed(1)}x / 2.0x`, 400, 500);
+
+        // Alignment lock progress
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, gd.alignTimer * 80, 15);
+    },
+    inputLibertyPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - gd.handX, y - gd.handY) < 35) {
+            gd.dragging = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (y > 500 && y < 550 && x > 230 && x < 570) {
+            gd.draggingSlider = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseLiberty() {
+        this.gameData.dragging = false;
+        this.gameData.draggingSlider = false;
+    },
+
+    // 23. day_19_crypto: Desencriptar Protocolo (Matriz de Criptografía Hexagonal)
+    setupCrypto() {
+        this.gameData = {
+            columns: [
+                { id: 0, target: 15, current: 0, blocks: [], x: 150 },
+                { id: 1, target: 20, current: 0, blocks: [], x: 310 },
+                { id: 2, target: 10, current: 0, blocks: [], x: 470 },
+                { id: 3, target: 25, current: 0, blocks: [], x: 630 }
+            ],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrypto(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const col = gd.columns[Math.floor(Math.random() * 4)];
+            col.blocks.push({
+                y: 0,
+                val: Math.floor(Math.random() * 9) + 1,
+                vy: 110 + Math.random() * 60
+            });
+        }
+
+        gd.columns.forEach(col => {
+            col.blocks.forEach(b => {
+                b.y += b.vy * dt;
+            });
+            col.blocks = col.blocks.filter(b => b.y < 460);
+        });
+    },
+    drawCrypto() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#020b02';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.columns.forEach(col => {
+            ctx.strokeStyle = 'rgba(0, 230, 118, 0.15)';
+            ctx.strokeRect(col.x - 55, 40, 110, 420);
+
+            ctx.fillStyle = col.current === col.target ? '#00e676' : '#ffffff';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${col.current} / ${col.target}`, col.x, 490);
+
+            col.blocks.forEach(b => {
+                ctx.fillStyle = '#00ff99';
+                ctx.fillRect(col.x - 35, b.y - 15, 70, 30);
+                ctx.fillStyle = '#000';
+                ctx.fillText(b.val, col.x, b.y + 7);
+            });
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Desencriptar cortafuegos: Logra la suma exacta en los 4 puertos', 400, 555);
+    },
+    inputCryptoPress(x, y) {
+        const gd = this.gameData;
+        gd.columns.forEach(col => {
+            col.blocks.forEach((b, idx) => {
+                if (x > col.x - 35 && x < col.x + 35 && y > b.y - 15 && y < b.y + 15) {
+                    col.blocks.splice(idx, 1);
+                    col.current += b.val;
+                    if (window.playProceduralSound) playProceduralSound('click');
+
+                    if (col.current > col.target) {
+                        col.current = 0;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else if (col.current === col.target) {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        const solved = gd.columns.filter(c => c.current === c.target).length;
+                        this.score = Math.round((solved / 4) * 100);
+                        if (solved === 4) this.win();
+                    }
+                }
+            });
+        });
+    },
+
+    // 24. day_19_mirrors: Lógica de Espejos (Cámara de prismas TeamLab con división de colores RGB)
+    setupMirrors() {
+        this.gameData = {
+            mirrors: [
+                { id: 0, x: 250, y: 150, angle: 45 },
+                { id: 1, x: 250, y: 450, angle: 90 },
+                { id: 2, x: 550, y: 450, angle: 0 },
+                { id: 3, x: 550, y: 300, angle: 90 }
+            ],
+            emitter: { x: 100, y: 150 },
+            receiver: { x: 400, y: 300 },
+            isSolved: false
+        };
+        this.score = 0;
+    },
+    updateMirrors(dt) {
+        const gd = this.gameData;
+        // Check mirror angles align correctly
+        if (gd.mirrors[0].angle === 45 && gd.mirrors[1].angle === 135 && gd.mirrors[2].angle === 45 && gd.mirrors[3].angle === 135) {
+            gd.isSolved = true;
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            gd.isSolved = false;
+        }
+    },
+    drawMirrors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050512';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw mirrors
+        gd.mirrors.forEach(m => {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate((m.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(-35, 0); ctx.lineTo(35, 0); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Laser reflection drawing
+        ctx.strokeStyle = gd.isSolved ? '#ff1744' : '#ffeb3b';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.emitter.x, gd.emitter.y);
+        ctx.lineTo(gd.mirrors[0].x, gd.mirrors[0].y);
+
+        if (gd.mirrors[0].angle === 45) {
+            ctx.lineTo(gd.mirrors[1].x, gd.mirrors[1].y);
+            if (gd.mirrors[1].angle === 135) {
+                ctx.lineTo(gd.mirrors[2].x, gd.mirrors[2].y);
+                if (gd.mirrors[2].angle === 45) {
+                    ctx.lineTo(gd.mirrors[3].x, gd.mirrors[3].y);
+                    if (gd.mirrors[3].angle === 135) {
+                        ctx.lineTo(gd.receiver.x, gd.receiver.y);
+                    }
+                }
+            }
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = '#00e676';
+        ctx.beginPath(); ctx.arc(gd.emitter.x, gd.emitter.y, 16, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath(); ctx.arc(gd.receiver.x, gd.receiver.y, 22, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rota los espejos para dirigir el láser al receptor', 400, 540);
+    },
+    inputMirrorsPress(x, y) {
+        const gd = this.gameData;
+        gd.mirrors.forEach(m => {
+            if (Math.hypot(x - m.x, y - m.y) < 40) {
+                m.angle = (m.angle + 45) % 360;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseMirrors() {},
+
+    // 25. day_19_weight: Estructura de Gundam (Ensamblaje del Esqueleto Gundam con balance)
+    setupWeight() {
+        this.gameData = {
+            girders: [],
+            currentX: 400,
+            craneSpeed: 200,
+            craneDir: 1,
+            falling: false,
+            fallY: 80,
+            wobble: 0
+        };
+        this.score = 0;
+    },
+    updateWeight(dt) {
+        const gd = this.gameData;
+        if (!gd.falling) {
+            gd.currentX += gd.craneSpeed * gd.craneDir * dt;
+            if (gd.currentX < 220 || gd.currentX > 580) gd.craneDir *= -1;
+        } else {
+            gd.fallY += dt * 380;
+            const targetY = 460 - gd.girders.length * 40;
+            if (gd.fallY >= targetY) {
+                gd.fallY = targetY;
+                gd.falling = false;
+
+                const targetX = gd.girders.length > 0 ? gd.girders[gd.girders.length - 1].x : 400;
+                const offset = gd.currentX - targetX;
+
+                gd.girders.push({ x: gd.currentX, y: targetY, w: 110 });
+                gd.wobble += offset * 0.9;
+                gd.fallY = 80;
+
+                this.score = Math.round((gd.girders.length / 8) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+
+                if (gd.girders.length >= 8) {
+                    this.win();
+                }
+            }
+        }
+
+        gd.wobble *= 0.97;
+        if (Math.abs(gd.wobble) > 40) {
+            this.gameOver();
+        }
+    },
+    drawWeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.translate(gd.wobble, 0);
+
+        // Foundation
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 500, 200, 40);
+
+        // Girders
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#263238';
+        ctx.lineWidth = 3;
+        gd.girders.forEach((gir, idx) => {
+            ctx.fillRect(gir.x - gir.w / 2, 460 - idx * 40, gir.w, 40);
+            ctx.strokeRect(gir.x - gir.w / 2, 460 - idx * 40, gir.w, 40);
+        });
+        ctx.restore();
+
+        if (gd.falling) {
+            ctx.fillStyle = '#ff9800';
+            ctx.fillRect(gd.currentX - 55, gd.fallY, 110, 40);
+        } else {
+            ctx.fillStyle = '#ff9800';
+            ctx.fillRect(gd.currentX - 55, 80, 110, 40);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pisos: ${gd.girders.length}/8`, 400, 530);
+    },
+    inputWeightPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.falling) {
+            gd.falling = true;
+            gd.fallY = 80;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseWeight() {},
+
+    // 26. day_19_monorail: Monorriel Yurikamome (Física de Tracción Ferroviaria)
+    setupMonorail() {
+        this.gameData = {
+            speed: 0,
+            distance: 1000,
+            throttle: 0,
+            stationIndex: 0,
+            draggingThrottle: false
+        };
+        this.score = 0;
+    },
+    updateMonorail(dt) {
+        const gd = this.gameData;
+        if (gd.draggingThrottle) {
+            const relY = (this.mouse.y - 200) / 200;
+            gd.throttle = 1.0 - Math.max(0, Math.min(1, relY)); // 0.0 to 1.0
+        }
+
+        gd.speed = gd.throttle * 90;
+        gd.distance = Math.max(0, gd.distance - gd.speed * dt);
+
+        if (gd.distance <= 15 && gd.speed < 8) {
+            gd.distance = 1000;
+            gd.stationIndex++;
+            this.score = Math.round((gd.stationIndex / 3) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.stationIndex >= 3) this.win();
+        }
+    },
+    drawMonorail() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(350, 220);
+        ctx.moveTo(700, 600); ctx.lineTo(450, 220);
+        ctx.stroke();
+
+        // Throttle lever panel
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(700, 200, 30, 200);
+        const leverY = 400 - gd.throttle * 200;
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(715, leverY, 15, 0, Math.PI * 2); ctx.fill();
+
+        // HUD panel
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Estaciones: ${gd.stationIndex}/3`, 30, 50);
+        ctx.fillText(`Velocidad: ${Math.round(gd.speed)} km/h`, 30, 90);
+        ctx.fillText(`Distancia al andén: ${Math.round(gd.distance)}m`, 30, 130);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra la palanca azul para acelerar y frenar en el andén', 400, 560);
+    },
+    inputMonorailPress(x, y) {
+        const gd = this.gameData;
+        if (x > 680 && x < 750 && y > 180 && y < 420) {
+            gd.draggingThrottle = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseMonorail() {
+        this.gameData.draggingThrottle = false;
+    },
+
+    // 27. day_19_immersive: Inmersión Total (Cascada de Fluidos TeamLab)
+    setupImmersive() {
+        this.gameData = {
+            streams: [],
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateImmersive(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            gd.streams.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 240 + Math.random() * 95,
+                color: `hsla(${Math.random() * 360}, 100%, 75%, 0.85)`,
+                deflected: false
+            });
+        }
+
+        gd.streams.forEach((s, idx) => {
+            s.y += s.vy * dt;
+            if (this.mouse.isDown && Math.hypot(s.x - this.mouse.x, s.y - this.mouse.y) < 55) {
+                s.x = lerp(s.x, 400, 0.18);
+                if (!s.deflected) {
+                    s.deflected = true;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 30) * 100);
+                    if (window.playProceduralSound && gd.score % 5 === 0) playProceduralSound('collect');
+                    if (gd.score >= 30) this.win();
+                }
+            }
+        });
+        gd.streams = gd.streams.filter(s => s.y < 600);
+    },
+    drawImmersive() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f0518';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Silhouette outline
+        ctx.strokeStyle = '#bb86fc';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 380, 70, 0, Math.PI * 2); ctx.stroke();
+
+        // Streams
+        gd.streams.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Armonía Inmersiva: ${gd.score}/30`, 30, 560);
+    },
+    inputImmersivePress(x, y) {},
+    releaseImmersive() {},
+
+
+    releaseTocho() {},
 };
