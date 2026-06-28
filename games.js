@@ -136,7 +136,23 @@ window.MinigamesManager = {
         this.gameData = {};
         
         // Show view & overlays
-        document.getElementById('view-minigame').classList.remove('hidden');
+        const view = document.getElementById('view-minigame');
+        if (view) {
+            view.classList.remove('hidden');
+            try {
+                if (view.requestFullscreen) {
+                    view.requestFullscreen();
+                } else if (view.webkitRequestFullscreen) {
+                    view.webkitRequestFullscreen();
+                } else if (view.mozRequestFullScreen) {
+                    view.mozRequestFullScreen();
+                } else if (view.msRequestFullscreen) {
+                    view.msRequestFullscreen();
+                }
+            } catch (err) {
+                console.warn('Error entering fullscreen:', err);
+            }
+        }
         document.getElementById('minigame-intro').classList.remove('hidden');
         document.getElementById('minigame-outro').classList.add('hidden');
         
@@ -985,6 +1001,23 @@ window.MinigamesManager = {
 
     close() {
         if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+        
+        try {
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        } catch (err) {
+            console.warn('Error exiting fullscreen:', err);
+        }
+
         document.getElementById('view-minigame').classList.add('hidden');
         if (window.playProceduralSound) window.playProceduralSound('click');
         if (typeof switchView === 'function') switchView('view-mission', true, "Misión");
@@ -992,6 +1025,23 @@ window.MinigamesManager = {
 
     submit() {
         if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+        
+        try {
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        } catch (err) {
+            console.warn('Error exiting fullscreen:', err);
+        }
+
         document.getElementById('view-minigame').classList.add('hidden');
         
         if (!this.isTraining && window.pendingSubmission) {
