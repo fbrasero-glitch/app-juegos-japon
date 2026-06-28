@@ -85,12 +85,6 @@ window.MinigamesManager = {
         if (!this.canvas) return;
         this.canvas.width = 800;
         this.canvas.height = 600;
-        
-        // Mobile compatibility: prevent collapse and maintain exactly 4:3 on all screens
-        const container = document.getElementById('minigame-container');
-        if (container && container.clientWidth > 0) {
-            container.style.height = (container.clientWidth * 0.75) + 'px';
-        }
     },
 
     getCanvasCoords(e) {
