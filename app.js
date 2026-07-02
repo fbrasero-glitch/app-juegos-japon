@@ -44,6 +44,8 @@ let gameState = null;
 let currentUser = null; // 'kid9', 'kid14', 'judge'
 let currentDay = null; // Día que se está visualizando
 let currentDayMissions = []; // Misiones del día actual
+let currentJudgeTab = 'pending'; // Pestaña activa del juez ('pending' | 'approved')
+let judgeListenersBound = false;
 
 
 // ==========================================
@@ -358,6 +360,35 @@ function getPendingMissions() {
     return pending;
 }
 
+function getApprovedMissions() {
+    const approved = [];
+    if (!gameState) return approved;
+    ['kid9', 'kid14'].forEach(kid => {
+        if (!gameState[kid] || !gameState[kid].missions) return;
+        Object.keys(gameState[kid].missions).forEach(mId => {
+            if (gameState[kid].missions[mId] && gameState[kid].missions[mId].status === 'approved') {
+                if (!MISSIONS_CONFIG[mId]) {
+                    console.warn(`Mission config not found for key: ${mId}. Skipping to prevent crashes.`);
+                    return;
+                }
+                approved.push({
+                    kid: kid,
+                    missionId: mId,
+                    data: gameState[kid].missions[mId],
+                    config: MISSIONS_CONFIG[mId]
+                });
+            }
+        });
+    });
+    // Ordenar de más reciente a más antiguo según la fecha de envío
+    approved.sort((a, b) => {
+        const tA = (a.data.submission && a.data.submission.timestamp) ? new Date(a.data.submission.timestamp) : 0;
+        const tB = (b.data.submission && b.data.submission.timestamp) ? new Date(b.data.submission.timestamp) : 0;
+        return tB - tA;
+    });
+    return approved;
+}
+
 
 // ==========================================
 // 4. CONTROLADORES UI Y ENRUTAMIENTO
@@ -532,6 +563,15 @@ function renderDayMissions(role, dayNum, missionKeys) {
         if (state.status === 'pending') statusHtml = `<span class="status-badge status-pending">⏳ Esperando Juez</span>`;
         else if (state.status === 'approved') statusHtml = `<span class="status-badge status-approved">✅ Completada</span>`;
         
+        let feedbackHtml = '';
+        if (state.feedback) {
+            feedbackHtml = `
+                <div class="feedback-badge" style="margin-top: 8px; padding: 6px 10px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.8rem; color: #b91c1c; text-align: left; line-height: 1.3;">
+                    <strong>❌ Nota del Juez:</strong> "${state.feedback}"
+                </div>
+            `;
+        }
+        
         const tagIcon = TAG_ICONS[conf.tag] || '❓';
         const tagLabel = conf.tag ? conf.tag.charAt(0).toUpperCase() + conf.tag.slice(1) : 'Misión';
         const tagHtml = conf.tag ? `<div class="mission-tag tag-${conf.tag}">${tagIcon} ${tagLabel}</div>` : '';
@@ -541,6 +581,7 @@ function renderDayMissions(role, dayNum, missionKeys) {
             <div class="card-title">${conf.title} <span style="font-size:0.8rem; color:var(--color-accent)">+${conf.xp}XP</span></div>
             <div style="font-size:0.8rem; color:var(--color-gray-dark); margin-bottom:5px;">📍 ${conf.location || 'Cualquier lugar'}</div>
             ${statusHtml}
+            ${feedbackHtml}
         `;
         
         card.addEventListener('click', () => {
@@ -578,6 +619,18 @@ function renderMissionDetail(missionId, role) {
                 <div>
                     <strong style="color: #ffc107; font-size: 1.05rem;">Prueba Ya Puntuada</strong>
                     <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">Puedes repetir esta prueba para jugar, pero ya no sumará más XP ni se enviará al juez.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (state && state.feedback) {
+        warningHtml += `
+            <div class="mission-warning-card" style="background: rgba(239, 68, 68, 0.08); border: 2px solid #ef4444; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: left; display: flex; align-items: flex-start; gap: 10px; flex-direction: row; box-shadow: var(--shadow-soft);">
+                <span style="font-size: 1.8rem; line-height: 1;">❌</span>
+                <div>
+                    <strong style="color: #b91c1c; font-size: 1.05rem;">Prueba Rechazada por el Juez</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: #7f1d1d;"><strong>Motivo:</strong> "${state.feedback}"</p>
                 </div>
             </div>
         `;
@@ -769,11 +822,13 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
             if (gameState[kid].missions[missionId]) {
                 gameState[kid].missions[missionId].status = 'pending';
                 gameState[kid].missions[missionId].submission = enrichedSubmission;
+                gameState[kid].missions[missionId].feedback = null; // Limpiar feedback anterior
             }
         });
     } else {
         gameState[role].missions[missionId].status = 'pending';
         gameState[role].missions[missionId].submission = enrichedSubmission;
+        gameState[role].missions[missionId].feedback = null; // Limpiar feedback anterior
     }
 
     // Limpiar contadores globales
@@ -942,223 +997,331 @@ function generateJudgeGuide(p) {
     };
 }
 
+function initJudgeTabListeners() {
+    if (judgeListenersBound) return;
+    
+    const pendingTab = document.getElementById('btn-judge-tab-pending');
+    const approvedTab = document.getElementById('btn-judge-tab-approved');
+    
+    if (pendingTab && approvedTab) {
+        pendingTab.addEventListener('click', () => {
+            currentJudgeTab = 'pending';
+            pendingTab.classList.add('active');
+            pendingTab.style.borderBottomColor = 'var(--color-primary)';
+            pendingTab.style.color = 'var(--color-primary)';
+            
+            approvedTab.classList.remove('active');
+            approvedTab.style.borderBottomColor = 'transparent';
+            approvedTab.style.color = 'var(--color-gray-dark)';
+            
+            document.getElementById('judge-pending-section').classList.remove('hidden');
+            document.getElementById('judge-approved-section').classList.add('hidden');
+            renderJudgePanel();
+        });
+        
+        approvedTab.addEventListener('click', () => {
+            currentJudgeTab = 'approved';
+            approvedTab.classList.add('active');
+            approvedTab.style.borderBottomColor = 'var(--color-primary)';
+            approvedTab.style.color = 'var(--color-primary)';
+            
+            pendingTab.classList.remove('active');
+            pendingTab.style.borderBottomColor = 'transparent';
+            pendingTab.style.color = 'var(--color-gray-dark)';
+            
+            document.getElementById('judge-pending-section').classList.add('hidden');
+            document.getElementById('judge-approved-section').classList.remove('hidden');
+            renderJudgePanel();
+        });
+        
+        judgeListenersBound = true;
+    }
+}
+
+async function renderSubmissionData(submission) {
+    if (!submission) return 'Sin entrega';
+    let dataHtml = '';
+    if (submission.type === 'number' || submission.type === 'text') {
+        dataHtml = `<b>Respuesta:</b> ${submission.data}`;
+    } else if (submission.type === 'photo') {
+        const photoData = await getPhotoFromDB(submission.data);
+        dataHtml = `<img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea;">`;
+    } else if (submission.type === 'photos') {
+        let imgHtml = '';
+        const ids = submission.data;
+        const labels = [
+            "1. Aeropuerto KIX", "2. El Vehículo", "3. Pasajeros", "4. Taxímetro",
+            "5. Gran Puente", "6. Entrada Ciudad", "7. Los Neones", "8. Llegada Osaka"
+        ];
+        if (Array.isArray(ids)) {
+            for (let i = 0; i < ids.length; i++) {
+                const photoData = ids[i] ? await getPhotoFromDB(ids[i]) : null;
+                if (photoData) {
+                    imgHtml += `
+                        <div style="flex: 1 1 22%; min-width: 90px; margin: 6px; text-align: center; border: 1px solid #cbd5e1; padding: 4px; background: #f8fafc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <img src="${photoData}" alt="${labels[i]}" style="width:100%; border-radius:4px; max-height: 90px; object-fit: cover; background: #eaeaea;">
+                            <div style="font-size:0.6rem; color:#475569; font-weight:bold; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${labels[i]}</div>
+                        </div>
+                    `;
+                }
+            }
+        }
+        dataHtml = `<div style="display:flex; flex-wrap:wrap; justify-content:center; background:#f1f5f9; padding:8px; border-radius:8px;">${imgHtml}</div>`;
+    } else if (submission.type === 'video' || submission.type === 'audio') {
+        dataHtml = `<b>Evidencia Multimedia:</b> ${submission.data}`;
+    } else if (submission.type === 'game') {
+        dataHtml = `<b>Resultado de la Prueba:</b> ${submission.data}`;
+    } else if (submission.type === 'photo_choice') {
+        const photoData = await getPhotoFromDB(submission.data.photoId);
+        dataHtml = `
+            <img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-bottom:10px;"><br>
+            <b>Elección:</b> ${submission.data.choice}
+        `;
+    } else if (submission.type === 'mixed') {
+        let parts = submission.data.split('. Foto ID: ');
+        if (parts.length === 1) parts = submission.data.split('. Foto: ');
+        
+        if (parts.length > 1) {
+            const photoData = await getPhotoFromDB(parts[parts.length - 1]);
+            const textData = parts.slice(0, -1).join('. ');
+            dataHtml = `<b>${textData}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-top:10px;">`;
+        } else {
+            dataHtml = `<b>Respuesta:</b> ${submission.data}`;
+        }
+    } else if (submission.type === 'family') {
+        dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
+    }
+    return dataHtml;
+}
+
 async function renderJudgePanel() {
     currentUser = 'judge';
-    const list = document.getElementById('pending-missions-list');
-    list.innerHTML = '';
+    initJudgeTabListeners();
 
-    const pendings = getPendingMissions();
-    
-    if (pendings.length === 0) {
-        list.innerHTML = '<p style="text-align:center; padding:20px;">No hay misiones pendientes.</p>';
-    }
+    if (currentJudgeTab === 'pending') {
+        const list = document.getElementById('pending-missions-list');
+        list.innerHTML = '';
 
-    for (const p of pendings) {
-        try {
-            const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
-            let dataHtml = '';
+        const pendings = getPendingMissions();
+        
+        if (pendings.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding:20px;">No hay misiones pendientes.</p>';
+        }
 
-            if (!p.data || !p.data.submission) {
-                console.warn(`Submission data missing for mission: ${p.missionId}`);
-                continue;
-            }
+        for (const p of pendings) {
+            try {
+                const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
+                
+                if (!p.data || !p.data.submission) {
+                    console.warn(`Submission data missing for mission: ${p.missionId}`);
+                    continue;
+                }
 
-            // Renderizar la información de la respuesta
-            if (p.data.submission.type === 'number' || p.data.submission.type === 'text') {
-                dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
-            } else if (p.data.submission.type === 'photo') {
-                const photoData = await getPhotoFromDB(p.data.submission.data);
-                dataHtml = `<img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea;">`;
-            } else if (p.data.submission.type === 'photos') {
-                let imgHtml = '';
-                const ids = p.data.submission.data;
-                const labels = [
-                    "1. Aeropuerto KIX", "2. El Vehículo", "3. Pasajeros", "4. Taxímetro",
-                    "5. Gran Puente", "6. Entrada Ciudad", "7. Los Neones", "8. Llegada Osaka"
-                ];
-                if (Array.isArray(ids)) {
-                    for (let i = 0; i < ids.length; i++) {
-                        const photoData = ids[i] ? await getPhotoFromDB(ids[i]) : null;
-                        if (photoData) {
-                            imgHtml += `
-                                <div style="flex: 1 1 22%; min-width: 90px; margin: 6px; text-align: center; border: 1px solid #cbd5e1; padding: 4px; background: #f8fafc; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                    <img src="${photoData}" alt="${labels[i]}" style="width:100%; border-radius:4px; max-height: 90px; object-fit: cover; background: #eaeaea;">
-                                    <div style="font-size:0.6rem; color:#475569; font-weight:bold; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${labels[i]}</div>
-                                </div>
-                            `;
-                        }
+                const dataHtml = await renderSubmissionData(p.data.submission);
+
+                // Calcular métricas
+                const timeTaken = p.data.submission.timeTaken;
+                let formattedTime = 'No medido';
+                if (timeTaken !== null && timeTaken !== undefined) {
+                    if (timeTaken < 60) {
+                        formattedTime = `${timeTaken} segundos`;
+                    } else {
+                        const mins = Math.floor(timeTaken / 60);
+                        const secs = timeTaken % 60;
+                        formattedTime = `${mins}m ${secs}s`;
                     }
                 }
-                dataHtml = `<div style="display:flex; flex-wrap:wrap; justify-content:center; background:#f1f5f9; padding:8px; border-radius:8px;">${imgHtml}</div>`;
-            } else if (p.data.submission.type === 'video' || p.data.submission.type === 'audio') {
-                dataHtml = `<b>Evidencia Multimedia:</b> ${p.data.submission.data}`;
-            } else if (p.data.submission.type === 'game') {
-                dataHtml = `<b>Resultado de la Prueba:</b> ${p.data.submission.data}`;
-            } else if (p.data.submission.type === 'photo_choice') {
-                const photoData = await getPhotoFromDB(p.data.submission.data.photoId);
-                dataHtml = `
-                    <img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-bottom:10px;"><br>
-                    <b>Elección:</b> ${p.data.submission.data.choice}
+
+                const attempts = p.data.submission.attempts || 1;
+                let attemptsText = `${attempts} intento`;
+                if (attempts === 1) {
+                    attemptsText += ' (¡A la primera! 🎯)';
+                } else {
+                    attemptsText = `${attempts} intentos`;
+                }
+
+                // Generar la guía y comentarios dinámicos
+                const guide = generateJudgeGuide(p);
+                const missionXP = p.config ? p.config.xp : 15;
+
+                let actionsHtml = `
+                    <button class="btn-reject" style="flex: 1; min-width: 100px;" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
+                    <button class="btn-approve" style="flex: 1; min-width: 100px;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
+                    <button class="btn-approve" style="flex: 1; min-width: 85px; background-color: #20bf6b;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 5}, ${p.data.submission.type === 'family'})">⭐ +5 XP</button>
+                    <button class="btn-approve" style="flex: 1; min-width: 85px; background-color: #f7b731; color: black;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 10}, ${p.data.submission.type === 'family'})">🌟 +10 XP</button>
                 `;
-            } else if (p.data.submission.type === 'mixed') {
-                let parts = p.data.submission.data.split('. Foto ID: ');
-                if (parts.length === 1) parts = p.data.submission.data.split('. Foto: ');
-                
-                if (parts.length > 1) {
-                    const photoData = await getPhotoFromDB(parts[parts.length - 1]);
-                    const textData = parts.slice(0, -1).join('. ');
-                    dataHtml = `<b>${textData}</b><br><img src="${photoData}" alt="Evidencia" style="width:100%; border-radius:10px; max-height: 250px; object-fit: contain; background: #eaeaea; margin-top:10px;">`;
-                } else {
-                    dataHtml = `<b>Respuesta:</b> ${p.data.submission.data}`;
-                }
-            } else if (p.data.submission.type === 'family') {
-                dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
-            }
 
-            // Calcular métricas
-            const timeTaken = p.data.submission.timeTaken;
-            let formattedTime = 'No medido';
-            if (timeTaken !== null && timeTaken !== undefined) {
-                if (timeTaken < 60) {
-                    formattedTime = `${timeTaken} segundos`;
-                } else {
-                    const mins = Math.floor(timeTaken / 60);
-                    const secs = timeTaken % 60;
-                    formattedTime = `${mins}m ${secs}s`;
-                }
-            }
-
-            const attempts = p.data.submission.attempts || 1;
-            let attemptsText = `${attempts} intento`;
-            if (attempts === 1) {
-                attemptsText += ' (¡A la primera! 🎯)';
-            } else {
-                attemptsText = `${attempts} intentos`;
-            }
-
-            // Generar la guía y comentarios dinámicos
-            const guide = generateJudgeGuide(p);
-            const missionXP = p.config ? p.config.xp : 15;
-
-            let actionsHtml = `
-                <button class="btn-reject" style="flex: 1;" onclick="rejectMission('${p.kid}', '${p.missionId}')">❌ Rechazar</button>
-                <button class="btn-approve" style="flex: 1;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP}, ${p.data.submission.type === 'family'})">✅ Aprobar</button>
-            `;
-
-            if (p.missionId === 'day_5_gymnast') {
-                actionsHtml = `
-                <div style="width:100%; margin-bottom:10px; background:var(--color-black); border-radius:10px; padding:10px;">
-                    <p style="text-align:center; font-size:0.9rem; margin-bottom:5px; color: white;">Puntuación de Estilo Extra:</p>
-                    <div style="display:flex; justify-content:space-between; gap:5px;">
-                        <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#cd7f32; color:#cd7f32;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 5}, false)">🥉 +5</button>
-                        <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#c0c0c0; color:#c0c0c0;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 10}, false)">🥈 +10</button>
-                        <button class="btn-primary" style="flex:1; font-size:0.8rem; padding:5px; background:#ffd700; color:#000;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 15}, false)">🥇 +15</button>
-                    </div>
-                </div>
-                ` + actionsHtml;
-            }
-
-            const card = document.createElement('div');
-            card.className = 'card submission-item';
-            card.style.borderLeft = '5px solid var(--color-primary)';
-            card.style.padding = '18px';
-            card.style.marginBottom = '20px';
-            card.style.position = 'relative';
-
-            card.innerHTML = `
-                <!-- Cabecera de la Tarjeta -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
-                    <div>
-                        <div class="card-title" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; color: var(--color-primary); text-align: left;">
-                            ${p.config ? p.config.title : p.missionId}
-                        </div>
-                        <div style="font-size: 0.82rem; color: var(--color-gray-dark); text-align: left;">
-                            👤 <strong>${kidName}</strong> | 📅 Día ${p.config ? p.config.day : 'N/A'} | 📍 ${p.config ? (p.config.location || 'N/A') : 'N/A'}
+                if (p.missionId === 'day_5_gymnast') {
+                    actionsHtml = `
+                    <div style="width:100%; margin-bottom:10px; background:var(--color-black); border-radius:10px; padding:10px;">
+                        <p style="text-align:center; font-size:0.9rem; margin-bottom:5px; color: white;">Puntuación de Estilo Extra:</p>
+                        <div style="display:flex; justify-content:space-between; gap:5px;">
+                            <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#cd7f32; color:#cd7f32;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 5}, false)">🥉 +5</button>
+                            <button class="btn-secondary" style="flex:1; font-size:0.8rem; padding:5px; border-color:#c0c0c0; color:#c0c0c0;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 10}, false)">🥈 +10</button>
+                            <button class="btn-primary" style="flex:1; font-size:0.8rem; padding:5px; background:#ffd700; color:#000;" onclick="approveMission('${p.kid}', '${p.missionId}', ${missionXP + 15}, false)">🥇 +15</button>
                         </div>
                     </div>
-                    <div style="background: var(--color-primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; white-space: nowrap;">
-                        +${missionXP} XP
-                    </div>
-                </div>
+                    ` + actionsHtml;
+                }
 
-                <!-- Guía e Instrucción de Evaluación -->
-                <div style="background: rgba(141, 110, 99, 0.05); border: 1px solid rgba(141, 110, 99, 0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; text-align: left; line-height: 1.4;">
-                    <div style="font-weight: 900; color: var(--color-primary-dark); margin-bottom: 2px;">📖 Qué evalúas:</div>
-                    <p style="margin: 0; opacity: 0.95; color: #3e2723;">${guide.explanation}</p>
-                    <div style="font-weight: 900; color: var(--color-accent); margin-top: 8px; margin-bottom: 2px;">💡 Respuesta correcta esperada:</div>
-                    <p style="margin: 0; font-style: italic; opacity: 0.95; color: #5d4037;">${guide.expectedAnswer}</p>
-                </div>
-
-                <!-- Métricas de Rendimiento -->
-                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-                    <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
-                        <div style="font-size: 1.1rem; margin-bottom: 2px;">⏱️</div>
-                        <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Tiempo Empleado</div>
-                        <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${formattedTime}</div>
-                    </div>
-                    <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
-                        <div style="font-size: 1.1rem; margin-bottom: 2px;">🎯</div>
-                        <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Intentos</div>
-                        <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${attemptsText}</div>
-                    </div>
-                </div>
-
-                <!-- Evidencia Entregada -->
-                <div style="background: white; border: 1px solid #efebe9; border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
-                    <div style="font-size: 0.78rem; font-weight: bold; text-transform: uppercase; color: var(--color-primary-dark); margin-bottom: 8px; border-bottom: 1px solid #f5f2f0; padding-bottom: 4px; letter-spacing: 0.3px;">📥 Evidencia del explorador:</div>
-                    <div style="font-size: 0.95rem; color: #3e2723; word-break: break-word;">${dataHtml}</div>
-                </div>
-
-                <!-- Sugerencias de Feedback Interactivas -->
-                <div style="background: #fafafa; border: 1px dashed var(--color-primary); border-radius: 10px; padding: 12px; margin-bottom: 18px; text-align: left;">
-                    <div style="font-weight: bold; color: var(--color-primary-dark); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; letter-spacing: 0.3px;">
-                        <span>💬</span> Sugerencias de Feedback (clic para copiar):
-                    </div>
-                    <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #5d4037; display: flex; flex-direction: column; gap: 8px;">
-                        ${guide.suggestions.map(s => {
-                            const escapedVal = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                            return `<li style="line-height: 1.4; cursor: pointer; padding: 3px 0; transition: color 0.15s;" onclick="navigator.clipboard.writeText('${escapedVal}'); showAlert('Copiado', '¡Comentario copiado al portapapeles!');" title="Haz clic para copiar">${s} 📋</li>`;
-                        }).join('')}
-                    </ul>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="judge-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-                    ${actionsHtml}
-                </div>
-            `;
-            list.appendChild(card);
-        } catch (err) {
-            console.error(`Error rendering pending mission ${p.missionId}:`, err);
-        }
-    }
-
-
-    const rewardsList = document.getElementById('pending-rewards-list');
-    if (rewardsList) {
-        rewardsList.innerHTML = '';
-        const requestedRewards = getRequestedRewards();
-        
-        if (requestedRewards.length === 0) {
-            rewardsList.innerHTML = '<p style="text-align:center; padding:20px; color: var(--color-gray-dark);">No hay recompensas pendientes de otorgar.</p>';
-        } else {
-            requestedRewards.forEach(req => {
                 const card = document.createElement('div');
                 card.className = 'card submission-item';
                 card.style.borderLeft = '5px solid var(--color-primary)';
-                
-                const kidName = gameState[req.kidId].name;
+                card.style.padding = '18px';
+                card.style.marginBottom = '20px';
+                card.style.position = 'relative';
+
                 card.innerHTML = `
-                    <div class="card-title">${req.config.icon} ${req.config.title}</div>
-                    <div class="submission-meta">👤 Reclamado por: <strong>${kidName}</strong></div>
-                    <p style="margin: 5px 0 15px 0; font-size: 0.95rem;">${req.config.desc}</p>
-                    <div class="judge-actions" style="display:flex; gap:10px;">
-                        <button class="btn-reject" style="flex:1;" onclick="rejectReward('${req.kidId}', '${req.rewardId}')">❌ Denegar</button>
-                        <button class="btn-approve" style="flex:1;" onclick="approveReward('${req.kidId}', '${req.rewardId}')">✅ Otorgar</button>
+                    <!-- Cabecera de la Tarjeta -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
+                        <div>
+                            <div class="card-title" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; color: var(--color-primary); text-align: left;">
+                                ${p.config ? p.config.title : p.missionId}
+                            </div>
+                            <div style="font-size: 0.82rem; color: var(--color-gray-dark); text-align: left;">
+                                👤 <strong>${kidName}</strong> | 📅 Día ${p.config ? p.config.day : 'N/A'} | 📍 ${p.config ? (p.config.location || 'N/A') : 'N/A'}
+                            </div>
+                        </div>
+                        <div style="background: var(--color-primary); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; white-space: nowrap;">
+                            +${missionXP} XP
+                        </div>
+                    </div>
+
+                    <!-- Guía e Instrucción de Evaluación -->
+                    <div style="background: rgba(141, 110, 99, 0.05); border: 1px solid rgba(141, 110, 99, 0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; text-align: left; line-height: 1.4;">
+                        <div style="font-weight: 900; color: var(--color-primary-dark); margin-bottom: 2px;">📖 Qué evalúas:</div>
+                        <p style="margin: 0; opacity: 0.95; color: #3e2723;">${guide.explanation}</p>
+                        <div style="font-weight: 900; color: var(--color-accent); margin-top: 8px; margin-bottom: 2px;">💡 Respuesta correcta esperada:</div>
+                        <p style="margin: 0; font-style: italic; opacity: 0.95; color: #5d4037;">${guide.expectedAnswer}</p>
+                    </div>
+
+                    <!-- Métricas de Rendimiento -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                        <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                            <div style="font-size: 1.1rem; margin-bottom: 2px;">⏱️</div>
+                            <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Tiempo Empleado</div>
+                            <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${formattedTime}</div>
+                        </div>
+                        <div style="flex: 1; background: #fdfbf7; border: 1px solid #efebe9; border-radius: 8px; padding: 8px; text-align: center; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                            <div style="font-size: 1.1rem; margin-bottom: 2px;">🎯</div>
+                            <div style="font-size: 0.7rem; color: var(--color-gray-dark); text-transform: uppercase; font-weight: bold; letter-spacing: 0.3px;">Intentos</div>
+                            <div style="font-size: 0.85rem; font-weight: bold; color: #4e342e; margin-top: 2px;">${attemptsText}</div>
+                        </div>
+                    </div>
+
+                    <!-- Evidencia Entregada -->
+                    <div style="background: white; border: 1px solid #efebe9; border-radius: 10px; padding: 12px; margin-bottom: 14px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.78rem; font-weight: bold; text-transform: uppercase; color: var(--color-primary-dark); margin-bottom: 8px; border-bottom: 1px solid #f5f2f0; padding-bottom: 4px; letter-spacing: 0.3px;">📥 Evidencia del explorador:</div>
+                        <div style="font-size: 0.95rem; color: #3e2723; word-break: break-word;">${dataHtml}</div>
+                    </div>
+
+                    <!-- Sugerencias de Feedback Interactivas -->
+                    <div style="background: #fafafa; border: 1px dashed var(--color-primary); border-radius: 10px; padding: 12px; margin-bottom: 18px; text-align: left;">
+                        <div style="font-weight: bold; color: var(--color-primary-dark); font-size: 0.82rem; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; letter-spacing: 0.3px;">
+                            <span>💬</span> Sugerencias de Feedback (clic para copiar):
+                        </div>
+                        <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #5d4037; display: flex; flex-direction: column; gap: 8px;">
+                            ${guide.suggestions.map(s => {
+                                const escapedVal = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                                return `<li style="line-height: 1.4; cursor: pointer; padding: 3px 0; transition: color 0.15s;" onclick="navigator.clipboard.writeText('${escapedVal}'); showAlert('Copiado', '¡Comentario copiado al portapapeles!');" title="Haz clic para copiar">${s} 📋</li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="judge-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        ${actionsHtml}
                     </div>
                 `;
-                rewardsList.appendChild(card);
-            });
+                list.appendChild(card);
+            } catch (err) {
+                console.error(`Error rendering pending mission ${p.missionId}:`, err);
+            }
+        }
+
+
+        const rewardsList = document.getElementById('pending-rewards-list');
+        if (rewardsList) {
+            rewardsList.innerHTML = '';
+            const requestedRewards = getRequestedRewards();
+            
+            if (requestedRewards.length === 0) {
+                rewardsList.innerHTML = '<p style="text-align:center; padding:20px; color: var(--color-gray-dark);">No hay recompensas pendientes de otorgar.</p>';
+            } else {
+                requestedRewards.forEach(req => {
+                    const card = document.createElement('div');
+                    card.className = 'card submission-item';
+                    card.style.borderLeft = '5px solid var(--color-primary)';
+                    
+                    const kidName = gameState[req.kidId].name;
+                    card.innerHTML = `
+                        <div class="card-title">${req.config.icon} ${req.config.title}</div>
+                        <div class="submission-meta">👤 Reclamado por: <strong>${kidName}</strong></div>
+                        <p style="margin: 5px 0 15px 0; font-size: 0.95rem;">${req.config.desc}</p>
+                        <div class="judge-actions" style="display:flex; gap:10px;">
+                            <button class="btn-reject" style="flex:1;" onclick="rejectReward('${req.kidId}', '${req.rewardId}')">❌ Denegar</button>
+                            <button class="btn-approve" style="flex:1;" onclick="approveReward('${req.kidId}', '${req.rewardId}')">✅ Otorgar</button>
+                        </div>
+                    `;
+                    rewardsList.appendChild(card);
+                });
+            }
+        }
+    } else if (currentJudgeTab === 'approved') {
+        const list = document.getElementById('approved-missions-list');
+        list.innerHTML = '';
+
+        const approvedList = getApprovedMissions();
+        if (approvedList.length === 0) {
+            list.innerHTML = '<p style="text-align:center; padding:20px; color: var(--color-gray-dark);">No hay misiones aprobadas en el historial.</p>';
+        }
+
+        for (const p of approvedList) {
+            try {
+                const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
+                
+                if (!p.data || !p.data.submission) {
+                    continue;
+                }
+
+                const dataHtml = await renderSubmissionData(p.data.submission);
+                const awardedXP = p.data.awardedXP !== undefined ? p.data.awardedXP : (p.config ? p.config.xp : 15);
+
+                const card = document.createElement('div');
+                card.className = 'card submission-item';
+                card.style.borderLeft = '5px solid #2e7d32';
+                card.style.padding = '18px';
+                card.style.marginBottom = '20px';
+                card.style.position = 'relative';
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
+                        <div>
+                            <div class="card-title" style="font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; color: #2e7d32; text-align: left;">
+                                ${p.config ? p.config.title : p.missionId}
+                            </div>
+                            <div style="font-size: 0.82rem; color: var(--color-gray-dark); text-align: left;">
+                                👤 <strong>${kidName}</strong> | 📅 Día ${p.config ? p.config.day : 'N/A'} | 📍 ${p.config ? (p.config.location || 'N/A') : 'N/A'}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="background: #2e7d32; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: bold; white-space: nowrap;">
+                                +${awardedXP} XP
+                            </div>
+                            <button class="btn-reject" style="font-size: 0.8rem; padding: 5px 10px; border-radius: 20px; min-height: unset; cursor: pointer; border: none; background: #e53935; color: white;" onclick="undoApproveMission('${p.kid}', '${p.missionId}')">↩️ Deshacer</button>
+                        </div>
+                    </div>
+
+                    <!-- Evidencia Entregada -->
+                    <div style="background: white; border: 1px solid #efebe9; border-radius: 10px; padding: 12px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <div style="font-size: 0.78rem; font-weight: bold; text-transform: uppercase; color: #2e7d32; margin-bottom: 8px; border-bottom: 1px solid #f5f2f0; padding-bottom: 4px; letter-spacing: 0.3px;">📥 Evidencia entregada:</div>
+                        <div style="font-size: 0.95rem; color: #3e2723; word-break: break-word;">${dataHtml}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            } catch (err) {
+                console.error(`Error rendering approved mission ${p.missionId}:`, err);
+            }
         }
     }
 
@@ -1172,6 +1335,8 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
     if (isFamily) {
         gameState['kid9'].missions[missionId].status = 'approved';
         gameState['kid14'].missions[missionId].status = 'approved';
+        gameState['kid9'].missions[missionId].awardedXP = xp;
+        gameState['kid14'].missions[missionId].awardedXP = xp;
         gameState['kid9'].xp += xp;
         gameState['kid14'].xp += xp;
         
@@ -1186,6 +1351,7 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
 
     } else {
         gameState[kid].missions[missionId].status = 'approved';
+        gameState[kid].missions[missionId].awardedXP = xp;
         gameState[kid].xp += xp;
         
         leveledUp = checkLevelUp(kid);
@@ -1204,16 +1370,90 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
 };
 
 window.rejectMission = (kid, missionId) => {
-    gameState[kid].missions[missionId].status = 'unlocked';
-    gameState[kid].missions[missionId].submission = null;
+    const feedback = prompt("Escribe el motivo del rechazo (para guiar al explorador en su próximo intento):");
+    if (feedback === null) {
+        // Cancelado por el juez, no se rechaza la misión
+        return;
+    }
     
-    // Si falla, rompemos las rachas (para medalla olimpica o criptografo_elite)
-    if(gameState[kid].counters) {
-        gameState[kid].counters.physicalStreak = 0;
-        if(MISSIONS_CONFIG[missionId] && (MISSIONS_CONFIG[missionId].tag === 'expert' || MISSIONS_CONFIG[missionId].title.includes('Terminal'))) {
-            gameState[kid].counters.cryptoSolvedFirstTry = false;
+    const reason = feedback.trim() || "No se especificó un motivo concreto.";
+    const missionState = gameState[kid].missions[missionId];
+    const isFamily = missionState && missionState.submission && missionState.submission.type === 'family';
+
+    if (isFamily) {
+        ['kid9', 'kid14'].forEach(k => {
+            if (gameState[k].missions[missionId]) {
+                gameState[k].missions[missionId].status = 'unlocked';
+                gameState[k].missions[missionId].submission = null;
+                gameState[k].missions[missionId].feedback = reason;
+                if (gameState[k].counters) {
+                    gameState[k].counters.physicalStreak = 0;
+                    if(MISSIONS_CONFIG[missionId] && (MISSIONS_CONFIG[missionId].tag === 'expert' || MISSIONS_CONFIG[missionId].title.includes('Terminal'))) {
+                        gameState[k].counters.cryptoSolvedFirstTry = false;
+                    }
+                }
+            }
+        });
+    } else {
+        gameState[kid].missions[missionId].status = 'unlocked';
+        gameState[kid].missions[missionId].submission = null;
+        gameState[kid].missions[missionId].feedback = reason;
+        
+        // Si falla, rompemos las rachas (para medalla olimpica o criptografo_elite)
+        if(gameState[kid].counters) {
+            gameState[kid].counters.physicalStreak = 0;
+            if(MISSIONS_CONFIG[missionId] && (MISSIONS_CONFIG[missionId].tag === 'expert' || MISSIONS_CONFIG[missionId].title.includes('Terminal'))) {
+                gameState[kid].counters.cryptoSolvedFirstTry = false;
+            }
         }
     }
+    
+    saveState();
+    renderJudgePanel();
+};
+
+function recalculateLevel(kidId) {
+    const xp = gameState[kidId].xp;
+    const levelsArr = kidId === 'kid9' ? LEVELS_LAURA : LEVELS_IVAN;
+    let correctLevelIndex = 0;
+    for (let i = 0; i < levelsArr.length; i++) {
+        if (xp >= levelsArr[i].xp) {
+            correctLevelIndex = i;
+        } else {
+            break;
+        }
+    }
+    gameState[kidId].level = correctLevelIndex;
+    saveState();
+}
+
+window.undoApproveMission = (kid, missionId) => {
+    const m = gameState[kid].missions[missionId];
+    if (!m || m.status !== 'approved') return;
+
+    const xpToSubtract = m.awardedXP !== undefined ? m.awardedXP : (MISSIONS_CONFIG[missionId] ? MISSIONS_CONFIG[missionId].xp : 15);
+    const isFamily = m.submission && m.submission.type === 'family';
+
+    if (isFamily) {
+        ['kid9', 'kid14'].forEach(k => {
+            const km = gameState[k].missions[missionId];
+            if (km && km.status === 'approved') {
+                const kXpToSubtract = km.awardedXP !== undefined ? km.awardedXP : xpToSubtract;
+                gameState[k].xp = Math.max(0, gameState[k].xp - kXpToSubtract);
+                km.status = 'pending';
+                km.feedback = null;
+                recalculateLevel(k);
+            }
+        });
+        showAlert('Deshecho', 'Se ha devuelto la misión conjunta al estado pendiente y restado la experiencia a ambos exploradores.');
+    } else {
+        gameState[kid].xp = Math.max(0, gameState[kid].xp - xpToSubtract);
+        m.status = 'pending';
+        m.feedback = null;
+        recalculateLevel(kid);
+        showAlert('Deshecho', `Se ha devuelto la misión al estado pendiente y restado la experiencia a ${gameState[kid].name}.`);
+    }
+
     saveState();
     renderJudgePanel();
 };
@@ -1851,9 +2091,18 @@ async function renderAlbumCategory(categoryId) {
             
             div.addEventListener('click', () => {
                 const input = document.getElementById('album-camera-input');
-                if (categoryId === 'texturas_sonidos' && confirm('¿Quieres grabar un Sonido en lugar de tomar una Foto?')) {
-                    input.accept = 'audio/*';
-                    input.removeAttribute('capture'); 
+                
+                // Limpiar valor anterior para asegurar que se dispare onchange si eligen el mismo archivo
+                input.value = '';
+                
+                if (categoryId === 'texturas_sonidos') {
+                    if (confirm('¿Quieres grabar un Sonido en lugar de tomar una Foto?')) {
+                        input.accept = 'audio/*';
+                        input.removeAttribute('capture'); 
+                    } else {
+                        input.accept = 'image/*';
+                        input.setAttribute('capture', 'environment');
+                    }
                 } else {
                     input.accept = 'image/*';
                     input.setAttribute('capture', 'environment');

@@ -27,11 +27,11 @@
             <h1>Pasaporte a Japón</h1>
             <p>Selecciona tu perfil de explorador</p>
             <div class="profiles">
-                <button class="btn-profile" data-role="kid9">
+                <button class="btn-profile" data-role="kid9" aria-label="Perfil de Laura">
                     <span class="emoji">🦊</span>
                     <span class="name">Laura</span>
                 </button>
-                <button class="btn-profile" data-role="kid14">
+                <button class="btn-profile" data-role="kid14" aria-label="Perfil de Iván">
                     <span class="emoji">🐉</span>
                     <span class="name">Iván</span>
                 </button>
@@ -62,7 +62,6 @@
     <header id="main-header" class="hidden">
         <button id="btn-back" class="btn-icon">⬅️ Volver</button>
         <h2 id="header-title">Misiones</h2>
-        <div style="width: 48px;"></div> <!-- Spacer para mantener centrado el título -->
     </header>
 
     <!-- LISTA DE DÍAS (NIÑOS) -->
@@ -125,14 +124,31 @@
             </button>
         </div>
         
-        <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Misiones por Evaluar</h3>
-        <div id="pending-missions-list" class="list-container" style="margin-top: 10px;">
-            <!-- Misiones pendientes se inyectan aquí -->
+        <!-- Pestañas Juez -->
+        <div class="passport-tabs" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 10px;">
+            <button id="btn-judge-tab-pending" class="passport-tab active" style="border-bottom: 3px solid var(--color-primary); color: var(--color-primary); border-radius: 0;">⏳ Pendientes</button>
+            <button id="btn-judge-tab-approved" class="passport-tab" style="border-bottom: 3px solid transparent; color: var(--color-gray-dark); border-radius: 0;">✅ Aprobadas</button>
         </div>
-        
-        <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 15px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">🎁 Recompensas Solicitadas</h3>
-        <div id="pending-rewards-list" class="list-container" style="margin-top: 10px; padding-bottom: 50px;">
-            <!-- Recompensas solicitadas se inyectan aquí -->
+
+        <!-- Sección de Pendientes -->
+        <div id="judge-pending-section">
+            <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Misiones por Evaluar</h3>
+            <div id="pending-missions-list" class="list-container" style="margin-top: 10px;">
+                <!-- Misiones pendientes se inyectan aquí -->
+            </div>
+            
+            <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 15px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">🎁 Recompensas Solicitadas</h3>
+            <div id="pending-rewards-list" class="list-container" style="margin-top: 10px; padding-bottom: 50px;">
+                <!-- Recompensas solicitadas se inyectan aquí -->
+            </div>
+        </div>
+
+        <!-- Sección de Aprobadas -->
+        <div id="judge-approved-section" class="hidden">
+            <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Historial de Aprobadas</h3>
+            <div id="approved-missions-list" class="list-container" style="margin-top: 10px; padding-bottom: 50px;">
+                <!-- Misiones aprobadas se inyectan aquí -->
+            </div>
         </div>
     </div>
 
@@ -183,15 +199,15 @@
 
     <!-- NAVEGACIÓN INFERIOR (BOTTOM NAV) -->
     <nav id="bottom-nav" class="bottom-nav hidden">
-        <button id="nav-btn-home" class="nav-item">
+        <button id="nav-btn-home" class="nav-item" aria-label="Ir a la pantalla de Inicio">
             <span class="nav-icon">🏠</span>
             <span class="nav-label">Inicio</span>
         </button>
-        <button id="nav-btn-missions" class="nav-item">
+        <button id="nav-btn-missions" class="nav-item" aria-label="Ver la lista de Misiones">
             <span class="nav-icon">📜</span>
             <span class="nav-label">Misiones</span>
         </button>
-        <button id="nav-btn-passport" class="nav-item">
+        <button id="nav-btn-passport" class="nav-item" aria-label="Ver mi Pasaporte y logros">
             <span class="nav-icon">🏆</span>
             <span class="nav-label">Pasaporte</span>
         </button>

@@ -189,7 +189,7 @@ body {
    ========================================= */
 #main-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     padding: 16px;
     background-color: var(--color-bg);
@@ -205,6 +205,11 @@ body {
     font-weight: 800;
     margin: 0;
     color: var(--color-primary);
+}
+
+#btn-back {
+    position: absolute;
+    left: 16px;
 }
 
 .btn-icon {
