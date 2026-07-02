@@ -617,6 +617,14 @@ function renderMissionDetail(missionId, role) {
     const day18MissionsIvan = ['day_18_radio', 'day_18_trend', 'day_18_flow', 'day_18_silence', 'day_18_crossing'];
     const day19MissionsLaura = ['day_19_gundam', 'day_19_color', 'day_19_teamlab', 'day_19_liberty', 'day_19_immersive'];
     const day19MissionsIvan = ['day_19_crypto', 'day_19_mirrors', 'day_19_weight', 'day_19_monorail', 'day_19_immersive'];
+    const day20MissionsLaura = ['day_20_bento', 'day_20_potion', 'day_20_pond', 'day_20_weight', 'day_20_tasting'];
+    const day20MissionsIvan = ['day_20_change', 'day_20_museum', 'day_20_vintage', 'day_20_stairs', 'day_20_tasting'];
+    const day21MissionsLaura = ['day_21_monkeys', 'day_21_dragon', 'day_21_slash', 'day_21_jizo', 'day_21_silence'];
+    const day21MissionsIvan = ['day_21_buddha', 'day_21_gold', 'day_21_tracking', 'day_21_defense', 'day_21_silence'];
+    const day22MissionsLaura = ['day_22_shout', 'day_22_car', 'day_22_elevator', 'day_22_tower', 'day_22_neon'];
+    const day22MissionsIvan = ['day_22_jewel', 'day_22_numbers', 'day_22_fish', 'day_22_compare', 'day_22_neon'];
+    const day23MissionsLaura = ['day_23_kitkat', 'day_23_pokedex', 'day_23_coins', 'day_23_mascot', 'day_23_stamp'];
+    const day23MissionsIvan = ['day_23_tetris', 'day_23_audit', 'day_23_security', 'day_23_weight', 'day_23_stamp'];
 
     const isMinigameMission = (role === 'kid9' && (
         day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) ||
@@ -624,14 +632,18 @@ function renderMissionDetail(missionId, role) {
         day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId) || day11MissionsLaura.includes(missionId) ||
         day12MissionsLaura.includes(missionId) || day13MissionsLaura.includes(missionId) || day14MissionsLaura.includes(missionId) ||
         day15MissionsLaura.includes(missionId) || day16MissionsLaura.includes(missionId) || day17MissionsLaura.includes(missionId) ||
-        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId)
+        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId) ||
+        day20MissionsLaura.includes(missionId) || day21MissionsLaura.includes(missionId) ||
+        day22MissionsLaura.includes(missionId) || day23MissionsLaura.includes(missionId)
     )) || (role === 'kid14' && (
         day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) ||
         day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) ||
         day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId) || day11MissionsIvan.includes(missionId) ||
         day12MissionsIvan.includes(missionId) || day13MissionsIvan.includes(missionId) || day14MissionsIvan.includes(missionId) ||
         day15MissionsIvan.includes(missionId) || day16MissionsIvan.includes(missionId) || day17MissionsIvan.includes(missionId) ||
-        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId)
+        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId) ||
+        day20MissionsIvan.includes(missionId) || day21MissionsIvan.includes(missionId) ||
+        day22MissionsIvan.includes(missionId) || day23MissionsIvan.includes(missionId)
     ));
 
     let minigameButtonHtml = '';
@@ -704,6 +716,14 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
     const day18MissionsIvan = ['day_18_radio', 'day_18_trend', 'day_18_flow', 'day_18_silence', 'day_18_crossing'];
     const day19MissionsLaura = ['day_19_gundam', 'day_19_color', 'day_19_teamlab', 'day_19_liberty', 'day_19_immersive'];
     const day19MissionsIvan = ['day_19_crypto', 'day_19_mirrors', 'day_19_weight', 'day_19_monorail', 'day_19_immersive'];
+    const day20MissionsLaura = ['day_20_bento', 'day_20_potion', 'day_20_pond', 'day_20_weight', 'day_20_tasting'];
+    const day20MissionsIvan = ['day_20_change', 'day_20_museum', 'day_20_vintage', 'day_20_stairs', 'day_20_tasting'];
+    const day21MissionsLaura = ['day_21_monkeys', 'day_21_dragon', 'day_21_slash', 'day_21_jizo', 'day_21_silence'];
+    const day21MissionsIvan = ['day_21_buddha', 'day_21_gold', 'day_21_tracking', 'day_21_defense', 'day_21_silence'];
+    const day22MissionsLaura = ['day_22_shout', 'day_22_car', 'day_22_elevator', 'day_22_tower', 'day_22_neon'];
+    const day22MissionsIvan = ['day_22_jewel', 'day_22_numbers', 'day_22_fish', 'day_22_compare', 'day_22_neon'];
+    const day23MissionsLaura = ['day_23_kitkat', 'day_23_pokedex', 'day_23_coins', 'day_23_mascot', 'day_23_stamp'];
+    const day23MissionsIvan = ['day_23_tetris', 'day_23_audit', 'day_23_security', 'day_23_weight', 'day_23_stamp'];
 
     const isMinigameMission = (role === 'kid9' && (
         day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) ||
@@ -711,14 +731,18 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
         day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId) || day11MissionsLaura.includes(missionId) ||
         day12MissionsLaura.includes(missionId) || day13MissionsLaura.includes(missionId) || day14MissionsLaura.includes(missionId) ||
         day15MissionsLaura.includes(missionId) || day16MissionsLaura.includes(missionId) || day17MissionsLaura.includes(missionId) ||
-        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId)
+        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId) ||
+        day20MissionsLaura.includes(missionId) || day21MissionsLaura.includes(missionId) ||
+        day22MissionsLaura.includes(missionId) || day23MissionsLaura.includes(missionId)
     )) || (role === 'kid14' && (
         day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) ||
         day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) ||
         day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId) || day11MissionsIvan.includes(missionId) ||
         day12MissionsIvan.includes(missionId) || day13MissionsIvan.includes(missionId) || day14MissionsIvan.includes(missionId) ||
         day15MissionsIvan.includes(missionId) || day16MissionsIvan.includes(missionId) || day17MissionsIvan.includes(missionId) ||
-        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId)
+        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId) ||
+        day20MissionsIvan.includes(missionId) || day21MissionsIvan.includes(missionId) ||
+        day22MissionsIvan.includes(missionId) || day23MissionsIvan.includes(missionId)
     ));
 
     if (isMinigameMission && !bypassMinigame) {

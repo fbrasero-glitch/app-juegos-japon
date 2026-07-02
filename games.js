@@ -947,6 +947,86 @@ window.MinigamesManager = {
             case 'day_19_immersive':
                 return { title: "Inmersión Total 🌌🌊", emoji: "🌌", instructions: "¡Cascada de luz de TeamLab! Toca y desvía los chorros luminosos para canalizarlos y envolver a la familia en auras brillantes.", goal: 30, color: "#b388ff" };
 
+            // DIA 20
+            case 'day_20_bento':
+                return { title: "Maestro del Bento 🍱✨", emoji: "🍱", instructions: "¡Físicas del Bento! Haz clic en los divisores para rotarlos y guiar los ingredientes que caen hacia sus celdas correspondientes en la parte inferior.", goal: 4, color: "#e53935" };
+            case 'day_20_potion':
+                return { title: "Alquimia Gatuna 🐾🔮", emoji: "🐾", instructions: "¡Alquimia de Yanaka Ginza! Conecta 3 o más huellas de gato iguales en línea para cargar el caldero místico.", goal: 100, color: "#ff80ab" };
+            case 'day_20_pond':
+                return { title: "El Pato del Estanque 🦆🪷", emoji: "🦆", instructions: "¡Fotografía en Ueno! Mueve el visor y dispara cuando el pato haga una pose especial bajo el anillo verde.", goal: 3, color: "#4caf50" };
+            case 'day_20_weight':
+                return { title: "El Peso del Tesoro ⚖️ Souvenir", emoji: "⚖️", instructions: "¡Balanza física! Arrastra pesas al platillo derecho hasta equilibrar el souvenir del platillo izquierdo.", goal: 3, color: "#009688" };
+            case 'day_20_change':
+                return { title: "Regateo en Ameyoko 💰🛒", emoji: "💰", instructions: "¡Devuelve cambio rápido! Selecciona monedas para dar el cambio exacto antes de que el cliente pierda la paciencia.", goal: 5, color: "#ffb300" };
+            case 'day_20_museum':
+                return { title: "Arquitectura del Museo 🏛️📐", emoji: "🏛️", instructions: "¡Plano digital! Une los nodos numerados dibujando líneas bajo chispas de soldadura.", goal: 2, color: "#8d6e63" };
+            case 'day_20_vintage':
+                return { title: "Análisis de Precios Retro 🕹️🔍", emoji: "🕹️", instructions: "¡Inspección en Super Potato! Usa la lupa de rayos X para contar fallas y clasificar las consolas (A, B o C).", goal: 5, color: "#ffd700" };
+            case 'day_20_stairs':
+                return { title: "Escaleras del Atardecer 🌅🏃", emoji: "🌅", instructions: "¡Paso rítmico en Yuyake Dandan! Presiona izquierda o derecha al ritmo de las huellas que bajan por las escaleras.", goal: 36, color: "#ff7043" };
+            case 'day_20_tasting':
+                return { title: "Degustación Callejera 🍡🍢", emoji: "🍡", instructions: "¡Chef de Brochetas! Prepara pinchos de dango, asalos en la plancha y sírvelos cuando el indicador esté verde.", goal: 8, color: "#ff9800" };
+
+            // DIA 21
+            case 'day_21_monkeys':
+                return { title: "Los Tres Monos 🙈🙉🙊", emoji: "🙈", instructions: "¡Simón Dice en Nikko! Memoriza y repite la secuencia de gestos de los monos (ojos, oídos, boca).", goal: 5, color: "#8d6e63" };
+            case 'day_21_dragon':
+                return { title: "El Latido del Dragón 🐉💓", emoji: "🐉", instructions: "¡Rito en el Templo! Toca en sincronía exacta cuando las ondas de latido converjan en la joya central.", goal: 10, color: "#d500f9" };
+            case 'day_21_slash':
+                return { title: "El Tajo del Samurái ⚔️🎋", emoji: "⚔️", instructions: "¡Entrenamiento de Katana! Rebana con cortes rápidos en el ángulo indicado para cortar los bambúes.", goal: 15, color: "#2e7d32" };
+            case 'day_21_jizo':
+                return { title: "Guardián de Piedra 🗿🛡️", emoji: "🗿", instructions: "¡Defensa espiritual! Dibuja barreras de neón en el aire para desviar el fuego espectral rojo fuera de los Jizos.", goal: 30, color: "#4caf50" };
+            case 'day_21_buddha':
+                return { title: "Ingeniero Imperial 🏯⛲", emoji: "🏯", instructions: "¡Fundición en Kamakura! Rota los conductos para verter bronce líquido en el molde gigante del Gran Buda.", goal: 100, color: "#00e676" };
+            case 'day_21_gold':
+                return { title: "Análisis de Pan de Oro 🔨✨", emoji: "🔨", instructions: "¡Laminador de Oro! Golpea el martillo cuando la aguja esté en la zona verde para aplanar el pan de oro.", goal: 12, color: "#ffd700" };
+            case 'day_21_tracking':
+                return { title: "Rastreo de la Naturaleza 🌲📡", emoji: "📡", instructions: "¡Sonar en la niebla! Camina por el bosque guiado por los barridos del radar, esquivando trampas.", goal: 3, color: "#00b0ff" };
+            case 'day_21_defense':
+                return { title: "Defensa del Shogunato 🏰🔥", emoji: "🏰", instructions: "¡Asedio Odawara! Conjura hechizos de roca, viento y fuego para frenar a los invasores en la senda.", goal: 45, color: "#ff3d00" };
+            case 'day_21_silence':
+                return { title: "La Paz de la Montaña 🪷🧘", emoji: "🪷", instructions: "¡Meditación Zen! Pulsa y suelta para sincronizar tu respiración con el halo armónico del loto.", goal: 15, color: "#00b0ff" };
+
+            // DIA 22
+            case 'day_22_shout':
+                return { title: "Grito de Pescadero 🐟📣", emoji: "📣", instructions: "¡Grito de Toyosu! Ajusta la altura de tu onda sonora para encajar con el grito del pescadero.", goal: 3, color: "#00acc1" };
+            case 'day_22_car':
+                return { title: "Vehículo de Lujo 🏎️💨", emoji: "🏎️", instructions: "¡Carreras en Ginza! Cambia de marcha soltando el embrague cuando las RPM toquen la zona dorada.", goal: 1, color: "#ff1744" };
+            case 'day_22_elevator':
+                return { title: "Ascensor Infinito 🏢🚀", emoji: "🚀", instructions: "¡Cohete de Roppongi Hills! Controla la aceleración lateral para evitar mareos en la subida ultrarrápida.", goal: 52, color: "#00e5ff" };
+            case 'day_22_tower':
+                return { title: "Réplica Eiffel 🗼🤏", emoji: "🗼", instructions: "¡Alineación óptica! Escala y rota la mano en perspectiva para pinzar la punta de la Torre de Tokio.", goal: 2, color: "#ff5252" };
+            case 'day_22_jewel':
+                return { title: "La Joya de Ginza 💎🚨", emoji: "💎", instructions: "¡Esquiva láseres! Guía la sonda física sorteando barreras radiales para hackear los 4 terminales.", goal: 4, color: "#d500f9" };
+            case 'day_22_numbers':
+                return { title: "Intercepción Numérica 🔢🔓", emoji: "🔓", instructions: "¡Kanji Crypto! Escucha los números en japonés y ordena los bloques de Kanjis correctos en la clave.", goal: 3, color: "#00e676" };
+            case 'day_22_fish':
+                return { title: "Logística del Pescado 📦🚂", emoji: "📦", instructions: "¡Cruce de Toyosu! Conmuta agujas de vía férrea para enviar los palets de atún al muelle correcto.", goal: 15, color: "#ff9100" };
+            case 'day_22_compare':
+                return { title: "Altura Relativa 🗼🏢", emoji: "🗼", instructions: "¡Stacker de la Torre! Apila bloques respetando la gravedad para comparar el tamaño con la Skytree.", goal: 8, color: "#cfd8dc" };
+            case 'day_22_neon':
+                return { title: "Luces de Neón 🌟🌃", emoji: "🌃", instructions: "¡Conexión de Neón! Conecta cables elásticos de neones sin cruzarlos para encender el letrero familiar.", goal: 1, color: "#ea580c" };
+
+            // DIA 23
+            case 'day_23_kitkat':
+                return { title: "Buscador de KitKat 🍫🔍", emoji: "🍫", instructions: "¡Supermercado Match-3! Intercambia y combina KitKats para cosechar 15 combinaciones exóticas.", goal: 15, color: "#cc0000" };
+            case 'day_23_pokedex':
+                return { title: "Pokédex de Supermercado 🔎🏷️", emoji: "🔎", instructions: "¡Alineación de Escáner! Calibra el ancho del haz láser para coincidir con los códigos de barras móviles.", goal: 5, color: "#40c4ff" };
+            case 'day_23_coins':
+                return { title: "Oráculo de Monedas 🪙⛲", emoji: "🪙", instructions: "¡Deseos en el Templo! Sopla y crea corrientes de agua para guiar la moneda de 100¥ al cuenco dorado.", goal: 3, color: "#ffd700" };
+            case 'day_23_mascot':
+                return { title: "Mascotas de Viaje 🧸🏗️", emoji: "🧸", instructions: "¡Garra de Hotel! Suelta la garra oscilante con inercia para rescatar tu peluche favorito.", goal: 1, color: "#ffecd2" };
+            case 'day_23_tetris':
+                return { title: "Tetris de Maletas 🧳🧩", emoji: "🧳", instructions: "¡Organiza equipaje! Arrastra y rota piezas poligonales para encajarlas en el compartimento de la maleta.", goal: 100, color: "#00e676" };
+            case 'day_23_audit':
+                return { title: "Auditoría Final 📊💸", emoji: "📊", instructions: "¡Conversión Financiera! Une recibos de Yenes con su valor equivalente en Euros usando ligas elásticas.", goal: 6, color: "#ffd700" };
+            case 'day_23_security':
+                return { title: "Protocolo de Embarque 🛫🛂", emoji: "🛫", instructions: "¡Rayos X de Aeropuerto! Toca y requisa objetos no permitidos antes de que salgan de la pantalla.", goal: 12, color: "#ff3d00" };
+            case 'day_23_weight':
+                return { title: "Peso de Carga 🧳⚖️", emoji: "⚖️", instructions: "¡Equipaje de bodega! Carga maletas en la aeronave balanceando los pesos en ambos lados.", goal: 23, color: "#78909c" };
+            case 'day_23_stamp':
+                return { title: "El Sello Final 🔴📜", emoji: "🔴", instructions: "¡Estampado de pasaporte! Recarga de tinta los sellos y colócalos con la presión exacta sobre el papel.", goal: 6, color: "#d4af37" };
+
             default:
                 return { title: "Minijuego", emoji: "🎮", instructions: "Completa el desafío.", goal: 100, color: "#ffd700" };
         }
@@ -1430,6 +1510,50 @@ window.MinigamesManager = {
             case 'day_19_weight': this.inputWeightPress(x, y); break;
             case 'day_19_monorail': this.inputMonorailPress(x, y); break;
             case 'day_19_immersive': this.inputImmersivePress(x, y); break;
+
+            // DIA 20
+            case 'day_20_bento': this.inputBentoPress(x, y); break;
+            case 'day_20_potion': this.inputPotionPress(x, y); break;
+            case 'day_20_pond': this.inputPondPress(x, y); break;
+            case 'day_20_weight': this.inputWeight20Press(x, y); break;
+            case 'day_20_change': this.inputChangePress(x, y); break;
+            case 'day_20_museum': this.inputMuseumPress(x, y); break;
+            case 'day_20_vintage': this.inputVintagePress(x, y); break;
+            case 'day_20_stairs': this.inputStairsPress(x, y); break;
+            case 'day_20_tasting': this.inputTastingPress(x, y); break;
+
+            // DIA 21
+            case 'day_21_monkeys': this.inputMonkeysPress(x, y); break;
+            case 'day_21_dragon': this.inputDragonPress(x, y); break;
+            case 'day_21_slash': this.inputSlashPress(x, y); break;
+            case 'day_21_jizo': this.inputJizoPress(x, y); break;
+            case 'day_21_buddha': this.inputBuddhaPress(x, y); break;
+            case 'day_21_gold': this.inputGoldPress(x, y); break;
+            case 'day_21_tracking': this.inputTrackingPress(x, y); break;
+            case 'day_21_defense': this.inputDefensePress(x, y); break;
+            case 'day_21_silence': this.inputSilencePress(x, y); break;
+
+            // DIA 22
+            case 'day_22_shout': this.inputShoutPress(x, y); break;
+            case 'day_22_car': this.inputCarPress(x, y); break;
+            case 'day_22_elevator': this.inputElevatorPress(x, y); break;
+            case 'day_22_tower': this.inputTowerPress(x, y); break;
+            case 'day_22_jewel': this.inputJewelPress(x, y); break;
+            case 'day_22_numbers': this.inputNumbersPress(x, y); break;
+            case 'day_22_fish': this.inputFishPress(x, y); break;
+            case 'day_22_compare': this.inputComparePress(x, y); break;
+            case 'day_22_neon': this.inputNeon22Press(x, y); break;
+
+            // DIA 23
+            case 'day_23_kitkat': this.inputKitkatPress(x, y); break;
+            case 'day_23_pokedex': this.inputPokedexPress(x, y); break;
+            case 'day_23_coins': this.inputCoinsPress(x, y); break;
+            case 'day_23_mascot': this.inputMascotPress(x, y); break;
+            case 'day_23_tetris': this.inputTetrisPress(x, y); break;
+            case 'day_23_audit': this.inputAuditPress(x, y); break;
+            case 'day_23_security': this.inputSecurityPress(x, y); break;
+            case 'day_23_weight': this.inputWeight23Press(x, y); break;
+            case 'day_23_stamp': this.inputStampPress(x, y); break;
         }
     },
 
@@ -1521,6 +1645,23 @@ window.MinigamesManager = {
             case 'day_19_mirrors': this.releaseMirrors(x, y); break;
             case 'day_19_weight': this.releaseWeight(x, y); break;
             case 'day_19_monorail': this.releaseMonorail(x, y); break;
+
+            // DIA 20
+            case 'day_20_potion': this.releasePotion(x, y); break;
+            case 'day_20_weight': this.releaseWeight20(x, y); break;
+            case 'day_20_museum': this.releaseMuseum(x, y); break;
+            
+            // DIA 21
+            case 'day_21_jizo': this.releaseJizo(x, y); break;
+            case 'day_21_silence': this.releaseSilence(x, y); break;
+
+            // DIA 22
+            case 'day_22_neon': this.releaseNeon22(x, y); break;
+
+            // DIA 23
+            case 'day_23_tetris': this.releaseTetris(x, y); break;
+            case 'day_23_audit': this.releaseAudit(x, y); break;
+            case 'day_23_stamp': this.releaseStamp(x, y); break;
         }
     },
 
@@ -1925,6 +2066,50 @@ window.MinigamesManager = {
             case 'day_19_weight': this.setupWeight(); break;
             case 'day_19_monorail': this.setupMonorail(); break;
             case 'day_19_immersive': this.setupImmersive(); break;
+
+            // DIA 20
+            case 'day_20_bento': this.setupBento(); break;
+            case 'day_20_potion': this.setupPotion(); break;
+            case 'day_20_pond': this.setupPond(); break;
+            case 'day_20_weight': this.setupWeight20(); break;
+            case 'day_20_change': this.setupChange(); break;
+            case 'day_20_museum': this.setupMuseum(); break;
+            case 'day_20_vintage': this.setupVintage(); break;
+            case 'day_20_stairs': this.setupStairs(); break;
+            case 'day_20_tasting': this.setupTasting(); break;
+
+            // DIA 21
+            case 'day_21_monkeys': this.setupMonkeys(); break;
+            case 'day_21_dragon': this.setupDragon(); break;
+            case 'day_21_slash': this.setupSlash(); break;
+            case 'day_21_jizo': this.setupJizo(); break;
+            case 'day_21_buddha': this.setupBuddha(); break;
+            case 'day_21_gold': this.setupGold(); break;
+            case 'day_21_tracking': this.setupTracking(); break;
+            case 'day_21_defense': this.setupDefense(); break;
+            case 'day_21_silence': this.setupSilence(); break;
+
+            // DIA 22
+            case 'day_22_shout': this.setupShout(); break;
+            case 'day_22_car': this.setupCar(); break;
+            case 'day_22_elevator': this.setupElevator(); break;
+            case 'day_22_tower': this.setupTower(); break;
+            case 'day_22_jewel': this.setupJewel(); break;
+            case 'day_22_numbers': this.setupNumbers(); break;
+            case 'day_22_fish': this.setupFish(); break;
+            case 'day_22_compare': this.setupCompare(); break;
+            case 'day_22_neon': this.setupNeon22(); break;
+
+            // DIA 23
+            case 'day_23_kitkat': this.setupKitkat(); break;
+            case 'day_23_pokedex': this.setupPokedex(); break;
+            case 'day_23_coins': this.setupCoins(); break;
+            case 'day_23_mascot': this.setupMascot(); break;
+            case 'day_23_tetris': this.setupTetris(); break;
+            case 'day_23_audit': this.setupAudit(); break;
+            case 'day_23_security': this.setupSecurity(); break;
+            case 'day_23_weight': this.setupWeight23(); break;
+            case 'day_23_stamp': this.setupStamp(); break;
         }
     },
 
@@ -2245,6 +2430,50 @@ window.MinigamesManager = {
             case 'day_19_weight': this.updateWeight(dt); break;
             case 'day_19_monorail': this.updateMonorail(dt); break;
             case 'day_19_immersive': this.updateImmersive(dt); break;
+
+            // DIA 20
+            case 'day_20_bento': this.updateBento(dt); break;
+            case 'day_20_potion': this.updatePotion(dt); break;
+            case 'day_20_pond': this.updatePond(dt); break;
+            case 'day_20_weight': this.updateWeight20(dt); break;
+            case 'day_20_change': this.updateChange(dt); break;
+            case 'day_20_museum': this.updateMuseum(dt); break;
+            case 'day_20_vintage': this.updateVintage(dt); break;
+            case 'day_20_stairs': this.updateStairs(dt); break;
+            case 'day_20_tasting': this.updateTasting(dt); break;
+
+            // DIA 21
+            case 'day_21_monkeys': this.updateMonkeys(dt); break;
+            case 'day_21_dragon': this.updateDragon(dt); break;
+            case 'day_21_slash': this.updateSlash(dt); break;
+            case 'day_21_jizo': this.updateJizo(dt); break;
+            case 'day_21_buddha': this.updateBuddha(dt); break;
+            case 'day_21_gold': this.updateGold(dt); break;
+            case 'day_21_tracking': this.updateTracking(dt); break;
+            case 'day_21_defense': this.updateDefense(dt); break;
+            case 'day_21_silence': this.updateSilence(dt); break;
+
+            // DIA 22
+            case 'day_22_shout': this.updateShout(dt); break;
+            case 'day_22_car': this.updateCar(dt); break;
+            case 'day_22_elevator': this.updateElevator(dt); break;
+            case 'day_22_tower': this.updateTower(dt); break;
+            case 'day_22_jewel': this.updateJewel(dt); break;
+            case 'day_22_numbers': this.updateNumbers(dt); break;
+            case 'day_22_fish': this.updateFish(dt); break;
+            case 'day_22_compare': this.updateCompare(dt); break;
+            case 'day_22_neon': this.updateNeon22(dt); break;
+
+            // DIA 23
+            case 'day_23_kitkat': this.updateKitkat(dt); break;
+            case 'day_23_pokedex': this.updatePokedex(dt); break;
+            case 'day_23_coins': this.updateCoins(dt); break;
+            case 'day_23_mascot': this.updateMascot(dt); break;
+            case 'day_23_tetris': this.updateTetris(dt); break;
+            case 'day_23_audit': this.updateAudit(dt); break;
+            case 'day_23_security': this.updateSecurity(dt); break;
+            case 'day_23_weight': this.updateWeight23(dt); break;
+            case 'day_23_stamp': this.updateStamp(dt); break;
         }
         this.updateParticles(dt);
     },
@@ -2579,6 +2808,50 @@ window.MinigamesManager = {
                 case 'day_19_weight': this.drawWeight(); break;
                 case 'day_19_monorail': this.drawMonorail(); break;
                 case 'day_19_immersive': this.drawImmersive(); break;
+
+                // DIA 20
+                case 'day_20_bento': this.drawBento(); break;
+                case 'day_20_potion': this.drawPotion(); break;
+                case 'day_20_pond': this.drawPond(); break;
+                case 'day_20_weight': this.drawWeight20(); break;
+                case 'day_20_change': this.drawChange(); break;
+                case 'day_20_museum': this.drawMuseum(); break;
+                case 'day_20_vintage': this.drawVintage(); break;
+                case 'day_20_stairs': this.drawStairs(); break;
+                case 'day_20_tasting': this.drawTasting(); break;
+
+                // DIA 21
+                case 'day_21_monkeys': this.drawMonkeys(); break;
+                case 'day_21_dragon': this.drawDragon(); break;
+                case 'day_21_slash': this.drawSlash(); break;
+                case 'day_21_jizo': this.drawJizo(); break;
+                case 'day_21_buddha': this.drawBuddha(); break;
+                case 'day_21_gold': this.drawGold(); break;
+                case 'day_21_tracking': this.drawTracking(); break;
+                case 'day_21_defense': this.drawDefense(); break;
+                case 'day_21_silence': this.drawSilence(); break;
+
+                // DIA 22
+                case 'day_22_shout': this.drawShout(); break;
+                case 'day_22_car': this.drawCar(); break;
+                case 'day_22_elevator': this.drawElevator(); break;
+                case 'day_22_tower': this.drawTower(); break;
+                case 'day_22_jewel': this.drawJewel(); break;
+                case 'day_22_numbers': this.drawNumbers(); break;
+                case 'day_22_fish': this.drawFish(); break;
+                case 'day_22_compare': this.drawCompare(); break;
+                case 'day_22_neon': this.drawNeon22(); break;
+
+                // DIA 23
+                case 'day_23_kitkat': this.drawKitkat(); break;
+                case 'day_23_pokedex': this.drawPokedex(); break;
+                case 'day_23_coins': this.drawCoins(); break;
+                case 'day_23_mascot': this.drawMascot(); break;
+                case 'day_23_tetris': this.drawTetris(); break;
+                case 'day_23_audit': this.drawAudit(); break;
+                case 'day_23_security': this.drawSecurity(); break;
+                case 'day_23_weight': this.drawWeight23(); break;
+                case 'day_23_stamp': this.drawStamp(); break;
             }
             
             this.drawParticles();
@@ -27522,6 +27795,7 @@ window.MinigamesManager = {
             // Shooting
             bullets: [],
             shootCooldown: 0,
+            autoFire: true, // Auto-fire ON by default for mobile friendliness
             
             // Power-ups state
             shieldActive: false,
@@ -27537,13 +27811,18 @@ window.MinigamesManager = {
             // Custom particles (wake foam, score text)
             customParticles: [],
             
-            // Historic Sumida bridges
+            // Historic Sumida bridges (10 bridges instead of 5, making the game longer)
             bridges: [
-                { y: -300, name: 'Azuma Bridge (Rojo)', color: '#ff1744', gateX: 260, gateWidth: 140, crossed: false },
-                { y: -900, name: 'Kiyosu Bridge (Azul)', color: '#2979ff', gateX: 540, gateWidth: 140, crossed: false },
-                { y: -1500, name: 'Eitai Bridge (Verde)', color: '#00e676', gateX: 330, gateWidth: 140, crossed: false },
-                { y: -2100, name: 'Kachidoki Bridge (Gris)', color: '#78909c', gateX: 470, gateWidth: 140, crossed: false },
-                { y: -2700, name: 'Tsukiji Bridge (Blanco)', color: '#eceff1', gateX: 400, gateWidth: 140, crossed: false }
+                { y: -300, name: '1. Sakura Bridge (Rosa)', color: '#ff80ab', gateX: 240, gateWidth: 140, crossed: false },
+                { y: -950, name: '2. Kototoi Bridge (Gris)', color: '#90a4ae', gateX: 560, gateWidth: 140, crossed: false },
+                { y: -1600, name: '3. Azuma Bridge (Rojo)', color: '#ff1744', gateX: 300, gateWidth: 140, crossed: false },
+                { y: -2250, name: '4. Komagata Bridge (Azul)', color: '#29b6f6', gateX: 500, gateWidth: 140, crossed: false },
+                { y: -2900, name: '5. Umaya Bridge (Verde)', color: '#66bb6a', gateX: 400, gateWidth: 140, crossed: false },
+                { y: -3550, name: '6. Kuramae Bridge (Amarillo)', color: '#ffca28', gateX: 260, gateWidth: 140, crossed: false },
+                { y: -4200, name: '7. Kiyosu Bridge (Celeste)', color: '#00e5ff', gateX: 540, gateWidth: 140, crossed: false },
+                { y: -4850, name: '8. Eitai Bridge (Azul)', color: '#3f51b5', gateX: 330, gateWidth: 140, crossed: false },
+                { y: -5500, name: '9. Chuo Bridge (Blanco)', color: '#ffffff', gateX: 470, gateWidth: 140, crossed: false },
+                { y: -6150, name: '10. Tsukiji Bridge (Plateado)', color: '#cfd8dc', gateX: 400, gateWidth: 140, crossed: false }
             ],
             
             // Floating sakura petals
@@ -27573,15 +27852,61 @@ window.MinigamesManager = {
         // Water scroll and engine time
         gd.waterScroll = (gd.waterScroll + dt * 150) % 600;
         
-        // Boat drift physics
-        const targetX = this.mouse.x;
-        const dx = targetX - gd.boatX;
-        gd.boatAngle = lerp(gd.boatAngle, dx * 0.003, 0.08); // Tilt on turn
-        gd.boatVx = lerp(gd.boatVx, dx * 2.2, 0.05); // Latency drift
-        gd.boatX += gd.boatVx * dt;
+        // Steering controls (híbrido: botones táctiles en pantalla y arrastrar con ratón/toque)
+        let isButtonPressed = false;
+        
+        if (this.mouse.isDown) {
+            // Check Left Button area (bottom left)
+            if (this.mouse.x >= 30 && this.mouse.x <= 130 && this.mouse.y >= 520 && this.mouse.y <= 590) {
+                gd.boatX -= 320 * dt;
+                gd.boatAngle = lerp(gd.boatAngle, -0.25, 0.12);
+                isButtonPressed = true;
+            }
+            // Check Right Button area (bottom right)
+            else if (this.mouse.x >= 670 && this.mouse.x <= 770 && this.mouse.y >= 520 && this.mouse.y <= 590) {
+                gd.boatX += 320 * dt;
+                gd.boatAngle = lerp(gd.boatAngle, 0.25, 0.12);
+                isButtonPressed = true;
+            }
+        }
+        
+        if (!isButtonPressed) {
+            // Standard touch/mouse dragging follow
+            const targetX = this.mouse.x;
+            
+            // Only follow if mouse is clicked/held (on mobile) or hover (on desktop)
+            const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+            if (this.mouse.isDown || !isTouchDevice) {
+                // If they are not touching the bottom controls bar
+                if (!(this.mouse.isDown && this.mouse.y > 510)) {
+                    const dx = targetX - gd.boatX;
+                    gd.boatAngle = lerp(gd.boatAngle, dx * 0.003, 0.08); // Tilt on turn
+                    gd.boatVx = lerp(gd.boatVx, dx * 2.2, 0.05); // Latency drift
+                    gd.boatX += gd.boatVx * dt;
+                }
+            } else {
+                // Return boat to upright position when not steering
+                gd.boatAngle = lerp(gd.boatAngle, 0, 0.1);
+                gd.boatVx = lerp(gd.boatVx, 0, 0.1);
+            }
+        } else {
+            gd.boatVx = 0; // Reset velocity drift if using steering buttons
+        }
 
         if (gd.boatX < 180) { gd.boatX = 180; gd.boatVx = 0; }
         if (gd.boatX > 620) { gd.boatX = 620; gd.boatVx = 0; }
+
+        // Auto-fire logic
+        if (gd.autoFire && gd.shootCooldown <= 0 && this.state === 'playing') {
+            if (gd.doubleShotTimer > 0) {
+                gd.bullets.push({ x: gd.boatX - 15, y: 440, vy: -550 });
+                gd.bullets.push({ x: gd.boatX + 15, y: 440, vy: -550 });
+            } else {
+                gd.bullets.push({ x: gd.boatX, y: 440, vy: -550 });
+            }
+            gd.shootCooldown = 0.28; // Shoot every 280ms
+            if (window.playProceduralSound) window.playProceduralSound('jump');
+        }
 
         // Spawn boat wake foam particles
         if (Math.random() < 0.3) {
@@ -27593,7 +27918,7 @@ window.MinigamesManager = {
                 size: 3 + Math.random() * 5,
                 alpha: 0.6,
                 life: 1.0,
-                decay: 1.8, // dies in ~0.55s
+                decay: 1.8,
                 type: 'foam'
             });
         }
@@ -27628,8 +27953,8 @@ window.MinigamesManager = {
         gd.obstacleSpawnTimer -= dt;
         if (gd.obstacleSpawnTimer <= 0) {
             // Spawn timer gets shorter as player crosses more bridges
-            gd.obstacleSpawnTimer = 1.4 + Math.random() * 1.2 - (gd.bridgesPassed * 0.18);
-            if (gd.obstacleSpawnTimer < 0.75) gd.obstacleSpawnTimer = 0.75;
+            gd.obstacleSpawnTimer = 1.4 + Math.random() * 1.2 - (gd.bridgesPassed * 0.1);
+            if (gd.obstacleSpawnTimer < 0.7) gd.obstacleSpawnTimer = 0.7;
             
             const types = ['bomb', 'bomb', 'boat', 'airplane'];
             const type = types[Math.floor(Math.random() * types.length)];
@@ -27814,7 +28139,7 @@ window.MinigamesManager = {
                 
                 if (inGate) {
                     gd.crossedCount++;
-                    this.score = Math.round((gd.crossedCount / 5) * 100);
+                    this.score = Math.round((gd.crossedCount / 10) * 100);
                     this.addSumidaTextParticle(gd.boatX, 420, "¡Excelente!", "#00e676");
                     if (window.playProceduralSound) window.playProceduralSound('success');
                 } else {
@@ -27842,8 +28167,8 @@ window.MinigamesManager = {
                     }
                 }
                 
-                // Win check: when all 5 bridges have passed, win the game if alive
-                if (gd.bridgesPassed >= 5 && gd.lives > 0) {
+                // Win check: when all 10 bridges have passed, win if alive
+                if (gd.bridgesPassed >= 10 && gd.lives > 0) {
                     setTimeout(() => this.win(), 800);
                 }
             }
@@ -28215,7 +28540,7 @@ window.MinigamesManager = {
             ctx.arc(0, 0, 16 + Math.sin(p.pulseTime * 8) * 3, 0, Math.PI * 2);
             ctx.stroke();
             
-            // Inner square
+            // Inner circle
             ctx.fillStyle = 'rgba(33, 33, 33, 0.85)';
             ctx.strokeStyle = p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081');
             ctx.lineWidth = 3;
@@ -28365,7 +28690,7 @@ window.MinigamesManager = {
         ctx.fillText(`Puntos: ${this.score}`, 180, 35);
         
         // 2. Upcoming Bridge
-        if (gd.bridgesPassed < 5) {
+        if (gd.bridgesPassed < 10) {
             const nextB = gd.bridges[gd.bridgesPassed];
             ctx.fillStyle = '#ffd54f';
             ctx.font = 'bold 16px Outfit, sans-serif';
@@ -28376,7 +28701,7 @@ window.MinigamesManager = {
             if (gd.doubleShotTimer > 0) {
                 ctx.fillStyle = '#ff9100';
                 ctx.font = '14px Outfit, sans-serif';
-                ctx.fillText(`Doble Disparo: ${gd.doubleShotTimer.toFixed(1)}s`, 400, 565);
+                ctx.fillText(`Doble Disparo: ${gd.doubleShotTimer.toFixed(1)}s`, 400, 500);
             }
         } else {
             ctx.fillStyle = '#00ff99';
@@ -28405,42 +28730,124 @@ window.MinigamesManager = {
         ctx.lineTo(40, 470);
         ctx.stroke();
         
-        const shortNames = ['Azuma', 'Kiyosu', 'Eitai', 'Kachidoki', 'Tsukiji'];
-        for (let i = 0; i < 5; i++) {
-            const tickY = 130 + i * 85;
+        const shortNames = ['Sakura', 'Kototoi', 'Azuma', 'Komagata', 'Umaya', 'Kuramae', 'Kiyosu', 'Eitai', 'Chuo', 'Tsukiji'];
+        for (let i = 0; i < 10; i++) {
+            const tickY = 130 + i * 37.7;
             ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : '#ffffff';
             ctx.beginPath();
-            ctx.arc(40, tickY, 5, 0, Math.PI * 2);
+            ctx.arc(40, tickY, 4, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : 'rgba(255, 255, 255, 0.6)';
-            ctx.font = '10px Outfit, sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText(shortNames[i], 52, tickY + 3);
+            // Draw name next to tick only for current/past bridges to avoid cluttering
+            if (i === gd.bridgesPassed || i === gd.bridgesPassed - 1 || i === gd.bridgesPassed + 1) {
+                ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : 'rgba(255, 255, 255, 0.6)';
+                ctx.font = '9px Outfit, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(shortNames[i], 52, tickY + 3);
+            }
         }
         
         let timelineFrac = 0;
-        if (gd.bridgesPassed < 5) {
+        if (gd.bridgesPassed < 10) {
             const nextBridge = gd.bridges[gd.bridgesPassed];
-            const startY = gd.bridgesPassed === 0 ? -300 : (gd.bridgesPassed === 1 ? -900 : (gd.bridgesPassed === 2 ? -1500 : (gd.bridgesPassed === 3 ? -2100 : -2700)));
+            const startY = -300 - gd.bridgesPassed * 650;
             const range = 440 - startY;
             const currentTravel = nextBridge.y - startY;
             timelineFrac = clamp(currentTravel / range, 0, 1.0);
         }
         
-        const playerTimelineY = 130 + gd.bridgesPassed * 85 + (gd.bridgesPassed < 5 ? timelineFrac * 85 : 0);
+        const playerTimelineY = 130 + gd.bridgesPassed * 37.7 + (gd.bridgesPassed < 10 ? timelineFrac * 37.7 : 0);
         ctx.fillStyle = '#ff9100';
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(40, clamp(playerTimelineY, 130, 470), 7, 0, Math.PI * 2);
+        ctx.arc(40, clamp(playerTimelineY, 130, 470), 6, 0, Math.PI * 2);
         ctx.fill(); ctx.stroke();
+
+        // 5. Draw On-Screen Mobile Controls Panel (at the bottom)
+        ctx.save();
+        ctx.shadowBlur = 0;
+        
+        // Draw controls bar background (dark translucent grey panel)
+        ctx.fillStyle = 'rgba(20, 26, 30, 0.85)';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 2;
+        ctx.fillRect(0, 520, 800, 80);
+        ctx.beginPath();
+        ctx.moveTo(0, 520);
+        ctx.lineTo(800, 520);
+        ctx.stroke();
+        
+        // Helper to draw a glowing button
+        const drawButton = (x, y, w, h, label, active, isPress) => {
+            ctx.save();
+            ctx.fillStyle = isPress ? 'rgba(0, 229, 255, 0.25)' : 'rgba(38, 50, 56, 0.8)';
+            ctx.strokeStyle = active ? '#00e5ff' : '#546e7a';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = active ? '#00e5ff' : 'transparent';
+            ctx.shadowBlur = active ? 6 : 0;
+            
+            // Rounded button
+            ctx.beginPath();
+            ctx.arc(x + 10, y + 10, 10, Math.PI, Math.PI * 1.5);
+            ctx.arc(x + w - 10, y + 10, 10, Math.PI * 1.5, 0);
+            ctx.arc(x + w - 10, y + h - 10, 10, 0, Math.PI * 0.5);
+            ctx.arc(x + 10, y + h - 10, 10, Math.PI * 0.5, Math.PI);
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            
+            ctx.fillStyle = active ? '#ffffff' : '#b0bec5';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x + w / 2, y + h / 2);
+            ctx.restore();
+        };
+
+        const mouseIsDown = this.mouse.isDown;
+        const mx = this.mouse.x;
+        const my = this.mouse.y;
+
+        // Button States based on mouse coordinates when down
+        const isLeftPress = mouseIsDown && mx >= 30 && mx <= 130 && my >= 520 && my <= 590;
+        const isRightPress = mouseIsDown && mx >= 670 && mx <= 770 && my >= 520 && my <= 590;
+        const isAutoPress = mouseIsDown && mx >= 330 && mx <= 470 && my >= 520 && my <= 590;
+
+        // Draw Left Button
+        drawButton(30, 530, 100, 55, '◀ IZQ', true, isLeftPress);
+        
+        // Draw Right Button
+        drawButton(670, 530, 100, 55, 'DER ▶', true, isRightPress);
+        
+        // Draw Auto-Fire Toggle Button
+        const autoLabel = gd.autoFire ? 'AUTO: SÍ' : 'AUTO: NO';
+        drawButton(330, 530, 140, 55, autoLabel, gd.autoFire, isAutoPress);
+        
+        // Draw helper label for controls
+        ctx.fillStyle = '#90a4ae';
+        ctx.font = '11px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Controles duales: Usa los botones de abajo o arrastra directamente en el río.', 400, 592);
+        ctx.restore();
     },
     inputSumidaPress(x, y) {
         const gd = this.gameData;
         if (!gd || gd.lives <= 0 || this.state !== 'playing') return;
         
-        if (gd.shootCooldown <= 0) {
+        // 1. Toggle Auto-Fire button check
+        if (x >= 330 && x <= 470 && y >= 520 && y <= 590) {
+            gd.autoFire = !gd.autoFire;
+            if (window.playProceduralSound) window.playProceduralSound('click');
+            return;
+        }
+        
+        // 2. Ignore steer button areas (they are handled in updateSumida continuously)
+        if ((x >= 30 && x <= 130 && y >= 520 && y <= 590) || (x >= 670 && x <= 770 && y >= 520 && y <= 590)) {
+            return;
+        }
+        
+        // 3. Manual firing (only if Auto-Fire is OFF)
+        if (!gd.autoFire && gd.shootCooldown <= 0) {
             if (gd.doubleShotTimer > 0) {
                 gd.bullets.push({ x: gd.boatX - 15, y: 440, vy: -550 });
                 gd.bullets.push({ x: gd.boatX + 15, y: 440, vy: -550 });
@@ -30424,7 +30831,3575 @@ window.MinigamesManager = {
     },
     inputImmersivePress(x, y) {},
     releaseImmersive() {},
-
-
     releaseTocho() {},
+
+    // ==========================================
+    // DÍA 20 MINIGAMES
+    // ==========================================
+
+    // 1. day_20_bento: Maestro del Bento
+    setupBento() {
+        this.gameData = {
+            dividers: [
+                { x: 300, y: 250, angle: 0, w: 120, h: 12 },
+                { x: 500, y: 250, angle: 90 * Math.PI / 180, w: 120, h: 12 },
+                { x: 400, y: 380, angle: 45 * Math.PI / 180, w: 140, h: 12 }
+            ],
+            ingredients: [],
+            spawnTimer: 0,
+            slots: [
+                { x: 180, y: 520, r: 45, type: 'arroz', emoji: '🍚', count: 0 },
+                { x: 320, y: 520, r: 45, type: 'pescado', emoji: '🐟', count: 0 },
+                { x: 480, y: 520, r: 45, type: 'verdura', emoji: '🥒', count: 0 },
+                { x: 620, y: 520, r: 45, type: 'postre', emoji: '🍳', count: 0 }
+            ],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateBento(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.2;
+            const types = ['arroz', 'pescado', 'verdura', 'postre'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const emojis = { arroz: '🍚', pescado: '🐟', verdura: '🥒', postre: '🍳' };
+            gd.ingredients.push({
+                x: 200 + Math.random() * 400,
+                y: -20,
+                vy: 120 + Math.random() * 60,
+                vx: 0,
+                type: type,
+                emoji: emojis[type],
+                r: 20
+            });
+        }
+        gd.ingredients.forEach((ing, iIdx) => {
+            ing.y += ing.vy * dt;
+            ing.x += ing.vx * dt;
+            gd.dividers.forEach(div => {
+                const dist = Math.hypot(ing.x - div.x, ing.y - div.y);
+                if (dist < 80) {
+                    const localX = (ing.x - div.x) * Math.cos(-div.angle) - (ing.y - div.y) * Math.sin(-div.angle);
+                    const localY = (ing.x - div.x) * Math.sin(-div.angle) + (ing.y - div.y) * Math.cos(-div.angle);
+                    if (Math.abs(localX) < div.w / 2 + 10 && Math.abs(localY) < div.h / 2 + 20) {
+                        const normalX = -Math.sin(div.angle);
+                        const normalY = Math.cos(div.angle);
+                        const dot = ing.vx * normalX + ing.vy * normalY;
+                        ing.vx = (ing.vx - 2 * dot * normalX) * 0.8;
+                        ing.vy = Math.abs(ing.vy - 2 * dot * normalY) * 0.8 + 20;
+                        ing.y += ing.vy * dt;
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            });
+            gd.slots.forEach(slot => {
+                if (Math.hypot(ing.x - slot.x, ing.y - slot.y) < slot.r + 15) {
+                    if (ing.type === slot.type) {
+                        slot.count++;
+                        gd.score++;
+                        this.score = Math.round((gd.score / 4) * 100);
+                        this.createExplosion(ing.x, ing.y, '#ffd700');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.score >= 4) {
+                            this.win();
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                        this.triggerShake(8);
+                    }
+                    gd.ingredients.splice(iIdx, 1);
+                }
+            });
+        });
+        gd.ingredients = gd.ingredients.filter(ing => ing.y < 620);
+    },
+    drawBento() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(100, 50, 600, 500);
+        gd.slots.forEach(slot => {
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.strokeStyle = '#8e44ad';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(slot.x, slot.y, slot.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '36px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(slot.emoji, slot.x, slot.y - 5);
+            ctx.font = 'bold 14px monospace';
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText(`Lleno: ${slot.count}`, slot.x, slot.y + 25);
+        });
+        gd.dividers.forEach(div => {
+            ctx.save();
+            ctx.translate(div.x, div.y);
+            ctx.rotate(div.angle);
+            ctx.fillStyle = '#f1c40f';
+            ctx.fillRect(-div.w / 2, -div.h / 2, div.w, div.h);
+            ctx.restore();
+        });
+        gd.ingredients.forEach(ing => {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(ing.emoji, ing.x, ing.y);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ingredientes correctos: ${gd.score}/4`, 30, 30);
+    },
+    inputBentoPress(x, y) {
+        const gd = this.gameData;
+        gd.dividers.forEach(div => {
+            if (Math.hypot(x - div.x, y - div.y) < 60) {
+                div.angle += 45 * Math.PI / 180;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+
+    // 2. day_20_potion: Alquimia Gatuna
+    setupPotion() {
+        const items = ['🐱', '🌿', '🐟', '🌟', '💧'];
+        const grid = [];
+        for (let r = 0; r < 5; r++) {
+            grid[r] = [];
+            for (let c = 0; c < 5; c++) {
+                grid[r][c] = items[Math.floor(Math.random() * items.length)];
+            }
+        }
+        this.gameData = {
+            grid: grid,
+            selected: [],
+            cauldron: 0,
+            items: items
+        };
+        this.score = 0;
+    },
+    updatePotion(dt) {
+        const gd = this.gameData;
+        this.score = Math.min(100, gd.cauldron);
+        if (gd.cauldron >= 100) {
+            this.win();
+            return;
+        }
+        if (this.mouse.isDown && gd.selected.length > 0) {
+            const c = Math.floor((this.mouse.x - 100) / 80);
+            const r = Math.floor((this.mouse.y - 150) / 80);
+            if (r >= 0 && r < 5 && c >= 0 && c < 5) {
+                const last = gd.selected[gd.selected.length - 1];
+                if (Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1 && (r !== last.r || c !== last.c)) {
+                    if (gd.grid[r][c] === gd.grid[last.r][last.c] && !gd.selected.some(p => p.r === r && p.c === c)) {
+                        gd.selected.push({ r, c });
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            }
+        }
+    },
+    drawPotion() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#312e81';
+        ctx.strokeStyle = '#4338ca';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(600, 300, 100, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.arc(600, 260, 60, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Caldero: ${Math.round(gd.cauldron)}%`, 600, 450);
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const x = 100 + c * 80;
+                const y = 150 + r * 80;
+                const isSelected = gd.selected.some(p => p.r === r && p.c === c);
+                ctx.fillStyle = isSelected ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.05)';
+                ctx.strokeStyle = isSelected ? '#ec4899' : '#4338ca';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, 70, 70);
+                ctx.fillRect(x, y, 70, 70);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(gd.grid[r][c], x + 35, y + 35);
+            }
+        }
+        if (gd.selected.length > 1) {
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            gd.selected.forEach((p, idx) => {
+                const x = 100 + p.c * 80 + 35;
+                const y = 150 + p.r * 80 + 35;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+    },
+    inputPotionPress(x, y) {
+        const gd = this.gameData;
+        const c = Math.floor((x - 100) / 80);
+        const r = Math.floor((y - 150) / 80);
+        if (r >= 0 && r < 5 && c >= 0 && c < 5) {
+            gd.selected = [{ r, c }];
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releasePotion(x, y) {
+        const gd = this.gameData;
+        if (gd.selected.length >= 3) {
+            const count = gd.selected.length;
+            gd.cauldron += count * 6;
+            if (window.playProceduralSound) playProceduralSound('success');
+            gd.selected.forEach(p => {
+                this.createExplosion(100 + p.c * 80 + 35, 150 + p.r * 80 + 35, '#ec4899');
+                gd.grid[p.r][p.c] = gd.items[Math.floor(Math.random() * gd.items.length)];
+            });
+        }
+        gd.selected = [];
+    },
+
+    // 3. day_20_pond: El Pato del Estanque
+    setupPond() {
+        this.gameData = {
+            ducks: [
+                { x: 100, y: 150, vx: 50, vy: 0, scale: 1, poseTimer: 2, state: 'swimming' },
+                { x: 600, y: 250, vx: -40, vy: 10, scale: 1, poseTimer: 4, state: 'swimming' },
+                { x: 300, y: 400, vx: 60, vy: -5, scale: 1, poseTimer: 1, state: 'swimming' }
+            ],
+            photos: 0,
+            camX: 400,
+            camY: 300,
+            flash: 0
+        };
+        this.score = 0;
+    },
+    updatePond(dt) {
+        const gd = this.gameData;
+        if (gd.flash > 0) gd.flash -= dt * 5;
+        gd.camX = lerp(gd.camX, this.mouse.x, 0.15);
+        gd.camY = lerp(gd.camY, this.mouse.y, 0.15);
+        gd.ducks.forEach(d => {
+            d.x += d.vx * dt;
+            d.y += d.vy * dt;
+            if (d.x < 50 || d.x > 750) d.vx *= -1;
+            if (d.y < 100 || d.y > 500) d.vy *= -1;
+            d.poseTimer -= dt;
+            if (d.poseTimer <= 0) {
+                if (d.state === 'swimming') {
+                    d.state = 'posing';
+                    d.poseTimer = 1.5;
+                    d.vx *= 0.2; d.vy *= 0.2;
+                } else {
+                    d.state = 'swimming';
+                    d.poseTimer = 3 + Math.random() * 4;
+                    d.vx = (Math.random() < 0.5 ? 1 : -1) * (40 + Math.random() * 40);
+                    d.vy = (Math.random() < 0.5 ? 1 : -1) * (10 + Math.random() * 20);
+                }
+            }
+        });
+    },
+    drawPond() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#006064';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(400, 300, (gd.photos * 100 + i * 50) % 300, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        gd.ducks.forEach(d => {
+            ctx.save();
+            ctx.translate(d.x, d.y);
+            if (d.vx < 0) ctx.scale(-1, 1);
+            ctx.fillStyle = '#ffd54f';
+            ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(18, -15, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(22, -18, 2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ff9800';
+            ctx.beginPath();
+            ctx.moveTo(30, -17); ctx.lineTo(40, -14); ctx.lineTo(30, -11);
+            ctx.closePath(); ctx.fill();
+            if (d.state === 'posing') {
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(0, 0, 32 + Math.sin(performance.now() * 0.01) * 8, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = '#00ff99';
+                ctx.font = '12px monospace';
+                ctx.fillText('¡FOTO!', -20, -35);
+            }
+            ctx.restore();
+        });
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(gd.camX, gd.camY, 50, 0, Math.PI * 2);
+        ctx.moveTo(gd.camX - 70, gd.camY); ctx.lineTo(gd.camX - 30, gd.camY);
+        ctx.moveTo(gd.camX + 30, gd.camY); ctx.lineTo(gd.camX + 70, gd.camY);
+        ctx.moveTo(gd.camX, gd.camY - 70); ctx.lineTo(gd.camX, gd.camY - 30);
+        ctx.moveTo(gd.camX, gd.camY + 30); ctx.lineTo(gd.camX, gd.camY + 70);
+        ctx.stroke();
+        if (gd.flash > 0) {
+            ctx.fillStyle = `rgba(255,255,255,${gd.flash})`;
+            ctx.fillRect(0, 0, 800, 600);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fotos perfectas: ${gd.photos}/3`, 30, 40);
+    },
+    inputPondPress(x, y) {
+        const gd = this.gameData;
+        gd.flash = 1.0;
+        if (window.playProceduralSound) playProceduralSound('click');
+        let hit = false;
+        gd.ducks.forEach(d => {
+            if (d.state === 'posing' && Math.hypot(gd.camX - d.x, gd.camY - d.y) < 65) {
+                hit = true;
+                gd.photos++;
+                this.score = Math.round((gd.photos / 3) * 100);
+                this.createExplosion(d.x, d.y, '#00ff99');
+                if (window.playProceduralSound) playProceduralSound('success');
+                d.state = 'swimming';
+                d.poseTimer = 4;
+                if (gd.photos >= 3) {
+                    this.win();
+                }
+            }
+        });
+        if (!hit) this.triggerShake(5);
+    },
+
+    // 4. day_20_weight: El Peso del Tesoro
+    setupWeight20() {
+        this.gameData = {
+            targetWeight: 150 + Math.floor(Math.random() * 450),
+            weights: [
+                { x: 100, y: 460, ox: 100, oy: 460, w: 40, h: 40, wt: 50, name: '50g', color: '#78909c', dragging: false },
+                { x: 200, y: 460, ox: 200, oy: 460, w: 45, h: 45, wt: 100, name: '100g', color: '#546e7a', dragging: false },
+                { x: 300, y: 460, ox: 300, oy: 460, w: 50, h: 50, wt: 200, name: '200g', color: '#37474f', dragging: false },
+                { x: 400, y: 460, ox: 400, oy: 460, w: 60, h: 60, wt: 500, name: '500g', color: '#263238', dragging: false }
+            ],
+            balanceY: 0,
+            balancedTimer: 0,
+            winCount: 0
+        };
+        this.score = 0;
+    },
+    updateWeight20(dt) {
+        const gd = this.gameData;
+        let rightWeight = 0;
+        gd.weights.forEach(w => {
+            if (w.x > 460 && w.x < 740 && w.y < 350) {
+                rightWeight += w.wt;
+            }
+        });
+        const diff = gd.targetWeight - rightWeight;
+        const targetBal = clamp(diff * 0.15, -45, 45);
+        gd.balanceY = lerp(gd.balanceY, targetBal, 0.1);
+        if (Math.abs(diff) <= 10) {
+            gd.balancedTimer += dt;
+            if (gd.balancedTimer >= 1.5) {
+                gd.winCount++;
+                gd.balancedTimer = 0;
+                this.score = Math.round((gd.winCount / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.winCount >= 3) {
+                    this.win();
+                } else {
+                    gd.targetWeight = 150 + Math.floor(Math.random() * 450);
+                    gd.weights.forEach(w => {
+                        w.x = w.ox; w.y = w.oy;
+                    });
+                }
+            }
+        } else {
+            gd.balancedTimer = 0;
+        }
+    },
+    drawWeight20() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#f5f5f5';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillRect(0, 500, 800, 100);
+        ctx.fillStyle = '#9e9e9e';
+        ctx.fillRect(392, 180, 16, 260);
+        ctx.fillRect(350, 440, 100, 20);
+        ctx.save();
+        ctx.translate(400, 180);
+        ctx.rotate(gd.balanceY * Math.PI / 180);
+        ctx.strokeStyle = '#757575';
+        ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-200, 0); ctx.lineTo(-240, 100);
+        ctx.moveTo(-200, 0); ctx.lineTo(-160, 100);
+        ctx.stroke();
+        ctx.fillStyle = '#bdbdbd';
+        ctx.fillRect(-260, 100, 120, 8);
+        ctx.beginPath();
+        ctx.moveTo(200, 0); ctx.lineTo(160, 100);
+        ctx.moveTo(200, 0); ctx.lineTo(240, 100);
+        ctx.stroke();
+        ctx.fillStyle = '#bdbdbd';
+        ctx.fillRect(140, 100, 120, 8);
+        ctx.restore();
+        const leftPanY = 280 + gd.balanceY * 200 / 57.3;
+        ctx.fillStyle = '#ff5722';
+        ctx.beginPath(); ctx.arc(200, leftPanY - 20, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#3f51b5';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Tesoro`, 200, leftPanY - 45);
+        ctx.fillText(`(${gd.targetWeight}g)`, 200, leftPanY - 30);
+        gd.weights.forEach(w => {
+            ctx.fillStyle = w.color;
+            ctx.fillRect(w.x - w.w / 2, w.y - w.h / 2, w.w, w.h);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(w.name, w.x, w.y);
+        });
+        ctx.fillStyle = '#333333';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Balanzados: ${gd.winCount}/3`, 30, 40);
+        if (gd.balancedTimer > 0) {
+            ctx.fillStyle = '#4caf50';
+            ctx.fillText(`¡Equilibrado! Espera: ${(1.5 - gd.balancedTimer).toFixed(1)}s`, 30, 80);
+        }
+    },
+    inputWeight20Press(x, y) {
+        const gd = this.gameData;
+        gd.weights.forEach(w => {
+            if (x > w.x - w.w / 2 && x < w.x + w.w / 2 && y > w.y - w.h / 2 && y < w.y + w.h/2) {
+                w.dragging = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseWeight20(x, y) {
+        const gd = this.gameData;
+        gd.weights.forEach(w => {
+            if (w.dragging) {
+                w.dragging = false;
+                w.x = x; w.y = y;
+                const rightPanX = 600;
+                const rightPanY = 280 - gd.balanceY * 200 / 57.3;
+                if (Math.hypot(x - rightPanX, y - rightPanY) < 100) {
+                    w.x = rightPanX;
+                    w.y = rightPanY - w.h / 2;
+                }
+            }
+        });
+    },
+
+    // 5. day_20_change: Regateo en Ameyoko
+    setupChange() {
+        const price = 300 + Math.floor(Math.random() * 17) * 100;
+        const paid = price + 500 + Math.floor(Math.random() * 4) * 500;
+        this.gameData = {
+            price: price,
+            paid: paid,
+            changeNeeded: paid - price,
+            selectedChange: 0,
+            clientsSolved: 0,
+            timer: 45,
+            coins: [
+                { val: 10, name: '10¥', color: '#b71c1c' },
+                { val: 50, name: '50¥', color: '#0d47a1' },
+                { val: 100, name: '100¥', color: '#006064' },
+                { val: 500, name: '500¥', color: '#f57f17' },
+                { val: 1000, name: '1000¥', color: '#1b5e20' }
+            ]
+        };
+        this.score = 0;
+    },
+    updateChange(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        if (gd.timer <= 0) {
+            this.gameOver();
+        }
+    },
+    drawChange() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(50, 50, 700, 160);
+        ctx.strokeStyle = '#f57f17';
+        ctx.strokeRect(50, 50, 700, 160);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Cliente exige cambio de su billete`, 400, 90);
+        ctx.font = 'bold 36px monospace';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`Pagar: ${gd.price}¥  |  Pagado: ${gd.paid}¥`, 400, 140);
+        ctx.font = '20px monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Cambio necesario: ${gd.changeNeeded}¥`, 400, 185);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(50, 240, 700, 260);
+        gd.coins.forEach((c, idx) => {
+            const x = 120 + idx * 140;
+            const y = 350;
+            ctx.fillStyle = c.color;
+            ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.fillText(c.name, x, y + 5);
+        });
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(150, 520, 200, 50);
+        ctx.fillStyle = '#f44336';
+        ctx.fillRect(450, 520, 200, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('ENTREGAR', 250, 550);
+        ctx.fillText('REINICIAR', 550, 550);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cambio acumulado: ${gd.selectedChange}¥`, 50, 510);
+        ctx.fillText(`Clientes: ${gd.clientsSolved}/5`, 50, 30);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Tiempo: ${Math.round(gd.timer)}s`, 750, 30);
+    },
+    inputChangePress(x, y) {
+        const gd = this.gameData;
+        gd.coins.forEach((c, idx) => {
+            const cx = 120 + idx * 140;
+            const cy = 350;
+            if (Math.hypot(x - cx, y - cy) < 45) {
+                gd.selectedChange += c.val;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+        if (x > 150 && x < 350 && y > 520 && y < 570) {
+            if (gd.selectedChange === gd.changeNeeded) {
+                gd.clientsSolved++;
+                this.score = Math.round((gd.clientsSolved / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 300, '#00ff99');
+                if (gd.clientsSolved >= 5) {
+                    this.win();
+                } else {
+                    gd.price = 300 + Math.floor(Math.random() * 17) * 100;
+                    gd.paid = gd.price + 500 + Math.floor(Math.random() * 4) * 500;
+                    gd.changeNeeded = gd.paid - gd.price;
+                    gd.selectedChange = 0;
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(12);
+                gd.selectedChange = 0;
+            }
+        }
+        if (x > 450 && x < 650 && y > 520 && y < 570) {
+            gd.selectedChange = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 6. day_20_museum: Arquitectura del Museo
+    setupMuseum() {
+        this.gameData = {
+            currentBuilding: 0,
+            line: [],
+            points: [
+                [
+                    { x: 150, y: 380, label: '1' },
+                    { x: 250, y: 320, label: '2' },
+                    { x: 400, y: 280, label: '3' },
+                    { x: 550, y: 320, label: '4' },
+                    { x: 650, y: 380, label: '5' },
+                    { x: 600, y: 480, label: '6' },
+                    { x: 200, y: 480, label: '7' }
+                ],
+                [
+                    { x: 200, y: 480, label: '1' },
+                    { x: 200, y: 150, label: '2' },
+                    { x: 320, y: 150, label: '3' },
+                    { x: 320, y: 480, label: '4' },
+                    { x: 480, y: 480, label: '5' },
+                    { x: 480, y: 100, label: '6' },
+                    { x: 600, y: 100, label: '7' },
+                    { x: 600, y: 480, label: '8' }
+                ]
+            ],
+            currentIdx: 0
+        };
+        this.score = 0;
+    },
+    updateMuseum(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown && gd.currentIdx < gd.points[gd.currentBuilding].length) {
+            const target = gd.points[gd.currentBuilding][gd.currentIdx];
+            if (Math.hypot(this.mouse.x - target.x, this.mouse.y - target.y) < 25) {
+                gd.line.push({ x: target.x, y: target.y });
+                gd.currentIdx++;
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(target.x, target.y, '#00ff99', 10, 0.5);
+                if (gd.currentIdx === gd.points[gd.currentBuilding].length) {
+                    gd.currentBuilding++;
+                    gd.currentIdx = 0;
+                    gd.line = [];
+                    this.score = Math.round((gd.currentBuilding / 2) * 100);
+                    if (gd.currentBuilding >= 2) {
+                        this.win();
+                    }
+                }
+            }
+        }
+    },
+    drawMuseum() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0a0f1d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+        }
+        for (let j = 0; j < 600; j += 40) {
+            ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(800, j); ctx.stroke();
+        }
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        if (gd.currentBuilding < 2) {
+            ctx.fillText(gd.currentBuilding === 0 ? 'CONSTRUYE: TEMPLO TRADICIONAL HONKAN' : 'CONSTRUYE: RASCACIELOS MODERNOS', 400, 50);
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            gd.points[gd.currentBuilding].forEach((p, idx) => {
+                if (idx === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath(); ctx.stroke();
+            if (gd.line.length > 0) {
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                gd.line.forEach((p, idx) => {
+                    if (idx === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                if (gd.currentIdx < gd.points[gd.currentBuilding].length && this.mouse.isDown) {
+                    ctx.lineTo(this.mouse.x, this.mouse.y);
+                }
+                ctx.stroke();
+            }
+            gd.points[gd.currentBuilding].forEach((p, idx) => {
+                const isActivated = idx < gd.currentIdx;
+                const isNext = idx === gd.currentIdx;
+                ctx.fillStyle = isActivated ? '#00ff99' : (isNext ? '#ffd700' : '#444444');
+                ctx.beginPath(); ctx.arc(p.x, p.y, isNext ? 12 : 8, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px monospace';
+                ctx.fillText(p.label, p.x, p.y - 15);
+            });
+        }
+    },
+    inputMuseumPress(x, y) {},
+    releaseMuseum(x, y) {
+        this.gameData.line = [];
+        this.gameData.currentIdx = 0;
+    },
+
+    // 7. day_20_vintage: Análisis de Precios Retro
+    setupVintage() {
+        this.gameData = {
+            beltX: 0,
+            console: { x: 400, y: 250, r: 60, type: 'Famicom', defects: Math.floor(Math.random() * 4), grade: '' },
+            gradeSelected: '',
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateVintage(dt) {
+        const gd = this.gameData;
+        gd.beltX = (gd.beltX + dt * 100) % 800;
+    },
+    drawVintage() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 320, 800, 40);
+        ctx.fillStyle = '#eceff1';
+        ctx.fillRect(gd.console.x - 70, gd.console.y - 50, 140, 100);
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(gd.console.x - 60, gd.console.y - 40, 120, 20);
+        const dist = Math.hypot(this.mouse.x - gd.console.x, this.mouse.y - gd.console.y);
+        if (dist < 100) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.mouse.x, this.mouse.y, 80, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, 800, 600);
+            ctx.strokeStyle = '#ff1744';
+            ctx.lineWidth = 4;
+            for (let i = 0; i < gd.console.defects; i++) {
+                ctx.beginPath();
+                const offset = i * 20;
+                ctx.moveTo(gd.console.x - 40 + offset, gd.console.y - 20);
+                ctx.lineTo(gd.console.x - 20 + offset, gd.console.y + 20);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.mouse.x, this.mouse.y, 80, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#4caf50'; ctx.fillRect(200, 450, 100, 60);
+        ctx.fillStyle = '#ffeb3b'; ctx.fillRect(350, 450, 100, 60);
+        ctx.fillStyle = '#f44336'; ctx.fillRect(500, 450, 100, 60);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('A', 250, 485);
+        ctx.fillText('B', 400, 485);
+        ctx.fillText('C', 550, 485);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Inspeccionados: ${gd.score}/5`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('A: 0-1 fallas | B: 2 fallas | C: 3+ fallas', 30, 75);
+    },
+    inputVintagePress(x, y) {
+        const gd = this.gameData;
+        let ans = -1;
+        if (x > 200 && x < 300 && y > 450 && y < 510) ans = 0;
+        if (x > 350 && x < 450 && y > 450 && y < 510) ans = 2;
+        if (x > 500 && x < 600 && y > 450 && y < 510) ans = 3;
+        if (ans !== -1) {
+            const actualDef = gd.console.defects;
+            let correct = false;
+            if (ans === 0 && actualDef <= 1) correct = true;
+            if (ans === 2 && actualDef === 2) correct = true;
+            if (ans === 3 && actualDef >= 3) correct = true;
+            if (correct) {
+                gd.score++;
+                this.score = Math.round((gd.score / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 250, '#00ff99');
+                if (gd.score >= 5) {
+                    this.win();
+                } else {
+                    gd.console.defects = Math.floor(Math.random() * 4);
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(10);
+            }
+        }
+    },
+
+    // 8. day_20_stairs: Escaleras del Atardecer
+    setupStairs() {
+        this.gameData = {
+            steps: 0,
+            notes: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateStairs(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.notes.push({
+                x: Math.random() < 0.5 ? 250 : 550,
+                y: -50,
+                vy: 180,
+                side: Math.random() < 0.5 ? 'L' : 'R'
+            });
+        }
+        gd.notes.forEach((n, idx) => {
+            n.y += n.vy * dt;
+            if (n.y > 620) {
+                gd.notes.splice(idx, 1);
+            }
+        });
+    },
+    drawStairs() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#ff4500'); grad.addColorStop(1, '#8e44ad');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        for (let i = 0; i < 600; i += 60) {
+            ctx.moveTo(150, i); ctx.lineTo(650, i);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(250, 480, 30, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(550, 480, 30, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('IZQUIERDA', 250, 530);
+        ctx.fillText('DERECHA', 550, 530);
+        gd.notes.forEach(n => {
+            ctx.fillStyle = n.side === 'L' ? '#00e5ff' : '#ff007f';
+            ctx.beginPath(); ctx.arc(n.x, n.y, 20, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px monospace';
+            ctx.fillText(n.side, n.x, n.y + 5);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Escalones subidos: ${gd.steps}/36`, 30, 50);
+    },
+    inputStairsPress(x, y) {
+        const gd = this.gameData;
+        let side = '';
+        if (x < 400) side = 'L';
+        else side = 'R';
+        let hit = false;
+        gd.notes.forEach((n, idx) => {
+            if (Math.abs(n.y - 480) < 40 && n.side === side) {
+                hit = true;
+                gd.steps++;
+                this.score = Math.round((gd.steps / 36) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(n.x, n.y, '#ffd700');
+                gd.notes.splice(idx, 1);
+                if (gd.steps >= 36) {
+                    this.win();
+                }
+            }
+        });
+        if (!hit) {
+            this.triggerShake(5);
+            if (window.playProceduralSound) playProceduralSound('damage');
+        }
+    },
+
+    // 9. day_20_tasting: Degustación Callejera
+    setupTasting() {
+        this.gameData = {
+            order: ['🍡', '🍓', '🍡'],
+            skewer: [],
+            grill: [],
+            score: 0,
+            tray: ['🍡', '🍓', '🍳', '🥒']
+        };
+        this.score = 0;
+    },
+    updateTasting(dt) {
+        const gd = this.gameData;
+        gd.grill.forEach(g => {
+            if (!g.served) g.timer += dt;
+        });
+    },
+    drawTasting() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#2c1a04';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#fff9db';
+        ctx.fillRect(50, 40, 300, 80);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('Pedido:', 70, 70);
+        ctx.font = '36px Arial';
+        ctx.fillText(gd.order.join(''), 150, 95);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(50, 160, 700, 240);
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 4;
+        for (let i = 180; i < 400; i += 30) {
+            ctx.beginPath(); ctx.moveTo(50, i); ctx.lineTo(750, i); ctx.stroke();
+        }
+        gd.grill.forEach((g, idx) => {
+            const gx = 150 + idx * 160;
+            ctx.strokeStyle = '#8d6e63';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(gx, 380); ctx.lineTo(gx, 180); ctx.stroke();
+            g.skewer.forEach((item, sIdx) => {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '32px Arial';
+                ctx.fillText(item, gx - 16, 350 - sIdx * 50);
+            });
+            const pct = Math.min(1.0, g.timer / 4.0);
+            ctx.fillStyle = '#e53935';
+            if (pct > 0.6 && pct < 0.9) ctx.fillStyle = '#4caf50';
+            ctx.fillRect(gx - 30, 170, pct * 60, 10);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('Tu brocheta:', 50, 450);
+        ctx.font = '36px Arial';
+        ctx.fillText(gd.skewer.join(''), 50, 500);
+        gd.tray.forEach((t, idx) => {
+            const tx = 450 + idx * 80;
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(tx - 30, 450, 60, 60);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '30px Arial';
+            ctx.fillText(t, tx - 15, 492);
+        });
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(450, 530, 200, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('¡SERVIR!', 510, 562);
+        ctx.fillStyle = '#f44336';
+        ctx.fillRect(660, 530, 100, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Limpiar', 675, 562);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Brochetas servidas: ${gd.score}/8`, 500, 70);
+    },
+    inputTastingPress(x, y) {
+        const gd = this.gameData;
+        gd.tray.forEach((t, idx) => {
+            const tx = 450 + idx * 80;
+            if (x > tx - 30 && x < tx + 30 && y > 450 && y < 510) {
+                if (gd.skewer.length < 3) {
+                    gd.skewer.push(t);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            }
+        });
+        if (gd.skewer.length === 3 && x > 450 && x < 650 && y > 530 && y < 580) {
+            if (gd.grill.length < 4) {
+                gd.grill.push({ skewer: [...gd.skewer], timer: 0, served: false });
+                gd.skewer = [];
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        }
+        if (x > 660 && x < 760 && y > 530 && y < 580) {
+            gd.skewer = [];
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        gd.grill.forEach((g, idx) => {
+            const gx = 150 + idx * 160;
+            if (x > gx - 40 && x < gx + 40 && y > 160 && y < 400) {
+                if (g.timer > 2.4 && g.timer < 3.6) {
+                    if (JSON.stringify(g.skewer) === JSON.stringify(gd.order)) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / 8) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        this.createExplosion(gx, 300, '#ffd700');
+                        gd.grill.splice(idx, 1);
+                        if (gd.score >= 8) {
+                            this.win();
+                        } else {
+                            const items = ['🍡', '🍓', '🍳'];
+                            gd.order = [
+                                items[Math.floor(Math.random() * 3)],
+                                items[Math.floor(Math.random() * 3)],
+                                items[Math.floor(Math.random() * 3)]
+                            ];
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                        this.triggerShake(10);
+                        gd.grill.splice(idx, 1);
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(10);
+                    gd.grill.splice(idx, 1);
+                }
+            }
+        });
+    },
+
+    // ==========================================
+    // DÍA 21 MINIGAMES
+    // ==========================================
+
+    // 10. day_21_monkeys: Los Tres Monos
+    setupMonkeys() {
+        this.gameData = {
+            sequence: [Math.floor(Math.random() * 3)],
+            playerSequence: [],
+            monkeyStates: ['normal', 'normal', 'normal'],
+            activeMonkey: -1,
+            step: 0,
+            sequencePlaying: true,
+            timer: 0.5,
+            seqIdx: 0,
+            successes: 0
+        };
+        this.score = 0;
+    },
+    updateMonkeys(dt) {
+        const gd = this.gameData;
+        if (gd.sequencePlaying) {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                if (gd.activeMonkey !== -1) {
+                    gd.monkeyStates[gd.activeMonkey] = 'normal';
+                    gd.activeMonkey = -1;
+                    gd.timer = 0.3;
+                } else if (gd.seqIdx < gd.sequence.length) {
+                    gd.activeMonkey = gd.sequence[gd.seqIdx];
+                    gd.monkeyStates[gd.activeMonkey] = 'highlight';
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    gd.seqIdx++;
+                    gd.timer = 0.6;
+                } else {
+                    gd.sequencePlaying = false;
+                    gd.playerSequence = [];
+                    gd.step = 0;
+                }
+            }
+        }
+    },
+    drawMonkeys() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#2d1f10';
+        ctx.fillRect(0, 0, 800, 600);
+        const monkeys = [
+            { name: 'Mizaru (🙈)', desc: 'No Ver', emoji: '🙈' },
+            { name: 'Kikazaru (🙉)', desc: 'No Oír', emoji: '🙉' },
+            { name: 'Iwazaru (🙊)', desc: 'No Hablar', emoji: '🙊' }
+        ];
+        monkeys.forEach((m, idx) => {
+            const x = 200 + idx * 200;
+            const y = 300;
+            const highlight = gd.activeMonkey === idx || gd.monkeyStates[idx] === 'highlight';
+            ctx.fillStyle = highlight ? '#fff3e0' : 'rgba(255,255,255,0.05)';
+            ctx.strokeStyle = '#ff9800';
+            ctx.lineWidth = highlight ? 6 : 2;
+            ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = highlight ? '#000000' : '#ffffff';
+            ctx.font = '72px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(m.emoji, x, y - 10);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.fillText(m.name, x, y + 90);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        if (gd.sequencePlaying) {
+            ctx.fillText('¡PRESTA ATENCIÓN A LA SECUENCIA!', 400, 100);
+        } else {
+            ctx.fillText('¡REPITE LA SECUENCIA DE GESTOS!', 400, 100);
+        }
+        ctx.font = '16px monospace';
+        ctx.fillText(`Rondas ganadas: ${gd.successes}/5`, 400, 500);
+    },
+    inputMonkeysPress(x, y) {
+        const gd = this.gameData;
+        if (gd.sequencePlaying) return;
+        let selected = -1;
+        for (let idx = 0; idx < 3; idx++) {
+            const mx = 200 + idx * 200;
+            const my = 300;
+            if (Math.hypot(x - mx, y - my) < 70) {
+                selected = idx;
+                break;
+            }
+        }
+        if (selected !== -1) {
+            gd.playerSequence.push(selected);
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.createExplosion(200 + selected * 200, 300, '#ff9800');
+            const step = gd.playerSequence.length - 1;
+            if (gd.playerSequence[step] !== gd.sequence[step]) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(12);
+                gd.playerSequence = [];
+                gd.seqIdx = 0;
+                gd.sequencePlaying = true;
+                gd.timer = 0.8;
+            } else if (gd.playerSequence.length === gd.sequence.length) {
+                gd.successes++;
+                this.score = Math.round((gd.successes / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.successes >= 5) {
+                    this.win();
+                } else {
+                    gd.sequence.push(Math.floor(Math.random() * 3));
+                    gd.seqIdx = 0;
+                    gd.sequencePlaying = true;
+                    gd.timer = 0.8;
+                }
+            }
+        }
+    },
+
+    // 11. day_21_dragon: El Latido del Dragón
+    setupDragon() {
+        this.gameData = {
+            beatR: 200,
+            targetR: 50,
+            speed: 160,
+            successes: 0
+        };
+        this.score = 0;
+    },
+    updateDragon(dt) {
+        const gd = this.gameData;
+        gd.beatR -= gd.speed * dt;
+        if (gd.beatR < 10) {
+            gd.beatR = 200;
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(10);
+        }
+    },
+    drawDragon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f051d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(156,39,176,0.15)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let i = 0; i < 800; i += 20) {
+            ctx.lineTo(i, 300 + Math.sin(i * 0.05) * 50);
+        }
+        ctx.stroke();
+        ctx.fillStyle = '#e040fb';
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🐉', 400, 300);
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetR, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(400, 300, Math.max(10, gd.beatR), 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ritmo del Templo: ${gd.successes}/10`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca cuando la onda converja exactamente en la joya central!', 30, 75);
+    },
+    inputDragonPress(x, y) {
+        const gd = this.gameData;
+        if (Math.abs(gd.beatR - gd.targetR) < 18) {
+            gd.successes++;
+            this.score = Math.round((gd.successes / 10) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(400, 300, '#e040fb', 15);
+            gd.beatR = 200;
+            gd.speed += 20;
+            if (gd.successes >= 10) {
+                this.win();
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(12);
+            gd.beatR = 200;
+        }
+    },
+
+    // 12. day_21_slash: El Tajo del Samurái
+    setupSlash() {
+        this.gameData = {
+            bamboos: [
+                { id: 1, x: 200, y: 500, h: 380, cut: false, cutY: 0, cutAngle: 0, offset: 0 },
+                { id: 2, x: 400, y: 500, h: 420, cut: false, cutY: 0, cutAngle: 0, offset: 0 },
+                { id: 3, x: 600, y: 500, h: 390, cut: false, cutY: 0, cutAngle: 0, offset: 0 }
+            ],
+            swipe: [],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateSlash(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.swipe.push({ x: this.mouse.x, y: this.mouse.y });
+            if (gd.swipe.length > 8) gd.swipe.shift();
+            if (gd.swipe.length >= 2) {
+                const p1 = gd.swipe[gd.swipe.length - 2];
+                const p2 = gd.swipe[gd.swipe.length - 1];
+                gd.bamboos.forEach(b => {
+                    if (!b.cut) {
+                        const topY = b.y - b.h;
+                        const intersectY = p2.y;
+                        if (intersectY > topY && intersectY < b.y) {
+                            const minX = Math.min(p1.x, p2.x);
+                            const maxX = Math.max(p1.x, p2.x);
+                            if (b.x > minX - 10 && b.x < maxX + 10) {
+                                b.cut = true;
+                                b.cutY = intersectY;
+                                b.cutAngle = (p2.y - p1.y) / (p2.x - p1.x);
+                                gd.score++;
+                                this.score = Math.round((gd.score / 15) * 100);
+                                if (window.playProceduralSound) playProceduralSound('success');
+                                this.createExplosion(b.x, intersectY, '#a5d6a7');
+                                if (gd.score >= 15) {
+                                    this.win();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            gd.swipe = [];
+        }
+        gd.bamboos.forEach((b, idx) => {
+            if (b.cut) {
+                b.offset += dt * 300;
+                if (b.offset > 400) {
+                    gd.bamboos[idx] = {
+                        id: Math.random(),
+                        x: 100 + Math.random() * 600,
+                        y: 500,
+                        h: 300 + Math.random() * 150,
+                        cut: false,
+                        cutY: 0,
+                        cutAngle: 0,
+                        offset: 0
+                    };
+                }
+            }
+        });
+    },
+    drawSlash() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#06130b';
+        ctx.fillRect(0, 0, 800, 600);
+        gd.bamboos.forEach(b => {
+            const w = 24;
+            if (!b.cut) {
+                ctx.fillStyle = '#2e7d32';
+                ctx.fillRect(b.x - w / 2, b.y - b.h, w, b.h);
+                ctx.strokeStyle = '#1b5e20';
+                ctx.lineWidth = 4;
+                for (let ny = b.y - 80; ny > b.y - b.h; ny -= 80) {
+                    ctx.beginPath(); ctx.moveTo(b.x - w / 2, ny); ctx.lineTo(b.x + w / 2, ny); ctx.stroke();
+                }
+            } else {
+                ctx.fillStyle = '#2e7d32';
+                ctx.fillRect(b.x - w / 2, b.cutY, w, b.y - b.cutY);
+                ctx.save();
+                ctx.translate(b.x + b.offset * 0.5, b.cutY + b.offset);
+                ctx.rotate(b.offset * 0.01 * (b.cutAngle > 0 ? 1 : -1));
+                ctx.fillRect(-w / 2, -(b.cutY - (b.y - b.h)), w, b.cutY - (b.y - b.h));
+                ctx.restore();
+            }
+        });
+        if (gd.swipe.length > 1) {
+            ctx.strokeStyle = '#e8f5e9';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            gd.swipe.forEach((pt, idx) => {
+                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cortes exitosos: ${gd.score}/15`, 30, 40);
+    },
+    inputSlashPress(x, y) {},
+
+    // 13. day_21_jizo: Guardián de Piedra
+    setupJizo() {
+        this.gameData = {
+            jizos: [
+                { x: 200, y: 460, w: 60, h: 80, hp: 100 },
+                { x: 400, y: 460, w: 60, h: 80, hp: 100 },
+                { x: 600, y: 460, w: 60, h: 80, hp: 100 }
+            ],
+            sparks: [],
+            lines: [],
+            activeLine: null,
+            timer: 0,
+            deflected: 0
+        };
+        this.score = 0;
+    },
+    updateJizo(dt) {
+        const gd = this.gameData;
+        gd.timer += dt;
+        if (gd.timer >= 1.5) {
+            gd.timer = 0;
+            gd.sparks.push({
+                x: 100 + Math.random() * 600,
+                y: -10,
+                vx: -60 + Math.random() * 120,
+                vy: 160 + Math.random() * 80,
+                r: 10
+            });
+        }
+        if (this.mouse.isDown) {
+            if (!gd.activeLine) {
+                gd.activeLine = { startX: this.mouse.x, startY: this.mouse.y, endX: this.mouse.x, endY: this.mouse.y };
+            } else {
+                gd.activeLine.endX = this.mouse.x;
+                gd.activeLine.endY = this.mouse.y;
+            }
+        }
+        gd.sparks.forEach((s, sIdx) => {
+            s.x += s.vx * dt;
+            s.y += s.vy * dt;
+            gd.lines.forEach(l => {
+                const distToLine = this.distToSegment(s.x, s.y, l.startX, l.startY, l.endX, l.endY);
+                if (distToLine < s.r + 5) {
+                    s.vy = -Math.abs(s.vy) * 0.9;
+                    s.vx = (s.x - (l.startX + l.endX) / 2) * 1.5;
+                    gd.deflected++;
+                    this.score = Math.round((gd.deflected / 30) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(s.x, s.y, '#e57373');
+                    if (gd.deflected >= 30) {
+                        this.win();
+                    }
+                }
+            });
+            gd.jizos.forEach(j => {
+                if (s.x > j.x - j.w / 2 && s.x < j.x + j.w / 2 && s.y > j.y - j.h / 2 && s.y < j.y + j.h / 2) {
+                    j.hp = Math.max(0, j.hp - 10);
+                    this.createExplosion(s.x, s.y, '#f44336', 15);
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    gd.sparks.splice(sIdx, 1);
+                }
+            });
+        });
+        const alive = gd.jizos.some(j => j.hp > 0);
+        if (!alive) this.gameOver();
+        gd.sparks = gd.sparks.filter(s => s.y < 600);
+    },
+    distToSegment(x, y, x1, y1, x2, y2) {
+        const A = x - x1;
+        const B = y - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+        const dot = A * C + B * D;
+        const len_sq = C * C + D * D;
+        let param = -1;
+        if (len_sq !== 0) param = dot / len_sq;
+        let xx, yy;
+        if (param < 0) {
+            xx = x1; yy = y1;
+        } else if (param > 1) {
+            xx = x2; yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+        const dx = x - xx;
+        const dy = y - yy;
+        return Math.hypot(dx, dy);
+    },
+    drawJizo() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1c1917';
+        ctx.strokeStyle = '#3730a3';
+        ctx.lineWidth = 6;
+        ctx.fillRect(0, 500, 800, 100);
+        ctx.strokeRect(0, 500, 800, 100);
+        gd.jizos.forEach(j => {
+            if (j.hp > 0) {
+                ctx.fillStyle = '#78716c';
+                ctx.fillRect(j.x - j.w / 2, j.y - j.h / 2, j.w, j.h);
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(j.x - j.w / 2 + 5, j.y - 10);
+                ctx.lineTo(j.x + j.w / 2 - 5, j.y - 10);
+                ctx.lineTo(j.x, j.y + 15);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fillRect(j.x - 30, j.y - j.h / 2 - 15, 60, 6);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(j.x - 30, j.y - j.h / 2 - 15, (j.hp / 100) * 60, 6);
+            }
+        });
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        gd.lines.forEach(l => {
+            ctx.beginPath(); ctx.moveTo(l.startX, l.startY); ctx.lineTo(l.endX, l.endY); ctx.stroke();
+        });
+        if (gd.activeLine) {
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(gd.activeLine.startX, gd.activeLine.startY); ctx.lineTo(gd.activeLine.endX, gd.activeLine.endY); ctx.stroke();
+        }
+        gd.sparks.forEach(s => {
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ef4444';
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Desviados: ${gd.deflected}/30`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Dibuja barreras de neón arrastrando el ratón para repeler el fuego!', 30, 75);
+    },
+    inputJizoPress(x, y) {},
+    releaseJizo(x, y) {
+        const gd = this.gameData;
+        if (gd.activeLine) {
+            gd.lines.push({ ...gd.activeLine });
+            gd.activeLine = null;
+            if (gd.lines.length > 3) gd.lines.shift();
+        }
+    },
+
+    // 14. day_21_buddha: Ingeniero Imperial
+    setupBuddha() {
+        const grid = [];
+        for (let r = 0; r < 3; r++) {
+            grid[r] = [];
+            for (let c = 0; c < 3; c++) {
+                grid[r][c] = {
+                    type: ['S', 'L'][Math.floor(Math.random() * 2)],
+                    angle: [0, 90, 180, 270][Math.floor(Math.random() * 4)]
+                };
+            }
+        }
+        grid[0][0] = { type: 'L', angle: 90 };
+        grid[2][2] = { type: 'L', angle: 270 };
+        this.gameData = {
+            grid: grid,
+            poured: 0,
+            state: 'routing'
+        };
+        this.score = 0;
+    },
+    updateBuddha(dt) {
+        const gd = this.gameData;
+        if (gd.state === 'pouring') {
+            gd.poured += dt * 45;
+            this.score = Math.round(Math.min(100, gd.poured));
+            if (gd.poured >= 100) {
+                const pathOk = this.verifyBuddhaPath();
+                if (pathOk) {
+                    this.win();
+                } else {
+                    gd.state = 'routing';
+                    gd.poured = 0;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                }
+            }
+        }
+    },
+    verifyBuddhaPath() {
+        const gd = this.gameData;
+        const g = gd.grid;
+        if (g[0][0].angle !== 90) return false;
+        if (g[0][1].angle !== 90 && g[0][1].angle !== 270) return false;
+        if (g[1][1].angle !== 0 && g[1][1].angle !== 180) return false;
+        if (g[2][1].angle !== 90 && g[2][1].angle !== 270) return false;
+        if (g[2][2].angle !== 270) return false;
+        return true;
+    },
+    drawBuddha() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,215,0,0.1)';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(550, 150, 180, 300);
+        ctx.fillStyle = `rgba(255,215,0,${gd.poured / 100})`;
+        ctx.fillRect(550, 450 - (gd.poured / 100) * 300, 180, (gd.poured / 100) * 300);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(50, 150, 400, 400);
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                const x = 110 + c * 120;
+                const y = 210 + r * 120;
+                const cell = gd.grid[r][c];
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(cell.angle * Math.PI / 180);
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(-50, -50, 100, 100);
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 14;
+                ctx.beginPath();
+                if (cell.type === 'S') {
+                    ctx.moveTo(-50, 0); ctx.lineTo(50, 0);
+                } else {
+                    ctx.moveTo(-50, 0); ctx.quadraticCurveTo(0, 0, 0, 50);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(200, 80, 100, 45);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('FUNDIR', 250, 108);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Gran Buda de Kamakura', 50, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Conecta el conducto y funde el bronce líquido!', 50, 65);
+    },
+    inputBuddhaPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state === 'pouring') return;
+        if (x > 200 && x < 300 && y > 80 && y < 125) {
+            gd.state = 'pouring';
+            if (window.playProceduralSound) playProceduralSound('click');
+            return;
+        }
+        const c = Math.floor((x - 50) / 120);
+        const r = Math.floor((y - 150) / 120);
+        if (r >= 0 && r < 3 && c >= 0 && c < 3) {
+            gd.grid[r][c].angle = (gd.grid[r][c].angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 15. day_21_gold: Análisis de Pan de Oro
+    setupGold() {
+        this.gameData = {
+            needle: 0,
+            speed: 250,
+            dir: 1,
+            greenMin: 170,
+            greenMax: 230,
+            sheets: 0
+        };
+        this.score = 0;
+    },
+    updateGold(dt) {
+        const gd = this.gameData;
+        gd.needle += gd.speed * gd.dir * dt;
+        if (gd.needle > 400 || gd.needle < 0) gd.dir *= -1;
+    },
+    drawGold() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#312e81';
+        ctx.fillRect(150, 250, 500, 200);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(350 - gd.sheets * 12, 330 - gd.sheets * 5, 100 + gd.sheets * 24, 40 + gd.sheets * 10);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(200, 480, 400, 30);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(200 + gd.greenMin, 480, gd.greenMax - gd.greenMin, 30);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(200 + gd.needle - 3, 470, 6, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Laminación de oro: ${gd.sheets}/12`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca cuando la aguja blanca coincida en la zona verde!', 30, 75);
+    },
+    inputGoldPress(x, y) {
+        const gd = this.gameData;
+        if (gd.needle >= gd.greenMin && gd.needle <= gd.greenMax) {
+            gd.sheets++;
+            this.score = Math.round((gd.sheets / 12) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(400, 330, '#ffd700', 15);
+            this.triggerShake(15);
+            gd.greenMin = 50 + Math.random() * 150;
+            gd.greenMax = gd.greenMin + 50 + Math.random() * 40;
+            if (gd.sheets >= 12) {
+                this.win();
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(10);
+        }
+    },
+
+    // 16. day_21_tracking: Rastreo de la Naturaleza
+    setupTracking() {
+        this.gameData = {
+            px: 400,
+            py: 300,
+            targets: [
+                { x: 180, y: 150, found: false },
+                { x: 620, y: 450, found: false },
+                { x: 450, y: 220, found: false }
+            ],
+            sonarR: 0,
+            dangerZones: [
+                { x: 300, y: 250, r: 60 },
+                { x: 500, y: 350, r: 60 }
+            ],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateTracking(dt) {
+        const gd = this.gameData;
+        gd.sonarR = (gd.sonarR + dt * 250) % 500;
+        gd.px = lerp(gd.px, this.mouse.x, 0.15);
+        gd.py = lerp(gd.py, this.mouse.y, 0.15);
+        gd.dangerZones.forEach(dz => {
+            if (Math.hypot(gd.px - dz.x, gd.py - dz.y) < dz.r) {
+                this.triggerShake(3);
+            }
+        });
+        gd.targets.forEach(t => {
+            if (!t.found && Math.hypot(gd.px - t.x, gd.py - t.y) < 40) {
+                t.found = true;
+                gd.score++;
+                this.score = Math.round((gd.score / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(t.x, t.y, '#38bdf8');
+                if (gd.score >= 3) {
+                    this.win();
+                }
+            }
+        });
+    },
+    drawTracking() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(56,189,248,0.1)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(400, 300, gd.sonarR, 0, Math.PI * 2); ctx.stroke();
+        gd.dangerZones.forEach(dz => {
+            ctx.fillStyle = 'rgba(239,68,68,0.15)';
+            ctx.beginPath(); ctx.arc(dz.x, dz.y, dz.r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡PELIGRO!', dz.x, dz.y + 4);
+        });
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(gd.px, gd.py, 40, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gd.px - 60, gd.py); ctx.lineTo(gd.px + 60, gd.py); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gd.px, gd.py - 60); ctx.lineTo(gd.px, gd.py + 60); ctx.stroke();
+        gd.targets.forEach(t => {
+            if (t.found) {
+                ctx.fillStyle = '#00ff99';
+                ctx.font = '28px Arial';
+                ctx.fillText('👣', t.x - 14, t.y + 10);
+            } else {
+                const distToRadar = Math.abs(Math.hypot(t.x - 400, t.y - 300) - gd.sonarR);
+                if (distToRadar < 50) {
+                    ctx.fillStyle = 'rgba(56,189,248,0.4)';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, 20, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Rastros hallados: ${gd.score}/3`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Esquiva las zonas rojas de peligro y sigue los barridos de radar!', 30, 75);
+    },
+    inputTrackingPress(x, y) {},
+
+    // 17. day_21_defense: Defensa del Shogunato
+    setupDefense() {
+        this.gameData = {
+            ninjas: [
+                { id: 1, x: 820, y: 350, speed: 65, active: true },
+                { id: 2, x: -20, y: 380, speed: 75, active: true }
+            ],
+            gateHealth: 100,
+            score: 0,
+            spellActive: '',
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateDefense(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.4;
+            gd.ninjas.push({
+                id: Math.random(),
+                x: Math.random() < 0.5 ? -20 : 820,
+                y: 320 + Math.random() * 80,
+                speed: 60 + Math.random() * 40,
+                active: true
+            });
+        }
+        gd.ninjas.forEach((n, idx) => {
+            if (n.active) {
+                const dir = n.x < 400 ? 1 : -1;
+                n.x += n.speed * dir * dt;
+                if (Math.abs(n.x - 400) < 50) {
+                    gd.gateHealth = Math.max(0, gd.gateHealth - 15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(12);
+                    gd.ninjas.splice(idx, 1);
+                }
+            }
+        });
+        if (gd.gateHealth <= 0) this.gameOver();
+    },
+    drawDefense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0b0f19';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(360, 200, 80, 300);
+        gd.ninjas.forEach(n => {
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(n.x, n.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(300, 160, 200, 15);
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(300, 160, (gd.gateHealth / 100) * 200, 15);
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(150, 520, 120, 50);
+        ctx.fillStyle = '#06b6d4'; ctx.fillRect(340, 520, 120, 50);
+        ctx.fillStyle = '#a1a1aa'; ctx.fillRect(530, 520, 120, 50);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('FUEGO 🔥', 210, 552);
+        ctx.fillText('VIENTO 🌪️', 400, 552);
+        ctx.fillText('PIEDRA 🪨', 590, 552);
+        if (gd.spellActive) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`ACTIVO: ${gd.spellActive}`, 400, 130);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Invasores abatidos: ${gd.score}/45`, 30, 40);
+    },
+    inputDefensePress(x, y) {
+        const gd = this.gameData;
+        if (x > 150 && x < 270 && y > 520 && y < 570) gd.spellActive = 'Fuego';
+        if (x > 340 && x < 460 && y > 520 && y < 570) gd.spellActive = 'Viento';
+        if (x > 530 && x < 650 && y > 520 && y < 570) gd.spellActive = 'Piedra';
+        if (gd.spellActive) {
+            gd.ninjas.forEach((n, idx) => {
+                if (Math.hypot(x - n.x, y - n.y) < 55) {
+                    n.active = false;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 45) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(n.x, n.y, '#f59e0b');
+                    gd.ninjas.splice(idx, 1);
+                    if (gd.score >= 45) {
+                        this.win();
+                    }
+                }
+            });
+        }
+    },
+
+    // 18. day_21_silence: La Paz de la Montaña
+    setupSilence() {
+        this.gameData = {
+            targetScale: 1.0,
+            playerScale: 0.2,
+            expanding: true,
+            score: 0,
+            alignedTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        if (gd.expanding) {
+            gd.targetScale += dt * 0.45;
+            if (gd.targetScale > 2.0) gd.expanding = false;
+        } else {
+            gd.targetScale -= dt * 0.45;
+            if (gd.targetScale < 0.5) gd.expanding = true;
+        }
+        if (this.mouse.isDown) {
+            gd.playerScale = lerp(gd.playerScale, 2.0, 0.1);
+        } else {
+            gd.playerScale = lerp(gd.playerScale, 0.2, 0.1);
+        }
+        if (Math.abs(gd.playerScale - gd.targetScale) < 0.15) {
+            gd.alignedTimer += dt * 4;
+            gd.score = Math.min(15, Math.floor(gd.alignedTimer));
+            this.score = Math.round((gd.score / 15) * 100);
+            if (gd.score >= 15) {
+                this.win();
+            }
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#06152d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 10;
+        for (let r = 50; r < 500; r += 50) {
+            ctx.beginPath(); ctx.arc(400, 300, r, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetScale * 120, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(56,189,248,0.5)';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 300, gd.playerScale * 120, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sincronización Zen: ${gd.score}/15`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Mantén pulsado y suelta para ajustar tu halo con el anillo verde!', 30, 75);
+    },
+    inputSilencePress(x, y) {},
+    releaseSilence(x, y) {},
+
+    // ==========================================
+    // DÍA 22 MINIGAMES
+    // ==========================================
+
+    // 19. day_22_shout: Grito de Pescadero
+    setupShout() {
+        this.gameData = {
+            targetFreq: 1.5 + Math.random() * 2,
+            targetAmp: 0.6 + Math.random() * 0.8,
+            playerAmp: 0.5,
+            playerFreq: 2.0,
+            successes: 0,
+            alignedTimer: 0
+        };
+        this.score = 0;
+    },
+    updateShout(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.playerFreq = clamp(this.mouse.x / 200, 1.0, 4.0);
+            gd.playerAmp = clamp((600 - this.mouse.y) / 400, 0.2, 1.5);
+        }
+        const diffA = Math.abs(gd.playerAmp - gd.targetAmp);
+        const diffF = Math.abs(gd.playerFreq - gd.targetFreq);
+        if (diffA < 0.15 && diffF < 0.25) {
+            gd.alignedTimer += dt;
+            if (gd.alignedTimer >= 1.2) {
+                gd.successes++;
+                gd.alignedTimer = 0;
+                this.score = Math.round((gd.successes / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 300, '#00e5ff');
+                if (gd.successes >= 3) {
+                    this.win();
+                } else {
+                    gd.targetFreq = 1.5 + Math.random() * 2;
+                    gd.targetAmp = 0.6 + Math.random() * 0.8;
+                }
+            }
+        } else {
+            gd.alignedTimer = 0;
+        }
+    },
+    drawShout() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#082f49';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let y = 100; y < 500; y += 50) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+
+        // Draw Target Wave (Red glowing)
+        ctx.strokeStyle = '#f43f5e';
+        ctx.lineWidth = 6;
+        ctx.shadowBlur = 10; ctx.shadowColor = '#f43f5e';
+        ctx.beginPath();
+        for (let x = 0; x < 800; x += 5) {
+            const y = 300 + Math.sin(x * 0.01 * gd.targetFreq) * gd.targetAmp * 120;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Draw Player Wave (Cyan)
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let x = 0; x < 800; x += 5) {
+            const y = 300 + Math.sin(x * 0.01 * gd.playerFreq) * gd.playerAmp * 120;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Control Area HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Voces afinadas: ${gd.successes}/3`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Arrastra horizontalmente (tono) y verticalmente (volumen) para afinar tu grito!', 30, 75);
+        if (gd.alignedTimer > 0) {
+            ctx.fillStyle = '#10b981';
+            ctx.fillText(`¡Afinado! Sostén: ${(1.2 - gd.alignedTimer).toFixed(1)}s`, 30, 110);
+        }
+    },
+    inputShoutPress(x, y) {},
+
+    // 20. day_22_car: Vehículo de Lujo
+    setupCar() {
+        this.gameData = {
+            distance: 1000,
+            speed: 0,
+            rpm: 1000,
+            gear: 1,
+            targetRpmMin: 7000,
+            targetRpmMax: 9000,
+            timer: 30
+        };
+        this.score = 0;
+    },
+    updateCar(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        if (gd.timer <= 0) this.gameOver();
+
+        // RPM rises automatically based on speed
+        gd.rpm += (4500 - gd.speed * 20 + gd.gear * 2000) * dt;
+        if (gd.rpm > 10000) {
+            gd.rpm = 6000;
+            gd.speed = Math.max(0, gd.speed - 30); // RPM overflow drops speed
+            if (window.playProceduralSound) playProceduralSound('damage');
+        }
+
+        gd.speed = gd.gear * 35;
+        gd.distance = Math.max(0, gd.distance - gd.speed * dt);
+
+        if (gd.distance <= 0) {
+            this.score = 100;
+            this.win();
+        }
+    },
+    drawCar() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Road effect lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 10;
+        const lineOffset = (performance.now() * 0.5) % 150;
+        ctx.beginPath();
+        for (let y = -150; y < 600; y += 150) {
+            ctx.moveTo(400, y + lineOffset); ctx.lineTo(400, y + lineOffset + 60);
+        }
+        ctx.stroke();
+
+        // Speedometer / Tachometer
+        ctx.fillStyle = '#27272a';
+        ctx.beginPath(); ctx.arc(400, 480, 100, Math.PI, 2 * Math.PI); ctx.fill();
+
+        // Golden RPM Zone
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 20;
+        ctx.beginPath();
+        ctx.arc(400, 480, 90, Math.PI + (7000 / 10000) * Math.PI, Math.PI + (9000 / 10000) * Math.PI);
+        ctx.stroke();
+
+        // Needle
+        ctx.save();
+        ctx.translate(400, 480);
+        ctx.rotate((gd.rpm / 10000) * Math.PI);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-85, 0); ctx.stroke();
+        ctx.restore();
+
+        // Gear display
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 36px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`G: ${gd.gear}`, 400, 430);
+
+        // Shift button on screen
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(600, 420, 140, 60);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText('EMBRAGUE', 670, 455);
+
+        // HUD
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Meta: ${Math.round(gd.distance)}m`, 30, 40);
+        ctx.fillText(`Velocidad: ${Math.round(gd.speed)} km/h`, 30, 80);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Tiempo: ${Math.round(gd.timer)}s`, 750, 40);
+    },
+    inputCarPress(x, y) {
+        const gd = this.gameData;
+        // Shift gear trigger
+        if (x > 600 && x < 740 && y > 420 && y < 480) {
+            if (gd.rpm >= gd.targetRpmMin && gd.rpm <= gd.targetRpmMax) {
+                gd.gear = Math.min(5, gd.gear + 1);
+                gd.rpm = 2500;
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 480, '#eab308');
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.rpm = Math.max(1000, gd.rpm - 1500);
+                this.triggerShake(8);
+            }
+        }
+    },
+
+    // 21. day_22_elevator: Ascensor Infinito
+    setupElevator() {
+        this.gameData = {
+            floor: 0,
+            x: 400,
+            vx: 0,
+            comfort: 100,
+            windTimer: 0,
+            windForce: 0
+        };
+        this.score = 0;
+    },
+    updateElevator(dt) {
+        const gd = this.gameData;
+        gd.floor += dt * 8;
+        this.score = Math.round((gd.floor / 52) * 100);
+        if (gd.floor >= 52) {
+            this.win();
+            return;
+        }
+
+        // Random wind gusts
+        gd.windTimer -= dt;
+        if (gd.windTimer <= 0) {
+            gd.windTimer = 1.0 + Math.random() * 1.5;
+            gd.windForce = (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 200);
+        }
+
+        // Apply wind physics
+        gd.vx += gd.windForce * dt;
+        gd.x += gd.vx * dt;
+
+        // Player centering force
+        if (this.mouse.isDown) {
+            const target = this.mouse.x;
+            gd.x = lerp(gd.x, target, 0.08);
+            gd.vx *= 0.95;
+        }
+
+        // Comfort depletion
+        const deviation = Math.abs(gd.x - 400);
+        if (deviation > 80) {
+            gd.comfort = Math.max(0, gd.comfort - dt * 25);
+            this.triggerShake(3);
+        }
+
+        if (gd.comfort <= 0) this.gameOver();
+    },
+    drawElevator() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shaft borders
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(250, 0); ctx.lineTo(250, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(550, 0); ctx.lineTo(550, 600); ctx.stroke();
+
+        // Lift Box
+        ctx.fillStyle = '#0ea5e9';
+        ctx.fillRect(gd.x - 40, 250, 80, 100);
+
+        // Wind indicators
+        if (Math.abs(gd.windForce) > 50) {
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.font = '36px Arial';
+            ctx.textAlign = gd.windForce > 0 ? 'left' : 'right';
+            ctx.fillText(gd.windForce > 0 ? '💨 ▶' : '◀ 💨', gd.windForce > 0 ? 50 : 750, 300);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Piso: ${Math.round(gd.floor)}/52`, 30, 40);
+        ctx.fillText(`Estabilidad: ${Math.round(gd.comfort)}%`, 30, 80);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Mantén pulsado y arrastra para mantener el ascensor centrado en el hueco!', 30, 560);
+    },
+    inputElevatorPress(x, y) {},
+
+    // 22. day_22_tower: Réplica Eiffel
+    setupTower() {
+        this.gameData = {
+            handX: 150,
+            handY: 350,
+            handScale: 0.4,
+            alignedTimer: 0,
+            targetScale: 1.0,
+            targetX: 400,
+            targetY: 260
+        };
+        this.score = 0;
+    },
+    updateElevator(dt) {}, // placeholder overload
+    updateTower(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.handX = this.mouse.x;
+            gd.handY = this.mouse.y;
+        }
+
+        // Perspective alignment check
+        const dist = Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY);
+        const scaleMatch = Math.abs(gd.handScale - gd.targetScale);
+
+        if (dist < 20 && scaleMatch < 0.15) {
+            gd.alignedTimer += dt;
+            this.score = Math.round((gd.alignedTimer / 1.5) * 100);
+            if (gd.alignedTimer >= 1.5) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.win();
+            }
+        } else {
+            gd.alignedTimer = 0;
+        }
+    },
+    drawTower() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw SkyTree background
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(400, 600); ctx.lineTo(400, 260);
+        ctx.stroke();
+
+        // Target alignment spot (light glow)
+        ctx.fillStyle = 'rgba(74,222,128,0.3)';
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, 30, 0, Math.PI*2); ctx.fill();
+
+        // Draw pinch hand silhouette
+        ctx.save();
+        ctx.translate(gd.handX, gd.handY);
+        ctx.scale(gd.handScale, gd.handScale);
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(-20, 0, 30, 0, Math.PI*2); // hand
+        ctx.arc(20, 0, 15, 0, Math.PI*2); // pinch finger
+        ctx.fill();
+        ctx.restore();
+
+        // Zoom Slider
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(250, 520, 300, 20);
+        const handleX = 250 + (gd.handScale / 2.0) * 300;
+        ctx.fillStyle = '#3b82f6';
+        ctx.fillRect(handleX - 10, 510, 20, 40);
+
+        // HUD
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Alineación Perspectiva', 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Arrastra la mano y usa el deslizador de zoom para pellizcar la punta de la torre!', 30, 75);
+    },
+    inputTowerPress(x, y) {
+        const gd = this.gameData;
+        // Check slider touch
+        if (x > 230 && x < 570 && y > 500 && y < 560) {
+            const pct = clamp((x - 250) / 300, 0.1, 2.0);
+            gd.handScale = pct;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 23. day_22_jewel: La Joya de Ginza
+    setupJewel() {
+        this.gameData = {
+            px: 100,
+            py: 300,
+            vx: 0,
+            vy: 0,
+            terminals: [
+                { x: 180, y: 150, hacked: false },
+                { x: 620, y: 150, hacked: false },
+                { x: 250, y: 450, hacked: false },
+                { x: 550, y: 450, hacked: false }
+            ],
+            lasers: [
+                { x: 400, y: 300, angle: 0, speed: 1.0 },
+                { x: 400, y: 300, angle: Math.PI/2, speed: -1.2 }
+            ],
+            hackedCount: 0
+        };
+        this.score = 0;
+    },
+    updateJewel(dt) {
+        const gd = this.gameData;
+        // Basic mouse gravity pull physics
+        if (this.mouse.isDown) {
+            const ax = (this.mouse.x - gd.px) * 0.8;
+            const ay = (this.mouse.y - gd.py) * 0.8;
+            gd.vx = ax;
+            gd.vy = ay;
+        } else {
+            gd.vx *= 0.95; gd.vy *= 0.95;
+        }
+
+        gd.px += gd.vx * dt;
+        gd.py += gd.vy * dt;
+
+        // Border constraints
+        gd.px = clamp(gd.px, 20, 780);
+        gd.py = clamp(gd.py, 20, 580);
+
+        // Spin lasers
+        gd.lasers.forEach(l => {
+            l.angle += l.speed * dt;
+            // Laser beam collision with player
+            const endX = l.x + Math.cos(l.angle) * 350;
+            const endY = l.y + Math.sin(l.angle) * 350;
+            const dist = this.distToSegment(gd.px, gd.py, l.x, l.y, endX, endY);
+            if (dist < 15) {
+                // Laser shock, reset player
+                gd.px = 100; gd.py = 300;
+                gd.vx = 0; gd.vy = 0;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(12);
+            }
+        });
+
+        // Terminals hack check
+        gd.terminals.forEach(t => {
+            if (!t.hacked && Math.hypot(gd.px - t.x, gd.py - t.y) < 25) {
+                t.hacked = true;
+                gd.hackedCount++;
+                this.score = Math.round((gd.hackedCount / 4) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(t.x, t.y, '#e040fb');
+                if (gd.hackedCount >= 4) {
+                    this.win();
+                }
+            }
+        });
+    },
+    drawJewel() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#06000c';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw spinning lasers
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        gd.lasers.forEach(l => {
+            ctx.beginPath();
+            ctx.moveTo(l.x, l.y);
+            ctx.lineTo(l.x + Math.cos(l.angle) * 350, l.y + Math.sin(l.angle) * 350);
+            ctx.stroke();
+        });
+
+        // Terminals
+        gd.terminals.forEach(t => {
+            ctx.fillStyle = t.hacked ? '#10b981' : '#e040fb';
+            ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI*2); ctx.fill();
+        });
+
+        // Player orb
+        ctx.fillStyle = '#00ffff';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#00ffff';
+        ctx.beginPath(); ctx.arc(gd.px, gd.py, 12, 0, Math.PI*2); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Bases hackeadas: ${gd.hackedCount}/4`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Guía el orbe con el ratón esquivando los rayos láser para hackear los 4 nodos!', 30, 75);
+    },
+    inputJewelPress(x, y) {},
+
+    // 24. day_22_numbers: Intercepción Numérica
+    setupNumbers() {
+        const digits = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+        const spoken = Math.floor(Math.random() * 99) + 1; // target e.g. 45
+        this.gameData = {
+            spoken: spoken,
+            digits: digits,
+            playerAns: [],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateNumbers(dt) {},
+    drawNumbers() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 36px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`DESENCRIPTA EL NÚMERO: ${gd.spoken}`, 400, 100);
+
+        // Digit options layout
+        gd.digits.forEach((d, idx) => {
+            const x = 100 + (idx % 5) * 150;
+            const y = 200 + Math.floor(idx / 5) * 100;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(x - 60, y - 35, 120, 70);
+            ctx.strokeStyle = '#00ff99';
+            ctx.strokeRect(x - 60, y - 35, 120, 70);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px Arial';
+            ctx.fillText(d, x, y + 10);
+        });
+
+        // Player answer slot
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(200, 420, 400, 60);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText(gd.playerAns.join(' '), 400, 455);
+
+        // Buttons
+        ctx.fillStyle = '#10b981'; ctx.fillRect(250, 510, 120, 45);
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(430, 510, 120, 45);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText('ENVIAR', 310, 538);
+        ctx.fillText('BORRAR', 490, 538);
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Criptos descifradas: ${gd.score}/3`, 130, 40);
+    },
+    inputNumbersPress(x, y) {
+        const gd = this.gameData;
+        // Options check
+        gd.digits.forEach((d, idx) => {
+            const cx = 100 + (idx % 5) * 150;
+            const cy = 200 + Math.floor(idx / 5) * 100;
+            if (x > cx - 60 && x < cx + 60 && y > cy - 35 && y < cy + 35) {
+                if (gd.playerAns.length < 4) {
+                    gd.playerAns.push(d);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            }
+        });
+
+        // Clear button
+        if (x > 430 && x < 550 && y > 510 && y < 555) {
+            gd.playerAns = [];
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+
+        // Send check
+        if (x > 250 && x < 370 && y > 510 && y < 555) {
+            // Translate playerAns back to value
+            let val = 0;
+            // Kanji to value map:
+            const kMap = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+            const arr = gd.playerAns;
+            if (arr.length === 1) {
+                val = kMap[arr[0]] || 0;
+            } else if (arr.length === 2) {
+                if (arr[0] === '十') {
+                    val = 10 + kMap[arr[1]];
+                } else if (arr[1] === '十') {
+                    val = kMap[arr[0]] * 10;
+                }
+            } else if (arr.length === 3) {
+                if (arr[1] === '十') {
+                    val = kMap[arr[0]] * 10 + kMap[arr[2]];
+                }
+            }
+
+            if (val === gd.spoken) {
+                gd.score++;
+                this.score = Math.round((gd.score / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 450, '#00ff99');
+                if (gd.score >= 3) {
+                    this.win();
+                } else {
+                    gd.spoken = Math.floor(Math.random() * 99) + 1;
+                    gd.playerAns = [];
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(10);
+                gd.playerAns = [];
+            }
+        }
+    },
+
+    // 25. day_22_fish: Logística del Pescado
+    setupFish() {
+        this.gameData = {
+            crates: [],
+            sorted: 0,
+            junctions: [
+                { x: 300, y: 200, state: 'left' },
+                { x: 500, y: 350, state: 'right' }
+            ],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateFish(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 2.0;
+            gd.crates.push({
+                x: 400,
+                y: 50,
+                vy: 140,
+                color: Math.random() < 0.5 ? '#ef4444' : '#3b82f6',
+                type: Math.random() < 0.5 ? 'red' : 'blue'
+            });
+        }
+
+        gd.crates.forEach((c, idx) => {
+            c.y += c.vy * dt;
+            
+            // Junction redirects
+            gd.junctions.forEach(j => {
+                if (Math.abs(c.y - j.y) < 10) {
+                    c.x = lerp(c.x, j.state === 'left' ? c.x - 120 : c.x + 120, 0.1);
+                }
+            });
+
+            // Bottom destination check
+            if (c.y > 520) {
+                // Left target is red warehouse (X < 350), Right is blue (X > 450)
+                const correct = (c.type === 'red' && c.x < 400) || (c.type === 'blue' && c.x >= 400);
+                if (correct) {
+                    gd.sorted++;
+                    this.score = Math.round((gd.sorted / 15) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(c.x, c.y, c.color);
+                    if (gd.sorted >= 15) {
+                        this.win();
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(12);
+                }
+                gd.crates.splice(idx, 1);
+            }
+        });
+    },
+    drawFish() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Junction rails
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(400, 50); ctx.lineTo(400, 500);
+        ctx.stroke();
+
+        // Junction boxes
+        gd.junctions.forEach(j => {
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(j.x - 20, j.y - 20, 40, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(j.state === 'left' ? '◀' : '▶', j.x, j.y + 6);
+        });
+
+        // Warehouses
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(100, 520, 200, 60);
+        ctx.fillStyle = '#3b82f6'; ctx.fillRect(500, 520, 200, 60);
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 16px monospace';
+        ctx.fillText('ROJO', 200, 555);
+        ctx.fillText('AZUL', 600, 555);
+
+        // Crates falling
+        gd.crates.forEach(c => {
+            ctx.fillStyle = c.color;
+            ctx.fillRect(c.x - 15, c.y - 15, 30, 30);
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Atunes ordenados: ${gd.sorted}/15`, 30, 40);
+    },
+    inputFishPress(x, y) {
+        const gd = this.gameData;
+        gd.junctions.forEach(j => {
+            if (x > j.x - 30 && x < j.x + 30 && y > j.y - 30 && y < j.y + 30) {
+                j.state = j.state === 'left' ? 'right' : 'left';
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+
+    // 26. day_22_compare: Altura Relativa
+    setupCompare() {
+        this.gameData = {
+            blocks: [{ x: 400, y: 550, w: 200, h: 40 }],
+            activeBlock: { x: 100, y: 150, w: 200, h: 40, vx: 200 },
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateCompare(dt) {
+        const gd = this.gameData;
+        const ab = gd.activeBlock;
+        ab.x += ab.vx * dt;
+        if (ab.x < 50 || ab.x > 750) ab.vx *= -1;
+    },
+    drawCompare() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Stacked blocks
+        gd.blocks.forEach((b, idx) => {
+            ctx.fillStyle = `hsl(${idx * 40}, 80%, 60%)`;
+            ctx.fillRect(b.x - b.w/2, 500 - idx * 42, b.w, b.h);
+        });
+
+        // Stacking block
+        const ab = gd.activeBlock;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(ab.x - ab.w/2, 100, ab.w, ab.h);
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Pisos apilados: ${gd.blocks.length}/8`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca la pantalla para soltar el bloque flotante exactamente encima del anterior!', 30, 75);
+    },
+    inputComparePress(x, y) {
+        const gd = this.gameData;
+        const ab = gd.activeBlock;
+        const prev = gd.blocks[gd.blocks.length - 1];
+
+        // Drop check
+        const diff = ab.x - prev.x;
+        const overlap = ab.w - Math.abs(diff);
+
+        if (overlap > 15) {
+            const newW = overlap;
+            const newX = prev.x + diff/2;
+            gd.blocks.push({ x: newX, y: 500 - gd.blocks.length * 42, w: newW, h: 40 });
+            
+            // Setup next block
+            ab.w = newW;
+            ab.x = 100;
+            ab.vx += 30; // speed up
+            this.score = Math.round((gd.blocks.length / 8) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.blocks.length >= 8) {
+                this.win();
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(12);
+        }
+    },
+
+    // 27. day_22_neon: Letrero de Neón
+    setupNeon22() {
+        this.gameData = {
+            ports: [
+                { id: 1, x: 150, y: 180, c: '#ef4444', connected: false },
+                { id: 2, x: 150, y: 300, c: '#3b82f6', connected: false },
+                { id: 3, x: 150, y: 420, c: '#eab308', connected: false }
+            ],
+            targets: [
+                { id: 1, x: 650, y: 300, c: '#ef4444', connected: false },
+                { id: 2, x: 650, y: 420, c: '#3b82f6', connected: false },
+                { id: 3, x: 650, y: 180, c: '#eab308', connected: false }
+            ],
+            lines: [],
+            activeLine: null
+        };
+        this.score = 0;
+    },
+    updateNeon22(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown && gd.activeLine) {
+            gd.activeLine.endX = this.mouse.x;
+            gd.activeLine.endY = this.mouse.y;
+        }
+    },
+    drawNeon22() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#090514';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw connections
+        gd.lines.forEach(l => {
+            ctx.strokeStyle = l.color;
+            ctx.lineWidth = 8;
+            ctx.shadowBlur = 15; ctx.shadowColor = l.color;
+            ctx.beginPath(); ctx.moveTo(l.startX, l.startY); ctx.lineTo(l.endX, l.endY); ctx.stroke();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw active drag line
+        if (gd.activeLine) {
+            ctx.strokeStyle = gd.activeLine.color;
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(gd.activeLine.startX, gd.activeLine.startY); ctx.lineTo(gd.activeLine.endX, gd.activeLine.endY); ctx.stroke();
+        }
+
+        // Draw ports
+        gd.ports.forEach(p => {
+            ctx.fillStyle = p.c;
+            ctx.beginPath(); ctx.arc(p.x, p.y, 20, 0, Math.PI*2); ctx.fill();
+        });
+        gd.targets.forEach(t => {
+            ctx.fillStyle = t.c;
+            ctx.beginPath(); ctx.arc(t.x, t.y, 20, 0, Math.PI*2); ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Conector de Letrero Familiar', 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Une los puertos de colores sin cruzar los cables elásticos!', 30, 75);
+    },
+    inputNeon22Press(x, y) {
+        const gd = this.gameData;
+        gd.ports.forEach(p => {
+            if (Math.hypot(x - p.x, y - p.y) < 30) {
+                gd.activeLine = { startX: p.x, startY: p.y, endX: x, endY: y, color: p.c, fromId: p.id };
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseNeon22(x, y) {
+        const gd = this.gameData;
+        if (gd.activeLine) {
+            let connected = false;
+            gd.targets.forEach(t => {
+                if (Math.hypot(x - t.x, y - t.y) < 30 && t.c === gd.activeLine.color) {
+                    // Check intersections with existing lines
+                    let intersect = false;
+                    gd.lines.forEach(l => {
+                        const hit = this.lineIntersect(gd.activeLine.startX, gd.activeLine.startY, t.x, t.y, l.startX, l.startY, l.endX, l.endY);
+                        if (hit) intersect = true;
+                    });
+
+                    if (!intersect) {
+                        gd.lines.push({ startX: gd.activeLine.startX, startY: gd.activeLine.startY, endX: t.x, endY: t.y, color: t.c });
+                        connected = true;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        this.createExplosion(t.x, t.y, t.c);
+                        if (gd.lines.length === 3) {
+                            this.score = 100;
+                            this.win();
+                        }
+                    }
+                }
+            });
+
+            if (!connected) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(8);
+            }
+            gd.activeLine = null;
+        }
+    },
+    lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+        const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denom === 0) return false;
+        const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+        const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+        return (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1);
+    },
+
+    // ==========================================
+    // DÍA 23 MINIGAMES
+    // ==========================================
+
+    // 28. day_23_kitkat: Buscador de KitKat
+    setupKitkat() {
+        const flavors = ['🍫', '🍵', '🍓', '🍋', '☕'];
+        const board = [];
+        for (let r = 0; r < 6; r++) {
+            board[r] = [];
+            for (let c = 0; c < 6; c++) {
+                board[r][c] = flavors[Math.floor(Math.random() * flavors.length)];
+            }
+        }
+        this.gameData = {
+            board: board,
+            flavors: flavors,
+            selected: null,
+            matches: 0
+        };
+        this.score = 0;
+    },
+    updateKitkat(dt) {
+        const gd = this.gameData;
+        this.score = Math.min(100, Math.round((gd.matches / 15) * 100));
+        if (gd.matches >= 15) {
+            this.win();
+        }
+    },
+    drawKitkat() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+                const x = 150 + c * 70;
+                const y = 120 + r * 70;
+                const isSel = gd.selected && gd.selected.r === r && gd.selected.c === c;
+                ctx.fillStyle = isSel ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)';
+                ctx.strokeStyle = isSel ? '#ef4444' : '#4338ca';
+                ctx.lineWidth = isSel ? 4 : 2;
+                ctx.fillRect(x, y, 64, 64);
+                ctx.strokeRect(x, y, 64, 64);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '30px Arial';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(gd.board[r][c], x + 32, y + 32);
+            }
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Matches cosechados: ${gd.matches}/15`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca e intercambia dulces adyacentes para hacer combinaciones de 3 o más en línea!', 30, 75);
+    },
+    inputKitkatPress(x, y) {
+        const gd = this.gameData;
+        const c = Math.floor((x - 150) / 70);
+        const r = Math.floor((y - 120) / 70);
+        if (r >= 0 && r < 6 && c >= 0 && c < 6) {
+            if (!gd.selected) {
+                gd.selected = { r, c };
+                if (window.playProceduralSound) playProceduralSound('click');
+            } else {
+                const diffR = Math.abs(r - gd.selected.r);
+                const diffC = Math.abs(c - gd.selected.c);
+                if ((diffR === 1 && diffC === 0) || (diffR === 0 && diffC === 1)) {
+                    const tmp = gd.board[r][c];
+                    gd.board[r][c] = gd.board[gd.selected.r][gd.selected.c];
+                    gd.board[gd.selected.r][gd.selected.c] = tmp;
+                    const matched = this.checkKitkatMatch();
+                    if (matched) {
+                        gd.matches++;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        this.createExplosion(x, y, '#ffd700');
+                    } else {
+                        const tmp2 = gd.board[r][c];
+                        gd.board[r][c] = gd.board[gd.selected.r][gd.selected.c];
+                        gd.board[gd.selected.r][gd.selected.c] = tmp2;
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                        this.triggerShake(5);
+                    }
+                    gd.selected = null;
+                } else {
+                    gd.selected = { r, c };
+                }
+            }
+        }
+    },
+    checkKitkatMatch() {
+        const gd = this.gameData;
+        const b = gd.board;
+        let matched = false;
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 4; c++) {
+                if (b[r][c] === b[r][c + 1] && b[r][c] === b[r][c + 2]) {
+                    matched = true;
+                    b[r][c] = gd.flavors[Math.floor(Math.random() * 5)];
+                    b[r][c + 1] = gd.flavors[Math.floor(Math.random() * 5)];
+                    b[r][c + 2] = gd.flavors[Math.floor(Math.random() * 5)];
+                }
+            }
+        }
+        for (let c = 0; c < 6; c++) {
+            for (let r = 0; r < 4; r++) {
+                if (b[r][c] === b[r + 1][c] && b[r][c] === b[r + 2][c]) {
+                    matched = true;
+                    b[r][c] = gd.flavors[Math.floor(Math.random() * 5)];
+                    b[r + 1][c] = gd.flavors[Math.floor(Math.random() * 5)];
+                    b[r + 2][c] = gd.flavors[Math.floor(Math.random() * 5)];
+                }
+            }
+        }
+        return matched;
+    },
+
+    // 29. day_23_pokedex: Pokédex de Supermercado
+    setupPokedex() {
+        this.gameData = {
+            laserWidth: 100,
+            targetWidth: 50 + Math.floor(Math.random() * 100),
+            scans: 0,
+            laserX: 400
+        };
+        this.score = 0;
+    },
+    updatePokedex(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.laserWidth = 40 + (performance.now() * 0.15) % 180;
+        }
+    },
+    drawPokedex() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(100, 150, 600, 300);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(400 - gd.targetWidth / 2, 200, gd.targetWidth, 200);
+        ctx.fillStyle = '#000000';
+        for (let bx = 410 - gd.targetWidth / 2; bx < 390 + gd.targetWidth / 2; bx += 20) {
+            ctx.fillRect(bx, 200, 8, 200);
+        }
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = gd.laserWidth;
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ef4444';
+        ctx.beginPath(); ctx.moveTo(400, 120); ctx.lineTo(400, 480); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(400 - gd.laserWidth / 2, 120, gd.laserWidth, 360);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Productos escaneados: ${gd.scans}/5`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Mantén pulsado para calibrar el ancho del haz láser rojo con las barras del código!', 30, 75);
+    },
+    inputPokedexPress(x, y) {
+        const gd = this.gameData;
+        if (Math.abs(gd.laserWidth - gd.targetWidth) < 18) {
+            gd.scans++;
+            this.score = Math.round((gd.scans / 5) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(400, 300, '#00ff99');
+            if (gd.scans >= 5) {
+                this.win();
+            } else {
+                gd.targetWidth = 50 + Math.floor(Math.random() * 100);
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(8);
+        }
+    },
+
+    // 30. day_23_coins: Oráculo de Monedas
+    setupCoins() {
+        this.gameData = {
+            px: 400,
+            py: 450,
+            vx: 0,
+            vy: 0,
+            targetX: 400,
+            targetY: 180,
+            targetR: 35,
+            successes: 0
+        };
+        this.score = 0;
+    },
+    updateCoins(dt) {
+        const gd = this.gameData;
+        const time = performance.now() * 0.002;
+        gd.vx += Math.sin(time) * 45 * dt;
+        gd.vy += Math.cos(time * 0.8) * 35 * dt;
+        gd.px += gd.vx * dt;
+        gd.py += gd.vy * dt;
+        gd.vx *= 0.98;
+        gd.vy *= 0.98;
+        gd.px = clamp(gd.px, 20, 780);
+        gd.py = clamp(gd.py, 20, 580);
+        if (Math.hypot(gd.px - gd.targetX, gd.py - gd.targetY) < gd.targetR) {
+            gd.successes++;
+            this.score = Math.round((gd.successes / 3) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(gd.px, gd.py, '#ffd700');
+            if (gd.successes >= 3) {
+                this.win();
+            } else {
+                gd.px = 400; gd.py = 450;
+                gd.vx = 0; gd.vy = 0;
+            }
+        }
+    },
+    drawCoins() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0e7490';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(400, 300, (i * 70 + performance.now() * 0.05) % 350, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#eab308';
+        ctx.strokeStyle = '#ca8a04';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, gd.targetR, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('OFRENDA', gd.targetX, gd.targetY + 4);
+        ctx.fillStyle = '#94a3b8';
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(gd.px, gd.py, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText('100¥', gd.px, gd.py + 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Deseos concedidos: ${gd.successes}/3`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Haz clic cerca de la moneda para soplar aire y empujarla hacia el cuenco dorado!', 30, 75);
+    },
+    inputCoinsPress(x, y) {
+        const gd = this.gameData;
+        const dx = gd.px - x;
+        const dy = gd.py - y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 180) {
+            const force = (180 - dist) * 1.5;
+            gd.vx += (dx / dist) * force;
+            gd.vy += (dy / dist) * force;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 31. day_23_mascot: Mascotas de Viaje
+    setupMascot() {
+        this.gameData = {
+            clawX: 400,
+            clawY: 80,
+            clawAngle: 0,
+            clawSpeed: 1.6,
+            clawDir: 1,
+            state: 'swinging',
+            targetY: 450,
+            toys: [
+                { x: 200, y: 460, emoji: '🧸', grabbed: false },
+                { x: 380, y: 480, emoji: '🦊', grabbed: false },
+                { x: 560, y: 470, emoji: '🐼', grabbed: false }
+            ],
+            grabbedToy: null
+        };
+        this.score = 0;
+    },
+    updateMascot(dt) {
+        const gd = this.gameData;
+        if (gd.state === 'swinging') {
+            gd.clawAngle += gd.clawSpeed * gd.clawDir * dt;
+            if (gd.clawAngle > 1.0 || gd.clawAngle < -1.0) gd.clawDir *= -1;
+        } else if (gd.state === 'dropping') {
+            gd.clawX += Math.sin(gd.clawAngle) * 320 * dt;
+            gd.clawY += Math.cos(gd.clawAngle) * 320 * dt;
+            if (gd.clawY >= gd.targetY) {
+                gd.state = 'retracting';
+                gd.toys.forEach(t => {
+                    if (Math.hypot(gd.clawX - t.x, gd.clawY - t.y) < 50) {
+                        t.grabbed = true;
+                        gd.grabbedToy = t;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                });
+            }
+        } else if (gd.state === 'retracting') {
+            gd.clawX = lerp(gd.clawX, 400, 0.08);
+            gd.clawY = lerp(gd.clawY, 80, 0.08);
+            if (gd.grabbedToy) {
+                gd.grabbedToy.x = gd.clawX;
+                gd.grabbedToy.y = gd.clawY + 30;
+            }
+            if (Math.hypot(gd.clawX - 400, gd.clawY - 80) < 5) {
+                if (gd.grabbedToy) {
+                    this.score = 100;
+                    this.win();
+                } else {
+                    gd.state = 'swinging';
+                }
+            }
+        }
+    },
+    drawMascot() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#172554';
+        ctx.fillRect(0, 0, 800, 600);
+        gd.toys.forEach(t => {
+            if (!t.grabbed) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '48px Arial';
+                ctx.fillText(t.emoji, t.x - 24, t.y + 20);
+            }
+        });
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(400, 80);
+        ctx.lineTo(gd.clawX, gd.clawY);
+        ctx.stroke();
+        ctx.fillStyle = '#cbd5e1';
+        ctx.beginPath(); ctx.arc(gd.clawX, gd.clawY, 15, 0, Math.PI * 2); ctx.fill();
+        if (gd.grabbedToy) {
+            ctx.font = '48px Arial';
+            ctx.fillText(gd.grabbedToy.emoji, gd.grabbedToy.x - 24, gd.grabbedToy.y + 20);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Garra del Peluche', 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca la pantalla para soltar la garra oscilante y rescatar un peluche!', 30, 75);
+    },
+    inputMascotPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state === 'swinging') {
+            gd.state = 'dropping';
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 32. day_23_tetris: Tetris de Maletas
+    setupTetris() {
+        this.gameData = {
+            items: [
+                { id: 1, x: 120, y: 460, w: 80, h: 60, c: '#a855f7', name: 'Ropa', active: false, packed: false },
+                { id: 2, x: 240, y: 460, w: 100, h: 50, c: '#3b82f6', name: 'Libros', active: false, packed: false },
+                { id: 3, x: 380, y: 460, w: 60, h: 60, c: '#10b981', name: 'Zapatos', active: false, packed: false },
+                { id: 4, x: 500, y: 460, w: 90, h: 70, c: '#f43f5e', name: 'Cámara', active: false, packed: false }
+            ],
+            suitcaseX: 250,
+            suitcaseY: 150,
+            suitcaseW: 300,
+            suitcaseH: 200,
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateTetris(dt) {
+        const gd = this.gameData;
+        gd.items.forEach(w => {
+            if (w.active) {
+                w.x = this.mouse.x;
+                w.y = this.mouse.y;
+            }
+        });
+    },
+    drawTetris() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(gd.suitcaseX, gd.suitcaseY, gd.suitcaseW, gd.suitcaseH);
+        ctx.fillStyle = 'rgba(239,68,68,0.05)';
+        ctx.fillRect(gd.suitcaseX, gd.suitcaseY, gd.suitcaseW, gd.suitcaseH);
+        gd.items.forEach(w => {
+            ctx.fillStyle = w.c;
+            ctx.fillRect(w.x - w.w / 2, w.y - w.h / 2, w.w, w.h);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(w.name, w.x, w.y);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Equipaje guardado: ${gd.score}/4`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Arrastra los paquetes dentro del recuadro rojo de la maleta!', 30, 75);
+    },
+    inputTetrisPress(x, y) {
+        const gd = this.gameData;
+        gd.items.forEach(w => {
+            if (x > w.x - w.w / 2 && x < w.x + w.w / 2 && y > w.y - w.h / 2 && y < w.y + w.h / 2) {
+                w.active = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseTetris(x, y) {
+        const gd = this.gameData;
+        gd.items.forEach(w => {
+            if (w.active) {
+                w.active = false;
+                w.x = x; w.y = y;
+                const insideX = x - w.w / 2 > gd.suitcaseX && x + w.w / 2 < gd.suitcaseX + gd.suitcaseW;
+                const insideY = y - w.h / 2 > gd.suitcaseY && y + w.h / 2 < gd.suitcaseY + gd.suitcaseH;
+                if (insideX && insideY) {
+                    if (!w.packed) {
+                        w.packed = true;
+                        gd.score++;
+                        this.score = Math.round((gd.score / 4) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.score >= 4) {
+                            this.win();
+                        }
+                    }
+                } else {
+                    if (w.packed) {
+                        w.packed = false;
+                        gd.score = Math.max(0, gd.score - 1);
+                    }
+                }
+            }
+        });
+    },
+
+    // 33. day_23_audit: Auditoría Final
+    setupAudit() {
+        this.gameData = {
+            receipts: [
+                { val: '1500¥', eq: 10, x: 200, y: 160 },
+                { val: '3000¥', eq: 20, x: 200, y: 280 },
+                { val: '7500¥', eq: 50, x: 200, y: 400 }
+            ],
+            euros: [
+                { val: '50€', eq: 50, x: 600, y: 160 },
+                { val: '10€', eq: 10, x: 600, y: 280 },
+                { val: '20€', eq: 20, x: 600, y: 400 }
+            ],
+            links: [],
+            activeLink: null
+        };
+        this.score = 0;
+    },
+    updateAudit(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown && gd.activeLink) {
+            gd.activeLink.endX = this.mouse.x;
+            gd.activeLineY = this.mouse.y;
+        }
+    },
+    drawAudit() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 4;
+        gd.links.forEach(l => {
+            ctx.beginPath(); ctx.moveTo(l.startX, l.startY); ctx.lineTo(l.endX, l.endY); ctx.stroke();
+        });
+        if (gd.activeLink) {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(gd.activeLink.startX, gd.activeLink.startY); ctx.lineTo(this.mouse.x, this.mouse.y); ctx.stroke();
+        }
+        gd.receipts.forEach(r => {
+            ctx.fillStyle = '#fffbeb';
+            ctx.fillRect(r.x - 70, r.y - 30, 140, 60);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(r.val, r.x, r.y);
+        });
+        gd.euros.forEach(e => {
+            ctx.fillStyle = '#f0fdf4';
+            ctx.fillRect(e.x - 70, e.y - 30, 140, 60);
+            ctx.fillStyle = '#16a34a';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(e.val, e.x, e.y);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Auditorías cuadradas: ${gd.links.length}/3`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Une con líneas las conversiones de Yenes a Euros correctas (Tasa 150¥ = 1€)!', 30, 75);
+    },
+    inputAuditPress(x, y) {
+        const gd = this.gameData;
+        gd.receipts.forEach(r => {
+            if (x > r.x - 70 && x < r.x + 70 && y > r.y - 30 && y < r.y + 30) {
+                gd.activeLink = { startX: r.x, startY: r.y, fromEq: r.eq };
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseAudit(x, y) {
+        const gd = this.gameData;
+        if (gd.activeLink) {
+            let matched = false;
+            gd.euros.forEach(e => {
+                if (x > e.x - 70 && x < e.x + 70 && y > e.y - 30 && y < e.y + 30) {
+                    if (e.eq === gd.activeLink.fromEq) {
+                        gd.links.push({ startX: gd.activeLink.startX, startY: gd.activeLink.startY, endX: e.x, endY: e.y });
+                        matched = true;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        this.createExplosion(e.x, e.y, '#10b981');
+                        if (gd.links.length === 3) {
+                            this.score = 100;
+                            this.win();
+                        }
+                    }
+                }
+            });
+            if (!matched) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(8);
+            }
+            gd.activeLink = null;
+        }
+    },
+
+    // 34. day_23_security: Protocolo de Embarque
+    setupSecurity() {
+        this.gameData = {
+            items: [
+                { id: 1, x: 200, y: 250, emoji: '🧳', clean: true, active: true },
+                { id: 2, x: 500, y: 250, emoji: '🔪', clean: false, active: true }
+            ],
+            beltScroll: 0,
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSecurity(dt) {
+        const gd = this.gameData;
+        gd.beltScroll = (gd.beltScroll + dt * 110) % 800;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.3;
+            const items = ['🧳', '🔪', '🧴', '🔫'];
+            const type = items[Math.floor(Math.random() * items.length)];
+            gd.items.push({
+                id: Math.random(),
+                x: 820,
+                y: 250,
+                emoji: type,
+                clean: type === '🧳',
+                active: true
+            });
+        }
+        gd.items.forEach((item, idx) => {
+            if (item.active) {
+                item.x -= dt * 120;
+                if (item.x < 50) {
+                    if (!item.clean) {
+                        this.triggerShake(12);
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                    }
+                    gd.items.splice(idx, 1);
+                }
+            }
+        });
+    },
+    drawSecurity() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 280, 800, 40);
+        ctx.fillStyle = 'rgba(56,189,248,0.06)';
+        ctx.fillRect(200, 100, 400, 300);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(200, 100, 400, 300);
+        gd.items.forEach(item => {
+            if (item.active) {
+                const insideScanner = item.x > 200 && item.x < 600;
+                ctx.save();
+                if (insideScanner && !item.clean) {
+                    ctx.shadowBlur = 20; ctx.shadowColor = '#ef4444';
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '48px Arial';
+                ctx.fillText(item.emoji, item.x - 24, item.y + 20);
+                ctx.restore();
+            }
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Contrabando requisado: ${gd.score}/12`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca e intercepta los objetos peligrosos (cuchillos, líquidos, armas) en la banda X-ray!', 30, 75);
+    },
+    inputSecurityPress(x, y) {
+        const gd = this.gameData;
+        gd.items.forEach((item, idx) => {
+            if (item.active && Math.hypot(x - item.x, y - item.y) < 50) {
+                if (!item.clean) {
+                    item.active = false;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 12) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(item.x, item.y, '#ffd700');
+                    gd.items.splice(idx, 1);
+                    if (gd.score >= 12) {
+                        this.win();
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(8);
+                }
+            }
+        });
+    },
+
+    // 35. day_23_weight: Peso de Carga
+    setupWeight23() {
+        this.gameData = {
+            leftWeight: 0,
+            rightWeight: 0,
+            diff: 0,
+            balancedTimer: 0,
+            items: [
+                { id: 1, x: 150, y: 460, ox: 150, oy: 460, w: 50, h: 50, wt: 10, c: '#a855f7', name: '10kg', active: false },
+                { id: 2, x: 270, y: 460, ox: 270, oy: 460, w: 55, h: 55, wt: 20, c: '#3b82f6', name: '20kg', active: false },
+                { id: 3, x: 400, y: 460, ox: 400, oy: 460, w: 60, h: 60, wt: 50, c: '#10b981', name: '50kg', active: false }
+            ],
+            targetDiff: 0,
+            rounds: 0
+        };
+        this.score = 0;
+    },
+    updateWeight23(dt) {
+        const gd = this.gameData;
+        let left = 0;
+        let right = 0;
+        gd.items.forEach(item => {
+            if (item.x < 350) left += item.wt;
+            if (item.x > 450) right += item.wt;
+        });
+        gd.leftWeight = left;
+        gd.rightWeight = right;
+        gd.diff = left - right;
+        if (gd.diff === gd.targetDiff) {
+            gd.balancedTimer += dt;
+            if (gd.balancedTimer >= 1.5) {
+                gd.rounds++;
+                gd.balancedTimer = 0;
+                this.score = Math.round((gd.rounds / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.rounds >= 3) {
+                    this.win();
+                } else {
+                    gd.targetDiff = [10, -10, 20, -20, 30, -30][Math.floor(Math.random() * 6)];
+                    gd.items.forEach(item => {
+                        item.x = item.ox; item.y = item.oy;
+                    });
+                }
+            }
+        } else {
+            gd.balancedTimer = 0;
+        }
+    },
+    drawWeight23() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(50, 160, 300, 240);
+        ctx.fillRect(450, 160, 300, 240);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Izquierda: ${gd.leftWeight}kg`, 200, 200);
+        ctx.fillText(`Derecha: ${gd.rightWeight}kg`, 600, 200);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`OBJETIVO DIFERENCIA (IZQ - DER): ${gd.targetDiff}kg`, 400, 100);
+        gd.items.forEach(item => {
+            ctx.fillStyle = item.c;
+            ctx.fillRect(item.x - item.w / 2, item.y - item.h / 2, item.w, item.h);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.fillText(item.name, item.x, item.y + 5);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cargas calibradas: ${gd.rounds}/3`, 30, 40);
+        if (gd.balancedTimer > 0) {
+            ctx.fillStyle = '#10b981';
+            ctx.fillText(`¡Equilibrado! Espera: ${(1.5 - gd.balancedTimer).toFixed(1)}s`, 30, 80);
+        }
+    },
+    inputWeight23Press(x, y) {
+        const gd = this.gameData;
+        gd.items.forEach(item => {
+            if (x > item.x - item.w / 2 && x < item.x + item.w / 2 && y > item.y - item.h / 2 && y < item.y + item.h / 2) {
+                item.active = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseWeight23(x, y) {
+        const gd = this.gameData;
+        gd.items.forEach(item => {
+            if (item.active) {
+                item.active = false;
+                item.x = x; item.y = y;
+            }
+        });
+    },
+
+    // 36. day_23_stamp: El Sello Final
+    setupStamp() {
+        this.gameData = {
+            px: 150,
+            py: 450,
+            inkLevel: 0,
+            stampsMade: 0,
+            state: 'needs_ink',
+            active: false
+        };
+        this.score = 0;
+    },
+    updateStamp(dt) {},
+    drawStamp() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#fafaf9';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(550, 100, 200, 400); // Passport page on right
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(100, 400, 120, 80);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('ALMOHADILLA', 160, 445);
+        ctx.strokeStyle = 'rgba(239,68,68,0.2)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(580, 130, 140, 140);
+        ctx.fillStyle = '#000000';
+        ctx.fillText('PASAPORTE', 650, 200);
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(gd.px - 30, gd.py - 40, 60, 80);
+        ctx.fillStyle = gd.state === 'has_ink' ? '#ef4444' : '#d6d3d1';
+        ctx.fillRect(gd.px - 25, gd.py + 30, 50, 10);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sellos estampados: ${gd.stampsMade}/6`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Carga tinta en la almohadilla roja y sella el pasaporte!', 30, 75);
+    },
+    inputStampPress(x, y) {
+        const gd = this.gameData;
+        if (x > gd.px - 35 && x < gd.px + 35 && y > gd.py - 45 && y < gd.py + 45) {
+            gd.active = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseStamp(x, y) {
+        const gd = this.gameData;
+        if (gd.active) {
+            gd.active = false;
+            gd.px = x; gd.py = y;
+            if (x > 100 && x < 220 && y > 400 && y < 480) {
+                gd.state = 'has_ink';
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+            if (gd.state === 'has_ink' && x > 560 && x < 720 && y > 110 && y < 350) {
+                gd.stampsMade++;
+                gd.state = 'needs_ink';
+                this.score = Math.round((gd.stampsMade / 6) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(650, 200, '#ef4444', 20);
+                if (gd.stampsMade >= 6) {
+                    this.win();
+                }
+            }
+        }
+    },
 };
