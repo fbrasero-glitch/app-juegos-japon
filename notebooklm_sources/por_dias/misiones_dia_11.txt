@@ -1,0 +1,439 @@
+// MISIONES DEL DIA 11
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_11 = {
+"day_11_onsen": {
+        tag: "expert",
+        day: 11,
+        title: "El Código Onsen",
+        role: "kid9",
+        xp: 15,
+        location: "Okuhida",
+        render: () => `
+        <p class="mission-desc">Antes de entrar al onsen, debes conocer las 3 reglas sagradas.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px; background:var(--color-gray-light); padding:15px; border-radius:8px;">
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o1" style="transform:scale(1.5); margin-right:10px;"> ✅ Me duché antes de entrar</label>
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o2" style="transform:scale(1.5); margin-right:10px;"> ✅ No llevo bañador</label>
+            <label style="font-size:1.2rem;"><input type="checkbox" id="chk-o3" style="transform:scale(1.5); margin-right:10px;"> ✅ La toalla no toca el agua</label>
+        </div>
+        <button id="btn-val-onsen" class="btn-primary" style="width:100%;">Validar reglas</button>
+        <button id="btn-sub-onsen" class="btn-primary hidden" style="width:100%; margin-top:10px;">Enviar al Juez</button>
+    `,
+        attachEvents: () => {
+        const v = document.getElementById('btn-val-onsen');
+        const s = document.getElementById('btn-sub-onsen');
+        v.addEventListener('click', () => {
+            if(document.getElementById('chk-o1').checked && document.getElementById('chk-o2').checked && document.getElementById('chk-o3').checked) {
+                v.classList.add('hidden'); s.classList.remove('hidden'); launchConfetti();
+            } else { showAlert('Aviso', 'Falta una regla. ¡Revisa!'); }
+        });
+        s.addEventListener('click', () => submitMission('day_11_onsen', {type:'text', data:'Reglas del onsen aprendidas'}));
+    }
+    },
+
+"day_11_tea": {
+        tag: "sensors",
+        day: 11,
+        title: "El Té Intacto",
+        role: "kid9",
+        xp: 25,
+        location: "Ryokan",
+        render: () => `
+        <p class="mission-desc">Camina 20 segundos con el móvil nivelado como una bandeja de té matcha.</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:150px; background:#d4c4a8; border-radius:20px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(0,0,0,0.5);">
+            <div style="width:100px; height:100px; background:#4a5d23; border-radius:50%; border:4px solid #f0e6d2; display:flex; justify-content:center; align-items:center;">
+                <div id="tea-liquid" style="width:80px; height:80px; background:#8a9a5b; border-radius:50%; transition: transform 0.1s; position:relative;">
+                    <div id="tea-steam" class="hidden" style="position:absolute; top:-20px; left:20px; font-size:2rem; animation:float 2s infinite;">♨️</div>
+                </div>
+            </div>
+            <div id="tea-timer" style="position: absolute; top: 10px; right: 15px; font-size: 2rem; font-weight: bold; color: #333;">20</div>
+        </div>
+        <button id="btn-start-tea" class="btn-secondary" style="width:100%; margin-top: 15px;">Empezar a caminar</button>
+        <button id="btn-sub-tea" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar al Juez</button>
+    `,
+        attachEvents: () => {
+        const drop = document.getElementById('tea-liquid');
+        const timerEl = document.getElementById('tea-timer');
+        const btnS = document.getElementById('btn-start-tea');
+        const btnV = document.getElementById('btn-sub-tea');
+        const steam = document.getElementById('tea-steam');
+        
+        let active = false; let time = 20; let interval = null; let b0 = null, g0 = null;
+
+        const handleOrientation = (e) => {
+            if(!active) return;
+            if(b0 === null) { b0 = e.beta; g0 = e.gamma; }
+            let db = e.beta - b0; let dg = e.gamma - g0;
+            drop.style.transform = `translate(${dg * 1.5}px, ${db * 1.5}px)`;
+            
+            if(Math.abs(db) > 8 || Math.abs(dg) > 8) {
+                active = false; clearInterval(interval);
+                drop.style.background = '#888';
+                btnS.innerText = "¡Derramado! Reintentar"; btnS.classList.remove('hidden');
+                window.removeEventListener('deviceorientation', handleOrientation);
+            }
+        };
+
+        btnS.addEventListener('click', () => {
+            const startSim = () => {
+                active = true; time = 20; b0 = null; g0 = null;
+                drop.style.background = '#8a9a5b'; drop.style.transform = 'translate(0,0)';
+                steam.classList.add('hidden'); timerEl.innerText = time; btnS.classList.add('hidden');
+                window.addEventListener('deviceorientation', handleOrientation);
+                
+                interval = setInterval(() => {
+                    if(!active) return;
+                    time--; timerEl.innerText = time;
+                    if(time <= 0) {
+                        active = false; clearInterval(interval);
+                        steam.classList.remove('hidden'); btnV.classList.remove('hidden'); launchConfetti();
+                        window.removeEventListener('deviceorientation', handleOrientation);
+                    }
+                }, 1000);
+            };
+
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(res => { if(res === 'granted') startSim(); }).catch(console.error);
+            } else { startSim(); }
+        });
+        btnV.addEventListener('click', () => submitMission('day_11_tea', {type:'game', data:'Té llevado sin derramar'}));
+        window._missionCleanup = () => { active = false; clearInterval(interval); window.removeEventListener('deviceorientation', handleOrientation); };
+    }
+    },
+
+"day_11_yukata": {
+        tag: "economy",
+        day: 11,
+        title: "Cazadora de Yukatas",
+        role: "kid9",
+        xp: 15,
+        location: "Ryokan",
+        render: () => `
+        <p class="mission-desc">¿Cuántas personas con yukata has visto hoy?</p>
+        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+            <button id="btn-sub-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
+            <div id="yukata-count" style="font-size:3rem; font-weight:bold;">0</div>
+            <button id="btn-add-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
+        </div>
+        <button id="btn-send-yukata" class="btn-primary" style="width:100%;">Enviar recuento</button>
+    `,
+        attachEvents: () => {
+        let count = 0;
+        document.getElementById('btn-add-y').addEventListener('click', () => { count++; document.getElementById('yukata-count').innerText = count; });
+        document.getElementById('btn-sub-y').addEventListener('click', () => { if(count>0) count--; document.getElementById('yukata-count').innerText = count; });
+        document.getElementById('btn-send-yukata').addEventListener('click', () => { submitMission('day_11_yukata', {type:'number', data: count}); });
+    }
+    },
+
+"day_11_tatami": {
+        tag: "photo", day: 11, title: "La Textura del Tatami", role: "kid9", xp: 15, location: "Ryokan",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🟫 El tatami huele a hierba fresca y tiene una textura única. Acerca la cámara al máximo y captura los detalles que nadie más ve: las fibras, los bordados, las sombras...</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B7355,#D2B48C); border-radius:15px;">
+            <p style="font-size:3rem;">🔍🟫✨</p>
+            <p style="color:#fff; font-style:italic;">Macro-fotografía de explorador</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto Macro del Tatami</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_11_tatami', currentUser, false); }
+    },
+
+"day_11_kaiseki": {
+        tag: "writing",
+        day: 11,
+        title: "Catador de Kaiseki",
+        role: "kid14",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CATA GASTRONÓMICA: Prueba el plato más extraño.</p>
+            <input type="text" id="k-name" placeholder="Nombre del plato..." style="width:100%; margin-bottom:10px;">
+            <div style="display:flex; gap:5px; margin-bottom:10px;">
+                <input type="text" id="k-adj1" placeholder="Adjetivo 1" style="flex:1;">
+                <input type="text" id="k-adj2" placeholder="Adjetivo 2" style="flex:1;">
+                <input type="text" id="k-adj3" placeholder="Adjetivo 3" style="flex:1;">
+            </div>
+            <input type="text" id="k-drink" placeholder="Bebida ideal para maridar..." style="width:100%; margin-bottom:15px;">
+            <button id="btn" class="btn-primary" style="width:100%">Enviar cata</button>
+        </div>
+    `,
+        attachEvents: () => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const n = document.getElementById('k-name').value;
+            const a1 = document.getElementById('k-adj1').value, a2 = document.getElementById('k-adj2').value, a3 = document.getElementById('k-adj3').value;
+            submitMission('day_11_kaiseki', {type:'text', data:`Plato: ${n}. Adjs: ${a1}, ${a2}, ${a3}. Bebida: ${document.getElementById('k-drink').value}.`});
+        });
+    }
+    },
+
+    "day_11_spring": {
+        tag: "sensors",
+        day: 11,
+        title: "Rastreador de Manantiales",
+        role: "kid14",
+        xp: 25,
+        location: "Okuhida",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> SENSOR GEOTÉRMICO ACTIVADO: NODO OKUHIDA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Aproxima tu posición al manantial caliente termal. El sistema triangulará tu distancia estimada al objetivo.</p>
+                
+                <div style="text-align:center; margin:20px 0; position:relative; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px dashed #00ff99; border-radius:5px; background:rgba(0,255,153,0.02); overflow:hidden;">
+                    <div id="radar-dist" style="font-size:3rem; font-weight:bold; color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5); cursor:pointer; z-index:2;">-- m</div>
+                    <div id="radar-msg" style="color:#aaa; font-size:0.75rem; margin-top:5px; z-index:2;">Esperando señal satelital GPS...</div>
+                </div>
+                
+                <button id="btn-spring" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">📡 REGISTRAR COORDENADAS TERMALES</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const dEl = document.getElementById('radar-dist');
+            const mEl = document.getElementById('radar-msg');
+            const btn = document.getElementById('btn-spring');
+            let watchId = null;
+            const targetLat = 36.225;
+            const targetLon = 137.550;
+            const R = 6371000;
+            
+            if('geolocation' in navigator) {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat1 = pos.coords.latitude * Math.PI/180;
+                    const lat2 = targetLat * Math.PI/180;
+                    const dLat = (targetLat - pos.coords.latitude) * Math.PI/180;
+                    const dLon = (targetLon - pos.coords.longitude) * Math.PI/180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const d = R * c;
+                    
+                    dEl.innerText = Math.round(d) + ' m';
+                    if(d < 50) {
+                        mEl.innerText = ">>> NODO CERCANO: CALOR DETECTADO";
+                        mEl.style.color = "#00ff99";
+                        btn.classList.remove('hidden');
+                    } else {
+                        mEl.innerText = ">>> Buscando firma de calor. Acércate.";
+                        mEl.style.color = "#aaa";
+                    }
+                }, (err) => {
+                    mEl.innerText = "Fallo de enlace GPS: " + err.message;
+                }, {enableHighAccuracy: true, timeout: 5000});
+            } else {
+                mEl.innerText = "Enlace GPS no soportado por hardware.";
+            }
+            
+            let cheatCount = 0;
+            dEl.addEventListener('click', () => {
+                cheatCount++;
+                if (cheatCount >= 5) {
+                    dEl.innerText = '12 m';
+                    mEl.innerText = ">>> ENLACE FORZADO (Bypass)";
+                    mEl.style.color = "#00ff99";
+                    btn.classList.remove('hidden');
+                    if (window.playProceduralSound) playProceduralSound('success');
+                }
+            });
+            
+            btn.addEventListener('click', () => {
+                if (watchId) navigator.geolocation.clearWatch(watchId);
+                submitMission('day_11_spring', {type:'game', data:'Manantial termal localizado y verificado'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                if(watchId) navigator.geolocation.clearWatch(watchId);
+            };
+        }
+    },
+
+"day_11_architecture": {
+        tag: "expert",
+        day: 11,
+        title: "Arquitectura Termal",
+        role: "kid14",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN</p>
+            <input type="number" id="v-l" placeholder="Largo (m)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-w" placeholder="Ancho (m)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="v-d" placeholder="Profundidad (m)" style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular</button>
+            <div id="v-res" style="font-weight:bold; color:#0f0; margin-bottom:15px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Medidas</button>
+        </div>
+    `,
+        attachEvents: () => {
+        let finalVol = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const l = document.getElementById('v-l').value, w = document.getElementById('v-w').value, d = document.getElementById('v-d').value;
+            if(l && w && d) {
+                finalVol = (l * w * d).toFixed(1);
+                document.getElementById('v-res').innerText = `Volumen estimado: ${finalVol} m³ = ${finalVol * 1000} litros`;
+                document.getElementById('btn').classList.remove('hidden');
+            }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_11_architecture', {type:'text', data:`Volumen onsen: ${finalVol} m³`}));
+    }
+    },
+
+    "day_11_economy": {
+        tag: "economy",
+        day: 11,
+        title: "Economía Alpina",
+        role: "kid14",
+        xp: 15,
+        location: "Ryokan",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> ESTIMADOR FINANCIERO: OPERATIVIDAD RYOKAN</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Calcula el coste diario aproximado para mantener operativo el ryokan alpino (comidas tradicionales, mantenimiento de baños onsen, personal local y climatización).</p>
+                
+                <div style="margin:10px 0; padding:10px; background:rgba(255,255,255,0.03); border:1px solid #333; border-radius:5px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.8rem;">
+                        <span>Personal y Servicio:</span>
+                        <span id="c-staff" style="color:#ffd700;">¥ 150.000</span>
+                    </div>
+                    <input type="range" id="slider-staff" min="50000" max="500000" step="10000" value="150000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                    
+                    <div style="display:flex; justify-content:space-between; margin:8px 0; font-size:0.8rem;">
+                        <span>Onsen y Calderas:</span>
+                        <span id="c-onsen" style="color:#ffd700;">¥ 80.000</span>
+                    </div>
+                    <input type="range" id="slider-onsen" min="20000" max="300000" step="5000" value="80000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                    
+                    <div style="display:flex; justify-content:space-between; margin:8px 0; font-size:0.8rem;">
+                        <span>Cenas Kaiseki (x Hab):</span>
+                        <span id="c-kaiseki" style="color:#ffd700;">¥ 120.000</span>
+                    </div>
+                    <input type="range" id="slider-kaiseki" min="30000" max="400000" step="10000" value="120000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px dashed #00ff99; font-weight:bold;">
+                    <span>COSTE DIARIO ESTIMADO:</span>
+                    <span id="total-cost" style="color:#00ff99; font-size:1.2rem;">¥ 350.000</span>
+                </div>
+                
+                <button id="btn-send" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; margin-top:10px;">💾 SUBIR ESTIMACIÓN ECONÓMICA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const sStaff = document.getElementById('slider-staff');
+            const sOnsen = document.getElementById('slider-onsen');
+            const sKaiseki = document.getElementById('slider-kaiseki');
+            const cStaff = document.getElementById('c-staff');
+            const cOnsen = document.getElementById('c-onsen');
+            const cKaiseki = document.getElementById('c-kaiseki');
+            const totalCostEl = document.getElementById('total-cost');
+            const btn = document.getElementById('btn-send');
+            
+            const updateCost = () => {
+                const staff = parseInt(sStaff.value);
+                const onsen = parseInt(sOnsen.value);
+                const kaiseki = parseInt(sKaiseki.value);
+                
+                cStaff.innerText = '¥ ' + staff.toLocaleString('ja-JP');
+                cOnsen.innerText = '¥ ' + onsen.toLocaleString('ja-JP');
+                cKaiseki.innerText = '¥ ' + kaiseki.toLocaleString('ja-JP');
+                
+                const total = staff + onsen + kaiseki;
+                totalCostEl.innerText = '¥ ' + total.toLocaleString('ja-JP');
+            };
+            
+            sStaff.addEventListener('input', updateCost);
+            sOnsen.addEventListener('input', updateCost);
+            sKaiseki.addEventListener('input', updateCost);
+            
+            btn.addEventListener('click', () => {
+                const total = parseInt(sStaff.value) + parseInt(sOnsen.value) + parseInt(sKaiseki.value);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_11_economy', {type:'number', data: total}, role);
+            });
+        }
+    },
+
+    "day_11_geta": {
+        tag: "physical",
+        day: 11,
+        title: "El Equilibrio del Yukata",
+        role: "both",
+        xp: 20,
+        location: "Ryokan",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">👣 La Marcha Silenciosa Geta 👣</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Ponte las zapatillas tradicionales de madera (geta). Camina 30 pasos en línea recta sin tambalearte. Pulsa alternativamente los dos pies de madera para registrar cada paso.</p>
+                
+                <div style="display:flex; justify-content:center; align-items:center; gap:25px; margin:20px 0;">
+                    <div id="left-foot" style="font-size:4rem; cursor:pointer; opacity:0.8; transition: transform 0.1s;">👡<br><span style="font-size:0.75rem; font-weight:bold; color:#8d6e63;">IZQUIERDO</span></div>
+                    <div style="font-size:2.5rem; font-weight:bold; color:#8d6e63;" id="step-counter">0 / 30</div>
+                    <div id="right-foot" style="font-size:4rem; cursor:pointer; opacity:0.8; transition: transform 0.1s; transform: scaleX(-1);">👡<br><span style="font-size:0.75rem; font-weight:bold; color:#8d6e63; display:inline-block; transform: scaleX(-1);">DERECHO</span></div>
+                </div>
+                
+                <div style="width:100%; height:10px; background:#e0dcd8; border-radius:5px; overflow:hidden; margin-bottom:15px;">
+                    <div id="step-bar" style="width:0%; height:100%; background:#8d6e63; transition: width 0.2s;"></div>
+                </div>
+                
+                <button id="btn-geta" class="btn-primary hidden" style="width:100%; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:25px;">🎉 ¡PASOS COMPLETADOS! 🎉</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let count = 0;
+            let expectedFoot = 'left';
+            const countEl = document.getElementById('step-counter');
+            const barEl = document.getElementById('step-bar');
+            const leftEl = document.getElementById('left-foot');
+            const rightEl = document.getElementById('right-foot');
+            const btn = document.getElementById('btn-geta');
+            
+            const handleStep = (foot) => {
+                if (count >= 30) return;
+                
+                if (foot === expectedFoot) {
+                    count++;
+                    countEl.innerText = `${count} / 30`;
+                    barEl.style.width = (count / 30 * 100) + '%';
+                    
+                    if (foot === 'left') {
+                        leftEl.style.transform = 'scale(1.2)';
+                        setTimeout(() => leftEl.style.transform = 'scale(1)', 150);
+                        expectedFoot = 'right';
+                        leftEl.style.opacity = '0.4';
+                        rightEl.style.opacity = '1';
+                    } else {
+                        rightEl.style.transform = 'scale(1.2) scaleX(-1)';
+                        setTimeout(() => rightEl.style.transform = 'scale(1) scaleX(-1)', 150);
+                        expectedFoot = 'left';
+                        rightEl.style.opacity = '0.4';
+                        leftEl.style.opacity = '1';
+                    }
+                    
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (count === 30) {
+                        btn.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('PASO DE TROPIEZO', '¡Has tropezado al intentar pisar con el mismo pie! Camina alternando izquierdo y derecho.');
+                    count = 0;
+                    expectedFoot = 'left';
+                    countEl.innerText = '0 / 30';
+                    barEl.style.width = '0%';
+                    leftEl.style.opacity = '1';
+                    rightEl.style.opacity = '1';
+                }
+            };
+            
+            leftEl.addEventListener('click', () => handleStep('left'));
+            rightEl.addEventListener('click', () => handleStep('right'));
+            
+            btn.addEventListener('click', () => {
+                submitMission('day_11_geta', {type:'game', data:'30 pasos gecos completados'}, role, true);
+            });
+        }
+    },
+
+
+};

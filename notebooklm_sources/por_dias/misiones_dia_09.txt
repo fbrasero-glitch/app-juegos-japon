@@ -1,0 +1,440 @@
+// MISIONES DEL DIA 9
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_9 = {
+"day_9_kid14_gravity": {
+        tag: "versus", day: 9, title: "Piedra Gravedad", role: "kid14", xp: 15, location: "Kinkaku-ji",
+        render: () => `
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> TEST DE GRAVEDAD TERRESTRE</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Encuentra una piedra del jardín zen. Déjala caer desde la altura de tu cintura y cronometra cuánto tarda en tocar el suelo. La gravedad de Japón es la misma... ¿o no?</p>
+            <div style="text-align:center; margin:15px 0; background:#0a0a1a; padding:20px; border-radius:12px;">
+                <div id="gv-icon" style="font-size:3rem; transition:transform 0.5s;">🪨</div>
+                <div id="gv-timer" style="font-size:2.5rem; color:#60efff; font-family:monospace; margin:10px 0;">0.00s</div>
+            </div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">🫳 Soltar Piedra</button>
+            <button id="btn-end" class="btn-primary hidden" style="width:100%;">💥 ¡Impacto!</button>
+        </div>`,
+        attachEvents: () => {
+            let t0=0,int=null;
+            document.getElementById('btn-start').addEventListener('click',(e)=>{
+                t0=Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
+                document.getElementById('gv-icon').style.transform='translateY(60px)';
+                int=setInterval(()=>document.getElementById('gv-timer').innerText=((Date.now()-t0)/1000).toFixed(2)+'s',10);
+            });
+            document.getElementById('btn-end').addEventListener('click',()=>{clearInterval(int); submitMission('day_9_kid14_gravity',{type:'text',data:'Caída: '+document.getElementById('gv-timer').innerText});});
+            window._missionCleanup=()=>clearInterval(int);
+        }
+    },
+
+"day_9_kid14_angulo": {
+        tag: "photo", day: 9, title: "Ángulo Imposible", role: "kid14", xp: 15, location: "Fushimi Inari",
+        render: () => `
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> MISIÓN FOTOGRÁFICA TÁCTICA</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Captura el túnel de toriis rojos desde un ángulo que nadie más haría: desde el suelo mirando hacia arriba, tumbado, en contrapicado extremo...</p>
+            <div style="text-align:center; margin:15px 0; background:#0a0a1a; padding:20px; border-radius:12px;">
+                <p style="font-size:3rem;">⛩️📐</p>
+                <p style="color:#ff6b35; font-style:italic;">El ángulo más creativo gana</p>
+            </div>
+            <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Ángulo Imposible</button>
+        </div>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_angulo', currentUser, false); }
+    },
+
+"day_9_kid9_scratch": {
+        tag: "expert",
+        day: 9,
+        title: "Limpia el Reflejo de Oro",
+        role: "kid9",
+        xp: 25,
+        location: "Kinkaku-ji",
+        render: () => `
+        <p class="mission-desc">Rasca y limpia el estanque para revelar el Pabellón Dorado.</p>
+        <div style="position: relative; width: 100%; height: 250px; border-radius: 10px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 4px solid #d4af37;">
+            <div style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: linear-gradient(to bottom, #87CEEB 40%, #001f3f 100%); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 5rem; text-shadow: 0 0 20px gold;">⛩️</div>
+                <div style="font-size: 5rem; transform: scaleY(-1); opacity: 0.6; filter: blur(2px);">⛩️</div>
+            </div>
+            <canvas id="sc-gold" width="300" height="250" style="position: absolute; top:0; left:0; width: 100%; height: 100%;"></canvas>
+        </div>
+        <div style="margin-top: 15px; height: 10px; background: #ddd; border-radius: 5px; overflow: hidden;">
+            <div id="scratch-prog-gold" style="height: 100%; width: 0%; background: #f1c40f; transition: width 0.2s;"></div>
+        </div>
+        <button id="btn-gold" class="btn-primary hidden" style="width:100%; margin-top: 15px; animation: pulse 1s infinite;">¡Reflejo Revelado!</button>
+    `,
+        attachEvents: () => {
+        const c = document.getElementById('sc-gold');
+        const ctx = c.getContext('2d');
+        const b = document.getElementById('btn-gold');
+        const prog = document.getElementById('scratch-prog-gold');
+        
+        ctx.fillStyle = '#9e9e9e';
+        ctx.fillRect(0, 0, c.width, c.height);
+        
+        let isDrawing = false;
+        let clearedCount = 0;
+
+        const scratch = (e) => {
+            e.preventDefault();
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const rect = c.getBoundingClientRect();
+            const x = (clientX - rect.left) * (c.width / rect.width);
+            const y = (clientY - rect.top) * (c.height / rect.height);
+            
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.beginPath();
+            ctx.arc(x, y, 30, 0, Math.PI * 2);
+            ctx.fill();
+
+            clearedCount++;
+            let pct = Math.min(100, (clearedCount / 80) * 100);
+            prog.style.width = pct + '%';
+            
+            if(pct >= 90 && b.classList.contains('hidden')) {
+                ctx.clearRect(0,0,c.width,c.height);
+                prog.style.width = '100%';
+                b.classList.remove('hidden');
+                launchConfetti();
+            }
+        };
+
+        c.addEventListener('mousedown', () => { isDrawing = true; });
+        c.addEventListener('mouseup', () => { isDrawing = false; });
+        c.addEventListener('mousemove', (e) => { if(isDrawing) scratch(e); });
+        c.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, {passive:false});
+        c.addEventListener('touchmove', (e) => { if(isDrawing) scratch(e); }, {passive:false});
+        c.addEventListener('touchend', () => { isDrawing = false; });
+
+        b.addEventListener('click', () => submitMission('day_9_kid9_scratch', {type:'game', data:'Reflejo limpiado correctamente'}));
+    }
+    },
+
+    "day_9_kid14_torii": {
+        tag: "expert",
+        day: 9,
+        title: "Laberinto de Torii",
+        role: "kid14",
+        xp: 25,
+        location: "Fushimi Inari",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> INFILTRACIÓN EN LA RED DE ALTARES [FUSHIMI INARI]</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Conecta el flujo de energía rotando los nodos. La energía debe fluir de la entrada a la cima.</p>
+                <div id="torii-board2" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; max-width: 240px; margin: 0 auto; background: #111; padding: 10px; border-radius: 8px; border: 2px solid #00ff99;">
+                </div>
+                <div id="maze-status" style="font-size:0.85rem; color:#ffd700; text-align:center; margin-top:10px; min-height:1.2rem;">>>> Red inestable...</div>
+                <button id="btn-maze" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; margin-top: 15px; font-family:monospace;">💥 CONFIRMAR ENLACE DE RED</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const board = document.getElementById('torii-board2');
+            const btn = document.getElementById('btn-maze');
+            const status = document.getElementById('maze-status');
+            
+            const map = [
+                {t:1, r:90}, {t:0, r:0}, {t:1, r:180},
+                {t:0, r:90}, {t:1, r:0}, {t:0, r:90},
+                {t:1, r:270}, {t:1, r:180}, {t:1, r:0}
+            ];
+            
+            const checkWin = () => {
+                let matches = 0;
+                map.forEach((m, i) => {
+                    const el = document.getElementById('t2_'+i);
+                    const r = parseInt(el.dataset.r) % 360;
+                    if(i===0 && r===90) matches++;
+                    if(i===1 && (r===0||r===180)) matches++;
+                    if(i===2 && r===270) matches++;
+                    if(i===3 && (r===90||r===270)) matches++;
+                    if(i===4 && r===90) matches++;
+                    if(i===5 && (r===0||r===180)) matches++;
+                    if(i===6 && r===0) matches++;
+                    if(i===7 && r===270) matches++;
+                    if(i===8 && r===180) matches++;
+                });
+                if(matches >= 6) {
+                    btn.classList.remove('hidden');
+                    board.style.borderColor = '#00ff99';
+                    board.style.boxShadow = '0 0 15px #00ff99';
+                    status.innerText = '>>> ¡RED ALINEADA! Enlace listo para transmisión.';
+                    status.style.color = '#00ff99';
+                    if (window.playProceduralSound) playProceduralSound('success');
+                } else {
+                    btn.classList.add('hidden');
+                    board.style.borderColor = '#e74c3c';
+                    board.style.boxShadow = 'none';
+                    status.innerText = '>>> Red inestable... Nodos alineados: ' + matches + '/6';
+                    status.style.color = '#ffd700';
+                }
+            };
+
+            board.innerHTML = '';
+            map.forEach((m, i) => {
+                const div = document.createElement('div');
+                div.id = 't2_'+i;
+                div.dataset.r = m.r;
+                div.style.height = '70px';
+                div.style.background = '#1a1d20';
+                div.style.borderRadius = '5px';
+                div.style.position = 'relative';
+                div.style.transition = 'transform 0.3s ease';
+                div.style.transform = `rotate(${m.r}deg)`;
+                div.style.cursor = 'pointer';
+                div.style.border = '1px solid #333';
+                
+                if(m.t === 0) { 
+                    div.innerHTML = `<div style="position:absolute; top:0; bottom:0; left:50%; width:14px; background:#00ff99; transform:translateX(-50%); border-radius:2px;"></div>`;
+                } else { 
+                    div.innerHTML = `<div style="position:absolute; top:0; left:50%; width:14px; height:50%; background:#00ff99; transform:translateX(-50%);"></div><div style="position:absolute; top:50%; left:50%; width:50%; height:14px; background:#00ff99; transform:translateY(-50%);"></div>`;
+                }
+
+                div.addEventListener('click', () => {
+                    let r = parseInt(div.dataset.r) + 90;
+                    div.dataset.r = r;
+                    div.style.transform = `rotate(${r}deg)`;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    checkWin();
+                });
+                board.appendChild(div);
+            });
+
+            btn.addEventListener('click', () => submitMission('day_9_kid14_torii', {type:'game', data:'Red de Torii hackeada'}, role));
+        }
+    },
+
+"day_9_kid9_zorros": {
+        tag: "physical",
+        day: 9,
+        title: "La Escalada de los Zorros",
+        role: "kid9",
+        xp: 25,
+        location: "Fushimi Inari-taisha",
+        render: () => `
+            <p class="mission-desc">Subir la montaña lleva tiempo. Tienes 10 minutos de subida intensa. Al terminar, podrás descansar y contarle al Juez tu secreto.</p>
+            <div id="countdown" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-primary); margin:15px 0;">10:00</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%">Empezar subida</button>
+            <div id="rest-area" class="hidden" style="margin-top:20px;">
+                <p>🍵 <b>¡Hora de descansar!</b></p>
+                <input type="text" id="z-text" placeholder="¿Cuál es el zorro más raro que has visto?" style="width:100%">
+                <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
+            </div>
+        `,
+        attachEvents: () => {
+            let time=600; let int=null;
+            document.getElementById('btn-start').addEventListener('click', () => {
+                if(int) return;
+                document.getElementById('btn-start').classList.add('hidden');
+                int = setInterval(() => {
+                    time--; let m=Math.floor(time/60); let s=time%60;
+                    document.getElementById('countdown').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                    if(time<=0) { clearInterval(int); document.getElementById('rest-area').classList.remove('hidden'); }
+                }, 1000);
+            });
+            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_9_kid9_zorros', {type:'text', data:document.getElementById('z-text').value}));
+        }
+    },
+
+    "day_9_kid14_ave": {
+        tag: "physical",
+        day: 9,
+        title: "La Postura del Ave Dorada",
+        role: "kid14",
+        xp: 20,
+        location: "Kinkaku-ji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> PROTOCOLO KITSUNE: ESTABILIZACIÓN DE NÚCLEO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Imita al fénix del tejado del Kinkaku-ji. Ponte a la pata coja y mantén el equilibrio durante 15 segundos sin tambalearte.</p>
+                
+                <div style="text-align:center; margin:15px 0; background:#111; padding:15px; border-radius:8px; border:1px solid #222;">
+                    <div id="chrono-icon" style="font-size:3rem; margin-bottom:10px; transition: transform 0.3s;">🦅</div>
+                    <div id="chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700;">15.0s</div>
+                    <div id="chrono-bar-bg" style="width:100%; height:8px; background:#222; border-radius:4px; margin-top:10px; overflow:hidden;">
+                        <div id="chrono-bar-fill" style="width:100%; height:100%; background:#ffd700; transition: width 0.1s linear;"></div>
+                    </div>
+                </div>
+                
+                <button id="btn-start" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">⚡ CALIBRAR E INICIAR APNEA</button>
+                <button id="btn-stop" class="btn-primary hidden" style="width:100%; border-color:#e74c3c; color:#e74c3c; background:transparent;">💥 DETECTAR CAÍDA (Perdí balance)</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let active = false;
+            let time = 15.0;
+            let interval = null;
+            const btnStart = document.getElementById('btn-start');
+            const btnStop = document.getElementById('btn-stop');
+            const timerEl = document.getElementById('chrono');
+            const fillEl = document.getElementById('chrono-bar-fill');
+            const iconEl = document.getElementById('chrono-icon');
+            
+            btnStart.addEventListener('click', () => {
+                btnStart.classList.add('hidden');
+                btnStop.classList.remove('hidden');
+                active = true;
+                time = 15.0;
+                timerEl.innerText = '15.0s';
+                fillEl.style.width = '100%';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                interval = setInterval(() => {
+                    time -= 0.1;
+                    if (time <= 0) {
+                        time = 0;
+                        clearInterval(interval);
+                        btnStop.classList.add('hidden');
+                        timerEl.innerText = '¡LOGRADO!';
+                        timerEl.style.color = '#00ff99';
+                        fillEl.style.background = '#00ff99';
+                        iconEl.style.transform = 'scale(1.3) rotate(360deg)';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                        
+                        setTimeout(() => {
+                            submitMission('day_9_kid14_ave', {type:'text', data: 'Equilibrio de Ave Dorada superado: 15s'}, role);
+                        }, 1200);
+                    } else {
+                        timerEl.innerText = time.toFixed(1) + 's';
+                        fillEl.style.width = (time / 15.0 * 100) + '%';
+                        iconEl.style.transform = `scale(${1 + (15 - time)*0.01}) rotate(${(15 - time)*2}deg)`;
+                    }
+                }, 100);
+            });
+            
+            btnStop.addEventListener('click', () => {
+                if (active) {
+                    clearInterval(interval);
+                    active = false;
+                    btnStop.classList.add('hidden');
+                    btnStart.classList.remove('hidden');
+                    timerEl.innerText = 'FALLO';
+                    timerEl.style.color = '#e74c3c';
+                    fillEl.style.width = '0%';
+                    iconEl.style.transform = 'scale(1)';
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('EQUILIBRIO PERDIDO', 'Has perdido el balance de fénix. Vuelve a intentarlo.');
+                }
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+            };
+        }
+    },
+
+"day_9_kid9_altar": {
+        tag: "photo", day: 9, title: "El Altar Secreto", role: "kid9", xp: 15, location: "Fushimi Inari",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🔮 En la montaña de Fushimi Inari hay altares escondidos entre los árboles que casi nadie ve. Tu misión de exploradora: encontrar uno secreto y fotografiarlo antes de que desaparezca.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#2d1b69,#5b2c6f); border-radius:15px;">
+            <p style="font-size:3rem;">🔮⛩️✨</p>
+            <p style="color:#d8b4fe; font-style:italic;">Solo los verdaderos exploradores lo encuentran</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Altar Secreto</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_altar', currentUser, false); }
+    },
+
+"day_9_kid14_tunnel": {
+        tag: "photo", day: 9, title: "El Túnel Infinito", role: "kid14", xp: 15, location: "Fushimi Inari",
+        render: () => `
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
+            <p style="color:#0f0;">>>> CAPTURA DE PERSPECTIVA INFINITA</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Miles de toriis forman un túnel que parece no terminar nunca. Captura la foto que mejor transmita esa sensación de infinito.</p>
+            <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(180deg,#ff4500,#ff6b35,#ff8c00); border-radius:12px;">
+                <p style="font-size:3rem;">⛩️⛩️⛩️</p>
+                <p style="color:#fff; font-weight:bold;">El túnel que no termina</p>
+            </div>
+            <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Fotografiar el Infinito</button>
+        </div>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_tunnel', currentUser, false); }
+    },
+
+"day_9_fam_portal": {
+        tag: "video",
+        day: 9,
+        title: "La Puerta a Otro Mundo",
+        role: "both",
+        xp: 20,
+        location: "Fushimi Inari",
+        render: () => `
+        <p class="mission-desc">Grabar un vídeo de 5 segundos de todo el grupo cruzando a la vez un arco Torii gigante.</p>
+        <div id="rec-ui-portal" style="text-align:center; margin: 20px 0;">
+            <button id="btn-rec-portal" class="btn-primary" style="width:100%; border-radius:50px; height:60px; font-size:1.5rem;">🎬 Grabar Cruce</button>
+        </div>
+        <video id="vid-preview-portal" controls playsinline autoplay muted class="hidden" style="width:100%; border-radius:10px; margin-bottom:15px;"></video>
+        <button id="btn-retry-portal" class="btn-secondary hidden" style="width:100%; margin-bottom:10px;">Regrabar</button>
+        <button id="btn-portal" class="btn-primary hidden" style="width:100%;">Enviar Vídeo</button>
+    `,
+        attachEvents: (role) => {
+        const btnR = document.getElementById('btn-rec-portal');
+        const btnRetry = document.getElementById('btn-retry-portal');
+        const btn = document.getElementById('btn-portal');
+        const vid = document.getElementById('vid-preview-portal');
+        
+        let mr = null;
+        let chunks = [];
+        let stream = null;
+        let blobId = null;
+
+        const stopAll = () => {
+            if(mr && mr.state !== 'inactive') mr.stop();
+            if(stream) stream.getTracks().forEach(t => t.stop());
+        };
+
+        btnR.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({video:{facingMode: 'environment'}, audio:true});
+                vid.srcObject = stream;
+                vid.classList.remove('hidden');
+                
+                mr = new MediaRecorder(stream);
+                chunks = [];
+                mr.ondataavailable = e => chunks.push(e.data);
+                mr.onstop = async () => {
+                    vid.srcObject = null;
+                    const blob = new Blob(chunks, { 'type' : 'video/mp4' });
+                    vid.src = URL.createObjectURL(blob);
+                    
+                    btnR.classList.add('hidden');
+                    btnRetry.classList.remove('hidden');
+                    btn.classList.remove('hidden');
+                    
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => { blobId = reader.result; };
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                mr.start();
+                btnR.innerText = "Grabando (5s)...";
+                btnR.disabled = true;
+                setTimeout(() => { if(mr.state === 'recording') mr.stop(); btnR.disabled = false; btnR.innerText = "🎬 Grabar Cruce"; }, 5000);
+            } catch(e) { alert("Error cámara: " + e.message); }
+        });
+
+        btnRetry.addEventListener('click', () => {
+            vid.classList.add('hidden');
+            vid.src = "";
+            btn.classList.add('hidden');
+            btnRetry.classList.add('hidden');
+            btnR.classList.remove('hidden');
+            blobId = null;
+        });
+
+        btn.addEventListener('click', () => {
+            if (blobId) submitMission('day_9_fam_portal', {type:'video', data: 'Vídeo del portal Torii (Guardado localmente)'}, role, true);
+        });
+        window._missionCleanup = stopAll;
+    }
+    },
+
+
+};

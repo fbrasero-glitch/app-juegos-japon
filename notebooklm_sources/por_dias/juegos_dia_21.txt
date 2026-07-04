@@ -1,0 +1,858 @@
+// MINIJUEGOS DEL DIA 21
+// Métodos extraídos de games.js para NotebookLM
+
+    // DÍA 21 MINIGAMES
+    // ==========================================
+
+    // 10. day_21_monkeys: Los Tres Monos
+    setupMonkeys() {
+        this.gameData = {
+            sequence: [Math.floor(Math.random() * 3)],
+            playerSequence: [],
+            monkeyStates: ['normal', 'normal', 'normal'],
+            activeMonkey: -1,
+            step: 0,
+            sequencePlaying: true,
+            timer: 0.5,
+            seqIdx: 0,
+            successes: 0
+        };
+        this.score = 0;
+    },
+    updateMonkeys(dt) {
+        const gd = this.gameData;
+        if (gd.sequencePlaying) {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                if (gd.activeMonkey !== -1) {
+                    gd.monkeyStates[gd.activeMonkey] = 'normal';
+                    gd.activeMonkey = -1;
+                    gd.timer = 0.3;
+                } else if (gd.seqIdx < gd.sequence.length) {
+                    gd.activeMonkey = gd.sequence[gd.seqIdx];
+                    gd.monkeyStates[gd.activeMonkey] = 'highlight';
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    gd.seqIdx++;
+                    gd.timer = 0.6;
+                } else {
+                    gd.sequencePlaying = false;
+                    gd.playerSequence = [];
+                    gd.step = 0;
+                }
+            }
+        }
+    },
+    drawMonkeys() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#2d1f10';
+        ctx.fillRect(0, 0, 800, 600);
+        const monkeys = [
+            { name: 'Mizaru (🙈)', desc: 'No Ver', emoji: '🙈' },
+            { name: 'Kikazaru (🙉)', desc: 'No Oír', emoji: '🙉' },
+            { name: 'Iwazaru (🙊)', desc: 'No Hablar', emoji: '🙊' }
+        ];
+        monkeys.forEach((m, idx) => {
+            const x = 200 + idx * 200;
+            const y = 300;
+            const highlight = gd.activeMonkey === idx || gd.monkeyStates[idx] === 'highlight';
+            ctx.fillStyle = highlight ? '#fff3e0' : 'rgba(255,255,255,0.05)';
+            ctx.strokeStyle = '#ff9800';
+            ctx.lineWidth = highlight ? 6 : 2;
+            ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = highlight ? '#000000' : '#ffffff';
+            ctx.font = '72px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(m.emoji, x, y - 10);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.fillText(m.name, x, y + 90);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        if (gd.sequencePlaying) {
+            ctx.fillText('¡PRESTA ATENCIÓN A LA SECUENCIA!', 400, 100);
+        } else {
+            ctx.fillText('¡REPITE LA SECUENCIA DE GESTOS!', 400, 100);
+        }
+        ctx.font = '16px monospace';
+        ctx.fillText(`Rondas ganadas: ${gd.successes}/5`, 400, 500);
+    },
+    inputMonkeysPress(x, y) {
+        const gd = this.gameData;
+        if (gd.sequencePlaying) return;
+        let selected = -1;
+        for (let idx = 0; idx < 3; idx++) {
+            const mx = 200 + idx * 200;
+            const my = 300;
+            if (Math.hypot(x - mx, y - my) < 70) {
+                selected = idx;
+                break;
+            }
+        }
+        if (selected !== -1) {
+            gd.playerSequence.push(selected);
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.createExplosion(200 + selected * 200, 300, '#ff9800');
+            const step = gd.playerSequence.length - 1;
+            if (gd.playerSequence[step] !== gd.sequence[step]) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(12);
+                gd.playerSequence = [];
+                gd.seqIdx = 0;
+                gd.sequencePlaying = true;
+                gd.timer = 0.8;
+            } else if (gd.playerSequence.length === gd.sequence.length) {
+                gd.successes++;
+                this.score = Math.round((gd.successes / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.successes >= 5) {
+                    this.win();
+                } else {
+                    gd.sequence.push(Math.floor(Math.random() * 3));
+                    gd.seqIdx = 0;
+                    gd.sequencePlaying = true;
+                    gd.timer = 0.8;
+                }
+            }
+        }
+    },
+
+    // 11. day_21_dragon: El Latido del Dragón
+    setupDragon() {
+        this.gameData = {
+            beatR: 200,
+            targetR: 50,
+            speed: 160,
+            successes: 0
+        };
+        this.score = 0;
+    },
+    updateDragon(dt) {
+        const gd = this.gameData;
+        gd.beatR -= gd.speed * dt;
+        if (gd.beatR < 10) {
+            gd.beatR = 200;
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(10);
+        }
+    },
+    drawDragon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f051d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(156,39,176,0.15)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let i = 0; i < 800; i += 20) {
+            ctx.lineTo(i, 300 + Math.sin(i * 0.05) * 50);
+        }
+        ctx.stroke();
+        ctx.fillStyle = '#e040fb';
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🐉', 400, 300);
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetR, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(400, 300, Math.max(10, gd.beatR), 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ritmo del Templo: ${gd.successes}/10`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca cuando la onda converja exactamente en la joya central!', 30, 75);
+    },
+    inputDragonPress(x, y) {
+        const gd = this.gameData;
+        if (Math.abs(gd.beatR - gd.targetR) < 18) {
+            gd.successes++;
+            this.score = Math.round((gd.successes / 10) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(400, 300, '#e040fb', 15);
+            gd.beatR = 200;
+            gd.speed += 20;
+            if (gd.successes >= 10) {
+                this.win();
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(12);
+            gd.beatR = 200;
+        }
+    },
+
+    // 12. day_21_slash: El Tajo del Samurái
+    setupSlash() {
+        this.gameData = {
+            bamboos: [
+                { id: 1, x: 200, y: 500, h: 380, cut: false, cutY: 0, cutAngle: 0, offset: 0 },
+                { id: 2, x: 400, y: 500, h: 420, cut: false, cutY: 0, cutAngle: 0, offset: 0 },
+                { id: 3, x: 600, y: 500, h: 390, cut: false, cutY: 0, cutAngle: 0, offset: 0 }
+            ],
+            swipe: [],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateSlash(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.swipe.push({ x: this.mouse.x, y: this.mouse.y });
+            if (gd.swipe.length > 8) gd.swipe.shift();
+            if (gd.swipe.length >= 2) {
+                const p1 = gd.swipe[gd.swipe.length - 2];
+                const p2 = gd.swipe[gd.swipe.length - 1];
+                gd.bamboos.forEach(b => {
+                    if (!b.cut) {
+                        const topY = b.y - b.h;
+                        const intersectY = p2.y;
+                        if (intersectY > topY && intersectY < b.y) {
+                            const minX = Math.min(p1.x, p2.x);
+                            const maxX = Math.max(p1.x, p2.x);
+                            if (b.x > minX - 10 && b.x < maxX + 10) {
+                                b.cut = true;
+                                b.cutY = intersectY;
+                                b.cutAngle = (p2.y - p1.y) / (p2.x - p1.x);
+                                gd.score++;
+                                this.score = Math.round((gd.score / 15) * 100);
+                                if (window.playProceduralSound) playProceduralSound('success');
+                                this.createExplosion(b.x, intersectY, '#a5d6a7');
+                                if (gd.score >= 15) {
+                                    this.win();
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } else {
+            gd.swipe = [];
+        }
+        gd.bamboos.forEach((b, idx) => {
+            if (b.cut) {
+                b.offset += dt * 300;
+                if (b.offset > 400) {
+                    gd.bamboos[idx] = {
+                        id: Math.random(),
+                        x: 100 + Math.random() * 600,
+                        y: 500,
+                        h: 300 + Math.random() * 150,
+                        cut: false,
+                        cutY: 0,
+                        cutAngle: 0,
+                        offset: 0
+                    };
+                }
+            }
+        });
+    },
+    drawSlash() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#06130b';
+        ctx.fillRect(0, 0, 800, 600);
+        gd.bamboos.forEach(b => {
+            const w = 24;
+            if (!b.cut) {
+                ctx.fillStyle = '#2e7d32';
+                ctx.fillRect(b.x - w / 2, b.y - b.h, w, b.h);
+                ctx.strokeStyle = '#1b5e20';
+                ctx.lineWidth = 4;
+                for (let ny = b.y - 80; ny > b.y - b.h; ny -= 80) {
+                    ctx.beginPath(); ctx.moveTo(b.x - w / 2, ny); ctx.lineTo(b.x + w / 2, ny); ctx.stroke();
+                }
+            } else {
+                ctx.fillStyle = '#2e7d32';
+                ctx.fillRect(b.x - w / 2, b.cutY, w, b.y - b.cutY);
+                ctx.save();
+                ctx.translate(b.x + b.offset * 0.5, b.cutY + b.offset);
+                ctx.rotate(b.offset * 0.01 * (b.cutAngle > 0 ? 1 : -1));
+                ctx.fillRect(-w / 2, -(b.cutY - (b.y - b.h)), w, b.cutY - (b.y - b.h));
+                ctx.restore();
+            }
+        });
+        if (gd.swipe.length > 1) {
+            ctx.strokeStyle = '#e8f5e9';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            gd.swipe.forEach((pt, idx) => {
+                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cortes exitosos: ${gd.score}/15`, 30, 40);
+    },
+    inputSlashPress(x, y) {},
+
+    // 13. day_21_jizo: Guardián de Piedra
+    setupJizo() {
+        this.gameData = {
+            jizos: [
+                { x: 200, y: 460, w: 60, h: 80, hp: 100 },
+                { x: 400, y: 460, w: 60, h: 80, hp: 100 },
+                { x: 600, y: 460, w: 60, h: 80, hp: 100 }
+            ],
+            sparks: [],
+            lines: [],
+            activeLine: null,
+            timer: 0,
+            deflected: 0
+        };
+        this.score = 0;
+    },
+    updateJizo(dt) {
+        const gd = this.gameData;
+        gd.timer += dt;
+        if (gd.timer >= 1.5) {
+            gd.timer = 0;
+            gd.sparks.push({
+                x: 100 + Math.random() * 600,
+                y: -10,
+                vx: -60 + Math.random() * 120,
+                vy: 160 + Math.random() * 80,
+                r: 10
+            });
+        }
+        if (this.mouse.isDown) {
+            if (!gd.activeLine) {
+                gd.activeLine = { startX: this.mouse.x, startY: this.mouse.y, endX: this.mouse.x, endY: this.mouse.y };
+            } else {
+                gd.activeLine.endX = this.mouse.x;
+                gd.activeLine.endY = this.mouse.y;
+            }
+        }
+        gd.sparks.forEach((s, sIdx) => {
+            s.x += s.vx * dt;
+            s.y += s.vy * dt;
+            gd.lines.forEach(l => {
+                const distToLine = this.distToSegment(s.x, s.y, l.startX, l.startY, l.endX, l.endY);
+                if (distToLine < s.r + 5) {
+                    s.vy = -Math.abs(s.vy) * 0.9;
+                    s.vx = (s.x - (l.startX + l.endX) / 2) * 1.5;
+                    gd.deflected++;
+                    this.score = Math.round((gd.deflected / 30) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(s.x, s.y, '#e57373');
+                    if (gd.deflected >= 30) {
+                        this.win();
+                    }
+                }
+            });
+            gd.jizos.forEach(j => {
+                if (s.x > j.x - j.w / 2 && s.x < j.x + j.w / 2 && s.y > j.y - j.h / 2 && s.y < j.y + j.h / 2) {
+                    j.hp = Math.max(0, j.hp - 10);
+                    this.createExplosion(s.x, s.y, '#f44336', 15);
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    gd.sparks.splice(sIdx, 1);
+                }
+            });
+        });
+        const alive = gd.jizos.some(j => j.hp > 0);
+        if (!alive) this.gameOver();
+        gd.sparks = gd.sparks.filter(s => s.y < 600);
+    },
+    distToSegment(x, y, x1, y1, x2, y2) {
+        const A = x - x1;
+        const B = y - y1;
+        const C = x2 - x1;
+        const D = y2 - y1;
+        const dot = A * C + B * D;
+        const len_sq = C * C + D * D;
+        let param = -1;
+        if (len_sq !== 0) param = dot / len_sq;
+        let xx, yy;
+        if (param < 0) {
+            xx = x1; yy = y1;
+        } else if (param > 1) {
+            xx = x2; yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
+        const dx = x - xx;
+        const dy = y - yy;
+        return Math.hypot(dx, dy);
+    },
+    drawJizo() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1c1917';
+        ctx.strokeStyle = '#3730a3';
+        ctx.lineWidth = 6;
+        ctx.fillRect(0, 500, 800, 100);
+        ctx.strokeRect(0, 500, 800, 100);
+        gd.jizos.forEach(j => {
+            if (j.hp > 0) {
+                ctx.fillStyle = '#78716c';
+                ctx.fillRect(j.x - j.w / 2, j.y - j.h / 2, j.w, j.h);
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(j.x - j.w / 2 + 5, j.y - 10);
+                ctx.lineTo(j.x + j.w / 2 - 5, j.y - 10);
+                ctx.lineTo(j.x, j.y + 15);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fillRect(j.x - 30, j.y - j.h / 2 - 15, 60, 6);
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(j.x - 30, j.y - j.h / 2 - 15, (j.hp / 100) * 60, 6);
+            }
+        });
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        gd.lines.forEach(l => {
+            ctx.beginPath(); ctx.moveTo(l.startX, l.startY); ctx.lineTo(l.endX, l.endY); ctx.stroke();
+        });
+        if (gd.activeLine) {
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(gd.activeLine.startX, gd.activeLine.startY); ctx.lineTo(gd.activeLine.endX, gd.activeLine.endY); ctx.stroke();
+        }
+        gd.sparks.forEach(s => {
+            ctx.fillStyle = '#ef4444';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ef4444';
+            ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Desviados: ${gd.deflected}/30`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Dibuja barreras de neón arrastrando el ratón para repeler el fuego!', 30, 75);
+    },
+    inputJizoPress(x, y) {},
+    releaseJizo(x, y) {
+        const gd = this.gameData;
+        if (gd.activeLine) {
+            gd.lines.push({ ...gd.activeLine });
+            gd.activeLine = null;
+            if (gd.lines.length > 3) gd.lines.shift();
+        }
+    },
+
+    // 14. day_21_buddha: Ingeniero Imperial
+    setupBuddha() {
+        const grid = [];
+        for (let r = 0; r < 3; r++) {
+            grid[r] = [];
+            for (let c = 0; c < 3; c++) {
+                grid[r][c] = {
+                    type: ['S', 'L'][Math.floor(Math.random() * 2)],
+                    angle: [0, 90, 180, 270][Math.floor(Math.random() * 4)]
+                };
+            }
+        }
+        grid[0][0] = { type: 'L', angle: 90 };
+        grid[2][2] = { type: 'L', angle: 270 };
+        this.gameData = {
+            grid: grid,
+            poured: 0,
+            state: 'routing'
+        };
+        this.score = 0;
+    },
+    updateBuddha(dt) {
+        const gd = this.gameData;
+        if (gd.state === 'pouring') {
+            gd.poured += dt * 45;
+            this.score = Math.round(Math.min(100, gd.poured));
+            if (gd.poured >= 100) {
+                const pathOk = this.verifyBuddhaPath();
+                if (pathOk) {
+                    this.win();
+                } else {
+                    gd.state = 'routing';
+                    gd.poured = 0;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                }
+            }
+        }
+    },
+    verifyBuddhaPath() {
+        const gd = this.gameData;
+        const g = gd.grid;
+        if (g[0][0].angle !== 90) return false;
+        if (g[0][1].angle !== 90 && g[0][1].angle !== 270) return false;
+        if (g[1][1].angle !== 0 && g[1][1].angle !== 180) return false;
+        if (g[2][1].angle !== 90 && g[2][1].angle !== 270) return false;
+        if (g[2][2].angle !== 270) return false;
+        return true;
+    },
+    drawBuddha() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,215,0,0.1)';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(550, 150, 180, 300);
+        ctx.fillStyle = `rgba(255,215,0,${gd.poured / 100})`;
+        ctx.fillRect(550, 450 - (gd.poured / 100) * 300, 180, (gd.poured / 100) * 300);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(50, 150, 400, 400);
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                const x = 110 + c * 120;
+                const y = 210 + r * 120;
+                const cell = gd.grid[r][c];
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(cell.angle * Math.PI / 180);
+                ctx.fillStyle = '#334155';
+                ctx.fillRect(-50, -50, 100, 100);
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 14;
+                ctx.beginPath();
+                if (cell.type === 'S') {
+                    ctx.moveTo(-50, 0); ctx.lineTo(50, 0);
+                } else {
+                    ctx.moveTo(-50, 0); ctx.quadraticCurveTo(0, 0, 0, 50);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(200, 80, 100, 45);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('FUNDIR', 250, 108);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('Gran Buda de Kamakura', 50, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Conecta el conducto y funde el bronce líquido!', 50, 65);
+    },
+    inputBuddhaPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state === 'pouring') return;
+        if (x > 200 && x < 300 && y > 80 && y < 125) {
+            gd.state = 'pouring';
+            if (window.playProceduralSound) playProceduralSound('click');
+            return;
+        }
+        const c = Math.floor((x - 50) / 120);
+        const r = Math.floor((y - 150) / 120);
+        if (r >= 0 && r < 3 && c >= 0 && c < 3) {
+            gd.grid[r][c].angle = (gd.grid[r][c].angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 15. day_21_gold: Análisis de Pan de Oro
+    setupGold() {
+        this.gameData = {
+            needle: 0,
+            speed: 250,
+            dir: 1,
+            greenMin: 170,
+            greenMax: 230,
+            sheets: 0
+        };
+        this.score = 0;
+    },
+    updateGold(dt) {
+        const gd = this.gameData;
+        gd.needle += gd.speed * gd.dir * dt;
+        if (gd.needle > 400 || gd.needle < 0) gd.dir *= -1;
+    },
+    drawGold() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#312e81';
+        ctx.fillRect(150, 250, 500, 200);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(350 - gd.sheets * 12, 330 - gd.sheets * 5, 100 + gd.sheets * 24, 40 + gd.sheets * 10);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(200, 480, 400, 30);
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(200 + gd.greenMin, 480, gd.greenMax - gd.greenMin, 30);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(200 + gd.needle - 3, 470, 6, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Laminación de oro: ${gd.sheets}/12`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Toca cuando la aguja blanca coincida en la zona verde!', 30, 75);
+    },
+    inputGoldPress(x, y) {
+        const gd = this.gameData;
+        if (gd.needle >= gd.greenMin && gd.needle <= gd.greenMax) {
+            gd.sheets++;
+            this.score = Math.round((gd.sheets / 12) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            this.createExplosion(400, 330, '#ffd700', 15);
+            this.triggerShake(15);
+            gd.greenMin = 50 + Math.random() * 150;
+            gd.greenMax = gd.greenMin + 50 + Math.random() * 40;
+            if (gd.sheets >= 12) {
+                this.win();
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.triggerShake(10);
+        }
+    },
+
+    // 16. day_21_tracking: Rastreo de la Naturaleza
+    setupTracking() {
+        this.gameData = {
+            px: 400,
+            py: 300,
+            targets: [
+                { x: 180, y: 150, found: false },
+                { x: 620, y: 450, found: false },
+                { x: 450, y: 220, found: false }
+            ],
+            sonarR: 0,
+            dangerZones: [
+                { x: 300, y: 250, r: 60 },
+                { x: 500, y: 350, r: 60 }
+            ],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateTracking(dt) {
+        const gd = this.gameData;
+        gd.sonarR = (gd.sonarR + dt * 250) % 500;
+        gd.px = lerp(gd.px, this.mouse.x, 0.15);
+        gd.py = lerp(gd.py, this.mouse.y, 0.15);
+        gd.dangerZones.forEach(dz => {
+            if (Math.hypot(gd.px - dz.x, gd.py - dz.y) < dz.r) {
+                this.triggerShake(3);
+            }
+        });
+        gd.targets.forEach(t => {
+            if (!t.found && Math.hypot(gd.px - t.x, gd.py - t.y) < 40) {
+                t.found = true;
+                gd.score++;
+                this.score = Math.round((gd.score / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(t.x, t.y, '#38bdf8');
+                if (gd.score >= 3) {
+                    this.win();
+                }
+            }
+        });
+    },
+    drawTracking() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(56,189,248,0.1)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(400, 300, gd.sonarR, 0, Math.PI * 2); ctx.stroke();
+        gd.dangerZones.forEach(dz => {
+            ctx.fillStyle = 'rgba(239,68,68,0.15)';
+            ctx.beginPath(); ctx.arc(dz.x, dz.y, dz.r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡PELIGRO!', dz.x, dz.y + 4);
+        });
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(gd.px, gd.py, 40, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gd.px - 60, gd.py); ctx.lineTo(gd.px + 60, gd.py); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(gd.px, gd.py - 60); ctx.lineTo(gd.px, gd.py + 60); ctx.stroke();
+        gd.targets.forEach(t => {
+            if (t.found) {
+                ctx.fillStyle = '#00ff99';
+                ctx.font = '28px Arial';
+                ctx.fillText('👣', t.x - 14, t.y + 10);
+            } else {
+                const distToRadar = Math.abs(Math.hypot(t.x - 400, t.y - 300) - gd.sonarR);
+                if (distToRadar < 50) {
+                    ctx.fillStyle = 'rgba(56,189,248,0.4)';
+                    ctx.beginPath(); ctx.arc(t.x, t.y, 20, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Rastros hallados: ${gd.score}/3`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Esquiva las zonas rojas de peligro y sigue los barridos de radar!', 30, 75);
+    },
+    inputTrackingPress(x, y) {},
+
+    // 17. day_21_defense: Defensa del Shogunato
+    setupDefense() {
+        this.gameData = {
+            ninjas: [
+                { id: 1, x: 820, y: 350, speed: 65, active: true },
+                { id: 2, x: -20, y: 380, speed: 75, active: true }
+            ],
+            gateHealth: 100,
+            score: 0,
+            spellActive: '',
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateDefense(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.4;
+            gd.ninjas.push({
+                id: Math.random(),
+                x: Math.random() < 0.5 ? -20 : 820,
+                y: 320 + Math.random() * 80,
+                speed: 60 + Math.random() * 40,
+                active: true
+            });
+        }
+        gd.ninjas.forEach((n, idx) => {
+            if (n.active) {
+                const dir = n.x < 400 ? 1 : -1;
+                n.x += n.speed * dir * dt;
+                if (Math.abs(n.x - 400) < 50) {
+                    gd.gateHealth = Math.max(0, gd.gateHealth - 15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(12);
+                    gd.ninjas.splice(idx, 1);
+                }
+            }
+        });
+        if (gd.gateHealth <= 0) this.gameOver();
+    },
+    drawDefense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0b0f19';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(360, 200, 80, 300);
+        gd.ninjas.forEach(n => {
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(n.x, n.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
+        ctx.fillRect(300, 160, 200, 15);
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(300, 160, (gd.gateHealth / 100) * 200, 15);
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(150, 520, 120, 50);
+        ctx.fillStyle = '#06b6d4'; ctx.fillRect(340, 520, 120, 50);
+        ctx.fillStyle = '#a1a1aa'; ctx.fillRect(530, 520, 120, 50);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('FUEGO 🔥', 210, 552);
+        ctx.fillText('VIENTO 🌪️', 400, 552);
+        ctx.fillText('PIEDRA 🪨', 590, 552);
+        if (gd.spellActive) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`ACTIVO: ${gd.spellActive}`, 400, 130);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Invasores abatidos: ${gd.score}/45`, 30, 40);
+    },
+    inputDefensePress(x, y) {
+        const gd = this.gameData;
+        if (x > 150 && x < 270 && y > 520 && y < 570) gd.spellActive = 'Fuego';
+        if (x > 340 && x < 460 && y > 520 && y < 570) gd.spellActive = 'Viento';
+        if (x > 530 && x < 650 && y > 520 && y < 570) gd.spellActive = 'Piedra';
+        if (gd.spellActive) {
+            gd.ninjas.forEach((n, idx) => {
+                if (Math.hypot(x - n.x, y - n.y) < 55) {
+                    n.active = false;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 45) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(n.x, n.y, '#f59e0b');
+                    gd.ninjas.splice(idx, 1);
+                    if (gd.score >= 45) {
+                        this.win();
+                    }
+                }
+            });
+        }
+    },
+
+    // 18. day_21_silence: La Paz de la Montaña
+    setupSilence() {
+        this.gameData = {
+            targetScale: 1.0,
+            playerScale: 0.2,
+            expanding: true,
+            score: 0,
+            alignedTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        if (gd.expanding) {
+            gd.targetScale += dt * 0.45;
+            if (gd.targetScale > 2.0) gd.expanding = false;
+        } else {
+            gd.targetScale -= dt * 0.45;
+            if (gd.targetScale < 0.5) gd.expanding = true;
+        }
+        if (this.mouse.isDown) {
+            gd.playerScale = lerp(gd.playerScale, 2.0, 0.1);
+        } else {
+            gd.playerScale = lerp(gd.playerScale, 0.2, 0.1);
+        }
+        if (Math.abs(gd.playerScale - gd.targetScale) < 0.15) {
+            gd.alignedTimer += dt * 4;
+            gd.score = Math.min(15, Math.floor(gd.alignedTimer));
+            this.score = Math.round((gd.score / 15) * 100);
+            if (gd.score >= 15) {
+                this.win();
+            }
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#06152d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 10;
+        for (let r = 50; r < 500; r += 50) {
+            ctx.beginPath(); ctx.arc(400, 300, r, 0, Math.PI * 2); ctx.stroke();
+        }
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(400, 300, gd.targetScale * 120, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(56,189,248,0.5)';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 300, gd.playerScale * 120, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sincronización Zen: ${gd.score}/15`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('¡Mantén pulsado y suelta para ajustar tu halo con el anillo verde!', 30, 75);
+    },
+    inputSilencePress(x, y) {},
+    releaseSilence(x, y) {},
+
+    // ==========================================

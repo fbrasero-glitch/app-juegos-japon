@@ -1,0 +1,475 @@
+// MISIONES DEL DIA 1
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_1 = {
+    "day_1_clouds": {
+        tag: "photo", day: 1, title: "Formas en las Nubes", role: "kid9", xp: 10, location: "Avión",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%); border-radius:15px; border:3px solid #ffb3d9; color:#333; position:relative; overflow:hidden;">
+                <p class="mission-desc" style="font-weight:bold; margin-bottom:10px; font-family:'Quicksand', sans-serif;">☁️ ¡Mira las nubes! Toca el cielo mágico para buscar siluetas ocultas...</p>
+                <div id="sky-canvas" style="height:120px; position:relative; background:transparent; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <span id="cloud-shape" style="font-size:4.5rem; transition:transform 0.5s ease; filter:drop-shadow(0 2px 5px rgba(255,255,255,0.8));">☁️</span>
+                    <div id="magic-sparkles" style="position:absolute; width:100%; height:100%; pointer-events:none;"></div>
+                </div>
+                <p id="sky-hint" style="font-size:0.85rem; color:#666; font-style:italic; margin-top:5px;">(Haz clic en la nube para cambiar su forma mágica)</p>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; margin-top:15px; font-family:'Quicksand', sans-serif; background:#ff80b3; border-color:#ff80b3; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,128,179,0.3);">📸 Capturar Nube Real</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const cloud = document.getElementById('cloud-shape');
+            const hint = document.getElementById('sky-hint');
+            const sky = document.getElementById('sky-canvas');
+            const shapes = [
+                {emoji: '🐉', name: '¡Un Dragón Celestial!'},
+                {emoji: '🦊', name: '¡Un Zorro Mágico!'},
+                {emoji: '🦌', name: '¡Un Ciervo de Nara!'},
+                {emoji: '🐱', name: '¡Un Gato de la Suerte!'},
+                {emoji: '🗻', name: '¡El Monte Fuji!'},
+                {emoji: '🍣', name: '¡Un Sushi Volador!'}
+            ];
+            let index = 0;
+            sky.addEventListener('click', () => {
+                index = (index + 1) % shapes.length;
+                cloud.style.transform = 'scale(0) rotate(-20deg)';
+                if (window.playProceduralSound) playProceduralSound('click');
+                setTimeout(() => {
+                    const sh = shapes[index];
+                    cloud.innerText = sh.emoji;
+                    cloud.style.transform = 'scale(1.2) rotate(5deg)';
+                    hint.innerText = sh.name;
+                    hint.style.color = '#ff3385';
+                    hint.style.fontWeight = 'bold';
+                }, 200);
+            });
+            attachCameraFlow('btn-cam', 'day_1_clouds', currentUser, false);
+        }
+    },
+
+    "day_1_customs": {
+        tag: "expert",
+        day: 1,
+        title: "Infiltración en Aduanas",
+        role: "kid14",
+        xp: 25,
+        location: "Aeropuerto",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+                <p>>>> INFILTRACIÓN DE DATOS DE FRONTERA</p>
+                <p style="color:#aaa;">Japón requiere declarar divisas por encima de cierto valor.</p>
+                <div style="margin:15px 0; padding:10px; background:rgba(0,255,153,0.1); border:1px dashed #00ff99; border-radius:5px;">
+                    <p style="margin:0; font-size:1.2rem; text-align:center;">LÍMITE LEGAL REQUERIDO:</p>
+                    <p id="customs-display" style="font-size:2.2rem; font-weight:bold; text-align:center; margin:10px 0; color:#ffd700;">¥ 500.000</p>
+                    <input type="range" id="customs-slider" min="100000" max="3000000" step="100000" value="500000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                </div>
+                <p id="customs-status" style="font-size:0.85rem; color:#ffd700; text-align:center; min-height:1.2rem;">>>> Ajusta el dial al límite legal</p>
+                <button id="btn-customs" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; margin-top:10px;">EJECUTAR HACKING</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('customs-slider');
+            const display = document.getElementById('customs-display');
+            const status = document.getElementById('customs-status');
+            const btn = document.getElementById('btn-customs');
+            
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                display.innerText = '¥ ' + val.toLocaleString('ja-JP');
+                if (val === 1000000) {
+                    status.innerText = '>>> ¡VALOR CORRECTO DETECTADO! (1.000.000 ¥)';
+                    status.style.color = '#00ff99';
+                } else {
+                    status.innerText = '>>> Límite incorrecto. Ajustando frecuencias...';
+                    status.style.color = '#ffd700';
+                }
+            });
+
+            btn.addEventListener('click', () => {
+                const val = parseInt(slider.value);
+                if (val === 1000000) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_1_customs', {type:'number', data: 1000000}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ERROR DE HACKEO', 'El valor no coincide con el protocolo oficial de aduanas japonés.');
+                }
+            });
+        }
+    },
+
+    "day_1_bingo": {
+        tag: "game",
+        day: 1,
+        title: "Bingo Aeroportuario",
+        role: "kid9",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius:15px; border:3px solid #ffb74d; color:#5d4037;">
+                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">✨ ¡Colecciona los Cromos del Aeropuerto! ✨</p>
+                <p style="font-size:0.8rem; margin-bottom:15px; color:#795548;">Toca cada cromo cuando los encuentres en la realidad para pegarlos con magia.</p>
+                <div class="bingo-grid" id="b-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:15px;">
+                    <div class="bingo-card" data-val="av" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
+                        ✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Avión Jumbo</span>
+                        <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
+                    </div>
+                    <div class="bingo-card" data-val="pi" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
+                        👨‍✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Piloto</span>
+                        <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
+                    </div>
+                    <div class="bingo-card" data-val="ma" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
+                        🧳<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Maleta Roja</span>
+                        <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
+                    </div>
+                    <div class="bingo-card" data-val="pa" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
+                        🛂<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Pasaporte</span>
+                        <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
+                    </div>
+                </div>
+                <button id="btn-b" class="btn-primary hidden" style="width:100%; font-family:'Quicksand', sans-serif; background:#ff9800; border-color:#ff9800; color:#fff; font-weight:bold; border-radius:20px; box-shadow:0 4px 10px rgba(255,152,0,0.4);">🎉 ¡Bingo Completado! 🎉</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let found = 0;
+            const cards = document.querySelectorAll('.bingo-card');
+            const btn = document.getElementById('btn-b');
+            cards.forEach(c => {
+                c.addEventListener('click', function() {
+                    if (!this.classList.contains('flipped')) {
+                        this.classList.add('flipped');
+                        this.style.background = '#fff9c4';
+                        this.style.borderStyle = 'solid';
+                        this.style.borderColor = '#ffeb3b';
+                        this.style.boxShadow = '0 0 10px #ffeb3b';
+                        const sparkle = this.querySelector('.sticker-sparkle');
+                        if (sparkle) sparkle.style.opacity = '1';
+                        found++;
+                        if (window.playProceduralSound) playProceduralSound('click');
+                        if (found === 4) {
+                            btn.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            if (window.launchConfetti) launchConfetti();
+                        }
+                    }
+                });
+            });
+            btn.addEventListener('click', () => submitMission('day_1_bingo', {type:'game', data:'Bingo 4/4'}, role));
+        }
+    },
+
+"day_1_balance": {
+        tag: "sensors",
+        day: 1,
+        title: "Equilibrio a 10.000 Metros",
+        role: "kid9",
+        xp: 20,
+        location: "Avión",
+        render: () => `
+            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 15 segundos.</p>
+            <div class="level-container">
+                <div class="target-zone"></div>
+                <div class="bubble" id="lvl-bubble"></div>
+            </div>
+            <p id="lvl-timer" style="text-align:center; font-size:2rem; font-weight:bold;">15.0s</p>
+            <button id="btn-start" class="btn-primary" style="width:100%">Calibrar y Empezar</button>
+        `,
+        attachEvents: (role) => {
+            let active = false; let timeLeft = 15; let timerInt;
+            const bubble = document.getElementById('lvl-bubble');
+            const handleOrient = (e) => {
+                if(!active) return;
+                const x = e.gamma; const y = e.beta;
+                bubble.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                if(Math.abs(x) > 30 || Math.abs(y) > 30) {
+                    active = false; clearInterval(timerInt);
+                    showAlert("Fallo", "¡Se ha derramado el té! Vuelve a intentarlo.");
+                    document.getElementById('btn-start').classList.remove('hidden');
+                }
+            };
+            document.getElementById('btn-start').addEventListener('click', async (e) => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const p = await DeviceOrientationEvent.requestPermission();
+                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                }
+                e.target.classList.add('hidden');
+                active = true; timeLeft = 15;
+                window.addEventListener('deviceorientation', handleOrient);
+                timerInt = setInterval(() => {
+                    timeLeft -= 0.1;
+                    document.getElementById('lvl-timer').innerText = timeLeft.toFixed(1) + 's';
+                    if(timeLeft <= 0) {
+                        active = false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient);
+                        submitMission('day_1_balance', {type:'sensors', data:'15s completados'}, role);
+                    }
+                }, 100);
+            });
+            window._missionCleanup = () => { active=false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient); };
+        }
+    },
+
+    "day_1_engine": {
+        tag: "audio",
+        day: 1,
+        title: "El Escáner de Frecuencias",
+        role: "kid9",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #f48fb1; color:#880e4f;">
+                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">🎙️ ¡Escáner de Magia del Motor!</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">Acerca el micrófono a la ventanilla y mira cómo bailan las ondas de sonido.</p>
+                <div style="background:#1a1a24; padding:10px; border-radius:10px; margin-bottom:15px; border:2px solid #f48fb1; position:relative;">
+                    <canvas id="engine-wave" width="280" height="80" style="width:100%; height:80px; display:block; background:#111; border-radius:5px;"></canvas>
+                    <div id="engine-timer" style="position:absolute; right:15px; bottom:15px; color:#ff4081; font-family:monospace; font-size:1.1rem; font-weight:bold; text-shadow:0 0 5px #000;">05.0s</div>
+                </div>
+                <button id="btn-rec-engine" class="btn-primary" style="width:100%; border-radius:25px; background:#ff4081; border-color:#ff4081; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">🎤 Iniciar Escaneo (5s)</button>
+                <button id="btn-submit-engine" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px;">Enviar Grabación</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec-engine');
+            const btnSubmit = document.getElementById('btn-submit-engine');
+            const canvas = document.getElementById('engine-wave');
+            const ctx = canvas.getContext('2d');
+            const timerEl = document.getElementById('engine-timer');
+            
+            let recording = false;
+            let audioCtx = null;
+            let analyser = null;
+            let source = null;
+            let stream = null;
+            let animationFrame = null;
+            let dataArray = [];
+            let timeLeft = 5.0;
+            let interval = null;
+            
+            const drawWave = () => {
+                if (!recording) return;
+                animationFrame = requestAnimationFrame(drawWave);
+                
+                analyser.getByteTimeDomainData(dataArray);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.lineWidth = 3;
+                const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                grad.addColorStop(0, '#ff4081');
+                grad.addColorStop(0.5, '#e040fb');
+                grad.addColorStop(1, '#ff4081');
+                ctx.strokeStyle = grad;
+                ctx.beginPath();
+                
+                const sliceWidth = canvas.width / dataArray.length;
+                let x = 0;
+                
+                for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            };
+            
+            btnRec.addEventListener('click', async () => {
+                if (recording) return;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    
+                    source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    recording = true;
+                    timeLeft = 5.0;
+                    timerEl.innerText = '05.0s';
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    
+                    drawWave();
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            recording = false;
+                            cancelAnimationFrame(animationFrame);
+                            
+                            stream.getTracks().forEach(t => t.stop());
+                            if (audioCtx) audioCtx.close();
+                            
+                            ctx.fillStyle = '#111';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.beginPath();
+                            ctx.moveTo(0, canvas.height/2);
+                            ctx.lineTo(canvas.width, canvas.height/2);
+                            ctx.strokeStyle = '#ff4081';
+                            ctx.stroke();
+                            
+                            timerEl.innerText = '00.0s';
+                            btnRec.innerText = '✨ Grabado con Éxito';
+                            btnSubmit.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                    
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error', 'No se pudo acceder al micrófono para el escaneo.');
+                }
+            });
+
+            btnSubmit.addEventListener('click', () => {
+                submitMission('day_1_engine', {type: 'audio', data: 'Sonido del motor del avión analizado y verificado.'}, role);
+            });
+
+            window._missionCleanup = () => {
+                recording = false;
+                clearInterval(interval);
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
+        }
+    },
+
+"day_1_navigator": {
+        tag: "writing",
+        day: 1,
+        title: "Navegante de Altura",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> PROTOCOLO DE VUELO: ACTIVO</p>
+                <input type="number" id="nav-alt" placeholder="Altitud (pies)..." style="width:100%; margin-bottom:10px;">
+                <input type="number" id="nav-spd" placeholder="Velocidad (km/h)..." style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR DATOS TELEMÉTRICOS</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                submitMission('day_1_navigator', {type:'text', data:`Alt: ${document.getElementById('nav-alt').value}ft, Vel: ${document.getElementById('nav-spd').value}km/h`}, role);
+            });
+        }
+    },
+
+    "day_1_timezone": {
+        tag: "economy",
+        day: 1,
+        title: "Reloj Samurái del Sueño",
+        role: "kid14",
+        xp: 15,
+        location: "Avión",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+                <p>>>> SENSOR DE SUEÑO Y CRONOBIOLOGÍA</p>
+                <p style="color:#aaa;">Calcula el desfase de horas para mitigar el jetlag en vuelo.</p>
+                <div style="display:flex; gap:15px; justify-content:center; margin:15px 0;">
+                    <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:5px;">
+                        <p style="margin:0; font-size:0.8rem;">MADRID (Origen)</p>
+                        <div id="madrid-sky" style="font-size:2rem; margin:5px 0;">🌙</div>
+                        <p id="madrid-time" style="font-size:1.5rem; font-weight:bold; margin:0;">22:00</p>
+                    </div>
+                    <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:5px;">
+                        <p style="margin:0; font-size:0.8rem;">TOKIO (+7h/Japón)</p>
+                        <div id="tokyo-sky" style="font-size:2rem; margin:5px 0;">🌅</div>
+                        <p id="tokyo-time" style="font-size:1.5rem; font-weight:bold; margin:0; color:#ffd700;">05:00</p>
+                        <span style="font-size:0.6rem; color:#aaa;">(Día Siguiente)</span>
+                    </div>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <p style="font-size:0.8rem; text-align:center; color:#aaa;">Desplaza para ajustar la hora de Madrid a las 22:00:</p>
+                    <input type="range" id="timezone-slider" min="0" max="23" value="12" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                </div>
+                <button id="btn-timezone" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">SINCRONIZAR SUEÑO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('timezone-slider');
+            const madridTime = document.getElementById('madrid-time');
+            const tokyoTime = document.getElementById('tokyo-time');
+            const madridSky = document.getElementById('madrid-sky');
+            const tokyoSky = document.getElementById('tokyo-sky');
+            const btn = document.getElementById('btn-timezone');
+
+            const updateClocks = () => {
+                const hMadrid = parseInt(slider.value);
+                const hTokyo = (hMadrid + 7) % 24;
+                
+                madridTime.innerText = `${String(hMadrid).padStart(2, '0')}:00`;
+                tokyoTime.innerText = `${String(hTokyo).padStart(2, '0')}:00`;
+                
+                madridSky.innerText = (hMadrid >= 7 && hMadrid < 20) ? '☀️' : '🌙';
+                tokyoSky.innerText = (hTokyo >= 7 && hTokyo < 20) ? '☀️' : '🌙';
+                if (hTokyo === 5 || hTokyo === 6) tokyoSky.innerText = '🌅';
+                if (hTokyo === 19 || hTokyo === 20) tokyoSky.innerText = '🌇';
+            };
+
+            slider.addEventListener('input', updateClocks);
+            updateClocks();
+
+            btn.addEventListener('click', () => {
+                const hMadrid = parseInt(slider.value);
+                const hTokyo = (hMadrid + 7) % 24;
+                if (hMadrid === 22) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_1_timezone', {type:'text', data: `Madrid 22:00 | Tokio ${String(hTokyo).padStart(2, '0')}:00`}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('DESFASE INCORRECTO', 'Sincroniza los relojes para cuando en Madrid sean las 22:00.');
+                }
+            });
+        }
+    },
+
+"day_1_exchange": {
+        tag: "economy",
+        day: 1,
+        title: "El Precio del Yen",
+        role: "kid14",
+        xp: 15,
+        location: "Aeropuerto",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> COTIZACIÓN EN TIEMPO REAL.</p>
+                <p>Revisa la pizarra de cambio del aeropuerto. ¿Cuántos yenes te dan HOY por 1 Euro?</p>
+                <input type="number" id="ans" style="width:100%; margin-bottom:10px;">
+                <button id="btn" class="btn-primary" style="width:100%">ENVIAR AL JUEZ</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_exchange', {type:'number', data:document.getElementById('ans').value}, role)); }
+    },
+
+"day_1_bets": {
+        tag: "writing",
+        day: 1,
+        title: "Apuesta del Aterrizaje",
+        role: "both",
+        xp: 25,
+        location: "Avión",
+        render: () => `
+            <p class="mission-desc">¡Misión de equipo! Escribid juntos 3 cosas raras, locas o increíbles que creéis que veréis en Japón durante el viaje.</p>
+            <textarea id="ans" style="width:100%; height:100px; margin-bottom:10px;"></textarea>
+            <button id="btn" class="btn-primary" style="width:100%">Sellar Apuesta</button>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_1_bets', {type:'text', data:document.getElementById('ans').value}, role, true)); }
+    },
+
+
+};

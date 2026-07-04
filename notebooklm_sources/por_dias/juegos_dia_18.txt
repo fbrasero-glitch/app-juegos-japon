@@ -1,0 +1,2057 @@
+// MINIJUEGOS DEL DIA 18
+// Métodos extraídos de games.js para NotebookLM
+
+    // DÍA 18: SHIBUYA, HARAJUKU Y MEIJI JINGU
+    // ==========================================================
+
+    // 10. day_18_shibuya: La Marea Humana
+    setupShibuya() {
+        this.gameData = {
+            pedestrians: [],
+            counted: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateShibuya(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            gd.pedestrians.push({
+                x: Math.random() < 0.5 ? -30 : 830,
+                y: 100 + Math.random() * 350,
+                vx: (Math.random() * 80 + 40) * (Math.random() < 0.5 ? 1 : -1),
+                glasses: Math.random() < 0.4
+            });
+        }
+
+        gd.pedestrians.forEach(p => {
+            p.x += p.vx * dt;
+        });
+        gd.pedestrians = gd.pedestrians.filter(p => p.x > -50 && p.x < 850);
+    },
+    drawShibuya() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Scramble background lines
+        ctx.fillStyle = '#555555';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 15; i++) {
+            ctx.fillRect(100 + i * 40, 150, 20, 300);
+        }
+
+        // Draw pedestrians
+        gd.pedestrians.forEach(p => {
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair/details
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(p.x - 14, p.y - 18, 28, 12);
+
+            if (p.glasses) {
+                // Sunglasses
+                ctx.fillStyle = '#111111';
+                ctx.fillRect(p.x - 12, p.y - 5, 10, 8);
+                ctx.fillRect(p.x + 2, p.y - 5, 10, 8);
+                ctx.strokeStyle = '#000';
+                ctx.beginPath(); ctx.moveTo(p.x - 2, p.y - 1); ctx.lineTo(p.x + 2, p.y - 1); ctx.stroke();
+            }
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Con Gafas: ${gd.counted}/20`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputShibuyaPress(x, y) {
+        const gd = this.gameData;
+        let hit = false;
+        gd.pedestrians.forEach((p, idx) => {
+            if (Math.hypot(x - p.x, y - p.y) < 25) {
+                hit = true;
+                gd.pedestrians.splice(idx, 1);
+                if (p.glasses) {
+                    gd.counted++;
+                    this.score = Math.round((gd.counted / 20) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    if (gd.counted >= 20) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(10);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        if (!hit && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 11. day_18_hachiko: Guardián Hachiko
+    setupHachiko() {
+        this.gameData = {
+            happiness: 40,
+            leaves: [],
+            spawnTimer: 0,
+            petProgress: 0,
+            isPetting: false
+        };
+        this.score = 40;
+    },
+    updateHachiko(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.leaves.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 100 + Math.random() * 80,
+                sway: Math.random() * 5
+            });
+        }
+
+        // Mouse petting
+        if (this.mouse.isDown && Math.hypot(this.mouse.x - 400, this.mouse.y - 320) < 120) {
+            gd.happiness = Math.min(100, gd.happiness + dt * 12);
+            this.score = Math.round(gd.happiness);
+            if (window.playProceduralSound && Math.random() < 0.15) playProceduralSound('collect');
+            if (gd.happiness >= 100) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+
+        // Update leaves
+        gd.leaves.forEach((l, idx) => {
+            l.y += l.vy * dt;
+            l.x += Math.sin(this.gameTime * 2 + l.sway) * 40 * dt;
+            
+            // Check hit Hachiko
+            if (l.y > 280 && l.y < 350 && Math.abs(l.x - 400) < 80) {
+                gd.leaves.splice(idx, 1);
+                gd.happiness = Math.max(0, gd.happiness - 15);
+                this.score = Math.round(gd.happiness);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.leaves = gd.leaves.filter(l => l.y < 600);
+    },
+    drawHachiko() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Park background
+        ctx.fillStyle = '#81c784';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Statue stand
+        ctx.fillStyle = '#90a4ae';
+        ctx.fillRect(320, 360, 160, 150);
+
+        // Draw Hachiko sitting (simplified procedural shape)
+        ctx.fillStyle = '#ffb74d'; // Akita gold
+        ctx.beginPath();
+        // Body
+        ctx.ellipse(400, 310, 45, 60, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Head
+        ctx.beginPath();
+        ctx.arc(400, 230, 30, 0, Math.PI * 2);
+        ctx.fill();
+        // Ears
+        ctx.fillStyle = '#ffa726';
+        ctx.beginPath();
+        ctx.moveTo(375, 210); ctx.lineTo(365, 185); ctx.lineTo(390, 205);
+        ctx.moveTo(425, 210); ctx.lineTo(435, 185); ctx.lineTo(410, 205);
+        ctx.fill();
+
+        // Draw falling leaves
+        ctx.fillStyle = '#ff7043';
+        gd.leaves.forEach(l => {
+            ctx.beginPath();
+            ctx.ellipse(l.x, l.y, 10, 6, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Happiness bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 20);
+        ctx.fillStyle = '#e91e63';
+        ctx.fillRect(250, 40, 3 * gd.happiness, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Acaricia a Hachiko con el ratón y elimina las hojas que caen sobre él', 400, 560);
+    },
+    inputHachikoPress(x, y) {
+        const gd = this.gameData;
+        gd.leaves.forEach((l, idx) => {
+            if (Math.hypot(x - l.x, y - l.y) < 30) {
+                gd.leaves.splice(idx, 1);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseHachiko(x, y) {},
+
+    // 12. day_18_ema: Deseo en el Ema
+    setupEma() {
+        this.gameData = {
+            angle: 0,
+            hungCount: 0,
+            isReleasing: false,
+            emaY: 100,
+            targetX: 400,
+            targetY: 350
+        };
+        this.score = 0;
+    },
+    updateEma(dt) {
+        const gd = this.gameData;
+        if (!gd.isReleasing) {
+            gd.angle = Math.sin(this.gameTime * 3.5) * 45;
+        } else {
+            gd.emaY += dt * 350;
+            if (gd.emaY >= gd.targetY) {
+                gd.isReleasing = false;
+                // Check if aligned with center hanger
+                const hangX = 400 + Math.sin((gd.angle * Math.PI) / 180) * 150;
+                if (Math.abs(hangX - 400) < 30) {
+                    gd.hungCount++;
+                    this.score = Math.round((gd.hungCount / 3) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.hungCount >= 3) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(10);
+                }
+                gd.emaY = 100;
+            }
+        }
+    },
+    drawEma() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Wooden wall background
+        ctx.fillStyle = '#b57c1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Hanger hooks
+        ctx.fillStyle = '#222';
+        ctx.beginPath(); ctx.arc(400, 350, 8, 0, Math.PI * 2); ctx.fill();
+
+        // Draw pendular board
+        ctx.save();
+        if (!gd.isReleasing) {
+            ctx.translate(400, 100);
+            ctx.rotate((gd.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+            
+            // Draw wooden board
+            ctx.fillStyle = '#ffecb3';
+            ctx.fillRect(-60, 150, 120, 80);
+            ctx.strokeRect(-60, 150, 120, 80);
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Desear 🌸', 0, 200);
+        } else {
+            // Drop representation
+            ctx.translate(400, gd.emaY);
+            ctx.fillStyle = '#ffecb3';
+            ctx.fillRect(-60, 0, 120, 80);
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Desear 🌸', 0, 50);
+        }
+        ctx.restore();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Tablillas colgadas: ${gd.hungCount}/3`, 30, 560);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Toca la pantalla cuando oscile justo en el centro del gancho!', 400, 500);
+    },
+    inputEmaPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.isReleasing) {
+            gd.isReleasing = true;
+            gd.emaY = 100;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 13. day_18_crepe: Crepe de Harajuku
+    setupCrepe() {
+        this.gameData = {
+            crepeX: 400,
+            items: [],
+            spawnTimer: 0,
+            stacked: [], // elements stacked {offsetY, type, emoji}
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCrepe(dt) {
+        const gd = this.gameData;
+        gd.crepeX = lerp(gd.crepeX, this.mouse.x, 0.15);
+        if (gd.crepeX < 80) gd.crepeX = 80;
+        if (gd.crepeX > 720) gd.crepeX = 720;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.6;
+            const isGood = Math.random() < 0.75;
+            const goods = [
+                { emoji: '🍓', name: 'Fresas' },
+                { emoji: '🍦', name: 'Nata' },
+                { emoji: '🍨', name: 'Helado' },
+                { emoji: '🍫', name: 'Sirope' }
+            ];
+            const bads = [
+                { emoji: '🐟', name: 'Espinas' },
+                { emoji: '🗑️', name: 'Lata' }
+            ];
+            const item = isGood ? goods[Math.floor(Math.random() * goods.length)] : bads[Math.floor(Math.random() * bads.length)];
+            gd.items.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 200 + Math.random() * 80,
+                emoji: item.emoji,
+                isGood: isGood
+            });
+        }
+
+        // Update items
+        gd.items.forEach((it, idx) => {
+            it.y += it.vy * dt;
+            const baseHeight = 450 - gd.stacked.length * 15;
+            if (it.y > baseHeight && Math.abs(it.x - gd.crepeX) < 40) {
+                gd.items.splice(idx, 1);
+                if (it.isGood) {
+                    gd.stacked.push({ emoji: it.emoji });
+                    this.score = Math.round((gd.stacked.length / 15) * 100);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    if (gd.stacked.length >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    gd.stacked = gd.stacked.slice(0, Math.max(0, gd.stacked.length - 3)); // Lose some stack
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        gd.items = gd.items.filter(it => it.y < 600);
+    },
+    drawCrepe() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Pink sky
+        ctx.fillStyle = '#fce4ec';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Falling items
+        ctx.font = '28px monospace';
+        ctx.textAlign = 'center';
+        gd.items.forEach(it => {
+            ctx.fillText(it.emoji, it.x, it.y);
+        });
+
+        // Draw Crepe cup/cone
+        ctx.fillStyle = '#ffecb3';
+        ctx.strokeStyle = '#ec407a';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.crepeX - 30, 480);
+        ctx.lineTo(gd.crepeX + 30, 480);
+        ctx.lineTo(gd.crepeX, 550);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw stack inside
+        gd.stacked.forEach((st, idx) => {
+            ctx.font = '24px monospace';
+            ctx.fillText(st.emoji, gd.crepeX + (idx % 2 === 0 ? 5 : -5), 470 - idx * 16);
+        });
+
+        // HUD
+        ctx.fillStyle = '#ec407a';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ingredientes: ${gd.stacked.length}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputCrepePress(x, y) {},
+    releaseCrepe(x, y) {},
+
+    // 14. day_18_radio: Intercepción de Radio
+    setupRadio() {
+        this.gameData = {
+            freq: 10,
+            amp: 50,
+            targetFreq: 35,
+            targetAmp: 120,
+            solvedCount: 0,
+            successTimer: 0,
+            draggingDial: null // 'F', 'A'
+        };
+        this.score = 0;
+    },
+    updateRadio(dt) {
+        const gd = this.gameData;
+        const diffF = Math.abs(gd.freq - gd.targetFreq);
+        const diffA = Math.abs(gd.amp - gd.targetAmp);
+
+        if (diffF < 2 && diffA < 8) {
+            gd.successTimer += dt;
+            if (gd.successTimer >= 1.5) {
+                gd.successTimer = 0;
+                gd.solvedCount++;
+                this.score = Math.round((gd.solvedCount / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.solvedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.targetFreq = 15 + Math.random() * 45;
+                    gd.targetAmp = 40 + Math.random() * 140;
+                }
+            }
+        } else {
+            gd.successTimer = 0;
+        }
+    },
+    drawRadio() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark grey metal
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Oscilloscope grid
+        ctx.fillStyle = '#0a1910';
+        ctx.fillRect(100, 50, 600, 300);
+
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.15)';
+        ctx.lineWidth = 1;
+        for (let x = 100; x <= 700; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 50); ctx.lineTo(x, 350); ctx.stroke();
+        }
+        for (let y = 50; y <= 350; y += 30) {
+            ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(700, y); ctx.stroke();
+        }
+
+        // Draw Target Wave
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 2) {
+            const y = 200 + Math.sin((x * gd.targetFreq) / 100) * gd.targetAmp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Draw Player Wave
+        ctx.strokeStyle = '#00e676';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00e676';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 2) {
+            const y = 200 + Math.sin((x * gd.freq) / 100) * gd.amp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        // Dial F
+        ctx.save();
+        ctx.translate(250, 480);
+        ctx.fillStyle = '#37474f';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.freq * Math.PI) / 30);
+        ctx.fillStyle = '#00e676';
+        ctx.fillRect(-3, -38, 6, 20);
+        ctx.restore();
+
+        // Dial A
+        ctx.save();
+        ctx.translate(550, 480);
+        ctx.fillStyle = '#37474f';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.amp * Math.PI) / 100);
+        ctx.fillStyle = '#00e676';
+        ctx.fillRect(-3, -38, 6, 20);
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Iguala la onda verde con la roja usando los diales', 400, 400);
+
+        ctx.font = '16px monospace';
+        ctx.fillText('Frecuencia', 250, 550);
+        ctx.fillText('Amplitud', 550, 550);
+
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sintonizados: ${gd.solvedCount}/3`, 30, 40);
+    },
+    inputRadioPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 250, y - 480) < 50) {
+            gd.draggingDial = 'F';
+        } else if (Math.hypot(x - 550, y - 480) < 50) {
+            gd.draggingDial = 'A';
+        }
+    },
+
+    // 15. day_18_trend: Cazatendencias
+    setupTrend() {
+        this.gameData = {
+            targetTrend: 'Lolita Rosa',
+            photoCount: 0,
+            models: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTrend(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.2;
+            const trends = ['Lolita Rosa', 'Cyberpunk', 'Kitsch'];
+            gd.models.push({
+                x: -50,
+                y: 300,
+                vx: 120 + Math.random() * 80,
+                trend: trends[Math.floor(Math.random() * 3)]
+            });
+        }
+
+        gd.models.forEach(m => {
+            m.x += m.vx * dt;
+        });
+        gd.models = gd.models.filter(m => m.x < 850);
+    },
+    drawTrend() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#ffecb3';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shop backgrounds
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(50, 100, 700, 150);
+
+        // Draw walking models
+        gd.models.forEach(m => {
+            ctx.fillStyle = m.trend === 'Lolita Rosa' ? '#ec407a' : (m.trend === 'Cyberpunk' ? '#00e5ff' : '#ffd700');
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(m.trend, m.x, m.y - 35);
+        });
+
+        // Viewfinder target box in middle
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(300, 200, 200, 200);
+
+        // HUD info
+        ctx.fillStyle = '#111';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Target: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos válidas: ${gd.photoCount}/5`, 770, 40);
+    },
+    inputTrendPress(x, y) {
+        const gd = this.gameData;
+        let snap = false;
+        gd.models.forEach((m, idx) => {
+            if (m.x > 300 && m.x < 500 && m.y > 200 && m.y < 400) {
+                snap = true;
+                gd.models.splice(idx, 1);
+                if (m.trend === gd.targetTrend) {
+                    gd.photoCount++;
+                    this.score = Math.round((gd.photoCount / 5) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.photoCount >= 5) {
+                        setTimeout(() => this.win(), 600);
+                    } else {
+                        const list = ['Lolita Rosa', 'Cyberpunk', 'Kitsch'];
+                        gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(10);
+                }
+            }
+        });
+        if (!snap && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 16. day_18_flow: Flujo del Cruce
+    setupFlow18() {
+        this.gameData = {
+            pedestrians: [],
+            cars: [],
+            lightGreen: true,
+            pEscaped: 0,
+            cEscaped: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateFlow18(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            if (Math.random() < 0.6) {
+                gd.pedestrians.push({ x: 100 + Math.random() * 600, y: 0, vy: 80 + Math.random() * 40 });
+            } else {
+                gd.cars.push({ x: -80, y: 300 + (Math.random() - 0.5) * 60, vx: 180 + Math.random() * 100 });
+            }
+        }
+
+        // Update pedestrians
+        gd.pedestrians.forEach((p, idx) => {
+            if (gd.lightGreen) {
+                p.y += p.vy * dt;
+                if (p.y >= 500) {
+                    gd.pedestrians.splice(idx, 1);
+                    gd.pEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+        });
+
+        // Update cars
+        gd.cars.forEach((c, idx) => {
+            if (!gd.lightGreen || c.x < 300 || c.x > 500) {
+                c.x += c.vx * dt;
+                if (c.x >= 850) {
+                    gd.cars.splice(idx, 1);
+                    gd.cEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+
+            // Check collision with pedestrians
+            gd.pedestrians.forEach((p, pIdx) => {
+                if (Math.hypot(c.x - p.x, c.y - p.y) < 30) {
+                    gd.pedestrians.splice(pIdx, 1);
+                    gd.lives--;
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            });
+        });
+    },
+    drawFlow18() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#444';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Zebra lines
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 10; i++) {
+            ctx.fillRect(150 + i * 50, 150, 30, 300);
+        }
+
+        // Draw pedestrians
+        ctx.fillStyle = '#81c784';
+        gd.pedestrians.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw cars
+        ctx.fillStyle = '#e53935';
+        gd.cars.forEach(c => {
+            ctx.fillRect(c.x - 20, c.y - 12, 40, 24);
+        });
+
+        // Draw traffic light button
+        ctx.fillStyle = gd.lightGreen ? '#4caf50' : '#f44336';
+        ctx.fillRect(350, 500, 100, 40);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.lightGreen ? 'PEATÓN' : 'VEHÍCULO', 400, 525);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Peatones: ${gd.pEscaped}/50  Coches: ${gd.cEscaped}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputFlow18Press(x, y) {
+        const gd = this.gameData;
+        if (x > 350 && x < 450 && y > 500 && y < 540) {
+            gd.lightGreen = !gd.lightGreen;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_18_silence: Silencio en la Ciudad
+    setupSilence() {
+        this.gameData = {
+            noise: 80,
+            bubbles: [],
+            trees: [],
+            spawnTimer: 0,
+            calmTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.6;
+            gd.bubbles.push({
+                x: 0,
+                y: 100 + Math.random() * 400,
+                vx: 150 + Math.random() * 80,
+                r: 15 + Math.random() * 10
+            });
+        }
+
+        // Update noise bubbles
+        gd.bubbles.forEach((b, idx) => {
+            b.x += b.vx * dt;
+            
+            // Check tree absorption
+            gd.trees.forEach(t => {
+                if (Math.hypot(b.x - t.x, b.y - t.y) < t.r) {
+                    gd.bubbles.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                }
+            });
+
+            // Reached sanctuary
+            if (b.x >= 700) {
+                gd.bubbles.splice(idx, 1);
+                gd.noise = Math.min(100, gd.noise + 12);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+
+        // Decay noise
+        gd.noise = Math.max(0, gd.noise - dt * 6);
+
+        if (gd.noise < 10) {
+            gd.calmTimer += dt;
+            this.score = Math.min(100, Math.round((gd.calmTimer / 5) * 100));
+            if (gd.calmTimer >= 5) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.calmTimer = 0;
+            this.score = 0;
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Sanctuary arch on right
+        ctx.fillStyle = '#e53935';
+        ctx.fillRect(720, 100, 20, 400);
+
+        // Trees
+        gd.trees.forEach(t => {
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.2)';
+            ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+            
+            ctx.fillStyle = '#2e7d32';
+            ctx.beginPath(); ctx.arc(t.x, t.y, 15, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Noise bubbles
+        ctx.fillStyle = 'rgba(244, 67, 54, 0.4)';
+        ctx.strokeStyle = '#f44336';
+        ctx.lineWidth = 2;
+        gd.bubbles.forEach(b => {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Noise bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 20, 400, 20);
+        ctx.fillStyle = gd.noise > 50 ? '#ff1744' : '#00ff99';
+        ctx.fillRect(200, 20, 4 * gd.noise, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Nivel de Ruido: ${Math.round(gd.noise)}%`, 400, 70);
+        ctx.fillText('¡Planta árboles tocando la pantalla para disolver el ruido!', 400, 560);
+    },
+    inputSilencePress(x, y) {
+        const gd = this.gameData;
+        if (x < 650 && gd.trees.length < 5) {
+            gd.trees.push({ x, y, r: 80 });
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 18. day_18_crossing: Cruzando Shibuya
+    setupCrossing() {
+        this.gameData = {
+            familyX: 150,
+            familyY: 500,
+            crowd: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrossing(dt) {
+        const gd = this.gameData;
+        gd.familyX = lerp(gd.familyX, this.mouse.x, 0.08);
+        gd.familyY = lerp(gd.familyY, this.mouse.y, 0.08);
+
+        // Limit range
+        if (gd.familyX < 150) gd.familyX = 150;
+        if (gd.familyX > 650) gd.familyX = 650;
+        if (gd.familyY < 80) gd.familyY = 80;
+        if (gd.familyY > 520) gd.familyY = 520;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.4;
+            gd.crowd.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 120 + Math.random() * 80
+            });
+        }
+
+        gd.crowd.forEach(p => {
+            p.y += p.vy * dt;
+            // Collision pushback
+            if (Math.hypot(p.x - gd.familyX, p.y - gd.familyY) < 35) {
+                gd.familyY = Math.min(500, gd.familyY + 30);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.crowd = gd.crowd.filter(p => p.y < 600);
+
+        // Win condition: reach top y < 120
+        if (gd.familyY <= 120) {
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            this.score = Math.round(((500 - gd.familyY) / 380) * 100);
+        }
+    },
+    drawCrossing() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#555';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Stripes
+        ctx.fillStyle = '#fff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 40, 120, 20, 360);
+        }
+
+        // Draw crowd
+        ctx.fillStyle = '#bdbdbd';
+        gd.crowd.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Target zone
+        ctx.fillStyle = 'rgba(0, 255, 153, 0.2)';
+        ctx.fillRect(150, 50, 500, 70);
+
+        // Draw Family (4 circles holding hands)
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath(); ctx.arc(gd.familyX, gd.familyY, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.familyX - 25, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#00ff99';
+        ctx.beginPath(); ctx.arc(gd.familyX + 25, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Guía a la familia a la zona verde superior esquivando a la marea', 400, 560);
+    },
+    inputCrossingPress(x, y) {},
+
+
+    // ==========================================================
+    // 10. day_18_shibuya: La Marea Humana (Lente lupa de zoom fotográfico en Shibuya Crossing)
+    setupShibuya() {
+        this.gameData = {
+            chibis: [],
+            magnifierX: 400,
+            magnifierY: 300,
+            targetTrend: 'Lolita con Paraguas ☂️',
+            photoCount: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateShibuya(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            const trends = ['Lolita con Paraguas ☂️', 'Salaryman con maleta 💼', 'Turista con sombrero 👒'];
+            gd.chibis.push({
+                x: Math.random() < 0.5 ? -30 : 830,
+                y: 100 + Math.random() * 320,
+                vx: (Math.random() * 80 + 60) * (Math.random() < 0.5 ? 1 : -1),
+                style: trends[Math.floor(Math.random() * 3)],
+                rot: Math.random() * 5
+            });
+        }
+
+        gd.chibis.forEach(c => {
+            c.x += c.vx * dt;
+        });
+        gd.chibis = gd.chibis.filter(c => c.x > -50 && c.x < 850);
+
+        // Move magnifier camera
+        gd.magnifierX = this.mouse.x;
+        gd.magnifierY = this.mouse.y;
+    },
+    drawShibuya() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Crossing stripes
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 45, 120, 20, 320);
+        }
+
+        // Draw chibis in street
+        gd.chibis.forEach(c => {
+            ctx.fillStyle = c.style.includes('Lolita') ? '#ec407a' : (c.style.includes('Salaryman') ? '#1e88e5' : '#7cb342');
+            ctx.beginPath(); ctx.arc(c.x, c.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Viewfinder Lente de Lupa de Zoom
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(gd.magnifierX, gd.magnifierY, 95, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Draw detailed zoomed version of characters inside lens
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 12; i++) {
+            ctx.fillRect(150 + i * 45, 120, 20, 320);
+        }
+
+        gd.chibis.forEach(c => {
+            // Draw zoomed items
+            ctx.fillStyle = c.style.includes('Lolita') ? '#ec407a' : (c.style.includes('Salaryman') ? '#1e88e5' : '#7cb342');
+            ctx.beginPath(); ctx.arc(c.x, c.y, 28, 0, Math.PI * 2); ctx.fill();
+
+            // Accessories detailed
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '22px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            if (c.style.includes('Umbrella') || c.style.includes('Paraguas')) ctx.fillText('☂️', c.x, c.y + 8);
+            if (c.style.includes('maleta')) ctx.fillText('💼', c.x, c.y + 8);
+            if (c.style.includes('sombrero')) ctx.fillText('👒', c.x, c.y + 8);
+        });
+        ctx.restore();
+
+        // Render Lens Rim
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(gd.magnifierX, gd.magnifierY, 95, 0, Math.PI * 2); ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Target: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos: ${gd.photoCount}/5`, 770, 40);
+        ctx.textAlign = 'center';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 400, 560);
+    },
+    inputShibuyaPress(x, y) {
+        const gd = this.gameData;
+        let snap = false;
+        gd.chibis.forEach((c, idx) => {
+            // Check if clicked inside viewfinder and close to character
+            if (Math.hypot(x - gd.magnifierX, y - gd.magnifierY) < 95 && Math.hypot(x - c.x, y - c.y) < 35) {
+                snap = true;
+                gd.chibis.splice(idx, 1);
+                if (c.style === gd.targetTrend) {
+                    gd.photoCount++;
+                    this.score = Math.round((gd.photoCount / 5) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.photoCount >= 5) {
+                        this.win();
+                    } else {
+                        const list = ['Lolita con Paraguas ☂️', 'Salaryman con maleta 💼', 'Turista con sombrero 👒'];
+                        gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(14);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+        if (!snap && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseShibuya() {},
+
+    // 11. day_18_hachiko: Guardián Hachiko (Cuidado de clima, paño seco, caricias y galletas)
+    setupHachiko() {
+        this.gameData = {
+            happiness: 40,
+            rain: [],
+            treats: [],
+            spawnTimer: 0,
+            activeTool: 'pet', // 'pet', 'cloth', 'treat'
+            petValue: 0
+        };
+        this.score = 40;
+    },
+    updateHachiko(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            gd.rain.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 200 + Math.random() * 80
+            });
+        }
+
+        // Wipe tool
+        if (this.mouse.isDown && gd.activeTool === 'cloth') {
+            gd.rain.forEach((r, idx) => {
+                if (Math.hypot(this.mouse.x - r.x, this.mouse.y - r.y) < 45) {
+                    gd.rain.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+        }
+
+        // Petting Hachiko
+        if (this.mouse.isDown && gd.activeTool === 'pet' && Math.hypot(this.mouse.x - 400, this.mouse.y - 250) < 90) {
+            gd.happiness = Math.min(100, gd.happiness + dt * 15);
+            this.score = Math.round(gd.happiness);
+            if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('collect');
+            if (gd.happiness >= 100) this.win();
+        }
+
+        // Update rain falling
+        gd.rain.forEach((r, idx) => {
+            r.y += r.vy * dt;
+            // If hits Hachiko pedestal
+            if (r.y > 220 && r.y < 350 && Math.abs(r.x - 400) < 80) {
+                gd.rain.splice(idx, 1);
+                gd.happiness = Math.max(0, gd.happiness - 10);
+                this.score = Math.round(gd.happiness);
+                this.triggerShake(5);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.rain = gd.rain.filter(r => r.y < 600);
+    },
+    drawHachiko() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#558b2f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Pedestal
+        ctx.fillStyle = '#90a4ae';
+        ctx.fillRect(320, 360, 160, 140);
+
+        // Hachiko
+        ctx.fillStyle = '#ffb74d';
+        ctx.beginPath(); ctx.ellipse(400, 310, 46, 60, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(400, 230, 30, 0, Math.PI * 2); ctx.fill();
+        // Ears
+        ctx.fillStyle = '#e65100';
+        ctx.beginPath();
+        ctx.moveTo(375, 210); ctx.lineTo(365, 185); ctx.lineTo(390, 205);
+        ctx.moveTo(425, 210); ctx.lineTo(435, 185); ctx.lineTo(410, 205);
+        ctx.fill();
+
+        // Draw Rain
+        ctx.strokeStyle = '#b3e5fc';
+        ctx.lineWidth = 2;
+        gd.rain.forEach(r => {
+            ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - 5, r.y + 15); ctx.stroke();
+        });
+
+        // Happiness Bar
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 20);
+        ctx.fillStyle = '#e91e63';
+        ctx.fillRect(250, 40, 3 * gd.happiness, 20);
+
+        // Tools panel selector
+        const tools = ['pet', 'cloth', 'treat'];
+        const names = ['🫳 ACARICIAR', '🧽 SECAR', '🍖 PREMIO'];
+        for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = gd.activeTool === tools[i] ? '#81c784' : '#37474f';
+            ctx.fillRect(100 + i * 220, 520, 180, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(names[i], 190 + i * 220, 545);
+        }
+    },
+    inputHachikoPress(x, y) {
+        const gd = this.gameData;
+        if (y > 520 && y < 560) {
+            if (x > 100 && x < 280) gd.activeTool = 'pet';
+            if (x > 320 && x < 500) gd.activeTool = 'cloth';
+            if (x > 540 && x < 720) {
+                gd.activeTool = 'treat';
+                // Feed treat instantly
+                gd.happiness = Math.min(100, gd.happiness + 15);
+                this.score = Math.round(gd.happiness);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.happiness >= 100) this.win();
+            }
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseHachiko() {},
+
+    // 12. day_18_ema: Deseo en el Ema (Móvil balanceado de deseos de Shinto con gravedad de pesos)
+    setupEma() {
+        this.gameData = {
+            hangerAngle: 0,
+            hangerSpeed: 0,
+            placed: [],
+            currentWeight: 10,
+            cursorX: 400
+        };
+        this.score = 0;
+    },
+    updateEma(dt) {
+        const gd = this.gameData;
+        gd.cursorX = this.mouse.x;
+
+        // Hanger balancing physics (tilt depends on net torque)
+        let torque = 0;
+        gd.placed.forEach(e => {
+            // torque = weight * distance from center
+            torque += e.weight * (e.x - 400);
+        });
+
+        // Hanger sway acceleration
+        const angularAcc = torque * 0.0003 - gd.hangerAngle * 0.5;
+        gd.hangerSpeed = (gd.hangerSpeed + angularAcc * dt) * 0.95;
+        gd.hangerAngle += gd.hangerSpeed * dt;
+
+        if (Math.abs(gd.hangerAngle) > 0.45) { // Too much tilt -> collapse
+            gd.placed = [];
+            gd.hangerAngle = 0;
+            gd.hangerSpeed = 0;
+            this.triggerShake(15);
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+    drawEma() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shrine hook frame
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(400, 50); ctx.lineTo(400, 100); ctx.stroke();
+
+        ctx.save();
+        ctx.translate(400, 100);
+        ctx.rotate(gd.hangerAngle);
+
+        // Hanger balance beam
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+
+        // Hooks on beam
+        ctx.fillStyle = '#111';
+        for (let x = -160; x <= 160; x += 80) {
+            ctx.beginPath(); ctx.arc(x, 10, 6, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Draw placed Emas
+        gd.placed.forEach(e => {
+            ctx.save();
+            ctx.translate(e.x - 400, 15);
+            ctx.fillStyle = '#ffecb3';
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-30, 0, 60, 45);
+            ctx.strokeRect(-30, 0, 60, 45);
+            ctx.fillStyle = '#000000';
+            ctx.font = 'bold 12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(e.label, 0, 25);
+            ctx.restore();
+        });
+
+        ctx.restore();
+
+        // Dropping preview ema
+        ctx.fillStyle = 'rgba(255, 236, 179, 0.6)';
+        ctx.fillRect(gd.cursorX - 30, 150, 60, 45);
+
+        // Tilt limit safety gauges
+        ctx.strokeStyle = '#d32f2f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(400, 100, 220, Math.PI - 0.45, Math.PI + 0.45);
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Tablillas colgadas: ${gd.placed.length}/4`, 30, 560);
+        ctx.textAlign = 'center';
+        ctx.fillText('Cuelga las tablillas de deseos balanceando el peso a izquierda y derecha', 400, 520);
+    },
+    inputEmaPress(x, y) {
+        const gd = this.gameData;
+        if (gd.placed.length < 4) {
+            const labels = ['福 (Suerte)', '寿 (Salud)', '禄 (Riqueza)', '愛 (Amor)'];
+            const w = 15 + Math.random() * 20; // Random weights
+            gd.placed.push({
+                x: x,
+                weight: w,
+                label: labels[gd.placed.length]
+            });
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.score = Math.round((gd.placed.length / 4) * 100);
+            if (gd.placed.length === 4) this.win();
+        }
+    },
+
+    // 13. day_18_crepe: Crepe de Harajuku (Esparcido concéntrico, doblado y apilamiento con centro de masa)
+    setupCrepe() {
+        this.gameData = {
+            step: 'batter', // 'batter', 'fold', 'stack'
+            batterProgress: 0,
+            foldCount: 0,
+            crepeX: 400,
+            toppings: [],
+            stacked: [],
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCrepe(dt) {
+        const gd = this.gameData;
+        if (gd.step === 'batter') {
+            if (this.mouse.isDown) {
+                const dist = Math.hypot(this.mouse.x - 400, this.mouse.y - 300);
+                if (dist < 150) {
+                    gd.batterProgress += dt * 38;
+                    if (gd.batterProgress >= 100) {
+                        gd.step = 'fold';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                }
+            }
+        } else if (gd.step === 'fold') {
+            // Requires swiping left and right
+        } else if (gd.step === 'stack') {
+            gd.crepeX = lerp(gd.crepeX, this.mouse.x, 0.15);
+            if (gd.crepeX < 120) gd.crepeX = 120;
+            if (gd.crepeX > 680) gd.crepeX = 680;
+
+            // Spawn dynamic toppings
+            if (Math.random() < 0.05) {
+                const isGood = Math.random() < 0.75;
+                const items = isGood ? ['🍓', '🍦', '🍨', '🍫'] : ['🗑️', '🐟'];
+                gd.toppings.push({
+                    x: 150 + Math.random() * 500,
+                    y: 0,
+                    vy: 200 + Math.random() * 100,
+                    emoji: items[Math.floor(Math.random() * items.length)],
+                    isGood: isGood
+                });
+            }
+
+            // Top stack height calculation
+            gd.toppings.forEach((top, idx) => {
+                top.y += top.vy * dt;
+                const stackY = 460 - gd.stacked.length * 15;
+                if (Math.abs(top.y - stackY) < 18 && Math.abs(top.x - gd.crepeX) < 45) {
+                    gd.toppings.splice(idx, 1);
+                    if (top.isGood) {
+                        gd.stacked.push({ emoji: top.emoji });
+                        this.score = Math.round((gd.stacked.length / 15) * 100);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        if (gd.stacked.length >= 15) this.win();
+                    } else {
+                        gd.lives--;
+                        gd.stacked = gd.stacked.slice(0, Math.max(0, gd.stacked.length - 2));
+                        this.triggerShake(12);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            });
+            gd.toppings = gd.toppings.filter(t => t.y < 600);
+        }
+    },
+    drawCrepe() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cute pink design
+        ctx.fillStyle = '#fce4ec';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (gd.step === 'batter') {
+            ctx.fillStyle = '#eceff1';
+            ctx.beginPath(); ctx.arc(400, 300, 160, 0, Math.PI * 2); ctx.fill();
+            
+            // Raw yellow batter expanding
+            ctx.fillStyle = '#fff9c4';
+            ctx.beginPath(); ctx.arc(400, 300, 1.6 * gd.batterProgress, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Paso 1: Arrastra en círculos para esparcir la masa del Crepe', 400, 80);
+        } else if (gd.step === 'fold') {
+            ctx.fillStyle = '#fff9c4';
+            ctx.beginPath();
+            ctx.moveTo(300, 450); ctx.lineTo(500, 450); ctx.lineTo(400, 200);
+            ctx.closePath(); ctx.fill();
+
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Paso 2: Desliza horizontalmente para doblar el crepe', 400, 80);
+        } else if (gd.step === 'stack') {
+            // Draw crepe cone
+            ctx.fillStyle = '#ffe082';
+            ctx.strokeStyle = '#c2185b';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(gd.crepeX - 35, 480);
+            ctx.lineTo(gd.crepeX + 35, 480);
+            ctx.lineTo(gd.crepeX, 550);
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+
+            // Draw stack
+            gd.stacked.forEach((st, idx) => {
+                ctx.font = '26px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(st.emoji, gd.crepeX + (idx % 2 === 0 ? 5 : -5), 470 - idx * 15);
+            });
+
+            // Falling toppings
+            gd.toppings.forEach(t => {
+                ctx.font = '28px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(t.emoji, t.x, t.y);
+            });
+
+            // HUD
+            ctx.fillStyle = '#c2185b';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Dulces: ${gd.stacked.length}/15`, 30, 40);
+            ctx.textAlign = 'right';
+            ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+        }
+    },
+    inputCrepePress(x, y) {
+        const gd = this.gameData;
+        if (gd.step === 'fold') {
+            gd.foldCount++;
+            if (window.playProceduralSound) playProceduralSound('click');
+            if (gd.foldCount >= 3) {
+                gd.step = 'stack';
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+    releaseCrepe() {},
+
+    // 14. day_18_radio: Intercepción de Radio (Filtro de Ruido de Audio)
+    setupRadio() {
+        this.gameData = {
+            freq: 12,
+            amp: 40,
+            phase: 0,
+            targetFreq: 33,
+            targetAmp: 110,
+            targetPhase: 160,
+            lockTimer: 0,
+            draggingDial: null
+        };
+        this.score = 0;
+    },
+    updateRadio(dt) {
+        const gd = this.gameData;
+        if (gd.draggingDial) {
+            const cx = gd.draggingDial === 'F' ? 180 : (gd.draggingDial === 'A' ? 400 : 620);
+            const cy = 480;
+            const angle = Math.atan2(this.mouse.y - cy, this.mouse.x - cx) * 180 / Math.PI + 90;
+            const norm = (angle + 360) % 360;
+
+            if (gd.draggingDial === 'F') gd.freq = 5 + (norm / 360) * 55;
+            if (gd.draggingDial === 'A') gd.amp = 20 + (norm / 360) * 160;
+            if (gd.draggingDial === 'P') gd.phase = norm;
+        }
+
+        const diffF = Math.abs(gd.freq - gd.targetFreq);
+        const diffA = Math.abs(gd.amp - gd.targetAmp);
+        const diffP = Math.abs(gd.phase - gd.targetPhase);
+
+        if (diffF < 3 && diffA < 12 && diffP < 15) {
+            gd.lockTimer += dt;
+            this.score = Math.min(100, Math.round((gd.lockTimer / 2.0) * 100));
+            if (gd.lockTimer >= 2.0) this.win();
+        } else {
+            gd.lockTimer = Math.max(0, gd.lockTimer - dt * 25);
+        }
+    },
+    drawRadio() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1c2833';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // CRT Screen
+        ctx.fillStyle = '#0b1611';
+        ctx.fillRect(100, 40, 600, 300);
+
+        // Signal grid
+        ctx.strokeStyle = 'rgba(0, 230, 118, 0.08)';
+        ctx.lineWidth = 1;
+        for (let x = 100; x <= 700; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, 340); ctx.stroke();
+        }
+
+        // Target Wave (Red)
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 4) {
+            const y = 190 + Math.sin((x * gd.targetFreq) / 100 + (gd.targetPhase * Math.PI / 180)) * gd.targetAmp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Player Wave (Green)
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#2ecc71';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let x = 100; x <= 700; x += 4) {
+            const y = 190 + Math.sin((x * gd.freq) / 100 + (gd.phase * Math.PI / 180)) * gd.amp * 0.5;
+            if (x === 100) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        const dials = ['F', 'A', 'P'];
+        const values = [gd.freq, gd.amp, gd.phase];
+        const limits = [55, 160, 360];
+        const labels = ['Frecuencia', 'Amplitud', 'Fase'];
+        for (let i = 0; i < 3; i++) {
+            const cx = 180 + i * 220;
+            const cy = 480;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+            ctx.rotate((values[i] / limits[i]) * Math.PI * 2);
+            ctx.fillStyle = '#2ecc71';
+            ctx.fillRect(-3, -38, 6, 20);
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], cx, 550);
+        }
+
+        // Lock progress
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 360, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 360, gd.lockTimer * 100, 15);
+    },
+    inputRadioPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 180, y - 480) < 45) gd.draggingDial = 'F';
+        if (Math.hypot(x - 400, y - 480) < 45) gd.draggingDial = 'A';
+        if (Math.hypot(x - 620, y - 480) < 45) gd.draggingDial = 'P';
+        if (gd.draggingDial && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseRadio() {
+        this.gameData.draggingDial = null;
+    },
+
+    // 15. day_18_trend: Cazatendencias (Enfoque de Cámara Réflex)
+    setupTrend() {
+        this.gameData = {
+            targetTrend: 'Lolita Rosa',
+            photoCount: 0,
+            models: [],
+            spawnTimer: 0,
+            focusLevel: 1.0,
+            targetFocus: 2.0,
+            draggingSlider: false
+        };
+        this.score = 0;
+    },
+    updateTrend(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            const trends = ['Lolita Rosa', 'Cyberpunk Visor', 'Kitsch Retro'];
+            gd.models.push({
+                x: -50,
+                y: 300,
+                vx: 140 + Math.random() * 60,
+                style: trends[Math.floor(Math.random() * 3)]
+            });
+        }
+
+        gd.models.forEach(m => {
+            m.x += m.vx * dt;
+        });
+        gd.models = gd.models.filter(m => m.x < 850);
+
+        if (gd.draggingSlider) {
+            const relX = (this.mouse.x - 250) / 300;
+            gd.focusLevel = 1.0 + Math.max(0, Math.min(1, relX)) * 2.0; // Focus range 1.0 to 3.0
+        }
+    },
+    drawTrend() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background street
+        ctx.fillStyle = '#eceff1';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Blurring effect simulator based on focus error
+        const focusError = Math.abs(gd.focusLevel - gd.targetFocus);
+        ctx.save();
+        if (focusError > 0.15) {
+            ctx.filter = `blur(${focusError * 12}px)`;
+        }
+
+        // Draw shops facade
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(50, 80, 700, 160);
+
+        // Draw walking models
+        gd.models.forEach(m => {
+            ctx.fillStyle = m.style === 'Lolita Rosa' ? '#ec407a' : (m.style === 'Cyberpunk Visor' ? '#00e5ff' : '#ffd700');
+            ctx.beginPath(); ctx.arc(m.x, m.y, 24, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.restore();
+
+        // Viewfinder lines (HUD above blur)
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(300, 200, 200, 200);
+
+        // Draw slider for Focus adjustment
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 520, 300, 8);
+        const sliderX = 250 + ((gd.focusLevel - 1.0) / 2.0) * 300;
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(sliderX, 524, 10, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Calibración del Objetivo: Enfoque ${gd.focusLevel.toFixed(1)}x / 2.0x`, 400, 500);
+
+        // HUD
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Objetivo: ${gd.targetTrend}`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Fotos: ${gd.photoCount}/5`, 770, 40);
+    },
+    inputTrendPress(x, y) {
+        const gd = this.gameData;
+        if (y > 500 && y < 550 && x > 230 && x < 570) {
+            gd.draggingSlider = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else {
+            let hit = false;
+            gd.models.forEach((m, idx) => {
+                // Focus must be sharp (low error) to take a valid photo
+                const focusError = Math.abs(gd.focusLevel - gd.targetFocus);
+                if (focusError < 0.25 && m.x > 300 && m.x < 500 && m.y > 200 && m.y < 400) {
+                    hit = true;
+                    gd.models.splice(idx, 1);
+                    if (m.style === gd.targetTrend) {
+                        gd.photoCount++;
+                        this.score = Math.round((gd.photoCount / 5) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.photoCount >= 5) {
+                            this.win();
+                        } else {
+                            const list = ['Lolita Rosa', 'Cyberpunk Visor', 'Kitsch Retro'];
+                            gd.targetTrend = list[Math.floor(Math.random() * list.length)];
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        this.triggerShake(10);
+                    }
+                }
+            });
+            if (!hit && window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseTrend() {
+        this.gameData.draggingSlider = false;
+    },
+
+    // 16. day_18_flow: Flujo del Cruce (Controlador del Scramble)
+    setupFlow18() {
+        this.gameData = {
+            pedestrians: [],
+            cars: [],
+            lightGreen: true,
+            pEscaped: 0,
+            cEscaped: 0,
+            spawnTimer: 0,
+            lives: 3,
+            impatience: 0
+        };
+        this.score = 0;
+    },
+    updateFlow18(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            if (Math.random() < 0.65) {
+                gd.pedestrians.push({ x: 120 + Math.random() * 560, y: 0, vy: 70 + Math.random() * 40 });
+            } else {
+                gd.cars.push({ x: -80, y: 300 + (Math.random() - 0.5) * 50, vx: 180 + Math.random() * 80 });
+            }
+        }
+
+        // Increase impatience if red lights are held too long
+        if (!gd.lightGreen) {
+            gd.impatience = Math.min(100, gd.impatience + dt * 10);
+            if (gd.impatience >= 100) {
+                // Pedestrians start crossing illegally!
+                gd.lightGreen = true;
+                gd.impatience = 0;
+            }
+        } else {
+            gd.impatience = Math.max(0, gd.impatience - dt * 15);
+        }
+
+        gd.pedestrians.forEach((p, idx) => {
+            if (gd.lightGreen) {
+                p.y += p.vy * dt;
+                if (p.y >= 500) {
+                    gd.pedestrians.splice(idx, 1);
+                    gd.pEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                }
+            }
+        });
+
+        gd.cars.forEach((c, idx) => {
+            if (!gd.lightGreen || c.x < 280 || c.x > 520) {
+                c.x += c.vx * dt;
+                if (c.x >= 850) {
+                    gd.cars.splice(idx, 1);
+                    gd.cEscaped++;
+                    this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
+                    if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                }
+            }
+
+            // Hit box
+            gd.pedestrians.forEach((p, pIdx) => {
+                if (Math.hypot(c.x - p.x, c.y - p.y) < 32) {
+                    gd.pedestrians.splice(pIdx, 1);
+                    gd.lives--;
+                    this.triggerShake(14);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            });
+        });
+    },
+    drawFlow18() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Zebra lines
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 9; i++) {
+            ctx.fillRect(160 + i * 55, 140, 25, 320);
+        }
+
+        gd.pedestrians.forEach(p => {
+            ctx.fillStyle = '#81c784';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+        });
+
+        gd.cars.forEach(c => {
+            ctx.fillStyle = '#e53935';
+            ctx.fillRect(c.x - 22, c.y - 12, 44, 24);
+        });
+
+        // Controller light node
+        ctx.fillStyle = gd.lightGreen ? '#4caf50' : '#f44336';
+        ctx.fillRect(340, 490, 120, 40);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.lightGreen ? 'PEATONES' : 'VEHÍCULOS', 400, 515);
+
+        // Impatience meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 470, 300, 8);
+        ctx.fillStyle = '#ff9100';
+        ctx.fillRect(250, 470, 3 * gd.impatience, 8);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Peatones: ${gd.pEscaped}/50  Coches: ${gd.cEscaped}/15`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputFlow18Press(x, y) {
+        const gd = this.gameData;
+        if (x > 340 && x < 460 && y > 490 && y < 530) {
+            gd.lightGreen = !gd.lightGreen;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_18_silence: Silencio en la Ciudad (Laberinto acústico con reflexión y absorción)
+    setupSilence() {
+        this.gameData = {
+            noise: 80,
+            bubbles: [],
+            trees: [],
+            spawnTimer: 0,
+            calmTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.5;
+            gd.bubbles.push({
+                x: 0,
+                y: 120 + Math.random() * 350,
+                vx: 180 + Math.random() * 60,
+                vy: (Math.random() - 0.5) * 40,
+                r: 14
+            });
+        }
+
+        gd.bubbles.forEach((b, idx) => {
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+
+            // Reflect on stone walls / absorb on hedges
+            gd.trees.forEach(t => {
+                if (Math.hypot(b.x - t.x, b.y - t.y) < t.r) {
+                    if (t.type === 'hedge') {
+                        // Absorbed
+                        gd.bubbles.splice(idx, 1);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                    } else if (t.type === 'stone') {
+                        // Bounce reflect
+                        const angle = Math.atan2(b.y - t.y, b.x - t.x);
+                        b.vx = Math.cos(angle) * 200;
+                        b.vy = Math.sin(angle) * 200;
+                        b.x = t.x + Math.cos(angle) * (t.r + 2);
+                        b.y = t.y + Math.sin(angle) * (t.r + 2);
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            });
+
+            if (b.x >= 710) {
+                gd.bubbles.splice(idx, 1);
+                gd.noise = Math.min(100, gd.noise + 12);
+                this.triggerShake(6);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+
+        gd.noise = Math.max(0, gd.noise - dt * 8);
+
+        if (gd.noise < 12) {
+            gd.calmTimer += dt;
+            this.score = Math.min(100, Math.round((gd.calmTimer / 5.0) * 100));
+            if (gd.calmTimer >= 5.0) this.win();
+        } else {
+            gd.calmTimer = 0;
+            this.score = 0;
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Shrine inner sanctuary gate
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(720, 100, 20, 400);
+
+        // Barriers
+        gd.trees.forEach(t => {
+            if (t.type === 'hedge') {
+                ctx.fillStyle = 'rgba(76, 175, 80, 0.2)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#2e7d32';
+                ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI * 2); ctx.fill();
+            } else {
+                ctx.fillStyle = 'rgba(144, 164, 174, 0.3)';
+                ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#546e7a';
+                ctx.beginPath(); ctx.arc(t.x, t.y, 16, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // Sound wave bubbles
+        ctx.fillStyle = 'rgba(244, 67, 54, 0.45)';
+        ctx.strokeStyle = '#f44336';
+        ctx.lineWidth = 2;
+        gd.bubbles.forEach(b => {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Noise meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 25, 400, 20);
+        ctx.fillStyle = gd.noise > 50 ? '#f44336' : '#00ff99';
+        ctx.fillRect(200, 25, 4 * gd.noise, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Volumen de Ruido: ${Math.round(gd.noise)}%`, 400, 75);
+        ctx.fillText('Haz click en el mapa: Planta setos absorbedores o muros de piedra rebotantes', 400, 560);
+    },
+    inputSilencePress(x, y) {
+        const gd = this.gameData;
+        if (x < 650 && gd.trees.length < 6) {
+            const isHedge = Math.random() < 0.5;
+            gd.trees.push({
+                x: x,
+                y: y,
+                r: isHedge ? 80 : 50,
+                type: isHedge ? 'hedge' : 'stone'
+            });
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 18. day_18_crossing: Cruzando Shibuya (Formación familiar de escolta con control de paso)
+    setupCrossing() {
+        this.gameData = {
+            familyX: 150,
+            familyY: 500,
+            formation: 'tight', // 'tight', 'spread'
+            crowd: [],
+            spawnTimer: 0,
+            invulnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrossing(dt) {
+        const gd = this.gameData;
+        gd.familyX = lerp(gd.familyX, this.mouse.x, 0.08);
+        gd.familyY = lerp(gd.familyY, this.mouse.y, 0.08);
+
+        if (gd.familyX < 150) gd.familyX = 150;
+        if (gd.familyX > 650) gd.familyX = 650;
+        if (gd.familyY < 80) gd.familyY = 80;
+        if (gd.familyY > 520) gd.familyY = 520;
+
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.4;
+            gd.crowd.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 140 + Math.random() * 80
+            });
+        }
+
+        // Click sets formation width
+        if (this.mouse.isDown) {
+            gd.formation = 'tight';
+        } else {
+            gd.formation = 'spread';
+        }
+
+        const width = gd.formation === 'tight' ? 18 : 35;
+
+        gd.crowd.forEach(p => {
+            p.y += p.vy * dt;
+            if (gd.invulnTimer <= 0 && Math.hypot(p.x - gd.familyX, p.y - gd.familyY) < (width + 15)) {
+                gd.familyY = Math.min(500, gd.familyY + 80); // Push back
+                gd.invulnTimer = 0.8;
+                this.triggerShake(10);
+                if (window.playProceduralSound) playProceduralSound('damage');
+            }
+        });
+        gd.crowd = gd.crowd.filter(p => p.y < 600);
+
+        if (gd.familyY <= 110) {
+            this.score = 100;
+            this.win();
+        } else {
+            this.score = Math.round(((500 - gd.familyY) / 390) * 100);
+        }
+    },
+    drawCrossing() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#455a64';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 11; i++) {
+            ctx.fillRect(160 + i * 45, 110, 22, 380);
+        }
+
+        ctx.fillStyle = '#cfd8dc';
+        gd.crowd.forEach(p => {
+            ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Target
+        ctx.fillStyle = 'rgba(0, 230, 118, 0.2)';
+        ctx.fillRect(150, 45, 500, 65);
+
+        // Draw Escorted Family based on formation
+        const w = gd.formation === 'tight' ? 14 : 32;
+        ctx.save();
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 12) % 2 === 0) {
+            ctx.globalAlpha = 0.4;
+        }
+
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath(); ctx.arc(gd.familyX, gd.familyY, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.familyX - w, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(gd.familyX + w, gd.familyY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Mantén pulsado para agrupar estrechamente a la familia y esquivar la multitud', 400, 560);
+    },
+    inputCrossingPress(x, y) {},
+

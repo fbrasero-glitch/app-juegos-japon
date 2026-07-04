@@ -1,0 +1,1119 @@
+// MINIJUEGOS DEL DIA 16
+// Métodos extraídos de games.js para NotebookLM
+
+    // DIA 16 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 46. day_16_cat: Linterna del Neko
+    setupCat() {
+        this.gameData = {
+            catX: 400,
+            catY: 300,
+            showTimer: 1.5,
+            found: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateCat(dt) {
+        const gd = this.gameData;
+        gd.showTimer -= dt;
+        if (gd.showTimer <= 0) {
+            gd.catX = 100 + Math.random() * 600;
+            gd.catY = 120 + Math.random() * 320;
+            gd.showTimer = 1.4 + Math.random() * 0.8;
+        }
+    },
+    drawCat() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#070a14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(255, 0, 128, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(100, 100); ctx.lineTo(0, 50);
+        ctx.moveTo(700, 600); ctx.lineTo(700, 120); ctx.lineTo(800, 70);
+        ctx.stroke();
+
+        const dist = Math.hypot(gd.catX - this.mouse.x, gd.catY - this.mouse.y);
+        const visibility = Math.max(0, 1.0 - dist / 110);
+
+        if (visibility > 0) {
+            ctx.save();
+            ctx.globalAlpha = visibility;
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🐈‍⬛', gd.catX, gd.catY + 15);
+            ctx.restore();
+        }
+
+        ctx.save();
+        const beam = ctx.createRadialGradient(this.mouse.x, this.mouse.y, 10, this.mouse.x, this.mouse.y, 110);
+        beam.addColorStop(0, 'rgba(255, 255, 200, 0.25)');
+        beam.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.arc(this.mouse.x, this.mouse.y, 110, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('LINTERNA DEL NEKO: ENCUENTRA AL GATO', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Mueve la linterna y toca al gato negro antes de que se esconda.', 400, 560);
+        
+        ctx.textAlign = 'left';
+        ctx.fillText(`Gatos Encontrados: ${gd.found}/${this.goal}`, 30, 45);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 45);
+    },
+    inputCatPress(x, y) {
+        const gd = this.gameData;
+        const dist = Math.hypot(gd.catX - x, gd.catY - y);
+        const beamDist = Math.hypot(gd.catX - this.mouse.x, gd.catY - this.mouse.y);
+        
+        if (dist < 45 && beamDist < 100) {
+            gd.found++;
+            this.score = Math.round((gd.found / this.goal) * 100);
+            this.createExplosion(gd.catX, gd.catY, '#ffb300', 15);
+            if (window.playProceduralSound) playProceduralSound('collect');
+            
+            gd.catX = 100 + Math.random() * 600;
+            gd.catY = 120 + Math.random() * 320;
+            gd.showTimer = 1.4 + Math.random() * 0.8;
+
+            if (gd.found >= this.goal) {
+                setTimeout(() => this.victory(), 500);
+            }
+        } else {
+            gd.lives--;
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(8);
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    releaseCat() {},
+
+    // 47. day_16_skyscraper: Ascensor de la Torre
+    setupSkyscraper() {
+        this.gameData = {
+            liftX: 400,
+            floor: 0,
+            vx: 0,
+            wind: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSkyscraper(dt) {
+        const gd = this.gameData;
+        gd.floor += dt * 4;
+        this.score = Math.min(100, Math.round((gd.floor / this.goal) * 100));
+
+        if (gd.floor >= this.goal) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+            return;
+        }
+
+        gd.wind = Math.sin(this.gameTime * 2.2) * 220;
+        gd.vx += gd.wind * dt;
+        gd.vx *= 0.94;
+        gd.liftX += gd.vx * dt;
+
+        const offset = Math.abs(gd.liftX - 400);
+        if (offset > 120) {
+            this.triggerShake(5);
+            if (window.playProceduralSound && Math.random() < 0.15) playProceduralSound('damage');
+            gd.lives -= dt * 1.2;
+            if (gd.lives <= 0) this.gameOver();
+        }
+    },
+    drawSkyscraper() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#020024');
+        grad.addColorStop(1, '#090979');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#03031e';
+        ctx.fillRect(100, 200, 140, 400);
+        ctx.fillRect(560, 150, 160, 450);
+
+        ctx.fillStyle = '#00f5ff33';
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 3; c++) {
+                ctx.fillRect(120 + c * 35, 230 + r * 60, 20, 30);
+                ctx.fillRect(580 + c * 40, 180 + r * 70, 25, 40);
+            }
+        }
+
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(400, 0);
+        ctx.lineTo(400, 600);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(0, 255, 100, 0.15)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(280, 0); ctx.lineTo(280, 600);
+        ctx.moveTo(520, 0); ctx.lineTo(520, 600);
+        ctx.stroke();
+
+        ctx.strokeStyle = gd.wind > 0 ? '#ff174444' : '#00e5ff44';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 4; i++) {
+            const wy = 150 + i * 110;
+            const wx = (this.gameTime * gd.wind) % 900 - 50;
+            ctx.beginPath();
+            ctx.moveTo(wx, wy);
+            ctx.lineTo(wx + 80, wy);
+            ctx.stroke();
+        }
+
+        const offset = Math.abs(gd.liftX - 400);
+        ctx.fillStyle = offset > 100 ? '#ff1744' : '#00e5ff';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.fillRect(gd.liftX - 35, 280, 70, 70);
+        ctx.strokeRect(gd.liftX - 35, 280, 70, 70);
+
+        ctx.fillStyle = '#11111188';
+        ctx.fillRect(gd.liftX - 30, 290, 25, 50);
+        ctx.fillRect(gd.liftX + 5, 290, 25, 50);
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(40, 480, 120, 60);
+        ctx.fillRect(640, 480, 120, 60);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('◀ IZQ', 100, 518);
+        ctx.fillText('DER ▶', 700, 518);
+
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('ASCENSOR DE LA TORRE: ESTABILIZACIÓN', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca IZQ o DER para contrarrestar las ráfagas de viento y seguir en el raíl.', 400, 570);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Piso: ${Math.round(gd.floor)}/${this.goal}F`, 400, 95);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(Math.ceil(gd.lives))}`, 770, 95);
+    },
+    inputSkyscraperPress(x, y) {
+        const gd = this.gameData;
+        if (x < 300) {
+            gd.vx -= 190;
+            if (window.playProceduralSound) playProceduralSound('jump');
+            this.createExplosion(100, 510, '#00e5ff', 8);
+        } else if (x > 500) {
+            gd.vx += 190;
+            if (window.playProceduralSound) playProceduralSound('jump');
+            this.createExplosion(700, 510, '#00e5ff', 8);
+        }
+    },
+    releaseSkyscraper() {},
+
+    // 48. day_16_colors: Mezclador de Neón
+    setupColors() {
+        this.gameData = {
+            targetR: 255, targetG: 0, targetB: 128,
+            curR: 128, curG: 128, curB: 128,
+            sliders: [50, 50, 50],
+            stage: 1,
+            colorNames: ['PÚRPURA NEÓN', 'VERDE AGUA', 'NARANJA CIBER']
+        };
+        this.score = 0;
+    },
+    updateColors(dt) {
+        const gd = this.gameData;
+
+        gd.curR = Math.round(gd.sliders[0] * 2.55);
+        gd.curG = Math.round(gd.sliders[1] * 2.55);
+        gd.curB = Math.round(gd.sliders[2] * 2.55);
+
+        const diffR = Math.abs(gd.curR - gd.targetR);
+        const diffG = Math.abs(gd.curG - gd.targetG);
+        const diffB = Math.abs(gd.curB - gd.targetB);
+
+        const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+        this.score = Math.round(((gd.stage - 1) / 3) * 100) + (aligned ? 15 : 0);
+
+        if (this.mouse.isDown && this.mouse.y > 440 && this.mouse.y < 520) {
+            for (let i = 0; i < 3; i++) {
+                const sx = 180 + i * 180;
+                if (Math.abs(this.mouse.x - sx) < 40) {
+                    gd.sliders[i] = Math.max(0, Math.min(100, (480 - this.mouse.y) / 2.5));
+                }
+            }
+        }
+    },
+    drawColors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0d0d1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#ffffff55';
+        ctx.fillStyle = `rgb(${gd.curR}, ${gd.curG}, ${gd.curB})`;
+        ctx.beginPath();
+        ctx.moveTo(350, 160);
+        ctx.lineTo(380, 200);
+        ctx.lineTo(380, 280);
+        ctx.lineTo(340, 320);
+        ctx.lineTo(460, 320);
+        ctx.lineTo(420, 280);
+        ctx.lineTo(420, 200);
+        ctx.lineTo(450, 160);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = `rgb(${gd.targetR}, ${gd.targetG}, ${gd.targetB})`;
+        ctx.fillRect(560, 160, 160, 80);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(560, 160, 160, 80);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('COLOR OBJETIVO', 640, 140);
+        ctx.fillText(gd.colorNames[gd.stage - 1], 640, 270);
+
+        const sliderColors = ['#ff1744', '#00e676', '#2979ff'];
+        const labels = ['RED', 'GREEN', 'BLUE'];
+
+        for (let i = 0; i < 3; i++) {
+            const sx = 180 + i * 180;
+            ctx.strokeStyle = '#424242';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(sx, 230);
+            ctx.lineTo(sx, 480);
+            ctx.stroke();
+
+            const knobY = 480 - gd.sliders[i] * 2.5;
+            ctx.fillStyle = sliderColors[i];
+            ctx.beginPath();
+            ctx.arc(sx, knobY, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(labels[i], sx, 515);
+        }
+
+        const diffR = Math.abs(gd.curR - gd.targetR);
+        const diffG = Math.abs(gd.curG - gd.targetG);
+        const diffB = Math.abs(gd.curB - gd.targetB);
+        const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+
+        ctx.fillStyle = aligned ? '#00e676' : '#546e7a';
+        ctx.fillRect(320, 530, 160, 45);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText('¡MEZCLAR!', 400, 558);
+
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('MEZCLADOR DE NEÓN: SINTONÍA RGB', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Ajusta los sliders RGB para replicar el color del panel superior derecho.', 400, 105);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Fase: ${gd.stage}/3`, 120, 190);
+    },
+    inputColorsPress(x, y) {
+        const gd = this.gameData;
+        if (x > 320 && x < 480 && y > 530 && y < 575) {
+            const diffR = Math.abs(gd.curR - gd.targetR);
+            const diffG = Math.abs(gd.curG - gd.targetG);
+            const diffB = Math.abs(gd.curB - gd.targetB);
+            const aligned = diffR < 25 && diffG < 25 && diffB < 25;
+
+            if (aligned) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 240, `rgb(${gd.targetR}, ${gd.targetG}, ${gd.targetB})`, 25);
+                gd.stage++;
+                if (gd.stage > 3) {
+                    this.score = 100;
+                    setTimeout(() => this.victory(), 500);
+                } else {
+                    if (gd.stage === 2) {
+                        gd.targetR = 0; gd.targetG = 220; gd.targetB = 220;
+                    } else {
+                        gd.targetR = 255; gd.targetG = 140; gd.targetB = 0;
+                    }
+                    gd.sliders = [40, 50, 60];
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('error');
+                this.triggerShake(10);
+            }
+        }
+    },
+    releaseColors() {},
+
+    // 49. day_16_traffic: Paso de Cebra de Shibuya
+    setupTraffic() {
+        this.gameData = {
+            pedestrians: [
+                { y: 550, speed: 60, targetX: 200, active: true },
+                { y: 550, speed: 45, targetX: 300, active: true },
+                { y: 550, speed: 50, targetX: 400, active: true },
+                { y: 550, speed: 55, targetX: 500, active: true },
+                { y: 550, speed: 40, targetX: 600, active: true }
+            ],
+            cars: [],
+            lightTimer: 4.0,
+            signal: 'red',
+            crossed: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTraffic(dt) {
+        const gd = this.gameData;
+
+        gd.lightTimer -= dt;
+        if (gd.lightTimer <= 0) {
+            if (gd.signal === 'red') {
+                gd.signal = 'green';
+                gd.lightTimer = 5.0;
+            } else {
+                gd.signal = 'red';
+                gd.lightTimer = 4.0;
+            }
+        }
+
+        if (gd.signal === 'green') {
+            gd.spawnTimer -= dt;
+            if (gd.spawnTimer <= 0) {
+                gd.spawnTimer = 1.0 + Math.random() * 0.8;
+                gd.cars.push({
+                    x: Math.random() < 0.5 ? -100 : 900,
+                    y: 200 + Math.floor(Math.random() * 2) * 80,
+                    vx: 240,
+                    dir: Math.random() < 0.5 ? 1 : -1,
+                    active: true
+                });
+            }
+        }
+
+        gd.cars.forEach(car => {
+            car.x += car.vx * car.dir * dt;
+        });
+        gd.cars = gd.cars.filter(car => car.x > -150 && car.x < 950);
+
+        gd.pedestrians.forEach((p, idx) => {
+            if (!p.active) return;
+
+            if (gd.signal === 'red' || p.speed > 80) {
+                p.y -= p.speed * dt;
+            }
+
+            gd.cars.forEach(car => {
+                const dist = Math.hypot(p.targetX - car.x, p.y - car.y);
+                if (dist < 40) {
+                    p.y = 550;
+                    p.speed = 40 + Math.random() * 20;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.createExplosion(p.targetX, p.y, '#e53935', 10);
+                }
+            });
+
+            if (p.y <= 120) {
+                p.active = false;
+                gd.crossed++;
+                this.score = Math.round((gd.crossed / this.goal) * 100);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                this.createExplosion(p.targetX, p.y, '#00ff66', 15);
+                
+                if (gd.crossed >= this.goal) {
+                    setTimeout(() => this.victory(), 500);
+                } else {
+                    setTimeout(() => {
+                        gd.pedestrians[idx] = {
+                            y: 550,
+                            speed: 40 + Math.random() * 20,
+                            targetX: 150 + Math.random() * 500,
+                            active: true
+                        };
+                    }, 1000);
+                }
+            }
+        });
+    },
+    drawTraffic() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ffffff';
+        for (let x = 120; x < 700; x += 60) {
+            ctx.fillRect(x, 180, 30, 160);
+        }
+
+        ctx.fillStyle = '#546e7a';
+        ctx.fillRect(0, 0, 800, 140);
+        ctx.fillRect(0, 380, 800, 220);
+
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(720, 20, 60, 100);
+        
+        ctx.fillStyle = gd.signal === 'red' ? '#ff1744' : '#212121';
+        ctx.beginPath(); ctx.arc(750, 45, 18, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = gd.signal === 'green' ? '#00e676' : '#212121';
+        ctx.beginPath(); ctx.arc(750, 95, 18, 0, Math.PI*2); ctx.fill();
+
+        gd.cars.forEach(car => {
+            ctx.fillStyle = '#fbc02d';
+            ctx.fillRect(car.x - 40, car.y - 20, 80, 40);
+            ctx.strokeStyle = '#000000';
+            ctx.strokeRect(car.x - 40, car.y - 20, 80, 40);
+            
+            ctx.fillStyle = '#e0f7fa';
+            ctx.fillRect(car.x + (car.dir > 0 ? 15 : -30), car.y - 15, 15, 30);
+        });
+
+        gd.pedestrians.forEach(p => {
+            if (!p.active) return;
+            ctx.fillStyle = '#00e5ff';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(p.targetX, p.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('🏃', p.targetX, p.y + 4);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CRUCE DE SHIBUYA: TRAFICO URBANO', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca los peatones para acelerar su paso. Cruza solo con semáforo rojo (autos parados).', 400, 570);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Evacuados: ${gd.crossed}/${this.goal}`, 400, 95);
+    },
+    inputTrafficPress(x, y) {
+        const gd = this.gameData;
+        gd.pedestrians.forEach(p => {
+            if (p.active && Math.hypot(x - p.targetX, y - p.y) < 40) {
+                p.speed = 175;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseTraffic() {},
+
+    // 50. day_16_vortex: Filtro Temporal
+    setupVortex() {
+        this.gameData = {
+            curAngle: 0, targetAngle: 180,
+            curScale: 0.4, targetScale: 1.0,
+            curX: 200, targetX: 400,
+            curY: 150, targetY: 300,
+            sliders: [10, 20, 20, 20],
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateVortex(dt) {
+        const gd = this.gameData;
+
+        gd.curAngle = (gd.sliders[0] / 100) * 360;
+        gd.curScale = 0.3 + (gd.sliders[1] / 100) * 1.4;
+        gd.curX = gd.sliders[2] * 8;
+        gd.curY = gd.sliders[3] * 6;
+
+        const diffAngle = Math.abs(gd.curAngle - gd.targetAngle);
+        const diffScale = Math.abs(gd.curScale - gd.targetScale);
+        const diffX = Math.abs(gd.curX - gd.targetX);
+        const diffY = Math.abs(gd.curY - gd.targetY);
+
+        const error = (diffAngle / 180) + (diffScale / 1.0) + (diffX / 400) + (diffY / 300);
+        gd.accuracy = Math.max(0, Math.round(100 - (error * 55)));
+        this.score = gd.accuracy;
+
+        if (gd.accuracy >= 95) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+
+        if (this.mouse.isDown) {
+            for (let i = 0; i < 4; i++) {
+                const sx = 100 + i * 180;
+                if (Math.hypot(this.mouse.x - (sx + gd.sliders[i] * 1.2), this.mouse.y - 515) < 30) {
+                    gd.sliders[i] = Math.max(0, Math.min(100, (this.mouse.x - sx) / 1.2));
+                }
+            }
+        }
+    },
+    drawVortex() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#ffffff05';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(800, i); ctx.stroke();
+        }
+
+        ctx.save();
+        ctx.translate(gd.targetX, gd.targetY);
+        ctx.scale(gd.targetScale, gd.targetScale);
+        ctx.rotate((gd.targetAngle * Math.PI) / 180);
+
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-60, -80, 120, 160);
+        ctx.beginPath();
+        ctx.moveTo(-60, -80); ctx.lineTo(0, -140); ctx.lineTo(60, -80);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(gd.curX, gd.curY);
+        ctx.scale(gd.curScale, gd.curScale);
+        ctx.rotate((gd.curAngle * Math.PI) / 180);
+
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-60, -80, 120, 160);
+        ctx.beginPath();
+        ctx.moveTo(-90, -40); ctx.lineTo(90, -40);
+        ctx.moveTo(-90, 20); ctx.lineTo(90, 20);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.strokeStyle = '#ffffff44';
+        ctx.strokeRect(50, 80, 700, 340);
+
+        ctx.fillStyle = '#111118';
+        ctx.fillRect(0, 440, 800, 160);
+
+        const labels = ['ROTACIÓN', 'ESCALA', 'ALINEAR X', 'ALINEAR Y'];
+        for (let i = 0; i < 4; i++) {
+            const sx = 100 + i * 180;
+            ctx.fillStyle = '#212121';
+            ctx.fillRect(sx, 510, 120, 10);
+
+            ctx.fillStyle = '#ff1744';
+            ctx.beginPath();
+            ctx.arc(sx + gd.sliders[i] * 1.2, 515, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], sx + 60, 485);
+        }
+
+        ctx.fillStyle = gd.accuracy > 85 ? '#00e676' : '#ff1744';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`SINCRO FILTRO TEMPORAL: ${gd.accuracy}%`, 400, 435);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('FILTRO TEMPORAL: ANOMALÍA DE SHINJUKU', 400, 45);
+    },
+    inputVortexPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseVortex() {},
+
+    // 51. day_16_combat: Corte Kenjutsu
+    setupCombat() {
+        this.gameData = {
+            targetX1: 150, targetY1: 150,
+            targetX2: 650, targetY2: 380,
+            points: [],
+            slashed: 0,
+            goal: 10,
+            wasMouseDown: false
+        };
+        this.score = 0;
+    },
+    updateCombat(dt) {
+        const gd = this.gameData;
+
+        if (this.mouse.isDown) {
+            gd.points.push({ x: this.mouse.x, y: this.mouse.y });
+            if (gd.points.length > 25) gd.points.shift();
+        } else {
+            if (gd.wasMouseDown && gd.points.length > 3) {
+                let cutSuccess = false;
+                
+                const startPt = gd.points[0];
+                const endPt = gd.points[gd.points.length - 1];
+
+                const det = (gd.targetX2 - gd.targetX1) * (endPt.y - startPt.y) - (gd.targetY2 - gd.targetY1) * (endPt.x - startPt.x);
+                if (Math.abs(det) > 100) {
+                    const midTargetX = (gd.targetX1 + gd.targetX2) / 2;
+                    const midTargetY = (gd.targetY1 + gd.targetY2) / 2;
+                    const midSwipeX = (startPt.x + endPt.x) / 2;
+                    const midSwipeY = (startPt.y + endPt.y) / 2;
+
+                    if (Math.hypot(midTargetX - midSwipeX, midTargetY - midSwipeY) < 140) {
+                        cutSuccess = true;
+                    }
+                }
+
+                if (cutSuccess) {
+                    gd.slashed++;
+                    this.score = Math.round((gd.slashed / gd.goal) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(400, 260, '#ff1744', 20);
+
+                    if (gd.slashed >= gd.goal) {
+                        setTimeout(() => this.victory(), 500);
+                    } else {
+                        const sides = [
+                            { x1: 150, y1: 120, x2: 650, y2: 440 },
+                            { x1: 650, y1: 120, x2: 150, y2: 440 },
+                            { x1: 400, y1: 90, x2: 400, y2: 480 },
+                            { x1: 100, y1: 280, x2: 700, y2: 280 }
+                        ];
+                        const nextCut = sides[Math.floor(Math.random() * sides.length)];
+                        gd.targetX1 = nextCut.x1;
+                        gd.targetY1 = nextCut.y1;
+                        gd.targetX2 = nextCut.x2;
+                        gd.targetY2 = nextCut.y2;
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(5);
+                }
+
+                gd.points = [];
+            }
+        }
+
+        gd.wasMouseDown = this.mouse.isDown;
+    },
+    drawCombat() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#08000a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.shadowColor = '#ff1744';
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(gd.targetX1, gd.targetY1);
+        ctx.lineTo(gd.targetX2, gd.targetY2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(gd.targetX1, gd.targetY1, 10, 0, Math.PI * 2);
+        ctx.arc(gd.targetX2, gd.targetY2, 10, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (gd.points.length > 1) {
+            ctx.save();
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(gd.points[0].x, gd.points[0].y);
+            for (let i = 1; i < gd.points.length; i++) {
+                ctx.lineTo(gd.points[i].x, gd.points[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('KENJUTSU: ENTRENAMIENTO DE CORTE', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Desliza el dedo siguiendo y cortando la línea roja de neón.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`Cortes: ${gd.slashed}/${gd.goal}`, 400, 95);
+    },
+    inputCombatPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseCombat() {},
+
+    // 52. day_16_shinjuku: Escape de Shinjuku
+    setupShinjuku() {
+        this.gameData = {
+            playerX: 80,
+            playerY: 480,
+            goalX: 720,
+            goalY: 120,
+            crowds: [],
+            timer: 30,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateShinjuku(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+
+        if (gd.timer <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        this.score = Math.round(((30 - gd.timer) / 30) * 100);
+
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.15;
+        gd.playerY += (this.mouse.y - gd.playerY) * 0.15;
+        
+        gd.playerX = Math.max(30, Math.min(770, gd.playerX));
+        gd.playerY = Math.max(30, Math.min(570, gd.playerY));
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.3 + Math.random() * 0.25;
+            gd.crowds.push({
+                x: 400 + Math.random() * 400,
+                y: -30,
+                vy: 160 + Math.random() * 120,
+                r: 12 + Math.random() * 8
+            });
+        }
+
+        gd.crowds.forEach((c, idx) => {
+            c.y += c.vy * dt;
+            c.x -= 80 * dt;
+
+            const dist = Math.hypot(gd.playerX - c.x, gd.playerY - c.y);
+            if (dist < c.r + 14) {
+                gd.crowds.splice(idx, 1);
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.timer -= 1.8;
+            }
+        });
+        gd.crowds = gd.crowds.filter(c => c.y < 650 && c.x > -50);
+
+        if (Math.hypot(gd.playerX - gd.goalX, gd.playerY - gd.goalY) < 40) {
+            this.score = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            setTimeout(() => this.victory(), 500);
+        }
+    },
+    drawShinjuku() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#01579b';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#0288d1';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 30) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(800, i); ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgba(76,175,80,0.3)';
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(gd.goalX, gd.goalY, 40, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('EXIT GATE', gd.goalX, gd.goalY - 50);
+
+        gd.crowds.forEach(c => {
+            ctx.fillStyle = '#ff1744';
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        ctx.fillStyle = '#ffd600';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.playerX, gd.playerY, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('ESCAPE DE SHINJUKU: FLUJO PEATONAL', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Guía tu avatar amarillo hacia la salida verde esquivando las olas rojas.', 400, 560);
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText(`TIEMPO: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 95);
+    },
+    inputShinjukuPress(x, y) {},
+    releaseShinjuku() {},
+
+    // 53. day_16_density: Contador Shibuya
+    setupDensity() {
+        this.gameData = {
+            dots: [],
+            count: 0,
+            options: [],
+            timer: 3.5,
+            answered: false,
+            score: 0,
+            goal: 4,
+            spawnedCount: 0
+        };
+        
+        const count = 16 + Math.floor(Math.random() * 12);
+        this.gameData.count = count;
+        
+        for (let i = 0; i < count; i++) {
+            this.gameData.dots.push({
+                x: -30 - Math.random() * 200,
+                y: 150 + Math.random() * 280,
+                vx: 180 + Math.random() * 120,
+                r: 10,
+                color: '#00e5ff'
+            });
+        }
+        this.score = 0;
+    },
+    updateDensity(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+
+        if (gd.timer > 0) {
+            gd.dots.forEach(d => {
+                d.x += d.vx * dt;
+            });
+        } else if (!gd.answered && gd.options.length === 0) {
+            const correct = gd.count;
+            const opt1 = correct + 3 + Math.floor(Math.random() * 3);
+            const opt2 = Math.max(5, correct - 3 - Math.floor(Math.random() * 3));
+            
+            const arr = [correct, opt1, opt2];
+            arr.sort(() => Math.random() - 0.5);
+            gd.options = arr;
+        }
+    },
+    drawDensity() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#111118';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (gd.timer > 0) {
+            gd.dots.forEach(d => {
+                ctx.fillStyle = d.color;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`ESCANEO EN PROGRESO: ${Math.max(0, Math.ceil(gd.timer))}s`, 400, 300);
+        } else {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('¿Cuántos peatones cruzaron el paso de cebra?', 400, 200);
+
+            gd.options.forEach((opt, idx) => {
+                const bx = 160 + idx * 180;
+                const by = 280;
+
+                ctx.fillStyle = '#263238';
+                ctx.strokeStyle = '#ffd600';
+                ctx.lineWidth = 3;
+                ctx.fillRect(bx, by, 120, 60);
+                ctx.strokeRect(bx, by, 120, 60);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 24px monospace';
+                ctx.fillText(String(opt), bx + 60, by + 38);
+            });
+        }
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CENSADO URBANO: DENSIDAD SHIBUYA', 400, 45);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Rondas: ${gd.score}/${gd.goal}`, 400, 95);
+    },
+    inputDensityPress(x, y) {
+        const gd = this.gameData;
+        if (gd.timer <= 0 && !gd.answered) {
+            gd.options.forEach((opt, idx) => {
+                const bx = 160 + idx * 180;
+                const by = 280;
+
+                if (x > bx && x < bx + 120 && y > by && y < by + 60) {
+                    gd.answered = true;
+                    if (opt === gd.count) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / gd.goal) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        if (gd.score >= gd.goal) {
+                            setTimeout(() => this.victory(), 500);
+                        } else {
+                            setTimeout(() => {
+                                this.setupDensity();
+                            }, 800);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        this.triggerShake(12);
+                        setTimeout(() => {
+                            this.setupDensity();
+                        }, 800);
+                    }
+                }
+            });
+        }
+    },
+    releaseDensity() {},
+
+    // 54. day_16_tocho: Constelación de Tokio
+    setupTocho() {
+        this.gameData = {
+            stars: [
+                { x: 260, y: 420, idx: 0, connected: false },
+                { x: 260, y: 180, idx: 1, connected: false },
+                { x: 400, y: 260, idx: 2, connected: false },
+                { x: 540, y: 180, idx: 3, connected: false },
+                { x: 540, y: 420, idx: 4, connected: false }
+            ],
+            path: [],
+            currentIdx: 0
+        };
+        this.score = 0;
+    },
+    updateTocho(dt) {
+        const gd = this.gameData;
+
+        if (this.mouse.isDown) {
+            const nextTarget = gd.stars[gd.currentIdx];
+            const dist = Math.hypot(this.mouse.x - nextTarget.x, this.mouse.y - nextTarget.y);
+            
+            if (dist < 35) {
+                nextTarget.connected = true;
+                gd.path.push({ x: nextTarget.x, y: nextTarget.y });
+                gd.currentIdx++;
+                this.score = Math.round((gd.currentIdx / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                this.createExplosion(nextTarget.x, nextTarget.y, '#ffd600', 12);
+
+                if (gd.currentIdx >= 5) {
+                    setTimeout(() => this.victory(), 500);
+                }
+            }
+        } else {
+            if (gd.path.length > 0) {
+                gd.path = [];
+                gd.currentIdx = 0;
+                gd.stars.forEach(s => s.connected = false);
+                this.score = 0;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    drawTocho() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0b001a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#04000b';
+        ctx.beginPath();
+        ctx.moveTo(0, 600);
+        ctx.lineTo(200, 600); ctx.lineTo(200, 360); ctx.lineTo(340, 360); ctx.lineTo(340, 600);
+        ctx.lineTo(460, 600); ctx.lineTo(460, 360); ctx.lineTo(600, 360); ctx.lineTo(600, 600);
+        ctx.closePath();
+        ctx.fill();
+
+        if (gd.path.length > 1) {
+            ctx.strokeStyle = '#ffd600';
+            ctx.lineWidth = 5;
+            ctx.shadowColor = '#ffd600';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(gd.path[0].x, gd.path[0].y);
+            for (let i = 1; i < gd.path.length; i++) {
+                ctx.lineTo(gd.path[i].x, gd.path[i].y);
+            }
+            if (this.mouse.isDown) {
+                ctx.lineTo(this.mouse.x, this.mouse.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        gd.stars.forEach(s => {
+            ctx.fillStyle = s.connected ? '#ffd600' : '#ffffff';
+            ctx.shadowColor = '#ffffff';
+            ctx.shadowBlur = s.connected ? 15 : 5;
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('TOCHO STAR: CONSTELACIÓN METROPOLITANA', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Une las estrellas en orden arrastrando para trazar la estructura de la torre Tocho.', 400, 560);
+    },
+    inputTochoPress(x, y) {
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // ==========================================================
+    // DÍAS 17, 18 Y 19: DETALLE DE MINIJUEGOS PREMIUM (CANVAS)
+    // ==========================================================
+
+    // ==========================================================

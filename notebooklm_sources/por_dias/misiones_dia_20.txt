@@ -1,0 +1,392 @@
+// MISIONES DEL DIA 20
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_20 = {
+"day_20_bento": {
+        tag: "expert",
+        day: 20,
+        title: "Maestro del Bento",
+        role: "kid9",
+        xp: 25,
+        location: "Ueno",
+        render: () => `
+        <p class="mission-desc">Arrastra los 4 ingredientes a la caja Bento (usa el dedo suavemente).</p>
+        <div id="b2-box" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
+            <div class="b2-slot" data-acc="arroz" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="pescado" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="verdura" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+            <div class="b2-slot" data-acc="postre" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px; position:relative; touch-action:none;">
+            <div class="b2-item" data-type="pescado" style="font-size: 3rem; position:absolute; left:10px; z-index:10;">🐟</div>
+            <div class="b2-item" data-type="arroz" style="font-size: 3rem; position:absolute; left:80px; z-index:10;">🍚</div>
+            <div class="b2-item" data-type="postre" style="font-size: 3rem; position:absolute; left:150px; z-index:10;">🍳</div>
+            <div class="b2-item" data-type="verdura" style="font-size: 3rem; position:absolute; left:220px; z-index:10;">🥒</div>
+        </div>
+        <button id="btn-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px;">¡Itadakimasu!</button>
+    `,
+        attachEvents: () => {
+        const items = document.querySelectorAll('.b2-item'); const slots = document.querySelectorAll('.b2-slot'); const btn = document.getElementById('btn-ok');
+        let placed = 0; let active = null; let iX=0, iY=0, cX=0, cY=0;
+        const getXY = (e) => e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
+        
+        const move = (e) => { if(!active) return; e.preventDefault(); const {x,y} = getXY(e); active.style.transform = `translate(${cX+x-iX}px, ${cY+y-iY}px) scale(1.2)`; };
+        const end = (e) => {
+            if(!active) return; const {x,y} = getXY(e.changedTouches?e.changedTouches[0]:e); cX += x-iX; cY += y-iY;
+            let rect = active.getBoundingClientRect(); let c = {x:rect.left+rect.width/2, y:rect.top+rect.height/2};
+            let match = false;
+            slots.forEach(s => {
+                let sr = s.getBoundingClientRect();
+                if(c.x>sr.left && c.x<sr.right && c.y>sr.top && c.y<sr.bottom && s.dataset.acc === active.dataset.type && !s.dataset.f) {
+                    match=true; s.dataset.f='1'; s.innerHTML=active.innerHTML; s.style.fontSize='3rem'; s.style.borderColor='#f1c40f'; active.style.display='none'; placed++;
+                    if(placed===4) { btn.classList.remove('hidden'); launchConfetti(); }
+                }
+            });
+            if(!match) { cX=0; cY=0; active.style.transform='translate(0,0) scale(1)'; }
+            active.style.zIndex='10'; active=null;
+            document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', end); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end);
+        };
+        items.forEach(i => {
+            const start = (e) => {
+                e.preventDefault(); active=i; const {x,y}=getXY(e); iX=x; iY=y;
+                let m = active.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+                if(m) { cX=parseFloat(m[1]); cY=parseFloat(m[2]); } else { cX=0;cY=0; }
+                active.style.zIndex='100';
+                document.addEventListener('mousemove', move, {passive:false}); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', end);
+            };
+            i.addEventListener('mousedown', start); i.addEventListener('touchstart', start, {passive:false});
+        });
+        btn.addEventListener('click', () => submitMission('day_20_bento', {type:'game', data:'Bento completado'}));
+    }
+    },
+
+"day_20_potion": {
+        tag: "expert",
+        day: 20,
+        title: "Poción Gatuna",
+        role: "kid9",
+        xp: 20,
+        location: "Yanaka Ginza",
+        render: () => `
+        <p class="mission-desc">Escanea el código de barras de un snack y anota qué has encontrado.</p>
+        <div id="bc-box" style="width:100%; height:200px; background:#000; border:2px dashed #0f0; margin-bottom:10px; display:flex; justify-content:center; align-items:center; overflow:hidden; position:relative;">
+            <video id="bc-vid" autoplay playsinline style="width:100%; height:100%; object-fit:cover; display:none;"></video>
+            <div style="position:absolute; width:100%; height:2px; background:red; top:50%; box-shadow:0 0 10px red;"></div>
+            <p id="bc-stat" style="color:#0f0; position:absolute; z-index:10; background:rgba(0,0,0,0.5); padding:5px;">Iniciando...</p>
+        </div>
+        <input type="text" id="bc-man" placeholder="Código o nombre..." style="width:100%; margin-bottom:15px;">
+        <button id="btn" class="btn-primary" style="width:100%;">Enviar Datos al Juez</button>
+    `,
+        attachEvents: () => {
+        const vid = document.getElementById('bc-vid'); const stat = document.getElementById('bc-stat');
+        let stream = null; let scanning = true;
+        const start = async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                vid.srcObject = stream; vid.style.display = 'block'; stat.innerText = 'Escaneando...';
+                if ('BarcodeDetector' in window) {
+                    const detector = new window.BarcodeDetector();
+                    const scan = async () => {
+                        if(!scanning) return;
+                        try {
+                            const barcodes = await detector.detect(vid);
+                            if (barcodes.length > 0) {
+                                document.getElementById('bc-man').value = barcodes[0].rawValue;
+                                stat.innerText = '¡DETECTADO!'; stat.style.color = '#ff0'; scanning = false;
+                                if(stream) stream.getTracks().forEach(t=>t.stop());
+                            } else { requestAnimationFrame(scan); }
+                        } catch(e) { requestAnimationFrame(scan); }
+                    }; scan();
+                } else { stat.innerText = 'Escáner no soportado. Usa manual.'; }
+            } catch(e) { stat.innerText = 'Cámara no disponible.'; }
+        };
+        start();
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_20_potion', {type:'text', data: `Code/Nombre: ${document.getElementById('bc-man').value}`}));
+        window._missionCleanup = () => { scanning = false; if(stream) stream.getTracks().forEach(t=>t.stop()); };
+    }
+    },
+
+"day_20_pond": {
+        tag: "photo", day: 20, title: "El Pato del Estanque", role: "kid9", xp: 15, location: "Ueno",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🦆 El parque de Ueno tiene un enorme estanque lleno de lotos y patos. Tu misión de exploradora: fotografiar el pato más gracioso o el loto más bonito que encuentres.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#006400,#228B22,#90EE90); border-radius:15px;">
+            <p style="font-size:3rem;">🦆🪷💚</p>
+            <p style="color:#fff; font-style:italic;">La naturaleza en medio de la ciudad</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Vida del Estanque</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_20_pond', currentUser, false); }
+    },
+
+    "day_20_weight": {
+        tag: "photo",
+        day: 20,
+        title: "El Peso del Tesoro",
+        role: "kid9",
+        xp: 15,
+        location: "Ameyoko",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f2f1 0%, #80cbc4 100%); border-radius:15px; border:3px solid #009688; color:#004d40; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">⚖️ Adivino de Peso en Ameyoko ⚖️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00796b;">Encuentra un objeto de comida o souvenir en el mercado, hazle una foto y estima su peso real deslizando la balanza.</p>
+                
+                <div style="background:#fff; border-radius:12px; padding:15px; border:2px dashed #009688; margin-bottom:15px; position:relative;">
+                    <div id="scale-beam" style="font-size:3.5rem; transition: transform 0.2s; display:inline-block;">⚖️</div>
+                    <div id="weight-disp" style="font-size:2rem; font-weight:bold; color:#004d40; margin:10px 0;">250 gramos</div>
+                    <input type="range" id="weight-slider" min="10" max="1500" step="10" value="250" style="width:100%; accent-color:#009688; cursor:pointer;">
+                </div>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; background:#009688; border-color:#009688; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; border-radius:25px; padding:12px;">📸 Foto del Objeto + Enviar</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('weight-slider');
+            const disp = document.getElementById('weight-disp');
+            const beam = document.getElementById('scale-beam');
+            const btn = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                disp.innerText = val + ' gramos';
+                
+                const angle = ((val - 750) / 750) * 20;
+                beam.style.transform = `rotate(${angle}deg)`;
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const grams = slider.value;
+                btn.innerText = '⏳ Pesando tesoro...';
+                btn.disabled = true;
+                
+                try {
+                    const comp = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, comp);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_20_weight', {type:'mixed', data:`Peso estimado: ${grams}g | Foto: ${photoId}`}, role);
+                } catch(err) {
+                    console.error(err);
+                    btn.innerText = '📸 Foto del Objeto + Enviar';
+                    btn.disabled = false;
+                    showAlert('Error', 'Fallo al procesar imagen.');
+                }
+            });
+        }
+    },
+
+"day_20_change": {
+        tag: "economy",
+        day: 20,
+        title: "Regateo en Ameyoko",
+        role: "kid14",
+        xp: 20,
+        location: "Ameyoko",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CÁLCULO DE CAMBIO EXACTO</p>
+            <input type="number" id="c-price" placeholder="Precio (¥)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="c-bill" placeholder="Pagas con (¥)" style="width:100%; margin-bottom:10px;">
+            <input type="number" id="c-ans" placeholder="¿Cambio a devolver?" style="width:100%; margin-bottom:10px; border:2px solid #0f0;">
+            <button id="btn" class="btn-primary" style="width:100%">Comprobar</button>
+        </div>
+    `,
+        attachEvents: () => {
+        document.getElementById('btn').addEventListener('click', () => {
+            const p = document.getElementById('c-price').value; const b = document.getElementById('c-bill').value; const a = document.getElementById('c-ans').value;
+            if(p && b && a) {
+                if(b - p == a) { launchConfetti(); submitMission('day_20_change', {type:'game', data:`Cálculo correcto: ${b}-${p}=${a}¥`}); }
+                else showAlert('Error', `Incorrecto. El cambio correcto era ${b-p}¥`);
+            }
+        });
+    }
+    },
+
+    "day_20_museum": {
+        tag: "economy",
+        day: 20,
+        title: "Arquitectura del Museo",
+        role: "kid14",
+        xp: 15,
+        location: "Ueno",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> REPORTE ANALÍTICO: CONTRASTE ARQUITECTÓNICO (UENO)</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estudia el edificio principal del Museo Nacional de Tokio (Honkan, estilo Imperial Crown) y compáralo con los rascacielos circundantes.</p>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                    <div style="background:#111; padding:8px; border-radius:5px; border:1px solid #333; text-align:center; font-size:0.75rem;">
+                        🏯 CLÁSICO / TEJADOS<br><span style="color:#aaa;">Madera, tejas, arcos</span>
+                    </div>
+                    <div style="background:#111; padding:8px; border-radius:5px; border:1px solid #333; text-align:center; font-size:0.75rem;">
+                        🏢 MODERNO / TOKIO<br><span style="color:#aaa;">Vidrio, acero, altura</span>
+                    </div>
+                </div>
+                
+                <textarea id="m-ans" placeholder=">>> Describe las principales diferencias visuales que percibes..." style="width:100%; height:80px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-museum" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 ENVIAR ANÁLISIS ESTRUCTURAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-museum');
+            const input = document.getElementById('m-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 15) {
+                    showAlert('Reporte incompleto', 'Explica de forma más extensa el contraste de estilos tradicional y contemporáneo.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_20_museum', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_20_vintage": {
+        tag: "economy",
+        day: 20,
+        title: "Análisis de Precios Retro",
+        role: "kid14",
+        xp: 15,
+        location: "Ameyoko",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> PROTOCOLO DE EVALUACIÓN DE BIENES RETRO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Encuentra una tienda de coleccionismo o segunda mano en Ameyoko. Registra un objeto vintage y su valor.</p>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem; color:#00ff99;">ARTÍCULO RETRO:</label>
+                    <input type="text" id="v-name" placeholder="Ej: Reloj Seiko 1970..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:0.75rem; color:#00ff99;">VALOR EN YENES (¥):</label>
+                    <input type="number" id="v-price" placeholder="0000" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <div id="v-calc" style="font-size:0.85rem; color:#ffd700; margin-bottom:15px; text-align:center; min-height:18px;"></div>
+                
+                <button id="btn-vintage" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 REGISTRAR TASACIÓN</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-vintage');
+            const nameIn = document.getElementById('v-name');
+            const priceIn = document.getElementById('v-price');
+            const calc = document.getElementById('v-calc');
+            
+            priceIn.addEventListener('input', () => {
+                const y = parseFloat(priceIn.value);
+                if (y > 0) {
+                    const eur = (y / 160).toFixed(2);
+                    calc.innerText = `Valor convertible: ~ ${eur} EUR`;
+                } else {
+                    calc.innerText = '';
+                }
+            });
+            
+            btn.addEventListener('click', () => {
+                const name = nameIn.value.trim();
+                const price = priceIn.value.trim();
+                
+                if (name.length < 3 || !price) {
+                    showAlert('Datos insuficientes', 'Ingresa la descripción y el precio en yenes del artículo.');
+                    return;
+                }
+                const eur = (parseFloat(price) / 160).toFixed(2);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_20_vintage', {type:'text', data:`Objeto: ${name} | Precio: ${price}¥ (${eur}€)`}, role);
+            });
+        }
+    },
+
+    "day_20_stairs": {
+        tag: "physical",
+        day: 20,
+        title: "Escaleras del Atardecer",
+        role: "kid14",
+        xp: 15,
+        location: "Yanaka Ginza",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CENSOR DE ESCALONES: YUYAKE DANDAN</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Sube o baja las famosas escaleras que conducen al barrio histórico y cuenta con precisión cada escalón de piedra.</p>
+                
+                <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; text-align:center;">
+                    <span style="color:#aaa; font-size:0.75rem;">REGISTRO DE ESCALONES</span>
+                    <input type="number" id="s-ans" placeholder="00" style="width:100%; text-align:center; background:transparent; color:#00ff99; border:none; border-bottom:2px solid #00ff99; font-size:2.5rem; font-family:monospace; outline:none; margin-top:10px; box-sizing:border-box;">
+                </div>
+                
+                <div id="s-msg" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:15px; text-align:center; min-height:20px; font-weight:bold;"></div>
+                
+                <button id="btn-stairs" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">⚡ VERIFICAR CONTEO FÍSICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-stairs');
+            const input = document.getElementById('s-ans');
+            const msg = document.getElementById('s-msg');
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(input.value);
+                if (val >= 34 && val <= 38) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_20_stairs', {type:'number', data: val}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    msg.innerText = ">>> ACCESO DENEGADO: El conteo difiere del registro catastral.";
+                }
+            });
+        }
+    },
+
+    "day_20_tasting": {
+        tag: "writing",
+        day: 20,
+        title: "Degustación Callejera",
+        role: "both",
+        xp: 20,
+        location: "Calle",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius:15px; border:3px solid #ff9800; color:#e65100; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🍡 Delicias de Yanaka Ginza 🍡</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#f57c00;">De todos los puestos callejeros y snacks probados hoy (brochetas, croquetas, dulces de gato), ¿cuál ha sido vuestro favorito y por qué?</p>
+                
+                <div style="background:#fff; border-radius:12px; padding:15px; border:2px dashed #ff9800; margin-bottom:15px;">
+                    <div style="font-size:3.5rem; margin-bottom:10px;">🍢🍡🍣🍟</div>
+                    <textarea id="t-ans" placeholder="El mejor bocado de hoy fue..." style="width:100%; height:80px; border:none; background:transparent; font-family:inherit; font-size:1rem; text-align:center; color:#e65100; outline:none; resize:none; box-sizing:border-box;"></textarea>
+                </div>
+                
+                <button id="btn-tasting" class="btn-primary" style="width:100%; border-radius:25px; background:#ff9800; border-color:#ff9800; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">😋 REGISTRAR DEGUSTACIÓN</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-tasting');
+            const input = document.getElementById('t-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 8) {
+                    showAlert('Reseña muy corta', 'Escribe al menos el nombre del alimento y qué tal estaba.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_20_tasting', {type:'text', data: val}, role, true);
+            });
+        }
+    },
+
+
+};

@@ -1,0 +1,1014 @@
+// MINIJUEGOS DEL DIA 20
+// Métodos extraídos de games.js para NotebookLM
+
+    // DÍA 20 MINIGAMES
+    // ==========================================
+
+    // 1. day_20_bento: Maestro del Bento
+    setupBento() {
+        this.gameData = {
+            dividers: [
+                { x: 300, y: 250, angle: 0, w: 120, h: 12 },
+                { x: 500, y: 250, angle: 90 * Math.PI / 180, w: 120, h: 12 },
+                { x: 400, y: 380, angle: 45 * Math.PI / 180, w: 140, h: 12 }
+            ],
+            ingredients: [],
+            spawnTimer: 0,
+            slots: [
+                { x: 180, y: 520, r: 45, type: 'arroz', emoji: '🍚', count: 0 },
+                { x: 320, y: 520, r: 45, type: 'pescado', emoji: '🐟', count: 0 },
+                { x: 480, y: 520, r: 45, type: 'verdura', emoji: '🥒', count: 0 },
+                { x: 620, y: 520, r: 45, type: 'postre', emoji: '🍳', count: 0 }
+            ],
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateBento(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.2;
+            const types = ['arroz', 'pescado', 'verdura', 'postre'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const emojis = { arroz: '🍚', pescado: '🐟', verdura: '🥒', postre: '🍳' };
+            gd.ingredients.push({
+                x: 200 + Math.random() * 400,
+                y: -20,
+                vy: 120 + Math.random() * 60,
+                vx: 0,
+                type: type,
+                emoji: emojis[type],
+                r: 20
+            });
+        }
+        gd.ingredients.forEach((ing, iIdx) => {
+            ing.y += ing.vy * dt;
+            ing.x += ing.vx * dt;
+            gd.dividers.forEach(div => {
+                const dist = Math.hypot(ing.x - div.x, ing.y - div.y);
+                if (dist < 80) {
+                    const localX = (ing.x - div.x) * Math.cos(-div.angle) - (ing.y - div.y) * Math.sin(-div.angle);
+                    const localY = (ing.x - div.x) * Math.sin(-div.angle) + (ing.y - div.y) * Math.cos(-div.angle);
+                    if (Math.abs(localX) < div.w / 2 + 10 && Math.abs(localY) < div.h / 2 + 20) {
+                        const normalX = -Math.sin(div.angle);
+                        const normalY = Math.cos(div.angle);
+                        const dot = ing.vx * normalX + ing.vy * normalY;
+                        ing.vx = (ing.vx - 2 * dot * normalX) * 0.8;
+                        ing.vy = Math.abs(ing.vy - 2 * dot * normalY) * 0.8 + 20;
+                        ing.y += ing.vy * dt;
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            });
+            gd.slots.forEach(slot => {
+                if (Math.hypot(ing.x - slot.x, ing.y - slot.y) < slot.r + 15) {
+                    if (ing.type === slot.type) {
+                        slot.count++;
+                        gd.score++;
+                        this.score = Math.round((gd.score / 4) * 100);
+                        this.createExplosion(ing.x, ing.y, '#ffd700');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.score >= 4) {
+                            this.win();
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                        this.triggerShake(8);
+                    }
+                    gd.ingredients.splice(iIdx, 1);
+                }
+            });
+        });
+        gd.ingredients = gd.ingredients.filter(ing => ing.y < 620);
+    },
+    drawBento() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(100, 50, 600, 500);
+        gd.slots.forEach(slot => {
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.strokeStyle = '#8e44ad';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(slot.x, slot.y, slot.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '36px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(slot.emoji, slot.x, slot.y - 5);
+            ctx.font = 'bold 14px monospace';
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText(`Lleno: ${slot.count}`, slot.x, slot.y + 25);
+        });
+        gd.dividers.forEach(div => {
+            ctx.save();
+            ctx.translate(div.x, div.y);
+            ctx.rotate(div.angle);
+            ctx.fillStyle = '#f1c40f';
+            ctx.fillRect(-div.w / 2, -div.h / 2, div.w, div.h);
+            ctx.restore();
+        });
+        gd.ingredients.forEach(ing => {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(ing.emoji, ing.x, ing.y);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Ingredientes correctos: ${gd.score}/4`, 30, 30);
+    },
+    inputBentoPress(x, y) {
+        const gd = this.gameData;
+        gd.dividers.forEach(div => {
+            if (Math.hypot(x - div.x, y - div.y) < 60) {
+                div.angle += 45 * Math.PI / 180;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+
+    // 2. day_20_potion: Alquimia Gatuna
+    setupPotion() {
+        const items = ['🐱', '🌿', '🐟', '🌟', '💧'];
+        const grid = [];
+        for (let r = 0; r < 5; r++) {
+            grid[r] = [];
+            for (let c = 0; c < 5; c++) {
+                grid[r][c] = items[Math.floor(Math.random() * items.length)];
+            }
+        }
+        this.gameData = {
+            grid: grid,
+            selected: [],
+            cauldron: 0,
+            items: items
+        };
+        this.score = 0;
+    },
+    updatePotion(dt) {
+        const gd = this.gameData;
+        this.score = Math.min(100, gd.cauldron);
+        if (gd.cauldron >= 100) {
+            this.win();
+            return;
+        }
+        if (this.mouse.isDown && gd.selected.length > 0) {
+            const c = Math.floor((this.mouse.x - 100) / 80);
+            const r = Math.floor((this.mouse.y - 150) / 80);
+            if (r >= 0 && r < 5 && c >= 0 && c < 5) {
+                const last = gd.selected[gd.selected.length - 1];
+                if (Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1 && (r !== last.r || c !== last.c)) {
+                    if (gd.grid[r][c] === gd.grid[last.r][last.c] && !gd.selected.some(p => p.r === r && p.c === c)) {
+                        gd.selected.push({ r, c });
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            }
+        }
+    },
+    drawPotion() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#312e81';
+        ctx.strokeStyle = '#4338ca';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.arc(600, 300, 100, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.arc(600, 260, 60, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Caldero: ${Math.round(gd.cauldron)}%`, 600, 450);
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                const x = 100 + c * 80;
+                const y = 150 + r * 80;
+                const isSelected = gd.selected.some(p => p.r === r && p.c === c);
+                ctx.fillStyle = isSelected ? 'rgba(236,72,153,0.3)' : 'rgba(255,255,255,0.05)';
+                ctx.strokeStyle = isSelected ? '#ec4899' : '#4338ca';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, 70, 70);
+                ctx.fillRect(x, y, 70, 70);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(gd.grid[r][c], x + 35, y + 35);
+            }
+        }
+        if (gd.selected.length > 1) {
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            gd.selected.forEach((p, idx) => {
+                const x = 100 + p.c * 80 + 35;
+                const y = 150 + p.r * 80 + 35;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+    },
+    inputPotionPress(x, y) {
+        const gd = this.gameData;
+        const c = Math.floor((x - 100) / 80);
+        const r = Math.floor((y - 150) / 80);
+        if (r >= 0 && r < 5 && c >= 0 && c < 5) {
+            gd.selected = [{ r, c }];
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releasePotion(x, y) {
+        const gd = this.gameData;
+        if (gd.selected.length >= 3) {
+            const count = gd.selected.length;
+            gd.cauldron += count * 6;
+            if (window.playProceduralSound) playProceduralSound('success');
+            gd.selected.forEach(p => {
+                this.createExplosion(100 + p.c * 80 + 35, 150 + p.r * 80 + 35, '#ec4899');
+                gd.grid[p.r][p.c] = gd.items[Math.floor(Math.random() * gd.items.length)];
+            });
+        }
+        gd.selected = [];
+    },
+
+    // 3. day_20_pond: El Pato del Estanque
+    setupPond() {
+        this.gameData = {
+            ducks: [
+                { x: 100, y: 150, vx: 50, vy: 0, scale: 1, poseTimer: 2, state: 'swimming' },
+                { x: 600, y: 250, vx: -40, vy: 10, scale: 1, poseTimer: 4, state: 'swimming' },
+                { x: 300, y: 400, vx: 60, vy: -5, scale: 1, poseTimer: 1, state: 'swimming' }
+            ],
+            photos: 0,
+            camX: 400,
+            camY: 300,
+            flash: 0
+        };
+        this.score = 0;
+    },
+    updatePond(dt) {
+        const gd = this.gameData;
+        if (gd.flash > 0) gd.flash -= dt * 5;
+        gd.camX = lerp(gd.camX, this.mouse.x, 0.15);
+        gd.camY = lerp(gd.camY, this.mouse.y, 0.15);
+        gd.ducks.forEach(d => {
+            d.x += d.vx * dt;
+            d.y += d.vy * dt;
+            if (d.x < 50 || d.x > 750) d.vx *= -1;
+            if (d.y < 100 || d.y > 500) d.vy *= -1;
+            d.poseTimer -= dt;
+            if (d.poseTimer <= 0) {
+                if (d.state === 'swimming') {
+                    d.state = 'posing';
+                    d.poseTimer = 1.5;
+                    d.vx *= 0.2; d.vy *= 0.2;
+                } else {
+                    d.state = 'swimming';
+                    d.poseTimer = 3 + Math.random() * 4;
+                    d.vx = (Math.random() < 0.5 ? 1 : -1) * (40 + Math.random() * 40);
+                    d.vy = (Math.random() < 0.5 ? 1 : -1) * (10 + Math.random() * 20);
+                }
+            }
+        });
+    },
+    drawPond() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#006064';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(400, 300, (gd.photos * 100 + i * 50) % 300, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        gd.ducks.forEach(d => {
+            ctx.save();
+            ctx.translate(d.x, d.y);
+            if (d.vx < 0) ctx.scale(-1, 1);
+            ctx.fillStyle = '#ffd54f';
+            ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(18, -15, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(22, -18, 2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ff9800';
+            ctx.beginPath();
+            ctx.moveTo(30, -17); ctx.lineTo(40, -14); ctx.lineTo(30, -11);
+            ctx.closePath(); ctx.fill();
+            if (d.state === 'posing') {
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(0, 0, 32 + Math.sin(performance.now() * 0.01) * 8, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = '#00ff99';
+                ctx.font = '12px monospace';
+                ctx.fillText('¡FOTO!', -20, -35);
+            }
+            ctx.restore();
+        });
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(gd.camX, gd.camY, 50, 0, Math.PI * 2);
+        ctx.moveTo(gd.camX - 70, gd.camY); ctx.lineTo(gd.camX - 30, gd.camY);
+        ctx.moveTo(gd.camX + 30, gd.camY); ctx.lineTo(gd.camX + 70, gd.camY);
+        ctx.moveTo(gd.camX, gd.camY - 70); ctx.lineTo(gd.camX, gd.camY - 30);
+        ctx.moveTo(gd.camX, gd.camY + 30); ctx.lineTo(gd.camX, gd.camY + 70);
+        ctx.stroke();
+        if (gd.flash > 0) {
+            ctx.fillStyle = `rgba(255,255,255,${gd.flash})`;
+            ctx.fillRect(0, 0, 800, 600);
+        }
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fotos perfectas: ${gd.photos}/3`, 30, 40);
+    },
+    inputPondPress(x, y) {
+        const gd = this.gameData;
+        gd.flash = 1.0;
+        if (window.playProceduralSound) playProceduralSound('click');
+        let hit = false;
+        gd.ducks.forEach(d => {
+            if (d.state === 'posing' && Math.hypot(gd.camX - d.x, gd.camY - d.y) < 65) {
+                hit = true;
+                gd.photos++;
+                this.score = Math.round((gd.photos / 3) * 100);
+                this.createExplosion(d.x, d.y, '#00ff99');
+                if (window.playProceduralSound) playProceduralSound('success');
+                d.state = 'swimming';
+                d.poseTimer = 4;
+                if (gd.photos >= 3) {
+                    this.win();
+                }
+            }
+        });
+        if (!hit) this.triggerShake(5);
+    },
+
+    // 4. day_20_weight: El Peso del Tesoro
+    setupWeight20() {
+        this.gameData = {
+            targetWeight: 150 + Math.floor(Math.random() * 450),
+            weights: [
+                { x: 100, y: 460, ox: 100, oy: 460, w: 40, h: 40, wt: 50, name: '50g', color: '#78909c', dragging: false },
+                { x: 200, y: 460, ox: 200, oy: 460, w: 45, h: 45, wt: 100, name: '100g', color: '#546e7a', dragging: false },
+                { x: 300, y: 460, ox: 300, oy: 460, w: 50, h: 50, wt: 200, name: '200g', color: '#37474f', dragging: false },
+                { x: 400, y: 460, ox: 400, oy: 460, w: 60, h: 60, wt: 500, name: '500g', color: '#263238', dragging: false }
+            ],
+            balanceY: 0,
+            balancedTimer: 0,
+            winCount: 0
+        };
+        this.score = 0;
+    },
+    updateWeight20(dt) {
+        const gd = this.gameData;
+        let rightWeight = 0;
+        gd.weights.forEach(w => {
+            if (w.x > 460 && w.x < 740 && w.y < 350) {
+                rightWeight += w.wt;
+            }
+        });
+        const diff = gd.targetWeight - rightWeight;
+        const targetBal = clamp(diff * 0.15, -45, 45);
+        gd.balanceY = lerp(gd.balanceY, targetBal, 0.1);
+        if (Math.abs(diff) <= 10) {
+            gd.balancedTimer += dt;
+            if (gd.balancedTimer >= 1.5) {
+                gd.winCount++;
+                gd.balancedTimer = 0;
+                this.score = Math.round((gd.winCount / 3) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.winCount >= 3) {
+                    this.win();
+                } else {
+                    gd.targetWeight = 150 + Math.floor(Math.random() * 450);
+                    gd.weights.forEach(w => {
+                        w.x = w.ox; w.y = w.oy;
+                    });
+                }
+            }
+        } else {
+            gd.balancedTimer = 0;
+        }
+    },
+    drawWeight20() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#f5f5f5';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#e0e0e0';
+        ctx.fillRect(0, 500, 800, 100);
+        ctx.fillStyle = '#9e9e9e';
+        ctx.fillRect(392, 180, 16, 260);
+        ctx.fillRect(350, 440, 100, 20);
+        ctx.save();
+        ctx.translate(400, 180);
+        ctx.rotate(gd.balanceY * Math.PI / 180);
+        ctx.strokeStyle = '#757575';
+        ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-200, 0); ctx.lineTo(-240, 100);
+        ctx.moveTo(-200, 0); ctx.lineTo(-160, 100);
+        ctx.stroke();
+        ctx.fillStyle = '#bdbdbd';
+        ctx.fillRect(-260, 100, 120, 8);
+        ctx.beginPath();
+        ctx.moveTo(200, 0); ctx.lineTo(160, 100);
+        ctx.moveTo(200, 0); ctx.lineTo(240, 100);
+        ctx.stroke();
+        ctx.fillStyle = '#bdbdbd';
+        ctx.fillRect(140, 100, 120, 8);
+        ctx.restore();
+        const leftPanY = 280 + gd.balanceY * 200 / 57.3;
+        ctx.fillStyle = '#ff5722';
+        ctx.beginPath(); ctx.arc(200, leftPanY - 20, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#3f51b5';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Tesoro`, 200, leftPanY - 45);
+        ctx.fillText(`(${gd.targetWeight}g)`, 200, leftPanY - 30);
+        gd.weights.forEach(w => {
+            ctx.fillStyle = w.color;
+            ctx.fillRect(w.x - w.w / 2, w.y - w.h / 2, w.w, w.h);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(w.name, w.x, w.y);
+        });
+        ctx.fillStyle = '#333333';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Balanzados: ${gd.winCount}/3`, 30, 40);
+        if (gd.balancedTimer > 0) {
+            ctx.fillStyle = '#4caf50';
+            ctx.fillText(`¡Equilibrado! Espera: ${(1.5 - gd.balancedTimer).toFixed(1)}s`, 30, 80);
+        }
+    },
+    inputWeight20Press(x, y) {
+        const gd = this.gameData;
+        gd.weights.forEach(w => {
+            if (x > w.x - w.w / 2 && x < w.x + w.w / 2 && y > w.y - w.h / 2 && y < w.y + w.h/2) {
+                w.dragging = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseWeight20(x, y) {
+        const gd = this.gameData;
+        gd.weights.forEach(w => {
+            if (w.dragging) {
+                w.dragging = false;
+                w.x = x; w.y = y;
+                const rightPanX = 600;
+                const rightPanY = 280 - gd.balanceY * 200 / 57.3;
+                if (Math.hypot(x - rightPanX, y - rightPanY) < 100) {
+                    w.x = rightPanX;
+                    w.y = rightPanY - w.h / 2;
+                }
+            }
+        });
+    },
+
+    // 5. day_20_change: Regateo en Ameyoko
+    setupChange() {
+        const price = 300 + Math.floor(Math.random() * 17) * 100;
+        const paid = price + 500 + Math.floor(Math.random() * 4) * 500;
+        this.gameData = {
+            price: price,
+            paid: paid,
+            changeNeeded: paid - price,
+            selectedChange: 0,
+            clientsSolved: 0,
+            timer: 45,
+            coins: [
+                { val: 10, name: '10¥', color: '#b71c1c' },
+                { val: 50, name: '50¥', color: '#0d47a1' },
+                { val: 100, name: '100¥', color: '#006064' },
+                { val: 500, name: '500¥', color: '#f57f17' },
+                { val: 1000, name: '1000¥', color: '#1b5e20' }
+            ]
+        };
+        this.score = 0;
+    },
+    updateChange(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        if (gd.timer <= 0) {
+            this.gameOver();
+        }
+    },
+    drawChange() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(50, 50, 700, 160);
+        ctx.strokeStyle = '#f57f17';
+        ctx.strokeRect(50, 50, 700, 160);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Cliente exige cambio de su billete`, 400, 90);
+        ctx.font = 'bold 36px monospace';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`Pagar: ${gd.price}¥  |  Pagado: ${gd.paid}¥`, 400, 140);
+        ctx.font = '20px monospace';
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Cambio necesario: ${gd.changeNeeded}¥`, 400, 185);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(50, 240, 700, 260);
+        gd.coins.forEach((c, idx) => {
+            const x = 120 + idx * 140;
+            const y = 350;
+            ctx.fillStyle = c.color;
+            ctx.beginPath(); ctx.arc(x, y, 40, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.fillText(c.name, x, y + 5);
+        });
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(150, 520, 200, 50);
+        ctx.fillStyle = '#f44336';
+        ctx.fillRect(450, 520, 200, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('ENTREGAR', 250, 550);
+        ctx.fillText('REINICIAR', 550, 550);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cambio acumulado: ${gd.selectedChange}¥`, 50, 510);
+        ctx.fillText(`Clientes: ${gd.clientsSolved}/5`, 50, 30);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Tiempo: ${Math.round(gd.timer)}s`, 750, 30);
+    },
+    inputChangePress(x, y) {
+        const gd = this.gameData;
+        gd.coins.forEach((c, idx) => {
+            const cx = 120 + idx * 140;
+            const cy = 350;
+            if (Math.hypot(x - cx, y - cy) < 45) {
+                gd.selectedChange += c.val;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+        if (x > 150 && x < 350 && y > 520 && y < 570) {
+            if (gd.selectedChange === gd.changeNeeded) {
+                gd.clientsSolved++;
+                this.score = Math.round((gd.clientsSolved / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 300, '#00ff99');
+                if (gd.clientsSolved >= 5) {
+                    this.win();
+                } else {
+                    gd.price = 300 + Math.floor(Math.random() * 17) * 100;
+                    gd.paid = gd.price + 500 + Math.floor(Math.random() * 4) * 500;
+                    gd.changeNeeded = gd.paid - gd.price;
+                    gd.selectedChange = 0;
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(12);
+                gd.selectedChange = 0;
+            }
+        }
+        if (x > 450 && x < 650 && y > 520 && y < 570) {
+            gd.selectedChange = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 6. day_20_museum: Arquitectura del Museo
+    setupMuseum() {
+        this.gameData = {
+            currentBuilding: 0,
+            line: [],
+            points: [
+                [
+                    { x: 150, y: 380, label: '1' },
+                    { x: 250, y: 320, label: '2' },
+                    { x: 400, y: 280, label: '3' },
+                    { x: 550, y: 320, label: '4' },
+                    { x: 650, y: 380, label: '5' },
+                    { x: 600, y: 480, label: '6' },
+                    { x: 200, y: 480, label: '7' }
+                ],
+                [
+                    { x: 200, y: 480, label: '1' },
+                    { x: 200, y: 150, label: '2' },
+                    { x: 320, y: 150, label: '3' },
+                    { x: 320, y: 480, label: '4' },
+                    { x: 480, y: 480, label: '5' },
+                    { x: 480, y: 100, label: '6' },
+                    { x: 600, y: 100, label: '7' },
+                    { x: 600, y: 480, label: '8' }
+                ]
+            ],
+            currentIdx: 0
+        };
+        this.score = 0;
+    },
+    updateMuseum(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown && gd.currentIdx < gd.points[gd.currentBuilding].length) {
+            const target = gd.points[gd.currentBuilding][gd.currentIdx];
+            if (Math.hypot(this.mouse.x - target.x, this.mouse.y - target.y) < 25) {
+                gd.line.push({ x: target.x, y: target.y });
+                gd.currentIdx++;
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(target.x, target.y, '#00ff99', 10, 0.5);
+                if (gd.currentIdx === gd.points[gd.currentBuilding].length) {
+                    gd.currentBuilding++;
+                    gd.currentIdx = 0;
+                    gd.line = [];
+                    this.score = Math.round((gd.currentBuilding / 2) * 100);
+                    if (gd.currentBuilding >= 2) {
+                        this.win();
+                    }
+                }
+            }
+        }
+    },
+    drawMuseum() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0a0f1d';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 800; i += 40) {
+            ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke();
+        }
+        for (let j = 0; j < 600; j += 40) {
+            ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(800, j); ctx.stroke();
+        }
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        if (gd.currentBuilding < 2) {
+            ctx.fillText(gd.currentBuilding === 0 ? 'CONSTRUYE: TEMPLO TRADICIONAL HONKAN' : 'CONSTRUYE: RASCACIELOS MODERNOS', 400, 50);
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            gd.points[gd.currentBuilding].forEach((p, idx) => {
+                if (idx === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath(); ctx.stroke();
+            if (gd.line.length > 0) {
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                gd.line.forEach((p, idx) => {
+                    if (idx === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                });
+                if (gd.currentIdx < gd.points[gd.currentBuilding].length && this.mouse.isDown) {
+                    ctx.lineTo(this.mouse.x, this.mouse.y);
+                }
+                ctx.stroke();
+            }
+            gd.points[gd.currentBuilding].forEach((p, idx) => {
+                const isActivated = idx < gd.currentIdx;
+                const isNext = idx === gd.currentIdx;
+                ctx.fillStyle = isActivated ? '#00ff99' : (isNext ? '#ffd700' : '#444444');
+                ctx.beginPath(); ctx.arc(p.x, p.y, isNext ? 12 : 8, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px monospace';
+                ctx.fillText(p.label, p.x, p.y - 15);
+            });
+        }
+    },
+    inputMuseumPress(x, y) {},
+    releaseMuseum(x, y) {
+        this.gameData.line = [];
+        this.gameData.currentIdx = 0;
+    },
+
+    // 7. day_20_vintage: Análisis de Precios Retro
+    setupVintage() {
+        this.gameData = {
+            beltX: 0,
+            console: { x: 400, y: 250, r: 60, type: 'Famicom', defects: Math.floor(Math.random() * 4), grade: '' },
+            gradeSelected: '',
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateVintage(dt) {
+        const gd = this.gameData;
+        gd.beltX = (gd.beltX + dt * 100) % 800;
+    },
+    drawVintage() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(0, 320, 800, 40);
+        ctx.fillStyle = '#eceff1';
+        ctx.fillRect(gd.console.x - 70, gd.console.y - 50, 140, 100);
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(gd.console.x - 60, gd.console.y - 40, 120, 20);
+        const dist = Math.hypot(this.mouse.x - gd.console.x, this.mouse.y - gd.console.y);
+        if (dist < 100) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.mouse.x, this.mouse.y, 80, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, 800, 600);
+            ctx.strokeStyle = '#ff1744';
+            ctx.lineWidth = 4;
+            for (let i = 0; i < gd.console.defects; i++) {
+                ctx.beginPath();
+                const offset = i * 20;
+                ctx.moveTo(gd.console.x - 40 + offset, gd.console.y - 20);
+                ctx.lineTo(gd.console.x - 20 + offset, gd.console.y + 20);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(this.mouse.x, this.mouse.y, 80, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#4caf50'; ctx.fillRect(200, 450, 100, 60);
+        ctx.fillStyle = '#ffeb3b'; ctx.fillRect(350, 450, 100, 60);
+        ctx.fillStyle = '#f44336'; ctx.fillRect(500, 450, 100, 60);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('A', 250, 485);
+        ctx.fillText('B', 400, 485);
+        ctx.fillText('C', 550, 485);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Inspeccionados: ${gd.score}/5`, 30, 40);
+        ctx.font = '14px monospace';
+        ctx.fillText('A: 0-1 fallas | B: 2 fallas | C: 3+ fallas', 30, 75);
+    },
+    inputVintagePress(x, y) {
+        const gd = this.gameData;
+        let ans = -1;
+        if (x > 200 && x < 300 && y > 450 && y < 510) ans = 0;
+        if (x > 350 && x < 450 && y > 450 && y < 510) ans = 2;
+        if (x > 500 && x < 600 && y > 450 && y < 510) ans = 3;
+        if (ans !== -1) {
+            const actualDef = gd.console.defects;
+            let correct = false;
+            if (ans === 0 && actualDef <= 1) correct = true;
+            if (ans === 2 && actualDef === 2) correct = true;
+            if (ans === 3 && actualDef >= 3) correct = true;
+            if (correct) {
+                gd.score++;
+                this.score = Math.round((gd.score / 5) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(400, 250, '#00ff99');
+                if (gd.score >= 5) {
+                    this.win();
+                } else {
+                    gd.console.defects = Math.floor(Math.random() * 4);
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.triggerShake(10);
+            }
+        }
+    },
+
+    // 8. day_20_stairs: Escaleras del Atardecer
+    setupStairs() {
+        this.gameData = {
+            steps: 0,
+            notes: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateStairs(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.notes.push({
+                x: Math.random() < 0.5 ? 250 : 550,
+                y: -50,
+                vy: 180,
+                side: Math.random() < 0.5 ? 'L' : 'R'
+            });
+        }
+        gd.notes.forEach((n, idx) => {
+            n.y += n.vy * dt;
+            if (n.y > 620) {
+                gd.notes.splice(idx, 1);
+            }
+        });
+    },
+    drawStairs() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#ff4500'); grad.addColorStop(1, '#8e44ad');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        for (let i = 0; i < 600; i += 60) {
+            ctx.moveTo(150, i); ctx.lineTo(650, i);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(250, 480, 30, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(550, 480, 30, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('IZQUIERDA', 250, 530);
+        ctx.fillText('DERECHA', 550, 530);
+        gd.notes.forEach(n => {
+            ctx.fillStyle = n.side === 'L' ? '#00e5ff' : '#ff007f';
+            ctx.beginPath(); ctx.arc(n.x, n.y, 20, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px monospace';
+            ctx.fillText(n.side, n.x, n.y + 5);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Escalones subidos: ${gd.steps}/36`, 30, 50);
+    },
+    inputStairsPress(x, y) {
+        const gd = this.gameData;
+        let side = '';
+        if (x < 400) side = 'L';
+        else side = 'R';
+        let hit = false;
+        gd.notes.forEach((n, idx) => {
+            if (Math.abs(n.y - 480) < 40 && n.side === side) {
+                hit = true;
+                gd.steps++;
+                this.score = Math.round((gd.steps / 36) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.createExplosion(n.x, n.y, '#ffd700');
+                gd.notes.splice(idx, 1);
+                if (gd.steps >= 36) {
+                    this.win();
+                }
+            }
+        });
+        if (!hit) {
+            this.triggerShake(5);
+            if (window.playProceduralSound) playProceduralSound('damage');
+        }
+    },
+
+    // 9. day_20_tasting: Degustación Callejera
+    setupTasting() {
+        this.gameData = {
+            order: ['🍡', '🍓', '🍡'],
+            skewer: [],
+            grill: [],
+            score: 0,
+            tray: ['🍡', '🍓', '🍳', '🥒']
+        };
+        this.score = 0;
+    },
+    updateTasting(dt) {
+        const gd = this.gameData;
+        gd.grill.forEach(g => {
+            if (!g.served) g.timer += dt;
+        });
+    },
+    drawTasting() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#2c1a04';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#fff9db';
+        ctx.fillRect(50, 40, 300, 80);
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('Pedido:', 70, 70);
+        ctx.font = '36px Arial';
+        ctx.fillText(gd.order.join(''), 150, 95);
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(50, 160, 700, 240);
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 4;
+        for (let i = 180; i < 400; i += 30) {
+            ctx.beginPath(); ctx.moveTo(50, i); ctx.lineTo(750, i); ctx.stroke();
+        }
+        gd.grill.forEach((g, idx) => {
+            const gx = 150 + idx * 160;
+            ctx.strokeStyle = '#8d6e63';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(gx, 380); ctx.lineTo(gx, 180); ctx.stroke();
+            g.skewer.forEach((item, sIdx) => {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '32px Arial';
+                ctx.fillText(item, gx - 16, 350 - sIdx * 50);
+            });
+            const pct = Math.min(1.0, g.timer / 4.0);
+            ctx.fillStyle = '#e53935';
+            if (pct > 0.6 && pct < 0.9) ctx.fillStyle = '#4caf50';
+            ctx.fillRect(gx - 30, 170, pct * 60, 10);
+        });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('Tu brocheta:', 50, 450);
+        ctx.font = '36px Arial';
+        ctx.fillText(gd.skewer.join(''), 50, 500);
+        gd.tray.forEach((t, idx) => {
+            const tx = 450 + idx * 80;
+            ctx.fillStyle = '#4b5563';
+            ctx.fillRect(tx - 30, 450, 60, 60);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '30px Arial';
+            ctx.fillText(t, tx - 15, 492);
+        });
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(450, 530, 200, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('¡SERVIR!', 510, 562);
+        ctx.fillStyle = '#f44336';
+        ctx.fillRect(660, 530, 100, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Limpiar', 675, 562);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Brochetas servidas: ${gd.score}/8`, 500, 70);
+    },
+    inputTastingPress(x, y) {
+        const gd = this.gameData;
+        gd.tray.forEach((t, idx) => {
+            const tx = 450 + idx * 80;
+            if (x > tx - 30 && x < tx + 30 && y > 450 && y < 510) {
+                if (gd.skewer.length < 3) {
+                    gd.skewer.push(t);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            }
+        });
+        if (gd.skewer.length === 3 && x > 450 && x < 650 && y > 530 && y < 580) {
+            if (gd.grill.length < 4) {
+                gd.grill.push({ skewer: [...gd.skewer], timer: 0, served: false });
+                gd.skewer = [];
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        }
+        if (x > 660 && x < 760 && y > 530 && y < 580) {
+            gd.skewer = [];
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        gd.grill.forEach((g, idx) => {
+            const gx = 150 + idx * 160;
+            if (x > gx - 40 && x < gx + 40 && y > 160 && y < 400) {
+                if (g.timer > 2.4 && g.timer < 3.6) {
+                    if (JSON.stringify(g.skewer) === JSON.stringify(gd.order)) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / 8) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        this.createExplosion(gx, 300, '#ffd700');
+                        gd.grill.splice(idx, 1);
+                        if (gd.score >= 8) {
+                            this.win();
+                        } else {
+                            const items = ['🍡', '🍓', '🍳'];
+                            gd.order = [
+                                items[Math.floor(Math.random() * 3)],
+                                items[Math.floor(Math.random() * 3)],
+                                items[Math.floor(Math.random() * 3)]
+                            ];
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('damage');
+                        this.triggerShake(10);
+                        gd.grill.splice(idx, 1);
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.triggerShake(10);
+                    gd.grill.splice(idx, 1);
+                }
+            }
+        });
+    },
+
+    // ==========================================

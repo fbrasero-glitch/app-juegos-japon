@@ -1,0 +1,341 @@
+// MISIONES DEL DIA 17
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_17 = {
+"day_17_omikuji": {
+        tag: "expert",
+        day: 17,
+        title: "Destino Omikuji",
+        role: "kid9",
+        xp: 15,
+        location: "Senso-ji",
+        render: () => `
+        <p class="mission-desc">Saca un papel de la suerte (omikuji) y registra tu resultado.</p>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <button class="btn-secondary btn-o" data-res="Buena Suerte">🌟 Buena Suerte</button>
+            <button class="btn-secondary btn-o" data-res="Suerte Regular">😐 Suerte Regular</button>
+            <button class="btn-secondary btn-o" data-res="Mala Suerte">💀 Mala Suerte</button>
+        </div>
+        <div id="o-msg" style="color:red; font-weight:bold; margin-bottom:10px; text-align:center;"></div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar destino</button>
+    `,
+        attachEvents: () => {
+        let res = "";
+        document.querySelectorAll('.btn-o').forEach(b => b.addEventListener('click', (e) => {
+            res = e.target.dataset.res;
+            document.querySelectorAll('.btn-o').forEach(bb => bb.style.borderColor='transparent');
+            e.target.style.borderColor='#0f0';
+            if(res === 'Mala Suerte') document.getElementById('o-msg').innerText = "¡Átalo al poste del templo para que no te siga!";
+            else document.getElementById('o-msg').innerText = "";
+            document.getElementById('btn').classList.remove('hidden');
+        }));
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_omikuji', {type:'text', data:`Destino: ${res}`}));
+    }
+    },
+
+"day_17_incense": {
+        tag: "photo", day: 17, title: "Humo de la Fortuna", role: "kid9", xp: 15, location: "Senso-ji",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">💨 En Senso-ji hay un enorme incensario del que sale humo sagrado. Los japoneses se lo echan por encima para atraer la suerte. ¡Haz lo mismo y captura el momento!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#2c2c2c,#555,#888); border-radius:15px;">
+            <p style="font-size:3rem;">🏯💨✨</p>
+            <p style="color:#ddd; font-style:italic;">El humo que trae buena suerte</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar el Humo Sagrado</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_incense', currentUser, false); }
+    },
+
+"day_17_gashapon": {
+        tag: "photo", day: 17, title: "Gashapon Perfecto", role: "kid9", xp: 15, location: "Akihabara",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🎰 Los gashapon son máquinas de cápsulas sorpresa que están POR TODAS PARTES en Japón. Encuentra la máquina más rara o la cápsula más extraña y fotografíala.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#ff1493,#ff69b4,#ffb6c1); border-radius:15px;">
+            <p style="font-size:3rem;">🎰🔮🎁</p>
+            <p style="color:#fff; font-weight:bold;">¿Qué misterio esconde la cápsula?</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Gashapon</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_gashapon', currentUser, false); }
+    },
+
+"day_17_p2p_receiver": {
+        tag: "expert",
+        day: 17,
+        title: "Sincronización P2P",
+        role: "kid9",
+        xp: 25,
+        location: "Akihabara",
+        render: () => `
+        <p class="mission-desc">Tu hermano ha interceptado un código secreto. Míralo en su pantalla y pulsa los colores en el mismo orden.</p>
+        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+            <button class="c-sq" data-c="Rojo" style="width:60px; height:60px; background:red; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Azul" style="width:60px; height:60px; background:blue; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Verde" style="width:60px; height:60px; background:green; border-radius:10px; border:2px solid transparent;"></button>
+            <button class="c-sq" data-c="Amarillo" style="width:60px; height:60px; background:yellow; border-radius:10px; border:2px solid transparent;"></button>
+        </div>
+        <div id="seq-disp" style="text-align:center; letter-spacing:5px; font-size:2rem; margin-bottom:10px;"></div>
+        <button id="btn" class="btn-primary" style="width:100%">Listo</button>
+    `,
+        attachEvents: () => {
+        let seq = []; const target = ['Rojo', 'Azul', 'Verde', 'Amarillo'];
+        document.querySelectorAll('.c-sq').forEach(b => b.addEventListener('click', (e) => {
+            seq.push(e.target.dataset.c);
+            document.getElementById('seq-disp').innerText = seq.map(c=>c[0]).join(' - ');
+        }));
+        document.getElementById('btn').addEventListener('click', () => {
+            if(JSON.stringify(seq) === JSON.stringify(target)) { launchConfetti(); submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado'}); }
+            else { showAlert('Error', 'Secuencia incorrecta. Vuelve a intentarlo.'); seq=[]; document.getElementById('seq-disp').innerText=""; }
+        });
+    }
+    },
+
+"day_17_retro": {
+        tag: "economy",
+        day: 17,
+        title: "Arqueología Gamer",
+        role: "kid14",
+        xp: 20,
+        location: "Akihabara",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> BUSCANDO JUEGO RETRO EN SUPER POTATO</p>
+            <input type="text" id="r-game" placeholder="Nombre del juego..." style="width:100%; margin-bottom:10px;">
+            <input type="number" id="r-yen" placeholder="Precio en Yenes (¥)..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Convertir a Euros</button>
+            <div id="r-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
+        </div>
+    `,
+        attachEvents: () => {
+        let eur = 0;
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const y = document.getElementById('r-yen').value;
+            if(y) { eur = (y / 160).toFixed(2); document.getElementById('r-res').innerText = `Aprox: ${eur} €`; document.getElementById('btn').classList.remove('hidden'); }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_retro', {type:'text', data:`Juego: ${document.getElementById('r-game').value}. Precio: ${document.getElementById('r-yen').value}¥ (${eur}€)`}));
+    }
+    },
+
+"day_17_skytree": {
+        tag: "sensors",
+        day: 17,
+        title: "Cervicales de Acero",
+        role: "kid14",
+        xp: 20,
+        location: "Skytree",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> APUNTANDO A LA CIMA. Mantén el móvil hacia arriba.</p>
+            <div style="width:100%; height:30px; background:#333; border-radius:5px; margin:20px 0;">
+                <div id="sky-bar" style="height:100%; width:0%; background:#0f0; transition:width 0.1s;"></div>
+            </div>
+            <button id="btn-start" class="btn-secondary" style="width:100%;">Iniciar sensor</button>
+            <button id="btn" class="btn-primary hidden" style="width:100%;">Completado</button>
+        </div>
+    `,
+        attachEvents: () => {
+        const bar = document.getElementById('sky-bar'); const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
+        let active = false; let progress = 0; let int = null;
+        
+        const handleOri = (e) => {
+            if(!active) return;
+            // Beta is pitch (-180 to 180). Pointing up is approx beta ~ 90.
+            if(e.beta > 75 && e.beta < 105) {
+                if(!int) int = setInterval(()=>{ progress+=10; bar.style.width = progress+'%'; if(progress>=100) { active=false; clearInterval(int); btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('deviceorientation', handleOri); } }, 1000);
+            } else { if(int) { clearInterval(int); int=null; } }
+        };
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "Apuntando...";
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('deviceorientation', handleOri); });
+            } else { window.addEventListener('deviceorientation', handleOri); }
+        });
+        btn.addEventListener('click', () => submitMission('day_17_skytree', {type:'game', data:'10s apuntando a Skytree'}));
+        window._missionCleanup = () => { active=false; clearInterval(int); window.removeEventListener('deviceorientation', handleOri); };
+    }
+    },
+
+"day_17_p2p_sender": {
+        tag: "expert",
+        day: 17,
+        title: "Sincronización P2P",
+        role: "kid14",
+        xp: 25,
+        location: "Akihabara",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> RESOLVER PARA DESBLOQUEAR CÓDIGO</p>
+            <p>Famicom: 14.800¥. Neo Geo: 58.000¥. ¿Suma total?</p>
+            <input type="number" id="p2p-ans" style="width:100%; margin:10px 0;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%;">Desencriptar</button>
+            <div id="code-area" class="hidden" style="margin-top:15px; text-align:center;">
+                <p>>>> CÓDIGO INTERCEPTADO:</p>
+                <div style="display:flex; justify-content:center; gap:5px;">
+                    <div style="width:30px; height:30px; background:red;"></div>
+                    <div style="width:30px; height:30px; background:blue;"></div>
+                    <div style="width:30px; height:30px; background:green;"></div>
+                    <div style="width:30px; height:30px; background:yellow;"></div>
+                </div>
+            </div>
+            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Aceptar Sincronización</button>
+        </div>
+    `,
+        attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            if(document.getElementById('p2p-ans').value == 72800) { document.getElementById('code-area').classList.remove('hidden'); document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden'); }
+            else showAlert('Error', 'Cálculo incorrecto.');
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_p2p_sender', {type:'game', data:'Código enviado a receptora'}));
+    }
+    },
+
+    "day_17_height": {
+        tag: "economy",
+        day: 17,
+        title: "Altura del Cielo",
+        role: "kid14",
+        xp: 15,
+        location: "Skytree",
+        render: () => `
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> DETECTOR DE ALTURA SKYLINE: TOKYO SKYTREE</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Ingresa la altura exacta en metros de la torre de telecomunicaciones más alta del mundo para calibrar los sensores.</p>
+                
+                <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; text-align:center;">
+                    <span style="color:#aaa; font-size:0.75rem;">REGISTRO DE METRADURA (METROS)</span>
+                    <input type="number" id="h-ans" placeholder="000" style="width:100%; text-align:center; background:transparent; color:#00ff99; border:none; border-bottom:2px solid #00ff99; font-size:2.5rem; font-family:monospace; outline:none; margin-top:10px; box-sizing:border-box;">
+                </div>
+                
+                <div id="h-msg" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:15px; text-align:center; min-height:20px; font-weight:bold;"></div>
+                
+                <button id="btn-height" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold; letter-spacing:1px;">⚡ ENVIAR LECTURA TELEMÉTRICA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let fails = 0;
+            const btn = document.getElementById('btn-height');
+            const input = document.getElementById('h-ans');
+            const msg = document.getElementById('h-msg');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val == '634') {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_17_height', {type:'number', data: 634}, role);
+                } else {
+                    fails++;
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (fails === 1) {
+                        msg.innerText = ">>> ERROR: Pista: El número se lee 'mu-sa-shi' (antigua provincia).";
+                    } else {
+                        msg.innerText = ">>> ACCESO DENEGADO: Altura no válida.";
+                    }
+                }
+            });
+        }
+    },
+
+    "day_17_sumida": {
+        tag: "video",
+        day: 17,
+        title: "Navegando el Sumida",
+        role: "both",
+        xp: 20,
+        location: "Río Sumida",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🚢 Travesía del Río Sumida 🚢</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">Grabad un vídeo corto (10s) desde el barco turístico (Water Bus) mientras cruzáis bajo alguno de los coloridos puentes históricos.</p>
+                
+                <div style="position:relative; background:#1a1a24; border-radius:12px; overflow:hidden; border:2px solid #00acc1; margin-bottom:15px; min-height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <video id="v-sum" autoplay playsinline muted style="width:100%; display:none; border-radius:10px; object-fit:cover;"></video>
+                    <div id="boat-wheel" style="font-size:4rem; animation: rotate 8s linear infinite;">🎡</div>
+                    <div id="video-timer" style="position:absolute; right:15px; bottom:15px; color:#00acc1; font-family:monospace; font-weight:bold; font-size:1.1rem; background:rgba(0,0,0,0.6); padding:3px 8px; border-radius:5px;">10.0s</div>
+                </div>
+                
+                <button id="btn-rec" class="btn-primary" style="width:100%; border-radius:25px; background:#00acc1; border-color:#00acc1; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🎬 GRABAR PASEO FLAVIAL (10s)</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px; padding:12px;">📨 Enviar Vídeo al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec');
+            const vid = document.getElementById('v-sum');
+            const btnSubmit = document.getElementById('btn-submit');
+            const wheel = document.getElementById('boat-wheel');
+            const timerEl = document.getElementById('video-timer');
+            
+            let mr = null;
+            let stream = null;
+            let blobId = null;
+            let timeLeft = 10.0;
+            let interval = null;
+            
+            btnRec.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                    vid.srcObject = stream;
+                    vid.style.display = 'block';
+                    wheel.style.display = 'none';
+                    vid.play();
+                    
+                    mr = new MediaRecorder(stream);
+                    let chunks = [];
+                    mr.ondataavailable = e => chunks.push(e.data);
+                    
+                    mr.onstop = () => {
+                        vid.srcObject = null;
+                        const blob = new Blob(chunks, {'type':'video/mp4'});
+                        vid.src = URL.createObjectURL(blob);
+                        vid.controls = true;
+                        vid.muted = false;
+                        
+                        btnRec.classList.add('hidden');
+                        btnSubmit.classList.remove('hidden');
+                        
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { blobId = r.result; };
+                        
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    
+                    mr.start();
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    timeLeft = 10.0;
+                    timerEl.innerText = '10.0s';
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            if (mr.state === 'recording') mr.stop();
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                    
+                } catch(e) {
+                    console.error(e);
+                    showAlert("Error", "Cámara o micrófono no disponibles.");
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (blobId) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_17_sumida', {type:'video', data: 'Video barco Sumida'}, role, true);
+                }
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+            };
+        }
+    },
+
+
+};

@@ -1,0 +1,442 @@
+// MISIONES DEL DIA 3
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_3 = {
+    "day_3_glico": {
+        tag: "photo",
+        day: 3,
+        title: "Glico Man",
+        role: "kid9",
+        xp: 15,
+        location: "Dotonbori",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ff4081 0%, #3f51b5 100%); border-radius:15px; border:3px solid #ffd700; color:#fff; font-family:'Quicksand', sans-serif; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:12px;">🏃‍♂️ ¡El Desafío del Glico Man! 🏃‍♂️</p>
+                <p style="font-size:0.9rem; margin-bottom:15px; color:#e0e0e0;">¡Llegada al canal de Dotonbori! Busca el cartel de neón gigante e imita la postura clásica del corredor cruzando la meta.</p>
+                <div style="background:rgba(255,255,255,0.1); border-radius:10px; padding:10px; margin-bottom:15px; border:1px dashed #ffd700;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#ffd700; margin:0 0 5px 0;">📐 GUÍA DE POSTURA:</p>
+                    <div style="font-size:2.5rem; margin:10px 0;">🙆‍♂️✨👟</div>
+                    <span style="font-size:0.8rem;">1. Brazos en alto en forma de "V"<br>2. Flexiona una pierna hacia atrás<br>3. Sonrisa gigante frente al gran cartel</span>
+                </div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#ffd700; border-color:#ffd700; color:#222; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,215,0,0.3);">📸 Tomar Foto Imitación</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_glico', role, false)
+    },
+
+    "day_3_ninja": {
+        tag: "photo",
+        day: 3,
+        title: "Ninja de las Sombras",
+        role: "kid9",
+        xp: 10,
+        location: "Calles",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #1a1a24 0%, #2a2a36 100%); border-radius:15px; border:3px solid #ff5722; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👤 El Arte del Kagejutsu (Sombras) 🥷</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ccc;">Busca una luz potente en la calle (un farol o foco) que proyecte tu silueta gigante sobre una pared. ¡Haz una pose ninja de ataque o sigilo!</p>
+                <div style="display:flex; justify-content:center; gap:15px; margin:15px 0;">
+                    <div style="font-size:3rem; filter:drop-shadow(0 0 10px #ff5722); opacity:0.8;">🥷</div>
+                    <div style="font-size:3rem; filter:drop-shadow(0 0 10px #ffd700); opacity:0.8;">👥</div>
+                </div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#ff5722; border-color:#ff5722; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,87,34,0.3);">📸 Capturar Sombra Ninja</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_ninja', role, false)
+    },
+
+    "day_3_bridge": {
+        tag: "physical",
+        day: 3,
+        title: "Foso del Castillo",
+        role: "kid9",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); border-radius:15px; border:3px solid #009688; color:#004d40; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🏯 Cruzando el Foso del Shogun 🏯</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">El foso de agua es gigantesco. Empieza a cruzar el puente de madera y cuenta tus pasos reales en voz alta.</p>
+                <div style="background:#fff; border-radius:10px; padding:15px; margin-bottom:15px; border:2px solid #009688;">
+                    <div style="font-size:0.8rem; font-weight:bold; color:#00796b; margin-bottom:5px;">REGISTRO DE PASOS REALIZADOS:</div>
+                    <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:10px 0;">
+                        <button id="btn-sub-step" class="btn-secondary" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#009688; color:#fff; border:none; line-height:1; cursor:pointer;">-</button>
+                        <span id="bridge-steps-count" style="font-size:2.5rem; font-weight:bold; min-width:80px; color:#004d40;">0</span>
+                        <button id="btn-add-step" class="btn-secondary" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#009688; color:#fff; border:none; line-height:1; cursor:pointer;">+</button>
+                    </div>
+                </div>
+                <input type="hidden" id="ans" value="0">
+                <button id="btn" class="btn-primary" style="width:100%; background:#00796b; border-color:#00796b; font-family:'Quicksand', sans-serif; font-weight:bold; border-radius:20px;">🎖️ Enviar Registro de Pasos</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let steps = 0;
+            const countEl = document.getElementById('bridge-steps-count');
+            const ansInput = document.getElementById('ans');
+            
+            document.getElementById('btn-add-step').addEventListener('click', () => {
+                steps += 5;
+                countEl.innerText = steps;
+                ansInput.value = steps;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            document.getElementById('btn-sub-step').addEventListener('click', () => {
+                if (steps >= 5) {
+                    steps -= 5;
+                    countEl.innerText = steps;
+                    ansInput.value = steps;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+            
+            document.getElementById('btn').addEventListener('click', () => {
+                if (steps <= 0) {
+                    showAlert('CÓMPUTO VACÍO', '¡Camina y registra al menos algunos pasos para cruzar el foso!');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_3_bridge', {type:'number', data: steps}, role);
+            });
+        }
+    },
+
+    "day_3_umeda": {
+        tag: "photo",
+        day: 3,
+        title: "Umeda Sky (Superhéroe)",
+        role: "kid9",
+        xp: 15,
+        location: "Umeda Sky",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%); border-radius:15px; border:3px solid #607d8b; color:#263238; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🛸 Fuerza Titán en Umeda Sky 🏢</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#455a64;">Juega con la perspectiva: pídele a tu familia que te haga una foto desde abajo donde parezca que sostienes el rascacielos flotante con tus manos.</p>
+                <div style="background:#fff; border-radius:10px; padding:10px; margin-bottom:15px; border:1px solid #b0bec5; display:flex; align-items:center; justify-content:center; gap:15px;">
+                    <span style="font-size:2.5rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));">🦸‍♀️</span>
+                    <span style="font-size:1.5rem; color:#b0bec5;">⚡</span>
+                    <span style="font-size:2.5rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));">🏢</span>
+                </div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#607d8b; border-color:#607d8b; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px;">📸 Tomar Foto Ilusión</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_umeda', role, false)
+    },
+
+    "day_3_architect": {
+        tag: "expert",
+        day: 3,
+        title: "Arquitecto del Castillo",
+        role: "kid14",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
+                <p>>>> ANÁLISIS DEFENSIVO SENGOKU / MÓDULO GEOMÉTRICO</p>
+                <p style="color:#aaa; font-size:0.85rem;">Estima el ancho del foso en metros. El simulador calculará la parábola requerida para proyectiles de asedio.</p>
+                
+                <div style="margin:15px 0; padding:10px; background:rgba(0,255,153,0.05); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
+                    <span style="font-size:0.8rem; color:#ffd700;">DISTANCIA AL BLANCO (ESTIMACIÓN):</span>
+                    <div style="font-size:2rem; font-weight:bold; margin:5px 0;" id="arch-dist-display">40 m</div>
+                    <input type="range" id="arch-slider" min="10" max="150" value="40" step="5" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                </div>
+                
+                <div style="margin-bottom:15px; border:1px solid #333; border-radius:4px; overflow:hidden; background:#111; height:80px; position:relative;">
+                    <canvas id="arch-canvas" width="280" height="80" style="display:block; width:100%; height:80px;"></canvas>
+                </div>
+                
+                <button id="btn-arch" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">CONFIGURAR ARMA DE ASEDIO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('arch-slider');
+            const display = document.getElementById('arch-dist-display');
+            const canvas = document.getElementById('arch-canvas');
+            const ctx = canvas.getContext('2d');
+            const btn = document.getElementById('btn-arch');
+            
+            const drawSimulation = (dist) => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw ground
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 70);
+                ctx.lineTo(canvas.width, 70);
+                ctx.stroke();
+                
+                // Draw moat (foso)
+                ctx.fillStyle = '#0055ff';
+                ctx.fillRect(40, 70, canvas.width - 80, 10);
+                
+                // Draw castle wall
+                ctx.fillStyle = '#666';
+                ctx.fillRect(canvas.width - 30, 20, 20, 50);
+                
+                // Draw trajectory
+                ctx.strokeStyle = '#00ff99';
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(20, 70);
+                
+                // Parabola peak is halfway
+                const midX = (canvas.width - 25 + 20) / 2;
+                const peakY = 10;
+                
+                ctx.quadraticCurveTo(midX, peakY, canvas.width - 25, 20);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Draw ball
+                ctx.fillStyle = '#ff5722';
+                ctx.beginPath();
+                ctx.arc(canvas.width - 25, 20, 3, 0, Math.PI * 2);
+                ctx.fill();
+            };
+            
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                display.innerText = val + ' m';
+                drawSimulation(val);
+            });
+            
+            drawSimulation(40);
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(slider.value);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_3_architect', {type:'number', data: val}, role);
+            });
+        }
+    },
+
+    "day_3_neon": {
+        tag: "photo",
+        day: 3,
+        title: "Filtro Cyberpunk",
+        role: "kid14",
+        xp: 15,
+        location: "Dotonbori",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0c0812; border:1px solid #ff007f; color:#ff007f; box-shadow: 0 4px 20px rgba(255,0,127,0.25);">
+                <p>>>> RASTREO ÓPTICO NOCTURNO // DOTONBORI NEÓN</p>
+                <p style="color:#00f0ff;">Busca una callejuela angosta iluminada con letreros de neón brillantes y tómale una foto de perspectiva angular estilo Neo-Tokio.</p>
+                
+                <div style="margin:15px 0; padding:10px; background:rgba(0,240,255,0.05); border:1px solid #00f0ff; border-radius:5px; text-align:center;">
+                    <div style="font-size:0.75rem; color:#ff007f; margin-bottom:5px; font-weight:bold;">⚡ PARÁMETROS CYBERPUNK RECOMENDADOS:</div>
+                    <span style="font-size:0.8rem; color:#fff;">Reflejo en asfalto húmedo | Letreros retro kanji | Sombras marcadas</span>
+                </div>
+                
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:monospace; background:#ff007f; border-color:#ff007f; color:#fff; font-weight:bold; font-size:1rem; border-radius:5px;">📸 ACTIVAR OPTICA CYBERPUNK</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_neon', role, false)
+    },
+
+    "day_3_rush": {
+        tag: "physical",
+        day: 3,
+        title: "El Asalto al Shogun",
+        role: "kid14",
+        xp: 20,
+        location: "Castillo Osaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
+                <p>>>> CRONÓMETRO DE INFILTRACIÓN TÁCTICA</p>
+                <p style="color:#aaa; font-size:0.85rem;">Mide a paso normal (sin correr) el tiempo desde la puerta exterior de piedra del castillo hasta la base de la torre principal.</p>
+                
+                <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px; margin:15px 0;">
+                    <div id="rush-chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5);">00:00.0</div>
+                    <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+                        <button id="btn-rush-start" style="padding:5px 15px; background:#00ff99; border:none; color:#222; font-weight:bold; border-radius:3px; cursor:pointer;">INICIAR</button>
+                        <button id="btn-rush-stop" style="padding:5px 15px; background:#ff5722; border:none; color:#fff; font-weight:bold; border-radius:3px; cursor:pointer;" disabled>DETENER</button>
+                        <button id="btn-rush-reset" style="padding:5px 15px; background:#444; border:none; color:#fff; border-radius:3px; cursor:pointer;">RESET</button>
+                    </div>
+                </div>
+                <input type="hidden" id="ans" value="">
+                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;" disabled>ENVIAR REGISTRO TELEMÉTRICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let timer = null;
+            let startTime = 0;
+            let elapsedTime = 0;
+            const display = document.getElementById('rush-chrono');
+            const btnStart = document.getElementById('btn-rush-start');
+            const btnStop = document.getElementById('btn-rush-stop');
+            const btnReset = document.getElementById('btn-rush-reset');
+            const btnSubmit = document.getElementById('btn-submit');
+            const ansInput = document.getElementById('ans');
+            
+            const updateTime = () => {
+                const now = Date.now();
+                const totalMs = now - startTime + elapsedTime;
+                const m = Math.floor(totalMs / 60000);
+                const s = Math.floor((totalMs % 60000) / 1000);
+                const ms = Math.floor((totalMs % 1000) / 100);
+                display.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${ms}`;
+            };
+            
+            btnStart.addEventListener('click', () => {
+                if (timer) return;
+                startTime = Date.now();
+                timer = setInterval(updateTime, 100);
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+                btnSubmit.disabled = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btnStop.addEventListener('click', () => {
+                if (!timer) return;
+                clearInterval(timer);
+                timer = null;
+                elapsedTime += Date.now() - startTime;
+                btnStart.disabled = false;
+                btnStart.innerText = 'REANUDAR';
+                btnStop.disabled = true;
+                btnSubmit.disabled = false;
+                ansInput.value = display.innerText;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btnReset.addEventListener('click', () => {
+                if (timer) {
+                    clearInterval(timer);
+                    timer = null;
+                }
+                elapsedTime = 0;
+                display.innerText = '00:00.0';
+                btnStart.disabled = false;
+                btnStart.innerText = 'INICIAR';
+                btnStop.disabled = true;
+                btnSubmit.disabled = true;
+                ansInput.value = '';
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (!ansInput.value || ansInput.value === '00:00.0') return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_3_rush', {type:'text', data: `Tiempo de asalto: ${ansInput.value}`}, role);
+            });
+            
+            window._missionCleanup = () => {
+                if (timer) clearInterval(timer);
+            };
+        }
+    },
+
+    "day_3_flow": {
+        tag: "sensors",
+        day: 3,
+        title: "Visión de Flujo Vital",
+        role: "kid14",
+        xp: 30,
+        location: "Dotonbori",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
+                <p>>>> ESCANEO MAGNÉTICO DE FLUJO URBANO</p>
+                <p style="color:#aaa; font-size:0.85rem;">Encuentra el gran neón de Glico. Apunta tu dispositivo hacia él y pulsa escanear. Mantén el pulso para sincronizar la firma electromagnética.</p>
+                
+                <div style="position:relative; width:150px; height:150px; border-radius:50%; border:2px solid #00ff99; margin:15px auto; overflow:hidden; background:rgba(0,255,153,0.05); display:flex; align-items:center; justify-content:center;">
+                    <div id="radar-beam" style="position:absolute; width:100%; height:100%; background:linear-gradient(45deg, rgba(0,255,153,0.2), transparent); transform-origin:center; top:0; left:0; border-radius:50%; animation: radar-spin 3s linear infinite; display:none;"></div>
+                    <div style="font-size:2.5rem; z-index:2;" id="radar-emoji">📡</div>
+                </div>
+                
+                <div id="flow-sensor-val" style="font-size:1.8rem; color:#ffd700; text-align:center; font-family:monospace; margin-bottom:15px;">-- Hz</div>
+                
+                <button id="btn-scan" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">INICIAR ESCANEO DE CAMPO</button>
+                
+                <style>
+                    @keyframes radar-spin {
+                        from { transform: rotate(0deg); }
+                        to { transform: rotate(360deg); }
+                    }
+                </style>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let active = false;
+            let handler = null;
+            const btn = document.getElementById('btn-scan');
+            const valEl = document.getElementById('flow-sensor-val');
+            const beam = document.getElementById('radar-beam');
+            const emoji = document.getElementById('radar-emoji');
+            
+            btn.addEventListener('click', async () => {
+                if (active) return;
+                
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') {
+                            showAlert('Error', 'Permiso denegado.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudieron pedir permisos del sensor.');
+                        return;
+                    }
+                }
+                
+                btn.style.display = 'none';
+                beam.style.display = 'block';
+                emoji.innerText = '🌀';
+                active = true;
+                
+                let lastVal = 45;
+                
+                handler = (ev) => {
+                    if (!active) return;
+                    const val = Math.floor(Math.abs(ev.alpha || 0) + Math.abs(ev.beta || 0));
+                    lastVal = val;
+                    valEl.innerText = `${val} Hz`;
+                };
+                
+                window.addEventListener('deviceorientation', handler);
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                setTimeout(() => {
+                    active = false;
+                    window.removeEventListener('deviceorientation', handler);
+                    beam.style.display = 'none';
+                    emoji.innerText = '✅';
+                    valEl.innerText = `${lastVal} Hz [BLOQUEADO]`;
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    
+                    setTimeout(() => {
+                        submitMission('day_3_flow', {type:'sensors', data: `Frecuencia neón: ${lastVal} Hz`}, role);
+                    }, 1500);
+                }, 5000);
+            });
+            
+            window._missionCleanup = () => {
+                active = false;
+                if (handler) window.removeEventListener('deviceorientation', handler);
+            };
+        }
+    },
+
+    "day_3_reflect": {
+        tag: "photo",
+        day: 3,
+        title: "El Reflejo Infinito",
+        role: "both",
+        xp: 25,
+        location: "Osaka",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🪞 El Reflejo Infinito en Osaka 🖼️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">Misión conjunta de equipo. Buscad un espejo, cristalera gigante de un edificio o un gran charco donde se reflejen los neones y toda vuestra familia junta.</p>
+                <div style="font-size:2.5rem; margin:10px 0;">✨👨‍👩‍👧‍👦✨</div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px;">📸 Tomar Foto Familiar</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_reflect', role, false, true)
+    },
+
+
+};

@@ -1,0 +1,426 @@
+// MISIONES DEL DIA 19
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_19 = {
+    "day_19_gundam": {
+        tag: "video",
+        day: 19,
+        title: "Piloto de Mechas",
+        role: "kid9",
+        xp: 20,
+        location: "Odaiba",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f1f8e9 100%); border-radius:15px; border:3px solid #e91e63; color:#880e4f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🤖 Transformación Unicorn Gundam 🤖</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#c2185b;">El gigante Gundam de Odaiba se transforma. Graba 15s de su modo Destroy con tu mira táctica de combate activa.</p>
+                
+                <div style="position:relative; background:#1a1a24; border-radius:12px; overflow:hidden; border:2px solid #e91e63; margin-bottom:15px; min-height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <video id="v-g" autoplay playsinline muted style="width:100%; display:none; border-radius:10px; object-fit:cover;"></video>
+                    
+                    <!-- HUD overlay -->
+                    <div id="gundam-hud" style="position:absolute; top:10px; left:10px; right:10px; bottom:10px; border:2px solid rgba(233,30,99,0.3); pointer-events:none; display:none; flex-direction:column; justify-content:space-between; padding:5px; box-sizing:border-box;">
+                        <div style="display:flex; justify-content:space-between; color:#e91e63; font-size:0.65rem; font-family:monospace;"><span>LOCK-ON MODE</span><span>SYSTEM OK</span></div>
+                        <div style="width:40px; height:40px; border:2px solid #e91e63; border-radius:50%; margin:0 auto; display:flex; justify-content:center; align-items:center; color:#e91e63; font-size:0.8rem; animation: pulse 0.5s infinite alternate;">➕</div>
+                        <div style="display:flex; justify-content:space-between; color:#e91e63; font-size:0.65rem; font-family:monospace;"><span>PWR: 99%</span><span>TRGT: UNICORN</span></div>
+                    </div>
+                    
+                    <div id="g-mecha-emoji" style="font-size:4.5rem;">🤖</div>
+                    <div id="gundam-timer" style="position:absolute; right:15px; bottom:15px; color:#ff80ab; font-family:monospace; font-weight:bold; font-size:1.1rem; background:rgba(0,0,0,0.6); padding:3px 8px; border-radius:5px;">15.0s</div>
+                </div>
+                
+                <button id="btn-rec" class="btn-primary" style="width:100%; border-radius:25px; background:#e91e63; border-color:#e91e63; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🎬 APUNTAR + GRABAR MECHA (15s)</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px; padding:12px;">📨 Transmitir Vídeo al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec');
+            const vid = document.getElementById('v-g');
+            const btnSubmit = document.getElementById('btn-submit');
+            const emoji = document.getElementById('g-mecha-emoji');
+            const hud = document.getElementById('gundam-hud');
+            const timerEl = document.getElementById('gundam-timer');
+            
+            let mr = null;
+            let stream = null;
+            let blobId = null;
+            let timeLeft = 15.0;
+            let interval = null;
+            
+            btnRec.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                    vid.srcObject = stream;
+                    vid.style.display = 'block';
+                    hud.style.display = 'flex';
+                    emoji.style.display = 'none';
+                    vid.play();
+                    
+                    mr = new MediaRecorder(stream);
+                    let chunks = [];
+                    mr.ondataavailable = e => chunks.push(e.data);
+                    
+                    mr.onstop = () => {
+                        vid.srcObject = null;
+                        const blob = new Blob(chunks, {'type':'video/mp4'});
+                        vid.src = URL.createObjectURL(blob);
+                        vid.controls = true;
+                        vid.muted = false;
+                        hud.style.display = 'none';
+                        
+                        btnRec.classList.add('hidden');
+                        btnSubmit.classList.remove('hidden');
+                        
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { blobId = r.result; };
+                        
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    
+                    mr.start();
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Fijando Blanco...';
+                    timeLeft = 15.0;
+                    timerEl.innerText = '15.0s';
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            if (mr.state === 'recording') mr.stop();
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                    
+                } catch(e) {
+                    console.error(e);
+                    showAlert("Error", "Cámara o micrófono no disponibles.");
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (blobId) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_19_gundam', {type:'video', data: 'Video Gundam registrado'}, role);
+                }
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+            };
+        }
+    },
+
+    "day_19_color": {
+        tag: "expert",
+        day: 19,
+        title: "Cazador de Luz",
+        role: "kid9",
+        xp: 25,
+        location: "TeamLab",
+        render: () => `
+            <div style="text-align:center; padding:18px; background:linear-gradient(135deg, #121212 0%, #1e1e1e 100%); border-radius:15px; border:3px solid #bb86fc; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.4);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px; color:#bb86fc;">🔮 Mimetismo Cromático 🔮</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#e0e0e0;">En TeamLab las salas cambian de color constantemente. Usa el selector mágico para capturar y replicar el color exacto de tu sala en este instante.</p>
+                
+                <div style="display:flex; flex-direction:column; align-items:center; margin:20px 0;">
+                    <div id="color-glow-ring" style="width:110px; height:110px; border-radius:50%; background:#ff0000; box-shadow:0 0 25px #ff0000; display:flex; justify-content:center; align-items:center; margin-bottom:15px; transition: background 0.2s, box-shadow 0.2s;">
+                        <span style="font-size:1.8rem;">🎨</span>
+                    </div>
+                    <input type="color" id="c-picker" value="#ff0000" style="width:80px; height:40px; border:none; border-radius:5px; background:transparent; cursor:pointer;">
+                </div>
+                
+                <button id="btn-color" class="btn-primary" style="width:100%; border-radius:25px; background:#bb86fc; border-color:#bb86fc; color:#000; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🔮 CONFIGURAR COLOR DE SALA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const picker = document.getElementById('c-picker');
+            const ring = document.getElementById('color-glow-ring');
+            const btn = document.getElementById('btn-color');
+            
+            picker.addEventListener('input', (e) => {
+                const c = e.target.value;
+                ring.style.background = c;
+                ring.style.boxShadow = `0 0 25px ${c}`;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btn.addEventListener('click', () => {
+                const finalColor = picker.value;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_19_color', {type:'game', data: `Color capturado: ${finalColor}`}, role);
+            });
+        }
+    },
+
+"day_19_teamlab": {
+        tag: "expert",
+        day: 19,
+        title: "Sueños Digitales",
+        role: "kid9",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
+        <p class="mission-desc">Dibuja la proyección digital que más te haya gustado del museo.</p>
+        <div style="background:#000; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
+            <canvas id="t-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
+            <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Dibujo</button>
+        </div>
+    `,
+        attachEvents: () => {
+        const can = document.getElementById('t-can'); const ctx = can.getContext('2d');
+        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => { const rect=can.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY; return {x:cx-rect.left, y:cy-rect.top}; };
+        const start = (e) => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+        const draw = (e) => { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+        const stop = () => { drawing=false; };
+        can.addEventListener('mousedown', start); can.addEventListener('mousemove', draw); can.addEventListener('mouseup', stop); can.addEventListener('mouseout', stop);
+        can.addEventListener('touchstart', start, {passive:false}); can.addEventListener('touchmove', draw, {passive:false}); can.addEventListener('touchend', stop);
+        
+        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0,0,can.width,can.height));
+        document.getElementById('btn-sub').addEventListener('click', async () => {
+            const data = can.toDataURL(); const id = 'teamlab_'+Date.now();
+            await savePhotoToDB(id, data); submitMission('day_19_teamlab', {type:'photo', data:id});
+        });
+    }
+    },
+
+"day_19_liberty": {
+        tag: "photo", day: 19, title: "La Libertad Nipona", role: "kid9", xp: 15, location: "Odaiba",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🗽 ¡Japón tiene su propia Estatua de la Libertad en Odaiba! Es más pequeña que la de Nueva York, pero está junto al mar con el Rainbow Bridge de fondo. ¡Ilusión óptica: haz que parezca que la tocas!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a1a2e,#006994,#00bcd4); border-radius:15px;">
+            <p style="font-size:3rem;">🗽🌉✨</p>
+            <p style="color:#80deea; font-style:italic;">La libertad brilla en la bahía de Tokio</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto Estatua de la Libertad</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_19_liberty', currentUser, false); }
+    },
+
+"day_19_crypto": {
+        tag: "expert",
+        day: 19,
+        title: "Desencriptar Protocolo",
+        role: "kid14",
+        xp: 25,
+        location: "Odaiba",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> INTERCEPTA EL CÓDIGO DEL MECHA. Busca el número de modelo en el hombro del robot.</p>
+            <input type="text" id="cr-ans" placeholder="Modelo (XX-X)..." style="width:100%; margin-bottom:10px; text-transform:uppercase;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Desencriptar</button>
+            <div id="cr-res" style="color:#0f0; margin-bottom:15px;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Autorizar</button>
+        </div>
+    `,
+        attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', async () => {
+            const txt = document.getElementById('cr-ans').value.trim().toUpperCase();
+            const enc = new TextEncoder().encode(txt);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', enc);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            // SHA-256 of "RX-0" is 9c8c9a62...
+            // Simple check since it's client side:
+            if(txt === 'RX-0') {
+                document.getElementById('cr-res').innerText = ">>> SISTEMA COMPROMETIDO. Modo Juez Activado.";
+                document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden');
+            } else showAlert('Error', 'Acceso denegado.');
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_19_crypto', {type:'game', data:'Protocolo mecha comprometido'}));
+    }
+    },
+
+    "day_19_mirrors": {
+        tag: "economy",
+        day: 19,
+        title: "Lógica de Iluminación",
+        role: "kid14",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> INFORME ÓPTICO: SISTEMA DE ESPEJOS INFINITOS (INFINITE REFLECTION)</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce científicamente cómo consiguen que las salas de TeamLab parezcan tener un tamaño infinito usando espejos y luces colgantes.</p>
+                
+                <div style="background:#111; padding:10px; border:1px dashed #00ff99; border-radius:5px; font-size:0.75rem; color:#888; margin-bottom:15px; text-align:center;">
+                    📐 ESTRUCTURA DE COMPOSICIÓN: [Espejo Suelo] ⇆ [Espejo Pared] + Luces LED verticales
+                </div>
+                
+                <textarea id="m-ans" placeholder=">>> Escribe tu explicación física de la proyección de rayos..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-mirrors" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 REGISTRAR EXPLICACIÓN ÓPTICA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-mirrors');
+            const input = document.getElementById('m-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 15) {
+                    showAlert('Explicación corta', 'Completa más detalladamente cómo actúan las superficies reflejantes.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_19_mirrors', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_19_weight": {
+        tag: "economy",
+        day: 19,
+        title: "Estructura de Gundam",
+        role: "kid14",
+        xp: 15,
+        location: "Odaiba",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> PESO DEL MECHA: UNICORN GUNDAM SCALE 1:1</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Averigua el peso neto en toneladas de la estatua de escala real del Gundam. (Pista: está fabricada de acero y plástico reforzado).</p>
+                
+                <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; text-align:center;">
+                    <span style="color:#aaa; font-size:0.75rem;">REGISTRO DE TONELAJE (T)</span>
+                    <input type="number" id="w-ans" placeholder="00" style="width:100%; text-align:center; background:transparent; color:#00ff99; border:none; border-bottom:2px solid #00ff99; font-size:2.5rem; font-family:monospace; outline:none; margin-top:10px; box-sizing:border-box;">
+                </div>
+                
+                <div id="w-msg" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:15px; text-align:center; min-height:20px; font-weight:bold;"></div>
+                
+                <button id="btn-weight" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">⚡ REGISTRAR TONELAJE OPERATIVO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-weight');
+            const input = document.getElementById('w-ans');
+            const msg = document.getElementById('w-msg');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                const w = parseFloat(val);
+                if (w >= 45 && w <= 52) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_19_weight', {type:'number', data: w}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    msg.innerText = ">>> ERROR: Peso fuera de rango. Investiga un poco más.";
+                }
+            });
+        }
+    },
+
+    "day_19_monorail": {
+        tag: "physical",
+        day: 19,
+        title: "Monorriel Yurikamome",
+        role: "kid14",
+        xp: 15,
+        location: "Tren",
+        render: () => `
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15); text-align:center;">
+                <p>>>> CRONOMETRAJE TÁCTICO: TREN YURIKAMOME (SIN CONDUCTOR)</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px; text-align:left;">Mide cuánto tarda exactamente el monorriel autónomo en recorrer el trayecto entre dos estaciones consecutivas.</p>
+                
+                <div style="background:#111; padding:20px; border-radius:10px; border:1px solid #333; margin-bottom:15px; position:relative; overflow:hidden;">
+                    <div id="chrono" style="font-size:3.5rem; font-weight:bold; color:#00ff99; text-shadow:0 0 20px rgba(0,255,153,0.4); font-family:monospace;">0.0s</div>
+                    <div id="speedo" style="font-size:0.85rem; color:#ffd700; margin-top:5px;">Velocidad: 0 km/h (Inactivo)</div>
+                </div>
+                
+                <button id="btn-start" class="btn-secondary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:12px; margin-bottom:10px;">🚀 SALIDA DE ESTACIÓN</button>
+                <button id="btn-end" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:12px;">🏁 DETENCIÓN EN SIGUIENTE</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnStart = document.getElementById('btn-start');
+            const btnEnd = document.getElementById('btn-end');
+            const clock = document.getElementById('chrono');
+            const speedo = document.getElementById('speedo');
+            
+            let t0 = 0;
+            let int = null;
+            
+            btnStart.addEventListener('click', () => {
+                t0 = Date.now();
+                btnStart.classList.add('hidden');
+                btnEnd.classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                int = setInterval(() => {
+                    const elapsed = (Date.now() - t0) / 1000;
+                    clock.innerText = elapsed.toFixed(1) + 's';
+                    
+                    let speed = 0;
+                    if (elapsed < 10) speed = Math.floor(elapsed * 5.5);
+                    else if (elapsed > 45) speed = Math.max(0, Math.floor(55 - (elapsed-45)*6));
+                    else speed = 50 + Math.floor(Math.sin(elapsed) * 4);
+                    
+                    speedo.innerText = `Velocidad: ${speed} km/h (Autónomo)`;
+                }, 100);
+            });
+            
+            btnEnd.addEventListener('click', () => {
+                clearInterval(int);
+                const finalTime = clock.innerText;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_19_monorail', {type:'text', data:`Tiempo de tránsito Yurikamome: ${finalTime}`}, role);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(int);
+            };
+        }
+    },
+
+    "day_19_immersive": {
+        tag: "photo",
+        day: 19,
+        title: "Inmersión Total",
+        role: "both",
+        xp: 20,
+        location: "TeamLab",
+        render: () => `
+            <div style="text-align:center; padding:20px; background:linear-gradient(135deg, #1f1c2c 0%, #928dab 100%); border-radius:18px; border:3px solid #bb86fc; color:#e0e0e0; font-family:'Quicksand', sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.3);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.2rem; margin-bottom:10px; color:#bb86fc;">🌌 Reflejos de TeamLab 🌌</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#cfd8dc;">Conseguid una foto familiar artística usando las superficies infinitas reflejantes de la sala de luces o agua.</p>
+                
+                <div style="text-align:center; margin:15px 0; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
+                    <p style="font-size:3.5rem;">🔮✨👨‍👩‍👧‍👦</p>
+                    <p style="color:#b388ff; font-style:italic; font-size:0.85rem; margin-top:10px;">Rodeados de magia e infinidad</p>
+                </div>
+                
+                <label style="display:flex; align-items:center; gap:12px; margin:20px 0; font-size:1.05rem; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px; cursor:pointer; text-align:left;">
+                    <input type="checkbox" id="chk-im" style="transform:scale(1.5); accent-color:#bb86fc;"> 
+                    <span>✅ ¡Foto inmersiva realizada!</span>
+                </label>
+                
+                <button id="btn-im" class="btn-primary" style="width:100%; border-radius:25px; background:#bb86fc; border-color:#bb86fc; color:#000; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">📨 CONSOLIDAR REGISTRO INMERSIVO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-im');
+            const chk = document.getElementById('chk-im');
+            
+            btn.addEventListener('click', () => {
+                if (chk.checked) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_19_immersive', {type:'text', data:'Foto familiar TeamLab confirmada'}, role, true);
+                } else {
+                    showAlert('Falta confirmación', 'Por favor, marca la casilla cuando tengáis la foto familiar.');
+                }
+            });
+        }
+    },
+
+
+};

@@ -1,0 +1,1050 @@
+// MINIJUEGOS DEL DIA 12
+// Métodos extraídos de games.js para NotebookLM
+
+    // DIA 12 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 10. day_12_silence: Silencio de los Kami
+    setupSilence() {
+        this.gameData = {
+            distance: 0,
+            targetDist: 200,
+            soundLevel: 0,
+            lives: 3,
+            state: 'play',
+            kamiDistance: 45
+        };
+        this.score = 0;
+    },
+    updateSilence(dt) {
+        const gd = this.gameData;
+        
+        gd.soundLevel = 10 + Math.sin(this.gameTime * 2.5) * 20 + Math.sin(this.gameTime * 0.8) * 15 + Math.random() * 8;
+        gd.soundLevel = Math.max(0, Math.min(100, gd.soundLevel));
+        
+        if (this.mouse.isDown) {
+            gd.distance += dt * 35;
+            this.score = Math.round(gd.distance);
+            
+            if (gd.soundLevel > 40) {
+                gd.lives--;
+                this.screenShake = 12;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                gd.distance = Math.max(0, gd.distance - 20);
+                this.mouse.isDown = false;
+            }
+        }
+        
+        const nearestKami = Math.round(gd.distance / 50) * 50;
+        if (nearestKami > 0 && Math.abs(gd.distance - nearestKami) < 3) {
+            if (gd.soundLevel > 22 && this.mouse.isDown) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('error');
+                gd.distance = nearestKami - 10;
+                this.mouse.isDown = false;
+            }
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawSilence() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#111b15';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fillRect(200, 30, 400, 80);
+        
+        ctx.strokeStyle = gd.soundLevel > 40 ? '#ff1744' : '#00e5ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < 400; i += 10) {
+            const h = (Math.sin(i * 0.05 + this.gameTime * 5) * gd.soundLevel * 0.4);
+            ctx.moveTo(200 + i, 70 - h);
+            ctx.lineTo(200 + i, 70 + h);
+        }
+        ctx.stroke();
+        
+        ctx.strokeStyle = 'rgba(255,23,68,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(200, 50); ctx.lineTo(600, 50); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(200, 90); ctx.lineTo(600, 90); ctx.stroke();
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 380, 800, 220);
+        
+        const playerPx = 100 + (gd.distance % 50) * 10;
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(playerPx, 350, 20, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#ffd54f';
+        ctx.beginPath();
+        ctx.arc(playerPx + 15, 355, 6, 0, Math.PI*2);
+        ctx.fill();
+        
+        const nextKamiDist = Math.ceil(gd.distance / 50) * 50;
+        const kamiPx = 100 + ((nextKamiDist - gd.distance) * 10) + (playerPx - (gd.distance % 50) * 10);
+        if (kamiPx < 850) {
+            ctx.font = '60px sans-serif';
+            const isNear = Math.abs(gd.distance - nextKamiDist) < 8;
+            const waken = isNear && gd.soundLevel > 22;
+            ctx.fillText(waken ? '😱' : '😴', kamiPx, 300);
+            ctx.font = '22px sans-serif';
+            ctx.fillText('⛩️', kamiPx, 360);
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Camino Sigiloso: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 140);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 180);
+        
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        if (gd.soundLevel > 40) {
+            ctx.fillStyle = '#ff1744';
+            ctx.fillText('🚨 ¡RUIDO ALTO! ¡Sueltas para detenerte!', 400, 480);
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText('Mantén presionado para caminar sigilosamente.', 400, 480);
+        }
+    },
+    inputSilencePress() {},
+
+    // 11. day_12_sugidama: La Bola de Cedro
+    setupSugidama() {
+        const pts = [];
+        for (let i = 0; i < 70; i++) {
+            const angle = (i / 70) * Math.PI * 2;
+            const r = 130 + Math.random() * 50;
+            pts.push({ angle: angle, r: r });
+        }
+        this.gameData = {
+            points: pts,
+            targetRadius: 105,
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateSugidama(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown) {
+            gd.points.forEach(p => {
+                const px = 400 + Math.cos(p.angle) * p.r;
+                const py = 300 + Math.sin(p.angle) * p.r;
+                if (Math.hypot(this.mouse.x - px, this.mouse.y - py) < 45) {
+                    const prevR = p.r;
+                    p.r = Math.max(gd.targetRadius, p.r - dt * 65);
+                    
+                    if (prevR > p.r && Math.random() < 0.2) {
+                        this.particles.push({
+                            x: px, y: py,
+                            vx: (Math.random() - 0.5) * 50, vy: 20 + Math.random() * 30,
+                            size: 3 + Math.random() * 5, color: '#33691e', life: 0.7, decay: 0.02
+                        });
+                        if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                    }
+                }
+            });
+        }
+        
+        let diffSum = 0;
+        gd.points.forEach(p => {
+            diffSum += Math.abs(p.r - gd.targetRadius);
+        });
+        const avgDiff = diffSum / gd.points.length;
+        gd.accuracy = Math.max(0, Math.min(100, Math.round(100 - avgDiff * 1.5)));
+        this.score = gd.accuracy;
+        
+        if (gd.accuracy >= 96) {
+            this.victory();
+        }
+    },
+    drawSugidama() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(400, 300, gd.targetRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#1b5e20';
+        ctx.strokeStyle = '#2e7d32';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        gd.points.forEach((p, idx) => {
+            const px = 400 + Math.cos(p.angle) * p.r;
+            const py = 300 + Math.sin(p.angle) * p.r;
+            if (idx === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        });
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        if (this.mouse.isDown) {
+            ctx.fillStyle = '#b0bec5';
+            ctx.fillRect(this.mouse.x - 10, this.mouse.y - 4, 20, 8);
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Poda el arbusto para dar forma a la Sugidama!', 400, 50);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillStyle = gd.accuracy >= 96 ? '#00ff99' : '#ffeb3b';
+        ctx.fillText('Precisión Esférica: ' + gd.accuracy + '% / 96%', 400, 95);
+    },
+    inputSugidamaPress() {},
+
+    // 12. day_12_wood: Detective de Madera
+    setupWood() {
+        this.gameData = {
+            tiles: Array(9).fill(null).map((_, idx) => ({
+                id: idx,
+                angle: [90, 180, 270][Math.floor(Math.random() * 3)]
+            })),
+            cleared: false
+        };
+        this.score = 0;
+    },
+    updateWood(dt) {},
+    drawWood() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 250;
+        const oy = 150;
+        const ts = 100;
+        
+        gd.tiles.forEach(tile => {
+            const col = tile.id % 3;
+            const row = Math.floor(tile.id / 3);
+            const cx = ox + col * ts;
+            const cy = oy + row * ts;
+            
+            ctx.save();
+            ctx.translate(cx + ts/2, cy + ts/2);
+            ctx.rotate(tile.angle * Math.PI / 180);
+            
+            ctx.fillStyle = '#8d6e63';
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-ts/2, -ts/2, ts, ts);
+            ctx.strokeRect(-ts/2, -ts/2, ts, ts);
+            
+            ctx.fillStyle = '#4e342e';
+            ctx.font = '40px sans-serif';
+            ctx.textAlign = 'center';
+            const reliefs = ['🐅', '🐉', '🦅', '🐾', '🌸', '🎋', '⛩️', '🍥', '🦊'];
+            ctx.fillText(reliefs[tile.id], 0, 15);
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Restaura la talla feudal rotando los paneles!', 400, 60);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca los azulejos de madera para rotarlos.', 400, 100);
+    },
+    inputWoodPress(x, y) {
+        const gd = this.gameData;
+        if (gd.cleared) return;
+        
+        const ox = 250;
+        const oy = 150;
+        const ts = 100;
+        
+        const col = Math.floor((x - ox) / ts);
+        const row = Math.floor((y - oy) / ts);
+        
+        if (col >= 0 && col < 3 && row >= 0 && row < 3) {
+            const idx = row * 3 + col;
+            const tile = gd.tiles[idx];
+            tile.angle = (tile.angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+            
+            let solved = true;
+            gd.tiles.forEach(t => {
+                if (t.angle !== 0) solved = false;
+            });
+            
+            if (solved) {
+                gd.cleared = true;
+                this.score = 2;
+                setTimeout(() => this.victory(), 800);
+            }
+        }
+    },
+    releaseWood() {},
+
+    // 13. day_12_hida: Degustadora de Hida
+    setupHida() {
+        this.gameData = {
+            meats: [
+                { id: 0, x: 200, sideA: 0, sideB: 0, side: 'A', active: true },
+                { id: 1, x: 400, sideA: 0, sideB: 0, side: 'A', active: true },
+                { id: 2, x: 600, sideA: 0, sideB: 0, side: 'A', active: true }
+            ],
+            servedCount: 0,
+            goal: 5
+        };
+        this.score = 0;
+    },
+    updateHida(dt) {
+        const gd = this.gameData;
+        
+        gd.meats.forEach(m => {
+            if (m.active) {
+                if (m.side === 'A') {
+                    m.sideA += dt * 0.15;
+                } else {
+                    m.sideB += dt * 0.15;
+                }
+            }
+        });
+        
+        if (gd.servedCount >= gd.goal) {
+            this.victory();
+        }
+    },
+    drawHida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#1e1b18';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#424242';
+        ctx.fillRect(100, 200, 600, 260);
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(110, 210, 580, 240);
+        
+        ctx.strokeStyle = '#616161';
+        ctx.lineWidth = 3;
+        for (let x = 120; x < 700; x += 30) {
+            ctx.beginPath(); ctx.moveTo(x, 200); ctx.lineTo(x, 460); ctx.stroke();
+        }
+        for (let y = 210; y < 460; y += 30) {
+            ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(700, y); ctx.stroke();
+        }
+        
+        gd.meats.forEach(m => {
+            if (m.active) {
+                const currentSideLvl = m.side === 'A' ? m.sideA : m.sideB;
+                
+                let color = '#d32f2f';
+                if (currentSideLvl > 0.4 && currentSideLvl <= 0.7) color = '#8d6e63';
+                else if (currentSideLvl > 0.7) color = '#212121';
+                
+                ctx.fillStyle = color;
+                ctx.fillRect(m.x - 60, 280, 120, 70);
+                
+                if (currentSideLvl <= 0.4) {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(m.x - 40, 290); ctx.lineTo(m.x - 20, 340);
+                    ctx.moveTo(m.x, 290); ctx.lineTo(m.x + 20, 340);
+                    ctx.stroke();
+                }
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.textAlign = 'center';
+                const statusStr = m.side === 'A' ? 'Lado A' : 'Lado B';
+                ctx.fillText(statusStr, m.x, 320);
+            }
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Cocina carne Wagyu de Hida perfectamente!', 400, 50);
+        ctx.fillText('Cortes perfectos servidos: ' + gd.servedCount + ' / ' + gd.goal, 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la carne para voltear o servir en su punto exacto.', 400, 140);
+    },
+    inputHidaPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.meats.forEach(m => {
+            if (m.active && x > m.x - 60 && x < m.x + 60 && y > 280 && y < 350) {
+                if (m.side === 'A') {
+                    m.side = 'B';
+                    if (window.playProceduralSound) playProceduralSound('click');
+                } else {
+                    const isSideACooked = m.sideA > 0.35 && m.sideA <= 0.7;
+                    const isSideBCooked = m.sideB > 0.35 && m.sideB <= 0.7;
+                    
+                    if (isSideACooked && isSideBCooked) {
+                        gd.servedCount++;
+                        this.score = gd.servedCount;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    }
+                    m.sideA = 0;
+                    m.sideB = 0;
+                    m.side = 'A';
+                }
+            }
+        });
+    },
+
+    // 14. day_12_carving: Talla en Madera
+    setupCarving() {
+        const kanji = [
+            [0,0,0,0,1,0,0,0,0],
+            [0,0,0,0,1,0,0,0,0],
+            [1,1,1,1,1,1,1,1,1],
+            [0,0,0,1,1,1,0,0,0],
+            [0,0,1,0,1,0,1,0,0],
+            [0,1,0,0,1,0,0,1,0],
+            [1,0,0,0,1,0,0,0,1]
+        ];
+        
+        this.gameData = {
+            voxels: Array(15).fill(null).map(() => Array(15).fill(true)),
+            target: kanji,
+            accuracy: 0
+        };
+        this.score = 0;
+    },
+    updateCarving(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown && this.mouse.x > 250 && this.mouse.x < 550 && this.mouse.y > 150 && this.mouse.y < 450) {
+            const col = Math.floor((this.mouse.x - 250) / 20);
+            const row = Math.floor((this.mouse.y - 150) / 20);
+            
+            if (row >= 0 && row < 15 && col >= 0 && col < 15) {
+                if (gd.voxels[row][col]) {
+                    gd.voxels[row][col] = false;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    for (let i = 0; i < 3; i++) {
+                        this.particles.push({
+                            x: this.mouse.x, y: this.mouse.y,
+                            vx: (Math.random() - 0.5) * 80, vy: (Math.random() - 0.5) * 80,
+                            size: 2 + Math.random() * 4, color: '#8d6e63', life: 0.5, decay: 0.02
+                        });
+                    }
+                }
+            }
+        }
+        
+        let matched = 0;
+        let totalValids = 0;
+        
+        for (let r = 0; r < 15; r++) {
+            for (let c = 0; c < 15; c++) {
+                const kr = r - 4;
+                const kc = c - 3;
+                const isTemplateCell = (kr >= 0 && kr < 7 && kc >= 0 && kc < 9 && gd.target[kr][kc] === 1);
+                
+                if (isTemplateCell) {
+                    if (gd.voxels[r][c]) matched++;
+                    totalValids++;
+                } else {
+                    if (!gd.voxels[r][c]) matched++;
+                    totalValids++;
+                }
+            }
+        }
+        
+        gd.accuracy = Math.round((matched / totalValids) * 100);
+        this.score = gd.accuracy;
+        
+        if (gd.accuracy >= 86) {
+            this.victory();
+        }
+    },
+    drawCarving() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#2b1b18';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.15)';
+        ctx.lineWidth = 15;
+        ctx.lineCap = 'round';
+        
+        ctx.beginPath(); ctx.moveTo(400, 180); ctx.lineTo(400, 420); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(300, 260); ctx.lineTo(500, 260); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(320, 380); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(480, 380); ctx.stroke();
+        
+        for (let r = 0; r < 15; r++) {
+            for (let c = 0; c < 15; c++) {
+                if (gd.voxels[r][c]) {
+                    ctx.fillStyle = '#5c4033';
+                    ctx.strokeStyle = '#3d251d';
+                    ctx.lineWidth = 1;
+                    ctx.fillRect(250 + c * 20, 150 + r * 20, 20, 20);
+                    ctx.strokeRect(250 + c * 20, 150 + r * 20, 20, 20);
+                }
+            }
+        }
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Cincela el bloque para tallar el Kanji de la Madera: 木!', 400, 60);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillStyle = gd.accuracy >= 86 ? '#00ff99' : '#ffeb3b';
+        ctx.fillText('Precisión del tallado: ' + gd.accuracy + '% / 86%', 400, 110);
+    },
+    inputCarvingPress() {},
+
+    // 15. day_12_sake: Maestro Destilador
+    setupSake() {
+        this.gameData = {
+            temp: 20.0,
+            timer: 30.0,
+            riceCount: 0,
+            goal: 20,
+            basketX: 400,
+            items: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSake(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        gd.temp += (Math.random() - 0.5) * 6 * dt;
+        gd.temp = Math.max(10, Math.min(30, gd.temp));
+        
+        const inGreenZone = (gd.temp >= 16 && gd.temp <= 24);
+        if (!inGreenZone) {
+            gd.timer = Math.min(30.0, gd.timer + dt * 0.4);
+        }
+        
+        gd.items.forEach(item => {
+            item.y += 180 * dt;
+        });
+        
+        gd.items.forEach(item => {
+            if (item.y > 470 && item.y < 510 && Math.abs(item.x - gd.basketX) < 55) {
+                if (item.type === 'rice') {
+                    gd.riceCount++;
+                    this.score = gd.riceCount;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                } else {
+                    gd.riceCount = Math.max(0, gd.riceCount - 3);
+                    this.score = gd.riceCount;
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.screenShake = 12;
+                }
+                item.y = 999;
+            }
+        });
+        
+        gd.items = gd.items.filter(item => item.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const isRice = Math.random() < 0.7;
+            gd.items.push({
+                x: 100 + Math.random() * 600,
+                y: -20,
+                type: isRice ? 'rice' : 'stone',
+                emoji: isRice ? '🌾' : '🪨'
+            });
+            gd.spawnTimer = 0.5 + Math.random() * 0.5;
+        }
+        
+        gd.basketX += (this.mouse.x - gd.basketX) * 0.25;
+        
+        if (gd.riceCount >= gd.goal && gd.timer <= 0) {
+            this.victory();
+        }
+    },
+    drawSake() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#efeeb2';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#b78d6e';
+        ctx.fillRect(80, 150, 640, 360);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(90, 160, 620, 340);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(740, 150, 20, 300);
+        
+        const yGreenStart = 450 - 300 * (24 - 10)/20;
+        const yGreenHeight = 300 * (8 / 20);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(740, yGreenStart, 20, yGreenHeight);
+        
+        const yInd = 450 - 300 * (gd.temp - 10)/20;
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(735, yInd - 3, 30, 6);
+        
+        gd.items.forEach(item => {
+            ctx.font = '32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.emoji, item.x, item.y);
+        });
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(gd.basketX - 50, 490, 100, 20);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(200, 525, 150, 50);
+        ctx.fillStyle = '#42a5f5';
+        ctx.fillRect(450, 525, 150, 50);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('♨️ Calentar', 275, 555);
+        ctx.fillText('❄️ Enfriar', 525, 555);
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Fermentación: ' + Math.round(gd.riceCount) + ' / ' + gd.goal + ' granos', 400, 55);
+        ctx.fillText('Tiempo de cocción restante: ' + Math.max(0, Math.round(gd.timer)) + 's', 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Temp destilado: ' + gd.temp.toFixed(1) + '°C (Rango óptimo: 16-24°C)', 400, 130);
+    },
+    inputSakePress(x, y) {
+        const gd = this.gameData;
+        if (x > 200 && x < 350 && y > 525 && y < 575) {
+            gd.temp = Math.min(30, gd.temp + 2.5);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        if (x > 450 && x < 600 && y > 525 && y < 575) {
+            gd.temp = Math.max(10, gd.temp - 2.5);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 16. day_12_patrol: Patrulla Sanmachi Suji
+    setupPatrol() {
+        this.gameData = {
+            playerLane: 1,
+            targetX: 400,
+            obstacles: [],
+            spawnTimer: 0,
+            distance: 0,
+            targetDist: 500,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updatePatrol(dt) {
+        const gd = this.gameData;
+        gd.distance += dt * 50;
+        this.score = Math.round(gd.distance);
+        
+        const laneXs = [240, 400, 560];
+        gd.targetX = laneXs[gd.playerLane];
+        
+        gd.obstacles.forEach(obs => {
+            obs.y += 280 * dt;
+        });
+        
+        gd.obstacles.forEach(obs => {
+            if (obs.y > 460 && obs.y < 520 && obs.lane === gd.playerLane) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                obs.y = 999;
+            }
+        });
+        
+        gd.obstacles = gd.obstacles.filter(obs => obs.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.obstacles.push({
+                lane: Math.floor(Math.random() * 3),
+                y: -50,
+                emoji: Math.random() < 0.6 ? '🛢️' : '🛒'
+            });
+            gd.spawnTimer = 1.0 + Math.random() * 1.0;
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawPatrol() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#1e1c1a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#4e342e';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(320, 0); ctx.lineTo(160, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(640, 600); ctx.stroke();
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([20, 20]);
+        ctx.beginPath(); ctx.moveTo(373, 0); ctx.lineTo(320, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(427, 0); ctx.lineTo(480, 600); ctx.stroke();
+        ctx.setLineDash([]);
+        
+        gd.obstacles.forEach(obs => {
+            const laneXs = [240, 400, 560];
+            const ox = laneXs[obs.lane];
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(obs.emoji, ox, obs.y);
+        });
+        
+        ctx.font = '60px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🚲', gd.targetX, 500);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fillRect(0, 0, 300, 600);
+        ctx.fillRect(500, 0, 300, 600);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Patrulla Takayama: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 55);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Toca el lado IZQUIERDO o DERECHO para cambiar de carril.', 400, 570);
+    },
+    inputPatrolPress(x, y) {
+        const gd = this.gameData;
+        if (x < 300) {
+            gd.playerLane = Math.max(0, gd.playerLane - 1);
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (x > 500) {
+            gd.playerLane = Math.min(2, gd.playerLane + 1);
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 17. day_12_appraisal: Tasador Feudal
+    setupAppraisal() {
+        this.gameData = {
+            targetWeight: 180,
+            currentWeight: 0,
+            placedCoins: [],
+            coins: [
+                { id: 0, weight: 10, name: 'Ten', x: 150, y: 520, ox: 150, oy: 520 },
+                { id: 1, weight: 20, name: 'Double', x: 250, y: 520, ox: 250, oy: 520 },
+                { id: 2, weight: 50, name: 'Koban', x: 350, y: 520, ox: 350, oy: 520 },
+                { id: 3, weight: 100, name: 'Oban', x: 450, y: 520, ox: 450, oy: 520 }
+            ],
+            draggingCoin: null,
+            dragOffset: { x: 0, y: 0 },
+            balancedRounds: 0
+        };
+        this.score = 0;
+    },
+    updateAppraisal(dt) {
+        const gd = this.gameData;
+        if (gd.draggingCoin) {
+            gd.draggingCoin.x = this.mouse.x - gd.dragOffset.x;
+            gd.draggingCoin.y = this.mouse.y - gd.dragOffset.y;
+        }
+        
+        let sum = 0;
+        gd.placedCoins.forEach(c => {
+            sum += c.weight;
+        });
+        gd.currentWeight = sum;
+        
+        if (gd.currentWeight === gd.targetWeight) {
+            gd.balancedRounds++;
+            this.score = gd.balancedRounds;
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            if (gd.balancedRounds >= 3) {
+                this.victory();
+            } else {
+                gd.targetWeight = [120, 160, 230, 270][Math.floor(Math.random() * 4)];
+                gd.placedCoins = [];
+                gd.coins.forEach(c => {
+                    c.x = c.ox;
+                    c.y = c.oy;
+                    c.placed = false;
+                });
+            }
+        }
+    },
+    drawAppraisal() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const pivotX = 400;
+        const pivotY = 300;
+        
+        const diff = gd.currentWeight - gd.targetWeight;
+        const tilt = Math.max(-0.25, Math.min(0.25, diff * 0.003));
+        
+        ctx.save();
+        ctx.strokeStyle = '#795548';
+        ctx.lineWidth = 8;
+        
+        ctx.beginPath(); ctx.moveTo(pivotX, pivotY); ctx.lineTo(pivotX, 450); ctx.stroke();
+        
+        ctx.translate(pivotX, pivotY);
+        ctx.rotate(tilt);
+        ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        
+        ctx.save();
+        ctx.translate(-200, 0);
+        ctx.rotate(-tilt);
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
+        ctx.stroke(); ctx.fill();
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.targetWeight + 'g', 0, 100);
+        ctx.restore();
+        
+        ctx.save();
+        ctx.translate(200, 0);
+        ctx.rotate(-tilt);
+        ctx.beginPath();
+        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
+        ctx.stroke(); ctx.fill();
+        ctx.fillStyle = '#1b5e20';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.currentWeight + 'g', 0, 100);
+        ctx.restore();
+        
+        ctx.restore();
+        
+        gd.coins.forEach(c => {
+            if (!gd.placedCoins.includes(c)) {
+                ctx.fillStyle = '#ffca28';
+                ctx.strokeStyle = '#ff8f00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 25, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#5d4037';
+                ctx.font = 'bold 15px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.weight + 'g', c.x, c.y + 5);
+            }
+        });
+        
+        const rx = 600 + Math.cos(tilt) * 200;
+        const ry = 300 + Math.sin(tilt) * 200 + 100;
+        gd.placedCoins.forEach((c, idx) => {
+            ctx.fillStyle = '#ffca28';
+            ctx.strokeStyle = '#ff8f00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(rx + (idx - 1) * 20, ry - 15, 20, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#5d4037';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(c.weight + 'g', rx + (idx - 1) * 20, ry - 11);
+        });
+        
+        if (gd.draggingCoin) {
+            ctx.fillStyle = '#ffca28';
+            ctx.beginPath();
+            ctx.arc(gd.draggingCoin.x, gd.draggingCoin.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Equilibra las balanzas para tasar la restauración!', 400, 50);
+        ctx.fillText('Tasaciones resueltas: ' + gd.balancedRounds + ' / 3', 400, 95);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Arrastra las pesas de oro tradicionales a la bandeja derecha.', 400, 135);
+    },
+    inputAppraisalPress(x, y) {
+        const gd = this.gameData;
+        
+        for (let i = 0; i < gd.coins.length; i++) {
+            const c = gd.coins[i];
+            if (!gd.placedCoins.includes(c) && Math.hypot(x - c.x, y - c.y) < 25) {
+                gd.draggingCoin = c;
+                gd.dragOffset.x = x - c.x;
+                gd.dragOffset.y = y - c.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseAppraisal(x, y) {
+        const gd = this.gameData;
+        const c = gd.draggingCoin;
+        if (!c) return;
+        gd.draggingCoin = null;
+        
+        if (x > 500 && x < 700 && y > 240 && y < 450) {
+            gd.placedCoins.push(c);
+            if (window.playProceduralSound) playProceduralSound('success');
+        } else {
+            c.x = c.ox;
+            c.y = c.oy;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+
+    // 18. day_12_bridge: Cruzando el Miyagawa
+    setupBridge() {
+        this.gameData = {
+            p1: { x: 80, y: 250, jumping: false, targetY: 250 },
+            p2: { x: 80, y: 350, jumping: false, targetY: 350 },
+            logs: [
+                { id: 0, x: 220, y: 150, vy: 120 },
+                { id: 1, x: 340, y: 400, vy: -140 },
+                { id: 2, x: 460, y: 200, vy: 160 },
+                { id: 3, x: 580, y: 350, vy: -120 }
+            ],
+            currentPlayer: 'both'
+        };
+        this.score = 0;
+    },
+    updateBridge(dt) {
+        const gd = this.gameData;
+        
+        gd.logs.forEach(l => {
+            l.y += l.vy * dt;
+            if (l.y < 80 || l.y > 520) {
+                l.vy = -l.vy;
+            }
+        });
+        
+        [gd.p1, gd.p2].forEach(p => {
+            if (!p.jumping) {
+                gd.logs.forEach(l => {
+                    if (Math.abs(p.x - l.x) < 25) {
+                        p.y = l.y;
+                    }
+                });
+            } else {
+                p.x += 180 * dt;
+                if (p.x >= p.targetX) {
+                    p.x = p.targetX;
+                    p.jumping = false;
+                    
+                    let landedOnLog = false;
+                    gd.logs.forEach(l => {
+                        if (Math.abs(p.x - l.x) < 30 && Math.abs(p.y - l.y) < 55) {
+                            landedOnLog = true;
+                            p.y = l.y;
+                        }
+                    });
+                    
+                    if (p.x >= 700) {
+                        landedOnLog = true;
+                    }
+                    
+                    if (!landedOnLog) {
+                        p.x = 80;
+                        p.y = p.targetY;
+                        this.screenShake = 15;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                }
+            }
+        });
+        
+        if (gd.p1.x >= 700 && gd.p2.x >= 700) {
+            this.score = 1;
+            this.victory();
+        }
+    },
+    drawBridge() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#29b6f6';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 150, 600);
+        ctx.fillRect(680, 0, 120, 600);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(710, 0, 20, 600);
+        
+        gd.logs.forEach(l => {
+            ctx.fillStyle = '#5c4033';
+            ctx.fillRect(l.x - 20, l.y - 50, 40, 100);
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(l.x - 20, l.y - 50, 40, 8);
+            ctx.fillRect(l.x - 20, l.y + 42, 40, 8);
+        });
+        
+        ctx.font = '45px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦊', gd.p1.x, gd.p1.y + 15);
+        ctx.fillText('🐉', gd.p2.x, gd.p2.y + 15);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('¡Ayuda a ambos a cruzar saltando los troncos!', 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la pantalla para hacer que ambos salten al siguiente tronco.', 400, 95);
+    },
+    inputBridgePress(x, y) {
+        const gd = this.gameData;
+        
+        if (!gd.p1.jumping && gd.p1.x < 700) {
+            gd.p1.jumping = true;
+            gd.p1.targetX = gd.p1.x + 120;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+        if (!gd.p2.jumping && gd.p2.x < 700) {
+            gd.p2.jumping = true;
+            gd.p2.targetX = gd.p2.x + 120;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+
+    // ==========================================================

@@ -1,0 +1,1158 @@
+// MINIJUEGOS DEL DIA 8
+// Métodos extraídos de games.js para NotebookLM
+
+    // DAY 8 - LAURA (9): EL RASTRILLO DEL JARDINERO
+    // ==========================================================
+    setupRake() {
+        const rows = 15;
+        const cols = 20;
+        const grid = [];
+        for (let r = 0; r < rows; r++) {
+            grid[r] = new Array(cols).fill(false);
+        }
+        
+        const rocks = [
+            { x: 180, y: 150, r: 40, color: '#9e9e9e' },
+            { x: 600, y: 220, r: 50, color: '#757575' },
+            { x: 380, y: 400, r: 35, color: '#8d6e63' }
+        ];
+        
+        const leaves = [];
+        for (let i = 0; i < 8; i++) {
+            leaves.push({
+                x: 100 + Math.random() * 600,
+                y: 100 + Math.random() * 400,
+                angle: Math.random() * Math.PI * 2,
+                size: 8 + Math.random() * 6
+            });
+        }
+
+        this.gameData = {
+            grid,
+            rows,
+            cols,
+            cellW: 800 / cols,
+            cellH: 600 / rows,
+            rocks,
+            leaves,
+            rakedCount: 0,
+            totalCells: rows * cols,
+            drawing: false,
+            score: 0
+        };
+    },
+
+    updateRake(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.drawing && this.mouse.isDown) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            const brushR = 50; 
+
+            for (let r = 0; r < gd.rows; r++) {
+                for (let c = 0; c < gd.cols; c++) {
+                    const cx = (c + 0.5) * gd.cellW;
+                    const cy = (r + 0.5) * gd.cellH;
+                    if (Math.hypot(mx - cx, my - cy) < brushR) {
+                        if (!gd.grid[r][c]) {
+                            gd.grid[r][c] = true;
+                            gd.rakedCount++;
+                            if (Math.random() < 0.15) {
+                                this.createExplosion(cx, cy, '#d7ccc8', 1, 0.4);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            gd.score = Math.floor((gd.rakedCount / gd.totalCells) * 100);
+            this.score = gd.score;
+            document.getElementById('minigame-score').innerText = `Progreso: ${this.score}%`;
+
+            if (this.score >= this.goal) {
+                if (window.playProceduralSound) window.playProceduralSound('win');
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
+        }
+    },
+
+    drawRake() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(141, 110, 99, 0.08)';
+        ctx.lineWidth = 2;
+        for (let x = 0; x < 800; x += 15) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 600);
+            ctx.stroke();
+        }
+
+        ctx.fillStyle = '#e0dcd5';
+        ctx.strokeStyle = '#d7ccc8';
+        ctx.lineWidth = 3;
+        for (let r = 0; r < gd.rows; r++) {
+            for (let c = 0; c < gd.cols; c++) {
+                if (gd.grid[r][c]) {
+                    const x = c * gd.cellW;
+                    const y = r * gd.cellH;
+                    ctx.fillRect(x, y, gd.cellW, gd.cellH);
+                    
+                    ctx.beginPath();
+                    ctx.arc(x + gd.cellW/2, y + gd.cellH/2, gd.cellW/3, 0, Math.PI*2);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        gd.rocks.forEach(rock => {
+            ctx.save();
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.fillStyle = rock.color;
+            ctx.beginPath();
+            ctx.arc(rock.x, rock.y, rock.r, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.beginPath();
+            ctx.arc(rock.x - rock.r*0.2, rock.y - rock.r*0.2, rock.r*0.6, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        ctx.fillStyle = '#ff8a80';
+        gd.leaves.forEach(leaf => {
+            ctx.save();
+            ctx.translate(leaf.x, leaf.y);
+            ctx.rotate(leaf.angle);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, leaf.size, leaf.size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🎋 Rastrillo Zen: Cubre la arena de Tenryu-ji`, 25, 29);
+        ctx.fillText(`Progreso: ${this.score}%`, 380, 29);
+        ctx.fillText(`Meta: ${this.goal}%`, 650, 29);
+    },
+
+    inputRakePress(x, y) {
+        const gd = this.gameData;
+        if (gd) gd.drawing = true;
+    },
+
+    releaseRake(x, y) {
+        const gd = this.gameData;
+        if (gd) gd.drawing = false;
+    },
+
+    // ==========================================================
+    // DAY 8 - IVAN (14): SINCRONIZACION DE FRECUENCIAS
+    // ==========================================================
+    setupWaveSync() {
+        this.gameData = {
+            level: 1,
+            amp: 30,
+            freq: 0.02,
+            phase: 0.0,
+            targetAmp: 60,
+            targetFreq: 0.05,
+            targetPhase: Math.PI / 2,
+            matchTimer: 0.0,
+            syncStatus: false,
+            time: 0,
+            activeSlider: null,
+            configs: [
+                { targetAmp: 50, targetFreq: 0.04, targetPhase: 1.2 },
+                { targetAmp: 90, targetFreq: 0.07, targetPhase: 3.8 },
+                { targetAmp: 130, targetFreq: 0.10, targetPhase: 2.2 }
+            ]
+        };
+        this.score = 0;
+        this.applyWaveLevelConfig();
+    },
+
+    applyWaveLevelConfig() {
+        const gd = this.gameData;
+        const config = gd.configs[gd.level - 1];
+        if (config) {
+            gd.targetAmp = config.targetAmp;
+            gd.targetFreq = config.targetFreq;
+            gd.targetPhase = config.targetPhase;
+            gd.matchTimer = 0.0;
+            gd.syncStatus = false;
+        }
+    },
+
+    updateWaveSync(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.time += dt;
+
+        if (this.mouse.isDown && gd.activeSlider) {
+            const mx = this.mouse.x;
+            const pct = Math.max(0, Math.min(1, (mx - 200) / 400));
+            
+            if (gd.activeSlider === 'amp') {
+                gd.amp = 10 + pct * 140;
+            } else if (gd.activeSlider === 'freq') {
+                gd.freq = 0.01 + pct * 0.11;
+            } else if (gd.activeSlider === 'phase') {
+                gd.phase = pct * Math.PI * 2;
+            }
+        } else if (!this.mouse.isDown) {
+            gd.activeSlider = null;
+        }
+
+        const dAmp = Math.abs(gd.amp - gd.targetAmp);
+        const dFreq = Math.abs(gd.freq - gd.targetFreq);
+        const dPhase = Math.abs(gd.phase - gd.targetPhase);
+
+        if (dAmp < 8 && dFreq < 0.006 && dPhase < 0.4) {
+            gd.syncStatus = true;
+            gd.matchTimer += dt;
+            if (gd.matchTimer >= 1.5) {
+                if (window.playProceduralSound) window.playProceduralSound('win');
+                if (gd.level < 3) {
+                    this.createExplosion(400, 250, '#00ff99', 25, 1.3);
+                    gd.level++;
+                    this.score = gd.level - 1;
+                    this.applyWaveLevelConfig();
+                } else {
+                    this.score = 3;
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                }
+            }
+        } else {
+            gd.syncStatus = false;
+            gd.matchTimer = 0;
+        }
+        
+        document.getElementById('minigame-score').innerText = `Fase: ${gd.level}/3`;
+    },
+
+    drawWaveSync() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#050a05';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#002200';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < 800; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 400); ctx.stroke();
+        }
+        for (let y = 0; y < 400; y += 40) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 200);
+        ctx.lineTo(800, 200);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 30, 30, 0.6)';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff3333';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const speedOffset = gd.time * 5;
+        for (let x = 0; x < 800; x++) {
+            const y = 200 + gd.targetAmp * Math.sin((x + speedOffset) * gd.targetFreq + gd.targetPhase);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = gd.syncStatus ? 'rgba(0, 255, 153, 0.95)' : 'rgba(50, 255, 50, 0.85)';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = gd.syncStatus ? '#00ff99' : '#00e676';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let x = 0; x < 800; x++) {
+            const y = 200 + gd.amp * Math.sin((x + speedOffset) * gd.freq + gd.phase);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#081208';
+        ctx.fillRect(0, 400, 800, 200);
+        ctx.strokeStyle = '#005500';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(800, 400); ctx.stroke();
+
+        const drawSlider = (y, label, val, minV, maxV, color) => {
+            ctx.fillStyle = '#00e676';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(label, 60, y + 5);
+
+            ctx.fillStyle = '#113311';
+            ctx.fillRect(200, y - 4, 400, 8);
+            
+            const pct = (val - minV) / (maxV - minV);
+            ctx.fillStyle = color;
+            ctx.fillRect(200, y - 4, pct * 400, 8);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = color;
+            ctx.beginPath();
+            ctx.arc(200 + pct * 400, y, 12, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        };
+
+        drawSlider(440, "AMPLITUDE", gd.amp, 10, 150, '#ffeb3b');
+        drawSlider(495, "FREQUENCY", gd.freq, 0.01, 0.12, '#00e676');
+        drawSlider(550, "PHASE SHIFT", gd.phase, 0, Math.PI * 2, '#29b6f6');
+
+        ctx.fillStyle = gd.syncStatus ? '#00ff99' : '#ff1744';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        if (gd.syncStatus) {
+            const holdPct = Math.min(100, Math.floor((gd.matchTimer / 1.5) * 100));
+            ctx.fillText(`>>> ESTABLE: SYNC AL ${holdPct}% <<<`, 400, 370);
+            ctx.fillStyle = '#00ff99';
+            ctx.fillRect(300, 380, holdPct * 2, 4);
+        } else {
+            ctx.fillText(">>> ENLACE DESINCRONIZADO <<<", 400, 370);
+        }
+        ctx.textAlign = 'left';
+
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`⚡ Frecuencias de Arashiyama: Nivel ${gd.level}/3`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < 3; i++) hearts += "❤️ ";
+        ctx.fillText(`Canal: ${hearts}`, 600, 29);
+    },
+
+    inputWaveSyncPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const checkSlider = (sliderY) => {
+            return (y >= sliderY - 15 && y <= sliderY + 15 && x >= 180 && x <= 620);
+        };
+
+        if (checkSlider(440)) gd.activeSlider = 'amp';
+        else if (checkSlider(495)) gd.activeSlider = 'freq';
+        else if (checkSlider(550)) gd.activeSlider = 'phase';
+        
+        if (gd.activeSlider && window.playProceduralSound) {
+            window.playProceduralSound('click');
+        }
+    },
+
+    // ==========================================================
+    // day_8_kid9_pose: El Trono de Piedra
+    // ==========================================================
+    setupPose() {
+        this.gameData = {
+            targetPose: [
+                { x: 400, y: 150 },
+                { x: 300, y: 220 },
+                { x: 500, y: 350 },
+                { x: 350, y: 400 },
+                { x: 450, y: 400 }
+            ],
+            joints: [
+                { x: 400, y: 200, name: 'Cabeza', id: 0 },
+                { x: 360, y: 260, name: 'Mano Izq', id: 1 },
+                { x: 440, y: 260, name: 'Mano Der', id: 2 },
+                { x: 380, y: 380, name: 'Pie Izq', id: 3 },
+                { x: 420, y: 380, name: 'Pie Der', id: 4 }
+            ],
+            draggingJoint: null
+        };
+        this.score = 0;
+    },
+    updatePose(dt) {
+        const gd = this.gameData;
+        if (gd.draggingJoint) {
+            gd.draggingJoint.x = Math.max(100, Math.min(700, this.mouse.x));
+            gd.draggingJoint.y = Math.max(100, Math.min(500, this.mouse.y));
+        }
+        
+        let matched = 0;
+        for (let i = 0; i < gd.joints.length; i++) {
+            const j = gd.joints[i];
+            const t = gd.targetPose[i];
+            const dist = Math.hypot(j.x - t.x, j.y - t.y);
+            if (dist < 45) matched++;
+        }
+        const score = Math.round((matched / gd.joints.length) * 100);
+        this.score = score;
+        if (score >= 90) {
+            this.victory();
+        }
+    },
+    drawPose() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = 'rgba(141, 110, 99, 0.4)';
+        ctx.beginPath();
+        ctx.arc(gd.targetPose[0].x, gd.targetPose[0].y, 35, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(141, 110, 99, 0.4)';
+        ctx.lineWidth = 16;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.targetPose[0].x, gd.targetPose[0].y + 20);
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.targetPose[1].x, gd.targetPose[1].y);
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.targetPose[2].x, gd.targetPose[2].y);
+        ctx.moveTo(400, 320);
+        ctx.lineTo(gd.targetPose[3].x, gd.targetPose[3].y);
+        ctx.moveTo(400, 320);
+        ctx.lineTo(gd.targetPose[4].x, gd.targetPose[4].y);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.beginPath();
+        ctx.arc(gd.joints[0].x, gd.joints[0].y, 30, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.joints[0].x, gd.joints[0].y + 15);
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.joints[1].x, gd.joints[1].y);
+        ctx.moveTo(400, 250);
+        ctx.lineTo(gd.joints[2].x, gd.joints[2].y);
+        ctx.moveTo(400, 320);
+        ctx.lineTo(gd.joints[3].x, gd.joints[3].y);
+        ctx.moveTo(400, 320);
+        ctx.lineTo(gd.joints[4].x, gd.joints[4].y);
+        ctx.stroke();
+        
+        gd.joints.forEach(j => {
+            ctx.fillStyle = '#ffd700';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(j.x, j.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+        
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Imita la postura de la estatua Rakan de piedra", 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText(`Coincidencia actual: ${this.score}% / 90%`, 400, 80);
+    },
+    inputPosePress(x, y) {
+        const gd = this.gameData;
+        for (let j of gd.joints) {
+            if (Math.hypot(x - j.x, y - j.y) < 25) {
+                gd.draggingJoint = j;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releasePose(x, y) {
+        this.gameData.draggingJoint = null;
+    },
+
+    // ==========================================================
+    // day_8_kid9_wind: El Susurro del Viento
+    // ==========================================================
+    setupWind() {
+        this.gameData = {
+            leaves: [],
+            totalCleared: 0
+        };
+        for (let i = 0; i < 25; i++) {
+            this.gameData.leaves.push({
+                x: 100 + Math.random() * 600,
+                y: 100 + Math.random() * 400,
+                vx: (Math.random() - 0.5) * 50,
+                vy: (Math.random() - 0.5) * 50,
+                angle: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 2,
+                size: 15 + Math.random() * 15
+            });
+        }
+        this.score = 0;
+    },
+    updateWind(dt) {
+        const gd = this.gameData;
+        const mouse = this.mouse;
+        
+        gd.leaves.forEach(leaf => {
+            if (mouse.isDown) {
+                const dist = Math.hypot(leaf.x - mouse.x, leaf.y - mouse.y);
+                if (dist < 120) {
+                    const force = (120 - dist) / 120 * 400;
+                    const angle = Math.atan2(leaf.y - mouse.y, leaf.x - mouse.x);
+                    leaf.vx += Math.cos(angle) * force * dt;
+                    leaf.vy += Math.sin(angle) * force * dt;
+                    if (Math.random() < 0.1) {
+                        this.particles.push({
+                            x: mouse.x, y: mouse.y,
+                            vx: Math.cos(angle) * 100, vy: Math.sin(angle) * 100,
+                            life: 0.5, size: 3, color: '#e0f7fa'
+                        });
+                    }
+                }
+            }
+            leaf.vx *= 0.98;
+            leaf.vy *= 0.98;
+            leaf.x += leaf.vx * dt;
+            leaf.y += leaf.vy * dt;
+            leaf.angle += leaf.rotSpeed * dt;
+        });
+        
+        const beforeCount = gd.leaves.length;
+        gd.leaves = gd.leaves.filter(l => l.x > -50 && l.x < 850 && l.y > -50 && l.y < 650);
+        const cleared = beforeCount - gd.leaves.length;
+        if (cleared > 0) {
+            gd.totalCleared += cleared;
+            this.score = gd.totalCleared;
+            if (window.playProceduralSound) playProceduralSound('collect');
+        }
+        
+        if (gd.totalCleared >= 25) {
+            this.victory();
+        }
+    },
+    drawWind() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        let grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#e0f2f1');
+        grad.addColorStop(1, '#b2dfdb');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.leaves.forEach(l => {
+            ctx.save();
+            ctx.translate(l.x, l.y);
+            ctx.rotate(l.angle);
+            ctx.fillStyle = '#81c784';
+            ctx.strokeStyle = '#2e7d32';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(-l.size, 0);
+            ctx.quadraticCurveTo(0, -l.size/3, l.size, 0);
+            ctx.quadraticCurveTo(0, l.size/3, -l.size, 0);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#004d40';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Hojas sopladas fuera: ${gd.totalCleared} / 25`, 400, 60);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText("Arrastra para soplar viento y limpiar el bosque", 400, 90);
+    },
+
+    // ==========================================================
+    // day_8_kid9_bamboo_clock: El Reloj de Bambú
+    // ==========================================================
+    setupBambooClock() {
+        this.gameData = {
+            currentHeight: 100,
+            targetSize: 45,
+            nodesTouched: 0,
+            glow: 0
+        };
+        this.score = 0;
+    },
+    updateBambooClock(dt) {
+        const gd = this.gameData;
+        gd.currentHeight += 180 * dt;
+        if (gd.currentHeight > 550) {
+            gd.currentHeight = 100;
+            if (window.playProceduralSound) playProceduralSound('damage');
+        }
+        if (gd.glow > 0) gd.glow -= dt * 4;
+        
+        if (gd.nodesTouched >= 10) {
+            this.victory();
+        }
+    },
+    drawBambooClock() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1b5e20';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = gd.glow > 0 ? '#ffd700' : '#81c784';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(400, 400, gd.targetSize, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#4caf50';
+        ctx.fillRect(380, 600 - gd.currentHeight, 40, gd.currentHeight);
+        
+        ctx.fillStyle = '#2e7d32';
+        let nodeY = 600 - gd.currentHeight;
+        while (nodeY < 600) {
+            ctx.fillRect(375, nodeY, 50, 8);
+            nodeY += 100;
+        }
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Nudos sincronizados: ${gd.nodesTouched} / 10`, 400, 80);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText("Toca la pantalla cuando un nudo pase por el círculo objetivo", 400, 110);
+    },
+    inputBambooClockPress(x, y) {
+        const gd = this.gameData;
+        const topNodeY = 600 - gd.currentHeight;
+        const dist = Math.abs(topNodeY - 400);
+        
+        if (dist < 40) {
+            gd.nodesTouched++;
+            this.score = gd.nodesTouched;
+            gd.glow = 1.0;
+            gd.currentHeight = 100;
+            if (window.playProceduralSound) playProceduralSound('success');
+            for (let i = 0; i < 15; i++) {
+                this.particles.push({
+                    x: 400, y: 400,
+                    vx: (Math.random() - 0.5) * 200, vy: (Math.random() - 0.5) * 200,
+                    life: 0.8, size: 4, color: '#ffd700'
+                });
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.screenShake = 10;
+        }
+    },
+
+    // ==========================================================
+    // day_8_kid9_giants: Perspectiva de Gigantes
+    // ==========================================================
+    setupGiants() {
+        this.gameData = {
+            camY: 300,
+            bamboos: [
+                { x: 250, baseSpeed: 1.2, phase: 0, targetH: 450, curH: 450 },
+                { x: 400, baseSpeed: 0.9, phase: Math.PI/2, targetH: 450, curH: 450 },
+                { x: 550, baseSpeed: 1.5, phase: Math.PI, targetH: 450, curH: 450 }
+            ],
+            successTime: 0
+        };
+        this.score = 0;
+    },
+    updateGiants(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.camY += (this.mouse.y - gd.camY) * 0.1;
+        }
+        
+        const time = Date.now() / 1000;
+        gd.bamboos.forEach(b => {
+            b.curH = 350 + Math.sin(time * b.baseSpeed + b.phase) * 120;
+        });
+        
+        let aligned = true;
+        gd.bamboos.forEach(b => {
+            const tipY = 600 - b.curH;
+            if (Math.abs(tipY - gd.camY) > 30) {
+                aligned = false;
+            }
+        });
+        
+        if (aligned) {
+            gd.successTime += dt;
+            this.score = gd.successTime;
+            if (gd.successTime >= 2.0) {
+                this.victory();
+            }
+        } else {
+            gd.successTime = Math.max(0, gd.successTime - dt * 2);
+            this.score = gd.successTime;
+        }
+    },
+    drawGiants() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        let grad = ctx.createRadialGradient(400, 300, 50, 400, 300, 550);
+        grad.addColorStop(0, '#e0f7fa');
+        grad.addColorStop(1, '#006064');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.bamboos.forEach((b, idx) => {
+            ctx.fillStyle = '#4caf50';
+            ctx.fillRect(b.x - 20, 600 - b.curH, 40, b.curH);
+            ctx.fillStyle = '#1b5e20';
+            ctx.beginPath();
+            ctx.arc(b.x, 600 - b.curH, 35, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        ctx.strokeStyle = gd.successTime > 0 ? '#ffd700' : 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 5]);
+        ctx.beginPath();
+        ctx.moveTo(100, gd.camY);
+        ctx.lineTo(700, gd.camY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(100, gd.camY - 50, 600, 100);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Arrastra para subir/bajar la cámara y enfocar las copas juntas", 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText(`Tiempo enfocado: ${Math.round((gd.successTime / 2) * 100)}%`, 400, 80);
+    },
+
+    // ==========================================================
+    // day_8_kid9_monk: El Mensaje del Monje
+    // ==========================================================
+    setupMonk() {
+        this.gameData = {
+            bowls: [
+                { x: 220, y: 350, r: 40, freq: 261.63, color: '#ffd700', active: 0, name: 'Do' },
+                { x: 400, y: 350, r: 50, freq: 329.63, color: '#ff9800', active: 0, name: 'Mi' },
+                { x: 580, y: 350, r: 60, freq: 392.00, color: '#e91e63', active: 0, name: 'Sol' }
+            ],
+            sequence: [],
+            playerSequence: [],
+            state: 'demo',
+            seqIndex: 0,
+            timer: 0.5,
+            round: 1
+        };
+        this.score = 0;
+        this.startMonkRound();
+    },
+    startMonkRound() {
+        const gd = this.gameData;
+        gd.sequence = [];
+        gd.playerSequence = [];
+        gd.state = 'demo';
+        gd.seqIndex = 0;
+        gd.timer = 0.5;
+        const length = 2 + gd.round;
+        for (let i = 0; i < length; i++) {
+            gd.sequence.push(Math.floor(Math.random() * 3));
+        }
+    },
+    updateMonk(dt) {
+        const gd = this.gameData;
+        gd.bowls.forEach(b => {
+            if (b.active > 0) b.active -= dt * 4;
+        });
+        
+        if (gd.state === 'demo') {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                if (gd.seqIndex < gd.sequence.length) {
+                    const bowlIdx = gd.sequence[gd.seqIndex];
+                    const bowl = gd.bowls[bowlIdx];
+                    bowl.active = 1.0;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    gd.seqIndex++;
+                    gd.timer = 0.6;
+                } else {
+                    gd.state = 'play';
+                    gd.playerSequence = [];
+                }
+            }
+        }
+        
+        if (gd.round > 4) {
+            this.victory();
+        }
+    },
+    drawMonk() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.bowls.forEach((b, idx) => {
+            ctx.save();
+            ctx.shadowBlur = b.active > 0 ? 30 : 5;
+            ctx.shadowColor = b.color;
+            let grad = ctx.createRadialGradient(b.x, b.y, 5, b.x, b.y, b.r);
+            grad.addColorStop(0, '#ffe082');
+            grad.addColorStop(0.8, '#ffb300');
+            grad.addColorStop(1, '#8d6e63');
+            ctx.fillStyle = b.active > 0 ? '#ffffff' : grad;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI, false);
+            ctx.lineTo(b.x - b.r, b.y);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#ff8f00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.r, b.r/5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Ronda: ${gd.round} / 4`, 400, 80);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText(gd.state === 'demo' ? "Escucha la melodía del monje..." : "¡Tu turno! Repite la melodía tocando los cuencos", 400, 115);
+    },
+    inputMonkPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state !== 'play') return;
+        
+        gd.bowls.forEach((b, idx) => {
+            const dist = Math.hypot(x - b.x, y - b.y);
+            if (dist < b.r + 20) {
+                b.active = 1.0;
+                gd.playerSequence.push(idx);
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                const currentStep = gd.playerSequence.length - 1;
+                if (gd.playerSequence[currentStep] !== gd.sequence[currentStep]) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.screenShake = 12;
+                    gd.round = Math.max(1, gd.round - 1);
+                    this.startMonkRound();
+                } else if (gd.playerSequence.length === gd.sequence.length) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    gd.round++;
+                    this.score = gd.round - 1;
+                    setTimeout(() => {
+                        this.startMonkRound();
+                    }, 800);
+                }
+            }
+        });
+    },
+
+    // ==========================================================
+    // day_8_kid14_bosque: El Bosque de 2.7km
+    // ==========================================================
+    setupBosque() {
+        this.gameData = {
+            lane: 1,
+            laneX: [250, 400, 550],
+            playerX: 400,
+            distance: 0,
+            speed: 220,
+            obstacles: [],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateBosque(dt) {
+        const gd = this.gameData;
+        gd.distance += gd.speed * dt * 0.1;
+        this.score = Math.floor(gd.distance);
+        
+        const targetX = gd.laneX[gd.lane];
+        gd.playerX += (targetX - gd.playerX) * 0.25;
+        
+        gd.obstacles.forEach(obs => {
+            obs.y += gd.speed * dt;
+        });
+        
+        gd.obstacles.forEach(obs => {
+            if (obs.y > 470 && obs.y < 530 && obs.lane === gd.lane) {
+                if (window.playProceduralSound) playProceduralSound('damage');
+                this.screenShake = 15;
+                gd.distance = Math.max(0, gd.distance - 40);
+                obs.y = 999;
+            }
+        });
+        
+        gd.obstacles = gd.obstacles.filter(obs => obs.y < 650);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.obstacles.push({
+                lane: Math.floor(Math.random() * 3),
+                y: -50,
+                type: Math.random() < 0.5 ? 'rock' : 'log'
+            });
+            gd.spawnTimer = 1.0 + Math.random() * 0.8;
+        }
+        
+        if (gd.distance >= 250) {
+            this.victory();
+        }
+    },
+    drawBosque() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#a0522d';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(320, 0); ctx.lineTo(320, 600);
+        ctx.moveTo(480, 0); ctx.lineTo(480, 600);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(0, 0, 180, 600);
+        ctx.fillRect(620, 0, 180, 600);
+        
+        gd.obstacles.forEach(obs => {
+            ctx.fillStyle = obs.type === 'rock' ? '#78909c' : '#8d6e63';
+            ctx.beginPath();
+            const ox = gd.laneX[obs.lane];
+            ctx.arc(ox, obs.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        
+        ctx.fillStyle = '#0d47a1';
+        ctx.beginPath();
+        ctx.arc(gd.playerX, 500, 22, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(gd.playerX - 35, 495, 15, 6);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Distancia: ${this.score}m / 250m`, 400, 50);
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText("Pulsa izquierda/derecha de la pantalla para cambiar de carril", 400, 80);
+    },
+    inputBosquePress(x, y) {
+        const gd = this.gameData;
+        if (x < 400) {
+            gd.lane = Math.max(0, gd.lane - 1);
+        } else {
+            gd.lane = Math.min(2, gd.lane + 1);
+        }
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // ==========================================================
+    // day_8_kid14_arashiyama: El Guardián del Bambú
+    // ==========================================================
+    setupArashiyamaGame() {
+        this.gameData = {
+            bambooSegments: [],
+            branches: [],
+            playerSide: 0,
+            choppedCount: 0
+        };
+        for (let i = 0; i < 15; i++) {
+            this.gameData.bambooSegments.push({ id: i });
+            if (i > 2 && Math.random() < 0.4) {
+                this.gameData.branches.push(Math.random() < 0.5 ? 0 : 1);
+            } else {
+                this.gameData.branches.push(null);
+            }
+        }
+        this.score = 0;
+    },
+    updateArashiyamaGame(dt) {
+        const gd = this.gameData;
+        if (gd.branches[0] === gd.playerSide) {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.screenShake = 18;
+            gd.choppedCount = Math.max(0, gd.choppedCount - 5);
+            this.score = gd.choppedCount;
+            gd.branches[0] = null;
+        }
+        
+        if (gd.choppedCount >= 30) {
+            this.victory();
+        }
+    },
+    drawArashiyamaGame() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0f2027';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.lineWidth = 2;
+        for (let i = 0; i < gd.bambooSegments.length; i++) {
+            const by = 480 - i * 40;
+            ctx.fillStyle = '#81c784';
+            ctx.strokeStyle = '#1b5e20';
+            ctx.fillRect(370, by, 60, 38);
+            ctx.strokeRect(370, by, 60, 38);
+            
+            if (gd.branches[i] !== null) {
+                ctx.fillStyle = '#2e7d32';
+                ctx.fillRect(gd.branches[i] === 0 ? 250 : 430, by + 10, 120, 15);
+            }
+        }
+        
+        const px = gd.playerSide === 0 ? 300 : 500;
+        ctx.fillStyle = '#e57373';
+        ctx.beginPath();
+        ctx.arc(px, 500, 20, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Segmentos cortados: ${gd.choppedCount} / 30`, 400, 70);
+    },
+    inputArashiyamaGamePress(x, y) {
+        const gd = this.gameData;
+        gd.playerSide = x < 400 ? 0 : 1;
+        gd.choppedCount++;
+        this.score = gd.choppedCount;
+        
+        if (window.playProceduralSound) playProceduralSound('collect');
+        
+        gd.bambooSegments.shift();
+        gd.branches.shift();
+        
+        gd.bambooSegments.push({ id: Date.now() });
+        gd.branches.push(Math.random() < 0.4 ? (Math.random() < 0.5 ? 0 : 1) : null);
+    },
+
+    // ==========================================================
+    // day_8_fam_squad: Escuadrón Bambú
+    // ==========================================================
+    setupFamSquad() {
+        this.gameData = {
+            members: [
+                { name: 'Papá', hidden: false, key: 'papa' },
+                { name: 'Mamá', hidden: false, key: 'mama' },
+                { name: 'Laura', hidden: false, key: 'laura' },
+                { name: 'Iván', hidden: false, key: 'ivan' }
+            ],
+            bamboos: [],
+            spawnTimer: 0,
+            successCount: 0
+        };
+        this.score = 0;
+    },
+    updateFamSquad(dt) {
+        const gd = this.gameData;
+        
+        gd.bamboos.forEach(b => {
+            b.x += b.vx * dt;
+        });
+        
+        gd.bamboos.forEach(b => {
+            if (b.x > 380 && b.x < 420) {
+                gd.members.forEach(m => {
+                    if (!m.hidden) {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        this.screenShake = 20;
+                        gd.successCount = Math.max(0, gd.successCount - 1);
+                        this.score = gd.successCount;
+                        b.x = 999;
+                    }
+                });
+            }
+        });
+        
+        const beforeCount = gd.bamboos.length;
+        gd.bamboos = gd.bamboos.filter(b => b.x < 900);
+        const passed = beforeCount - gd.bamboos.length;
+        if (passed > 0 && this.screenShake === 0) {
+            gd.successCount++;
+            this.score = gd.successCount;
+            if (window.playProceduralSound) playProceduralSound('success');
+        }
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.bamboos.push({
+                x: -50,
+                vx: 300 + Math.random() * 100
+            });
+            gd.spawnTimer = 1.8 + Math.random() * 1.0;
+        }
+        
+        if (gd.successCount >= 5) {
+            this.victory();
+        }
+    },
+    drawFamSquad() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#33691e';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.members.forEach((m, idx) => {
+            const mx = 200 + idx * 130;
+            ctx.fillStyle = m.hidden ? '#757575' : '#ffd54f';
+            ctx.beginPath();
+            ctx.arc(mx, m.hidden ? 420 : 350, m.hidden ? 18 : 28, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(m.name, mx, 460);
+        });
+        
+        gd.bamboos.forEach(b => {
+            ctx.fillStyle = '#81c784';
+            ctx.fillRect(b.x - 20, 0, 40, 600);
+        });
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Camuflajes exitosos: ${gd.successCount} / 5`, 400, 70);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText("¡Toca la pantalla para ordenar agacharse/esconderse!", 400, 100);
+    },
+    inputFamSquadPress(x, y) {
+        const gd = this.gameData;
+        gd.members.forEach(m => {
+            m.hidden = !m.hidden;
+        });
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // ==========================================================

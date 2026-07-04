@@ -1,0 +1,3638 @@
+// MINIJUEGOS DEL DIA 17
+// Métodos extraídos de games.js para NotebookLM
+
+    // DÍA 17: SENSO-JI, AKIHABARA Y SKYTREE
+    // ==========================================================
+
+    // 1. day_17_omikuji: Destino Omikuji
+    setupOmikuji() {
+        this.gameData = {
+            shakeProgress: 0,
+            shaking: false,
+            processedCount: 0,
+            stickShown: false,
+            stickType: '', // 'Buena', 'Regular', 'Mala'
+            stickY: 0,
+            ties: [], // {x, y} where bad luck is tied
+            lastMouseX: 400,
+            shakeWobble: 0
+        };
+        this.score = 0;
+    },
+    updateOmikuji(dt) {
+        const gd = this.gameData;
+        if (gd.shaking) {
+            gd.shakeWobble = Math.sin(this.gameTime * 25) * 15;
+            gd.shakeProgress += dt * 35;
+            if (gd.shakeProgress >= 100) {
+                gd.shaking = false;
+                gd.stickShown = true;
+                gd.stickY = 280;
+                const r = Math.random();
+                gd.stickType = r < 0.33 ? 'Buena Suerte' : (r < 0.66 ? 'Suerte Regular' : 'Mala Suerte');
+                if (window.playProceduralSound) playProceduralSound('collect');
+            }
+        } else {
+            gd.shakeWobble = 0;
+        }
+
+        if (gd.stickShown) {
+            if (gd.stickY > 200) gd.stickY -= dt * 100;
+        }
+    },
+    drawOmikuji() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background: Temple wall
+        ctx.fillStyle = '#4a1212';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Golden/red temple frame
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(10, 10, 780, 580);
+
+        // Draw wires for tying bad luck
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 3;
+        for (let y = 120; y <= 180; y += 30) {
+            ctx.beginPath();
+            ctx.moveTo(50, y);
+            ctx.lineTo(750, y);
+            ctx.stroke();
+        }
+
+        // Draw ties
+        gd.ties.forEach(t => {
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#aaaaaa';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(t.x, t.y, 10, 4, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // Draw the hexagonal box
+        ctx.save();
+        ctx.translate(400 + gd.shakeWobble, 400);
+        ctx.fillStyle = '#b57c1e';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        // Hexagon
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            const x = Math.cos(angle) * 80;
+            const y = Math.sin(angle) * 120;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Details on the box
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('御みくじ', 0, 10);
+        ctx.restore();
+
+        // Draw stick if shown
+        if (gd.stickShown) {
+            ctx.fillStyle = '#ffe0b2';
+            ctx.strokeStyle = '#b57c1e';
+            ctx.lineWidth = 3;
+            ctx.fillRect(385, gd.stickY, 30, 120);
+            ctx.strokeRect(385, gd.stickY, 30, 120);
+
+            ctx.fillStyle = gd.stickType === 'Mala Suerte' ? '#e53935' : '#4caf50';
+            ctx.font = 'bold 12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.stickType, 400, gd.stickY + 60);
+
+            // Drag indicator for Mala Suerte
+            if (gd.stickType === 'Mala Suerte') {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText('¡Mala Suerte! Arrástrala a los cables superiores para atarla', 400, gd.stickY - 20);
+            } else {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText('¡Toca la fortuna para guardarla!', 400, gd.stickY - 20);
+            }
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fortunas procesadas: ${gd.processedCount}/3`, 30, 560);
+        
+        if (!gd.stickShown && !gd.shaking) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText('¡Arrastra la caja rápidamente para agitarla!', 400, 220);
+        }
+    },
+    inputOmikujiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.shaking && !gd.stickShown) {
+            gd.shaking = true;
+            gd.shakeProgress = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (gd.stickShown) {
+            if (gd.stickType !== 'Mala Suerte') {
+                gd.processedCount++;
+                this.score = Math.round((gd.processedCount / 3) * 100);
+                gd.stickShown = false;
+                if (window.playProceduralSound) playProceduralSound('collect');
+                if (gd.processedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        }
+    },
+    releaseOmikuji(x, y) {
+        const gd = this.gameData;
+        if (gd.stickShown && gd.stickType === 'Mala Suerte') {
+            if (y < 200 && x > 40 && x < 760) {
+                gd.ties.push({ x, y });
+                gd.processedCount++;
+                this.score = Math.round((gd.processedCount / 3) * 100);
+                gd.stickShown = false;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.processedCount >= 3) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        }
+    },
+
+    // 2. day_17_incense: Humo de la Fortuna
+    setupIncense() {
+        this.gameData = {
+            playerX: 400,
+            score: 0,
+            particles: [],
+            embers: [],
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateIncense(dt) {
+        const gd = this.gameData;
+        // Follow mouse/touch
+        gd.playerX = this.mouse.x;
+        if (gd.playerX < 50) gd.playerX = 50;
+        if (gd.playerX > 750) gd.playerX = 750;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            // Spawn smoke
+            gd.particles.push({
+                x: 400 + (Math.random() - 0.5) * 60,
+                y: 350,
+                vx: (Math.random() - 0.5) * 80,
+                vy: -150 - Math.random() * 100,
+                r: 10 + Math.random() * 15,
+                alpha: 0.8
+            });
+            // Spawn ember
+            if (Math.random() < 0.25) {
+                gd.embers.push({
+                    x: Math.random() * 800,
+                    y: 0,
+                    vy: 180 + Math.random() * 100,
+                    r: 8
+                });
+            }
+        }
+
+        // Update smoke
+        gd.particles.forEach((p, idx) => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 0.6;
+            
+            // Collision with player
+            if (p.y > 450 && p.y < 550 && Math.abs(p.x - gd.playerX) < 40) {
+                gd.score++;
+                this.score = Math.min(100, gd.score);
+                gd.particles.splice(idx, 1);
+                if (window.playProceduralSound && gd.score % 10 === 0) playProceduralSound('collect');
+                if (gd.score >= 100) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0 && p.y > 0);
+
+        // Update embers
+        gd.embers.forEach((em, idx) => {
+            em.y += em.vy * dt;
+            
+            // Collision with player
+            if (em.y > 470 && em.y < 530 && Math.abs(em.x - gd.playerX) < 30) {
+                gd.embers.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        });
+        gd.embers = gd.embers.filter(em => em.y < 650);
+    },
+    drawIncense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Background
+        ctx.fillStyle = '#1e1a1e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw incense burner
+        ctx.fillStyle = '#8d6e63';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 390, 60, 0, Math.PI, false);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#b57c1e';
+        ctx.fillRect(390, 390, 20, 40);
+
+        // Draw smoke particles
+        gd.particles.forEach(p => {
+            ctx.fillStyle = `rgba(240, 240, 245, ${p.alpha})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw embers
+        gd.embers.forEach(em => {
+            ctx.fillStyle = '#ff3d00';
+            ctx.shadowColor = '#ff3d00';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(em.x, em.y, em.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw Player (Laura waving hands)
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath();
+        ctx.arc(gd.playerX, 500, 25, 0, Math.PI * 2);
+        ctx.fill();
+        // Hands
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(gd.playerX - 25, 500 + Math.sin(this.gameTime * 10) * 10, 8, 0, Math.PI * 2);
+        ctx.arc(gd.playerX + 25, 500 + Math.cos(this.gameTime * 10) * 10, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Humo Sagrado: ${gd.score}/100`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputIncensePress(x, y) {},
+
+    // 3. day_17_gashapon: Gashapon Perfecto
+    setupGashapon() {
+        this.gameData = {
+            dialAngle: 0,
+            dragStartAngle: 0,
+            turnProgress: 0,
+            machineState: 'idle', // 'idle', 'turning', 'dropping', 'open'
+            capsules: [], // pegs physics
+            figuresCollected: [],
+            figIndex: 0,
+            capY: 150,
+            capX: 400,
+            capVy: 0,
+            openedFigure: null
+        };
+        this.score = 0;
+        // Populate display capsules in machine top
+        for (let i = 0; i < 15; i++) {
+            this.gameData.capsules.push({
+                x: 350 + Math.random() * 100,
+                y: 120 + Math.random() * 60,
+                color: ['#ff1744', '#00e5ff', '#ffea00', '#d500f9'][Math.floor(Math.random() * 4)]
+            });
+        }
+    },
+    updateGashapon(dt) {
+        const gd = this.gameData;
+        if (gd.machineState === 'turning') {
+            gd.dialAngle += dt * 5;
+            if (gd.dialAngle >= Math.PI * 2) {
+                gd.dialAngle = 0;
+                gd.machineState = 'dropping';
+                gd.capY = 220;
+                gd.capX = 400;
+                gd.capVy = 0;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'dropping') {
+            gd.capVy += 500 * dt;
+            gd.capY += gd.capVy * dt;
+            if (gd.capY >= 460) {
+                gd.capY = 460;
+                gd.machineState = 'open';
+                const list = ['Shiba Inu 🐕', 'Gato Sushi 🍣', 'Origami Crane 🦢', 'Maneki Neko 🐱'];
+                gd.openedFigure = list[gd.figIndex % list.length];
+                gd.figIndex++;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+    drawGashapon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw machine red cabinet
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(280, 50, 240, 450);
+
+        // Glass sphere
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 160, 100, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw display capsules inside machine
+        gd.capsules.forEach(c => {
+            ctx.fillStyle = c.color;
+            ctx.beginPath();
+            ctx.arc(c.x, c.y, 14, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw Dial/Crank
+        ctx.save();
+        ctx.translate(400, 310);
+        ctx.rotate(gd.dialAngle);
+        ctx.fillStyle = '#eeeeee';
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(0, 0, 30, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Dial handle
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(-8, -45, 16, 90);
+        ctx.restore();
+
+        // Exit chute
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(360, 430, 80, 60);
+
+        // Dropping capsule
+        if (gd.machineState === 'dropping') {
+            ctx.fillStyle = '#ffea00';
+            ctx.beginPath();
+            ctx.arc(gd.capX, gd.capY, 18, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Show collection in HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 18px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Coleccionados: ${gd.figuresCollected.length}/3`, 30, 560);
+
+        // Modal for open figure
+        if (gd.machineState === 'open') {
+            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillRect(0, 0, 800, 600);
+
+            ctx.fillStyle = '#d4af37';
+            ctx.font = 'bold 30px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡NUEVO PREMIO!', 400, 200);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 45px monospace';
+            ctx.fillText(gd.openedFigure, 400, 300);
+
+            ctx.font = '20px monospace';
+            ctx.fillText('¡Toca la pantalla para guardar en el álbum!', 400, 420);
+        } else if (gd.machineState === 'idle') {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('¡Haz click en la manivela para girarla!', 400, 390);
+        }
+    },
+    inputGashaponPress(x, y) {
+        const gd = this.gameData;
+        if (gd.machineState === 'idle') {
+            if (Math.hypot(x - 400, y - 310) < 50) {
+                gd.machineState = 'turning';
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'open') {
+            if (!gd.figuresCollected.includes(gd.openedFigure)) {
+                gd.figuresCollected.push(gd.openedFigure);
+                this.score = Math.round((gd.figuresCollected.length / 3) * 100);
+            }
+            gd.machineState = 'idle';
+            if (gd.figuresCollected.length >= 3) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+    },
+    releaseGashapon(x, y) {},
+
+    // 4. day_17_p2p_receiver: Sincronización P2P (Receptor)
+    setupP2PReceiver() {
+        this.gameData = {
+            bits: [],
+            receiverCol: 1, // 0, 1, 2, 3
+            receiverColor: 'red', // 'red', 'blue', 'green', 'yellow'
+            score: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateP2PReceiver(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            const colors = ['red', 'blue', 'green', 'yellow'];
+            gd.bits.push({
+                x: 160 + Math.floor(Math.random() * 4) * 160,
+                y: 0,
+                color: colors[Math.floor(Math.random() * 4)],
+                vy: 180 + Math.random() * 100
+            });
+        }
+
+        // Update bits
+        gd.bits.forEach((b, idx) => {
+            b.y += b.vy * dt;
+            if (b.y > 480 && b.y < 530) {
+                const col = Math.round((b.x - 160) / 160);
+                if (col === gd.receiverCol) {
+                    gd.bits.splice(idx, 1);
+                    if (b.color === gd.receiverColor) {
+                        gd.score++;
+                        this.score = Math.round((gd.score / 20) * 100);
+                        if (window.playProceduralSound) playProceduralSound('collect');
+                        if (gd.score >= 20) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        gd.lives--;
+                        this.triggerShake(10);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            }
+        });
+        gd.bits = gd.bits.filter(b => b.y < 600);
+    },
+    drawP2PReceiver() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Neon background
+        ctx.fillStyle = '#0d0d15';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw 4 columns / lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.lineWidth = 4;
+        for (let i = 0; i < 4; i++) {
+            const x = 160 + i * 160;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, 500);
+            ctx.stroke();
+        }
+
+        // Draw falling bits
+        gd.bits.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.shadowColor = b.color;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw receiver
+        const rx = 160 + gd.receiverCol * 160;
+        ctx.fillStyle = gd.receiverColor;
+        ctx.shadowColor = gd.receiverColor;
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(rx, 500, 24, 0, Math.PI, true);
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // UI Instructions
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Pulsa los botones del panel para cambiar columna y color', 400, 560);
+
+        // Buttons representation at base
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(100 + i * 160, 520, 120, 20);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Datos Sincros: ${gd.score}/20`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputP2PReceiverPress(x, y) {
+        const gd = this.gameData;
+        const col = Math.floor(x / 200);
+        gd.receiverCol = col;
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        gd.receiverColor = colors[Math.floor(Math.random() * 4)];
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 5. day_17_retro: Arqueología Gamer
+    setupRetro() {
+        this.gameData = {
+            cartridges: [],
+            revealedCount: 0,
+            goldCount: 0,
+            budget: 12000,
+            sweptProgress: {} // id -> progress [0-100]
+        };
+        this.score = 0;
+        
+        // Spawn 12 cartridges in a shelf grid
+        const names = ['MARIO', 'ZELDA', 'METROID', 'MEGAMAN', 'KIRBY', 'POKEMON', 'CASTLEVANIA', 'DONKEY KONG', 'FINAL FANTASY', 'CHRONO', 'DRAGON QUEST', 'TETRIS'];
+        for (let i = 0; i < 12; i++) {
+            const isGold = i < 3; // 3 golden cartridges
+            this.gameData.cartridges.push({
+                id: i,
+                name: names[i],
+                x: 150 + (i % 4) * 160,
+                y: 150 + Math.floor(i / 4) * 140,
+                isGold: isGold,
+                dust: 100,
+                price: isGold ? 3500 : 800 + Math.floor(Math.random() * 1500),
+                bought: false
+            });
+        }
+    },
+    updateRetro(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            gd.cartridges.forEach(c => {
+                if (!c.bought && Math.hypot(this.mouse.x - c.x, this.mouse.y - c.y) < 60) {
+                    c.dust = Math.max(0, c.dust - dt * 250);
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                }
+            });
+        }
+    },
+    drawRetro() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Shelf background
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw shelf planks
+        ctx.fillStyle = '#271206';
+        for (let y = 240; y <= 540; y += 140) {
+            ctx.fillRect(50, y, 700, 15);
+        }
+
+        // Draw cartridges
+        gd.cartridges.forEach(c => {
+            if (c.bought) return;
+
+            // Draw shell
+            ctx.fillStyle = c.isGold && c.dust < 20 ? '#ffd700' : '#757575';
+            ctx.strokeStyle = '#212121';
+            ctx.lineWidth = 3;
+            ctx.fillRect(c.x - 50, c.y - 40, 100, 80);
+            ctx.strokeRect(c.x - 50, c.y - 40, 100, 80);
+
+            // Label
+            if (c.dust < 30) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.name, c.x, c.y - 10);
+                ctx.fillText(`${c.price} ¥`, c.x, c.y + 15);
+            }
+
+            // Draw dust layer
+            if (c.dust > 0) {
+                ctx.fillStyle = `rgba(180, 170, 160, ${c.dust / 100})`;
+                ctx.fillRect(c.x - 48, c.y - 38, 96, 76);
+            }
+        });
+
+        // HUD
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cartuchos de oro: ${gd.goldCount}/3`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Presupuesto: ${gd.budget} ¥`, 770, 40);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Limpia el polvo arrastrando sobre los juegos y compra los dorados!', 400, 570);
+    },
+    inputRetroPress(x, y) {
+        const gd = this.gameData;
+        gd.cartridges.forEach(c => {
+            if (!c.bought && c.dust < 30 && Math.hypot(x - c.x, y - c.y) < 50) {
+                if (c.isGold) {
+                    if (gd.budget >= c.price) {
+                        c.bought = true;
+                        gd.budget -= c.price;
+                        gd.goldCount++;
+                        this.score = Math.round((gd.goldCount / 3) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.goldCount >= 3) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        showAlert('Error', '¡No tienes suficientes yenes!');
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('Error', '¡Ese juego no es el legendario cartucho de oro!');
+                }
+            }
+        });
+    },
+
+    // 6. day_17_skytree: Cervicales de Acero
+    setupSkytree() {
+        this.gameData = {
+            altitude: 0,
+            elevatorX: 400,
+            obstacles: [],
+            windForce: 0,
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSkytree(dt) {
+        const gd = this.gameData;
+        
+        // Climb elevator
+        gd.altitude += dt * 100;
+        this.score = Math.min(100, Math.round((gd.altitude / 634) * 100));
+
+        if (gd.altitude >= 634) {
+            gd.altitude = 634;
+            setTimeout(() => this.win(), 600);
+            return;
+        }
+
+        // Slide stabilizer
+        gd.elevatorX = lerp(gd.elevatorX, this.mouse.x, 0.1);
+        if (gd.elevatorX < 200) gd.elevatorX = 200;
+        if (gd.elevatorX > 600) gd.elevatorX = 600;
+
+        // Wind force
+        gd.windForce = Math.sin(this.gameTime * 2) * 200;
+        gd.elevatorX += gd.windForce * dt;
+
+        // Obstacles
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            gd.obstacles.push({
+                x: 200 + Math.random() * 400,
+                y: -50,
+                w: 60 + Math.random() * 40,
+                h: 20
+            });
+        }
+
+        gd.obstacles.forEach((ob, idx) => {
+            ob.y += dt * 250;
+            // Collision
+            if (ob.y > 430 && ob.y < 470 && gd.elevatorX > ob.x - 30 && gd.elevatorX < ob.x + ob.w + 30) {
+                gd.obstacles.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(ob => ob.y < 650);
+    },
+    drawSkytree() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#001122');
+        grad.addColorStop(1, '#003366');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Skytree metal tower structure lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(180, 0); ctx.lineTo(250, 600);
+        ctx.moveTo(620, 0); ctx.lineTo(550, 600);
+        ctx.stroke();
+
+        // Cross beams
+        for (let y = (this.gameTime * 150) % 150; y < 600; y += 150) {
+            ctx.beginPath();
+            ctx.moveTo(200, y); ctx.lineTo(600, y + 100);
+            ctx.moveTo(600, y); ctx.lineTo(200, y + 100);
+            ctx.stroke();
+        }
+
+        // Draw obstacles (girders)
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 2;
+        gd.obstacles.forEach(ob => {
+            ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+            ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        });
+
+        // Draw elevator
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.fillRect(gd.elevatorX - 25, 430, 50, 60);
+        ctx.strokeRect(gd.elevatorX - 25, 430, 50, 60);
+
+        // Windows of elevator
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.elevatorX - 18, 440, 36, 20);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}m / 634m`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputSkytreePress(x, y) {},
+
+    // 7. day_17_p2p_sender: Sincronización P2P (Emisor)
+    setupP2PSender() {
+        this.gameData = {
+            nodes: [
+                { id: 'R', color: 'red', x: 150, y: 150 },
+                { id: 'B', color: 'blue', x: 150, y: 250 },
+                { id: 'G', color: 'green', x: 150, y: 350 },
+                { id: 'Y', color: 'yellow', x: 150, y: 450 }
+            ],
+            targets: [
+                { id: 'R', color: 'red', x: 650, y: 250 },
+                { id: 'B', color: 'blue', x: 650, y: 150 },
+                { id: 'G', color: 'green', x: 650, y: 450 },
+                { id: 'Y', color: 'yellow', x: 650, y: 350 }
+            ],
+            draggingNode: null,
+            connections: {} // color -> targetId (locked)
+        };
+        this.score = 0;
+    },
+    updateP2PSender(dt) {},
+    drawP2PSender() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Connected lines
+        ctx.lineWidth = 5;
+        gd.nodes.forEach(n => {
+            const targetColor = gd.connections[n.color];
+            if (targetColor) {
+                const t = gd.targets.find(tg => tg.color === targetColor);
+                ctx.strokeStyle = n.color;
+                ctx.beginPath();
+                ctx.moveTo(n.x, n.y);
+                ctx.bezierCurveTo(n.x + 150, n.y, t.x - 150, t.y, t.x, t.y);
+                ctx.stroke();
+            }
+        });
+
+        // Dragging line
+        if (gd.draggingNode) {
+            ctx.strokeStyle = gd.draggingNode.color;
+            ctx.beginPath();
+            ctx.moveTo(gd.draggingNode.x, gd.draggingNode.y);
+            ctx.lineTo(this.mouse.x, this.mouse.y);
+            ctx.stroke();
+        }
+
+        // Draw nodes
+        gd.nodes.forEach(n => {
+            ctx.fillStyle = n.color;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // Draw targets
+        gd.targets.forEach(t => {
+            ctx.fillStyle = t.color;
+            ctx.beginPath();
+            ctx.rect(t.x - 20, t.y - 20, 40, 40);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Une los nodos emisores con sus receptores del mismo color', 400, 80);
+    },
+    inputP2PSenderPress(x, y) {
+        const gd = this.gameData;
+        gd.nodes.forEach(n => {
+            if (Math.hypot(x - n.x, y - n.y) < 30) {
+                gd.draggingNode = n;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseP2PSender(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingNode) {
+            gd.targets.forEach(t => {
+                if (Math.hypot(x - t.x, y - t.y) < 35) {
+                    if (t.color === gd.draggingNode.color) {
+                        gd.connections[gd.draggingNode.color] = t.color;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        const count = Object.keys(gd.connections).length;
+                        this.score = Math.round((count / 4) * 100);
+                        if (count === 4) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    }
+                }
+            });
+            gd.draggingNode = null;
+        }
+    },
+
+    // 8. day_17_height: Altura del Cielo
+    setupHeight() {
+        this.gameData = {
+            knobA: 0, // 0 - 360 coarse
+            knobB: 0, // 0 - 360 fine
+            targetA: 180,
+            targetB: 90,
+            focusProgress: 0,
+            draggingKnob: null // 'A', 'B'
+        };
+        this.score = 0;
+    },
+    updateHeight(dt) {
+        const gd = this.gameData;
+        const diffA = Math.abs(gd.knobA - gd.targetA);
+        const diffB = Math.abs(gd.knobB - gd.targetB);
+        
+        if (diffA < 10 && diffB < 8) {
+            gd.focusProgress += dt * 35;
+            this.score = Math.min(100, Math.round(gd.focusProgress));
+            if (gd.focusProgress >= 100) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.focusProgress = Math.max(0, gd.focusProgress - dt * 20);
+        }
+    },
+    drawHeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0a0f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Blurry/focus representation of Skytree
+        const focus = gd.focusProgress / 100;
+        ctx.fillStyle = `rgba(3, 169, 244, ${0.1 + focus * 0.9})`;
+        ctx.beginPath();
+        ctx.moveTo(350, 450);
+        ctx.lineTo(450, 450);
+        ctx.lineTo(405, 50);
+        ctx.closePath();
+        ctx.fill();
+
+        // Knobs drawing
+        // Knob A (Coarse)
+        ctx.save();
+        ctx.translate(200, 500);
+        ctx.fillStyle = '#555555';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.knobA * Math.PI) / 180);
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(-4, -40, 8, 20);
+        ctx.restore();
+
+        // Knob B (Fine)
+        ctx.save();
+        ctx.translate(600, 500);
+        ctx.fillStyle = '#555555';
+        ctx.beginPath(); ctx.arc(0, 0, 40, 0, Math.PI * 2); ctx.fill();
+        ctx.rotate((gd.knobB * Math.PI) / 180);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(-4, -40, 8, 20);
+        ctx.restore();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Ajusta los diales para calibrar el enfoque telemétrico', 400, 480);
+        
+        ctx.font = '16px monospace';
+        ctx.fillText('Calibración Gruesa', 200, 560);
+        ctx.fillText('Calibración Fina', 600, 560);
+
+        // Focus meter
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, 2 * gd.focusProgress, 15);
+    },
+    inputHeightPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 200, y - 500) < 50) {
+            gd.draggingKnob = 'A';
+        } else if (Math.hypot(x - 600, y - 500) < 50) {
+            gd.draggingKnob = 'B';
+        }
+    },
+    releaseHeight(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingKnob) {
+            const cx = gd.draggingKnob === 'A' ? 200 : 600;
+            const cy = 500;
+            const angle = Math.atan2(y - cy, x - cx) * 180 / Math.PI + 90;
+            if (gd.draggingKnob === 'A') {
+                gd.knobA = (angle + 360) % 360;
+            } else {
+                gd.knobB = (angle + 360) % 360;
+            }
+            gd.draggingKnob = null;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 9. day_17_sumida: Navegando el Sumida
+    setupSumida() {
+        this.gameData = {
+            boatX: 400,
+            progress: 0,
+            obstacles: [],
+            petals: [],
+            bridges: [
+                { y: -300, name: 'Azuma Bridge', color: '#ff1744', crossed: false },
+                { y: -700, name: 'Kiyosu Bridge', color: '#2979ff', crossed: false },
+                { y: -1100, name: 'Eitai Bridge', color: '#00e676', crossed: false },
+                { y: -1500, name: 'Tsukiji Bridge', color: '#d500f9', crossed: false }
+            ],
+            crossedCount: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateSumida(dt) {
+        const gd = this.gameData;
+        gd.boatX = lerp(gd.boatX, this.mouse.x, 0.1);
+        if (gd.boatX < 150) gd.boatX = 150;
+        if (gd.boatX > 650) gd.boatX = 650;
+
+        // Move water/bridges down
+        gd.bridges.forEach(b => {
+            b.y += dt * 150;
+            if (b.y > 450 && !b.crossed) {
+                b.crossed = true;
+                // Check if boat is in middle lane (300 to 500)
+                if (gd.boatX > 320 && gd.boatX < 480) {
+                    gd.crossedCount++;
+                    this.score = Math.round((gd.crossedCount / 4) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.crossedCount >= 4) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    gd.lives--;
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                }
+            }
+        });
+    },
+    drawSumida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // River blue
+        ctx.fillStyle = '#00acc1';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // River borders
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 0, 120, 600);
+        ctx.fillRect(680, 0, 120, 600);
+
+        // Draw bridges
+        gd.bridges.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.fillRect(120, b.y, 560, 40);
+            
+            // Central arches where the boat should cross
+            ctx.fillStyle = '#00acc1';
+            ctx.fillRect(320, b.y, 160, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(b.name, 400, b.y + 25);
+        });
+
+        // Draw Boat (Himiko)
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(gd.boatX, 440);
+        ctx.lineTo(gd.boatX - 20, 500);
+        ctx.lineTo(gd.boatX + 20, 500);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Puentes: ${gd.crossedCount}/4`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+
+        ctx.fillStyle = '#ffd700';
+        ctx.font = '16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Navega exactamente bajo los arcos de los puentes!', 400, 570);
+    },
+    inputSumidaPress(x, y) {},
+
+
+    // ==========================================================
+    // 1. day_17_omikuji: Destino Omikuji (Agitado con inercia, tablilla caligráfica y atado circular Shimenawa)
+    setupOmikuji() {
+        this.gameData = {
+            boxX: 400, boxY: 385, boxAngle: 0, boxVx: 0, boxVy: 0,
+            shakeProgress: 0, shaking: false,
+            stickShown: false, stickType: '', stickX: 400, stickY: 250,
+            draggingStick: false, draggingBox: false,
+            ties: [],
+            sticks: Array.from({length: 15}, () => ({
+                x: (Math.random() - 0.5) * 50,
+                y: (Math.random() - 0.5) * 80,
+                angle: (Math.random() - 0.5) * 0.5
+            })),
+            processedCount: 0,
+            tieProgress: 0,
+            targetNode: { x: 400, y: 130 }
+        };
+        this.score = 0;
+    },
+    updateOmikuji(dt) {
+        const gd = this.gameData;
+        if (gd.draggingBox) {
+            const dx = this.mouse.x - gd.boxX;
+            const dy = this.mouse.y - gd.boxY;
+            gd.boxVx = dx / dt * 0.15;
+            gd.boxVy = dy / dt * 0.15;
+            gd.boxX = this.mouse.x;
+            gd.boxY = this.mouse.y;
+            gd.boxAngle = (dx * 0.003);
+            
+            const speed = Math.hypot(gd.boxVx, gd.boxVy);
+            if (speed > 180) {
+                gd.shakeProgress = Math.min(100, gd.shakeProgress + speed * dt * 0.05);
+                if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+            }
+        } else {
+            // Spring back to center
+            const ax = (400 - gd.boxX) * 180;
+            const ay = (385 - gd.boxY) * 180;
+            gd.boxVx = (gd.boxVx + ax * dt) * 0.85;
+            gd.boxVy = (gd.boxVy + ay * dt) * 0.85;
+            gd.boxX += gd.boxVx * dt;
+            gd.boxY += gd.boxVy * dt;
+            gd.boxAngle = lerp(gd.boxAngle, 0, 0.1);
+        }
+
+        // Shaking sticks simulation
+        const shakeIntensity = Math.min(30, Math.hypot(gd.boxVx, gd.boxVy) * 0.05);
+        gd.sticks.forEach(s => {
+            s.x += (Math.random() - 0.5) * shakeIntensity * 0.3;
+            s.y += (Math.random() - 0.5) * shakeIntensity * 0.3;
+            s.x = Math.max(-25, Math.min(25, s.x));
+            s.y = Math.max(-45, Math.min(45, s.y));
+            s.angle += (Math.random() - 0.5) * shakeIntensity * 0.02;
+        });
+
+        if (gd.shakeProgress >= 100 && !gd.stickShown) {
+            gd.stickShown = true;
+            gd.stickX = 400;
+            gd.stickY = 240;
+            const r = Math.random();
+            gd.stickType = r < 0.2 ? '大吉 (Gran Suerte)' : (r < 0.5 ? '吉 (Suerte)' : '凶 (Mala Suerte)');
+            if (window.playProceduralSound) playProceduralSound('collect');
+        }
+
+        if (gd.draggingStick) {
+            gd.stickX = this.mouse.x;
+            gd.stickY = this.mouse.y;
+            
+            // Check tie circular gesture near target node
+            if (gd.stickType === '凶 (Mala Suerte)') {
+                const dist = Math.hypot(gd.stickX - gd.targetNode.x, gd.stickY - gd.targetNode.y);
+                if (dist < 40) {
+                    gd.tieProgress += dt * 80;
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                    if (gd.tieProgress >= 100) {
+                        gd.ties.push({ x: gd.targetNode.x, y: gd.targetNode.y });
+                        gd.processedCount++;
+                        this.score = Math.round((gd.processedCount / 3) * 100);
+                        gd.stickShown = false;
+                        gd.draggingStick = false;
+                        gd.shakeProgress = 0;
+                        gd.tieProgress = 0;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.processedCount >= 3) this.win();
+                    }
+                }
+            }
+        }
+    },
+    drawOmikuji() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Japanese traditional red wood background
+        ctx.fillStyle = '#2b1010';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Drawing Shimenawa sacred rope
+        ctx.strokeStyle = '#d4b26f';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(100, 110);
+        ctx.bezierCurveTo(250, 150, 550, 150, 700, 110);
+        ctx.stroke();
+
+        // Shimenawa fringes
+        ctx.fillStyle = '#ffffff';
+        for (let x = 200; x <= 600; x += 100) {
+            ctx.fillRect(x - 5, 130, 10, 40);
+        }
+
+        // Draw ties
+        gd.ties.forEach(t => {
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(t.x, t.y + 20, 18, 6, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+        });
+
+        // Box Omikuji
+        ctx.save();
+        ctx.translate(gd.boxX, gd.boxY);
+        ctx.rotate(gd.boxAngle);
+        ctx.fillStyle = '#d4b26f';
+        ctx.strokeStyle = '#1f1300';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = (i * Math.PI) / 3;
+            ctx.lineTo(Math.cos(angle) * 75, Math.sin(angle) * 115);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Draw internal sticks shaking (visual projection)
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 3;
+        gd.sticks.forEach(s => {
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.rotate(s.angle);
+            ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(0, 25); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Box gold text decoration
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('吉凶', 0, 10);
+        ctx.restore();
+
+        // Drawn Stick
+        if (gd.stickShown) {
+            ctx.save();
+            ctx.translate(gd.stickX, gd.stickY);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.strokeStyle = '#b57c1e';
+            ctx.lineWidth = 3;
+            ctx.fillRect(-15, -60, 30, 120);
+            ctx.strokeRect(-15, -60, 30, 120);
+
+            // Calligraphy text
+            ctx.fillStyle = gd.stickType.includes('凶') ? '#c62828' : '#2e7d32';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.stickType, 0, 0);
+            ctx.restore();
+
+            // Circular tie indicator
+            if (gd.stickType.includes('凶')) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('¡Mala Suerte! Arrastra y mantén la tablilla sobre la cuerda para atarla.', 400, 220);
+                
+                // Tie progress bar
+                ctx.fillStyle = '#555';
+                ctx.fillRect(300, 240, 200, 10);
+                ctx.fillStyle = '#ffd700';
+                ctx.fillRect(300, 240, 2 * gd.tieProgress, 10);
+            } else {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('¡Buena Suerte! Toca la tablilla para guardarla en tu álbum.', 400, 220);
+            }
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Fortunas: ${gd.processedCount}/3`, 30, 560);
+        if (!gd.stickShown) {
+            ctx.fillStyle = '#ffd700';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Progreso del agitado: ${Math.round(gd.shakeProgress)}%`, 400, 500);
+            ctx.fillText('¡Arrastra la caja rápidamente para agitarla!', 400, 530);
+        }
+    },
+    inputOmikujiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.stickShown) {
+            if (Math.hypot(x - gd.boxX, y - gd.boxY) < 100) {
+                gd.draggingBox = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else {
+            if (Math.hypot(x - gd.stickX, y - gd.stickY) < 60) {
+                if (gd.stickType.includes('凶')) {
+                    gd.draggingStick = true;
+                } else {
+                    gd.processedCount++;
+                    this.score = Math.round((gd.processedCount / 3) * 100);
+                    gd.stickShown = false;
+                    gd.shakeProgress = 0;
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.processedCount >= 3) this.win();
+                }
+            }
+        }
+    },
+    releaseOmikuji(x, y) {
+        const gd = this.gameData;
+        gd.draggingBox = false;
+        gd.draggingStick = false;
+    },
+
+    // 2. day_17_incense: Humo de la Fortuna (Humo fluido, abanico Uchiha con deflectores)
+    setupIncense() {
+        this.gameData = {
+            playerX: 400,
+            particles: [],
+            embers: [],
+            lives: 3,
+            score: 0,
+            fanActive: false,
+            fanX: 400,
+            fanAngle: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateIncense(dt) {
+        const gd = this.gameData;
+        gd.playerX = lerp(gd.playerX, this.mouse.x, 0.12);
+        if (gd.playerX < 150) gd.playerX = 150;
+        if (gd.playerX > 650) gd.playerX = 650;
+
+        // Swipe creates wind velocity field
+        const swipeVx = (this.mouse.x - gd.fanX) * 1.5;
+        gd.fanX = this.mouse.x;
+        gd.fanAngle = clamp(swipeVx * 0.005, -0.6, 0.6);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.1;
+            // Spawn smoke rising from Jokoro
+            gd.particles.push({
+                x: 400 + (Math.random() - 0.5) * 60,
+                y: 490,
+                vx: (Math.random() - 0.5) * 50,
+                vy: -150 - Math.random() * 80,
+                r: 10 + Math.random() * 15,
+                alpha: 0.9
+            });
+
+            // Embers falling
+            if (Math.random() < 0.35) {
+                gd.embers.push({
+                    x: 150 + Math.random() * 500,
+                    y: 0,
+                    vy: 180 + Math.random() * 100,
+                    r: 9
+                });
+            }
+        }
+
+        // Update smoke with wind force field
+        gd.particles.forEach((p, idx) => {
+            if (this.mouse.isDown && Math.abs(this.mouse.y - p.y) < 100) {
+                p.vx += swipeVx * dt * 3.0; // Apply wind force from Uchiha swipe
+            }
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 0.45;
+
+            // Laura collects smoke at y=250
+            if (p.y > 220 && p.y < 280 && Math.abs(p.x - gd.playerX) < 40) {
+                gd.particles.splice(idx, 1);
+                gd.score++;
+                this.score = Math.min(100, gd.score);
+                if (window.playProceduralSound && gd.score % 10 === 0) playProceduralSound('collect');
+                if (gd.score >= 100) this.win();
+            }
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0);
+
+        // Update embers (wind pushes them away)
+        gd.embers.forEach((em, idx) => {
+            if (this.mouse.isDown && Math.hypot(this.mouse.x - em.x, this.mouse.y - em.y) < 80) {
+                em.x += swipeVx * dt * 4.0; // Deflect embers
+            }
+            em.y += em.vy * dt;
+
+            // Damage player at y=250
+            if (em.y > 230 && em.y < 270 && Math.abs(em.x - gd.playerX) < 32) {
+                gd.embers.splice(idx, 1);
+                gd.lives--;
+                this.triggerShake(14);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.embers = gd.embers.filter(em => em.y < 600);
+    },
+    drawIncense() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Senso-ji lantern courtyard aesthetics
+        ctx.fillStyle = '#1c0a00';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Jokoro
+        ctx.fillStyle = '#b57c1e';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(400, 520, 75, 0, Math.PI, false);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Smoke
+        gd.particles.forEach(p => {
+            ctx.fillStyle = `rgba(230, 220, 240, ${p.alpha})`;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Embers
+        gd.embers.forEach(em => {
+            ctx.fillStyle = '#ff3d00';
+            ctx.shadowColor = '#ffa000';
+            ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(em.x, em.y, em.r, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Player (Laura Chibi)
+        ctx.fillStyle = '#e91e63';
+        ctx.beginPath(); ctx.arc(gd.playerX, 250, 25, 0, Math.PI * 2); ctx.fill();
+
+        // Uchiha Fan (drawn when clicking/swiping)
+        if (this.mouse.isDown) {
+            ctx.save();
+            ctx.translate(this.mouse.x, this.mouse.y);
+            ctx.rotate(gd.fanAngle);
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#d32f2f';
+            ctx.lineWidth = 3;
+            // Draw traditional fan
+            ctx.beginPath();
+            ctx.arc(0, -20, 25, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#d32f2f';
+            ctx.beginPath(); ctx.arc(0, -20, 8, 0, Math.PI * 2); ctx.fill(); // Crimson dot center
+            // Handle
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 5;
+            ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(0, 30); ctx.stroke();
+            ctx.restore();
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Humo Sagrado: ${gd.score}/100`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('¡Arrastra el abanico Uchiha para empujar el humo e interceptar las brasas!', 400, 30);
+    },
+    inputIncensePress(x, y) {},
+    releaseIncense() {},
+
+    // 3. day_17_gashapon: Gashapon Perfecto (Rebotes Pachinko, manivela con torque, apertura animada)
+    setupGashapon() {
+        this.gameData = {
+            dialAngle: 0,
+            turnProgress: 0,
+            draggingDial: false,
+            lastAngle: 0,
+            machineState: 'idle', // 'idle', 'dropping', 'open'
+            capsules: [],
+            fallingCapsule: null,
+            figuresCollected: [],
+            pegs: [],
+            openedFigure: null,
+            glowProgress: 0
+        };
+        this.score = 0;
+
+        // Build Pachinko Pegs Grid
+        for (let row = 0; row < 5; row++) {
+            const cols = row % 2 === 0 ? 5 : 4;
+            const startX = row % 2 === 0 ? 330 : 355;
+            for (let col = 0; col < cols; col++) {
+                this.gameData.pegs.push({
+                    x: startX + col * 35,
+                    y: 220 + row * 40
+                });
+            }
+        }
+        
+        // Populate display capsules
+        for (let i = 0; i < 15; i++) {
+            this.gameData.capsules.push({
+                x: 340 + Math.random() * 120,
+                y: 110 + Math.random() * 70,
+                color: ['#ff1744', '#00e5ff', '#ffea00', '#d500f9'][Math.floor(Math.random() * 4)]
+            });
+        }
+    },
+    updateGashapon(dt) {
+        const gd = this.gameData;
+        if (gd.draggingDial) {
+            const angle = Math.atan2(this.mouse.y - 390, this.mouse.x - 400);
+            let diff = angle - gd.lastAngle;
+            if (diff < -Math.PI) diff += Math.PI * 2;
+            if (diff > Math.PI) diff -= Math.PI * 2;
+
+            if (diff > 0) {
+                gd.turnProgress += diff;
+                gd.dialAngle += diff;
+                if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+            }
+            gd.lastAngle = angle;
+
+            if (gd.turnProgress >= Math.PI * 4) {
+                gd.draggingDial = false;
+                gd.turnProgress = 0;
+                gd.machineState = 'dropping';
+                gd.fallingCapsule = {
+                    x: 400,
+                    y: 180,
+                    vx: (Math.random() - 0.5) * 40,
+                    vy: 50,
+                    color: '#ffd700'
+                };
+            }
+        }
+
+        if (gd.machineState === 'dropping' && gd.fallingCapsule) {
+            const c = gd.fallingCapsule;
+            c.vy += 450 * dt; // Gravity
+            c.x += c.vx * dt;
+            c.y += c.vy * dt;
+
+            // Bounce on Pegs
+            gd.pegs.forEach(peg => {
+                const dist = Math.hypot(c.x - peg.x, c.y - peg.y);
+                if (dist < 22) { // capsule radius 14 + peg radius 8
+                    const angle = Math.atan2(c.y - peg.y, c.x - peg.x);
+                    c.x = peg.x + Math.cos(angle) * 22.1;
+                    c.y = peg.y + Math.sin(angle) * 22.1;
+                    // Physics restitution bounce
+                    const speed = Math.hypot(c.vx, c.vy);
+                    c.vx = Math.cos(angle) * speed * 0.6 + (Math.random() - 0.5) * 30;
+                    c.vy = Math.sin(angle) * speed * 0.6;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+
+            // Left/Right guides bounds
+            if (c.x < 310) { c.x = 310; c.vx *= -0.5; }
+            if (c.x > 490) { c.x = 490; c.vx *= -0.5; }
+
+            if (c.y >= 460) {
+                gd.machineState = 'open';
+                const list = ['Shiba Inu 🐕 (Común)', 'Gato Sushi 🍣 (Raro)', 'Grulla Origami 🦢 (Legendario)'];
+                gd.openedFigure = list[gd.figuresCollected.length % list.length];
+                gd.fallingCapsule = null;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+
+        if (gd.machineState === 'open') {
+            gd.glowProgress = Math.min(1.0, gd.glowProgress + dt * 2);
+        } else {
+            gd.glowProgress = 0;
+        }
+    },
+    drawGashapon() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#1a1a24';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Gashapon Red cabinet
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(270, 40, 260, 460);
+
+        // Glass sphere
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.strokeStyle = '#cfd8dc';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 150, 110, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Toy display
+        gd.capsules.forEach(c => {
+            ctx.fillStyle = c.color;
+            ctx.beginPath(); ctx.arc(c.x, c.y, 16, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Pegs
+        ctx.fillStyle = '#ffffff';
+        gd.pegs.forEach(peg => {
+            ctx.beginPath(); ctx.arc(peg.x, peg.y, 4, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Crank Dial
+        ctx.save();
+        ctx.translate(400, 390);
+        ctx.rotate(gd.dialAngle);
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillRect(-8, -45, 16, 90);
+        ctx.restore();
+
+        // Chute
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(365, 440, 70, 60);
+
+        if (gd.fallingCapsule) {
+            ctx.fillStyle = '#00e5ff';
+            ctx.beginPath(); ctx.arc(gd.fallingCapsule.x, gd.fallingCapsule.y, 14, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Open Screen Modal
+        if (gd.machineState === 'open') {
+            ctx.fillStyle = `rgba(0, 0, 0, ${gd.glowProgress * 0.85})`;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Confetti / Radial light rays
+            ctx.save();
+            ctx.translate(400, 270);
+            ctx.rotate(this.gameTime * 0.6);
+            ctx.strokeStyle = 'rgba(255,215,0,0.15)';
+            ctx.lineWidth = 30;
+            for (let i = 0; i < 12; i++) {
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 300); ctx.stroke();
+                ctx.rotate(Math.PI / 6);
+            }
+            ctx.restore();
+
+            // Collectible float
+            const floatY = 270 + Math.sin(this.gameTime * 4) * 15;
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 36px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.openedFigure, 400, floatY);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '20px Outfit, sans-serif';
+            ctx.fillText('¡Toca la pantalla para agregarlo al álbum!', 400, floatY + 90);
+        } else {
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Arrastra en círculos sobre la manivela para dispensar', 400, 42);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Colección: ${gd.figuresCollected.length}/3`, 30, 560);
+    },
+    inputGashaponPress(x, y) {
+        const gd = this.gameData;
+        if (gd.machineState === 'idle') {
+            if (Math.hypot(x - 400, y - 390) < 55) {
+                gd.draggingDial = true;
+                gd.lastAngle = Math.atan2(y - 390, x - 400);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        } else if (gd.machineState === 'open') {
+            if (!gd.figuresCollected.includes(gd.openedFigure)) {
+                gd.figuresCollected.push(gd.openedFigure);
+                this.score = Math.round((gd.figuresCollected.length / 3) * 100);
+            }
+            gd.machineState = 'idle';
+            if (gd.figuresCollected.length >= 3) this.win();
+        }
+    },
+    releaseGashapon() {
+        this.gameData.draggingDial = false;
+    },
+
+    // 4. day_17_p2p_receiver: Sincronización P2P Receptor (Guitar Hero de Frecuencias)
+    setupP2PReceiver() {
+        this.gameData = {
+            bits: [],
+            receiverX: 400,
+            receiverHue: 0, // 0 to 360 mapped in wavelength
+            score: 0,
+            lives: 3,
+            spawnTimer: 0,
+            lanes: [160, 320, 480, 640]
+        };
+        this.score = 0;
+    },
+    updateP2PReceiver(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const targetHue = [0, 120, 240][Math.floor(Math.random() * 3)]; // Red, Green, Blue
+            gd.bits.push({
+                x: gd.lanes[Math.floor(Math.random() * 4)],
+                y: 0,
+                hue: targetHue,
+                vy: 220 + Math.random() * 80
+            });
+        }
+
+        // Adjust receiver wavelength with slider (representing color capture)
+        if (this.mouse.isDown && this.mouse.y > 520 && this.mouse.y < 570) {
+            const relX = (this.mouse.x - 200) / 400;
+            gd.receiverHue = Math.max(0, Math.min(360, relX * 360));
+        }
+
+        // Smooth receiver horizontal tracking
+        gd.receiverX = lerp(gd.receiverX, this.mouse.x, 0.15);
+        if (gd.receiverX < 120) gd.receiverX = 120;
+        if (gd.receiverX > 680) gd.receiverX = 680;
+
+        gd.bits.forEach((b, idx) => {
+            b.y += b.vy * dt;
+            if (b.y > 450 && b.y < 490) {
+                // Check if receiver is aligned to the correct lane
+                if (Math.abs(b.x - gd.receiverX) < 45) {
+                    gd.bits.splice(idx, 1);
+                    // Check if spectrum wavelength matches (tolerance of color match)
+                    const bitHue = b.hue;
+                    const diffHue = Math.abs(gd.receiverHue - bitHue);
+                    if (diffHue < 40 || diffHue > 320) { // Color match threshold
+                        gd.score++;
+                        this.score = Math.round((gd.score / 20) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.score >= 20) this.win();
+                    } else {
+                        gd.lives--;
+                        this.triggerShake(14);
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        if (gd.lives <= 0) this.gameOver();
+                    }
+                }
+            }
+        });
+        gd.bits = gd.bits.filter(b => b.y < 600);
+    },
+    drawP2PReceiver() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cyberpunk grid
+        ctx.fillStyle = '#06060f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+        ctx.lineWidth = 4;
+        gd.lanes.forEach(x => {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 500); ctx.stroke();
+        });
+
+        // Draw bits
+        gd.bits.forEach(b => {
+            ctx.fillStyle = `hsla(${b.hue}, 100%, 60%, 1)`;
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = 15;
+            ctx.beginPath(); ctx.arc(b.x, b.y, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // Draw receiver
+        ctx.fillStyle = `hsla(${gd.receiverHue}, 100%, 50%, 1)`;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.arc(gd.receiverX, 470, 25, 0, Math.PI, true); ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Color Spectrum slider
+        const grad = ctx.createLinearGradient(200, 0, 600, 0);
+        grad.addColorStop(0, 'red');
+        grad.addColorStop(0.33, 'green');
+        grad.addColorStop(0.66, 'blue');
+        grad.addColorStop(1, 'red');
+        ctx.fillStyle = grad;
+        ctx.fillRect(200, 530, 400, 16);
+
+        const sliderX = 200 + (gd.receiverHue / 360) * 400;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(sliderX, 538, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Desliza abajo para sintonizar el color y mueve el ratón para atrapar los bits', 400, 515);
+
+        // HUD
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Sincronización: ${gd.score}/20`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+    },
+    inputP2PReceiverPress(x, y) {},
+    releaseP2PReceiver() {},
+
+    // 5. day_17_retro: Arqueología Gamer (Soplido, algodón y CRT shader de cartuchos retro)
+    setupRetro() {
+        this.gameData = {
+            cartridges: [],
+            selectedCartridge: null,
+            activeTool: 'blow', // 'blow', 'swab', 'wipe'
+            blowProgress: 0,
+            cleanProgress: 0,
+            polishProgress: 0,
+            goldCount: 0,
+            budget: 15000,
+            particles: []
+        };
+        this.score = 0;
+
+        const names = ['SUPER MARIO', 'ZELDA RETRO', 'METROID II', 'MEGAMAN X', 'KIRBY WORLD', 'POKEMON BLUE', 'DRAGON QUEST', 'CHRONO TRIGGER', 'FINAL FANTASY', 'TETRIS DX', 'CONTRA III', 'STAR FOX'];
+        for (let i = 0; i < 12; i++) {
+            const isGold = i < 3;
+            this.gameData.cartridges.push({
+                id: i,
+                name: names[i],
+                x: 160 + (i % 4) * 160,
+                y: 150 + Math.floor(i / 4) * 140,
+                isGold: isGold,
+                dust: 100,
+                oxide: 100,
+                labelDirty: 100,
+                price: isGold ? 3500 : 1000 + Math.floor(Math.random() * 800),
+                bought: false
+            });
+        }
+    },
+    updateRetro(dt) {
+        const gd = this.gameData;
+
+        // Particle dynamics for blowing dust
+        gd.particles.forEach(p => {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.alpha -= dt * 2.0;
+        });
+        gd.particles = gd.particles.filter(p => p.alpha > 0);
+
+        if (gd.selectedCartridge) {
+            const c = gd.selectedCartridge;
+            if (this.mouse.isDown) {
+                if (gd.activeTool === 'blow' && this.mouse.y > 450) {
+                    // Swipe back and forth horizontally at the pins
+                    c.dust = Math.max(0, c.dust - dt * 200);
+                    // Spawn dust particles
+                    if (Math.random() < 0.3) {
+                        gd.particles.push({
+                            x: this.mouse.x, y: this.mouse.y,
+                            vx: (Math.random() - 0.5) * 150, vy: -100 - Math.random() * 100,
+                            alpha: 1.0
+                        });
+                    }
+                    if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+                } else if (gd.activeTool === 'swab' && this.mouse.y > 450) {
+                    c.oxide = Math.max(0, c.oxide - dt * 100);
+                    if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                } else if (gd.activeTool === 'wipe' && this.mouse.y > 150 && this.mouse.y < 350) {
+                    c.labelDirty = Math.max(0, c.labelDirty - dt * 100);
+                    if (window.playProceduralSound && Math.random() < 0.05) playProceduralSound('click');
+                }
+            }
+        }
+    },
+    drawRetro() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark shelf room
+        ctx.fillStyle = '#261c14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        if (!gd.selectedCartridge) {
+            // Draw wooden shelves
+            ctx.fillStyle = '#120b05';
+            for (let y = 230; y <= 510; y += 140) {
+                ctx.fillRect(40, y, 720, 16);
+            }
+
+            gd.cartridges.forEach(c => {
+                if (c.bought) return;
+
+                // Cartridge shell outline
+                ctx.fillStyle = (c.isGold && c.dust < 20) ? '#ffd700' : '#cfd8dc';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 4;
+                ctx.fillRect(c.x - 55, c.y - 40, 110, 80);
+                ctx.strokeRect(c.x - 55, c.y - 40, 110, 80);
+
+                if (c.dust < 50) {
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 11px Outfit, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(c.name, c.x, c.y - 10);
+                } else {
+                    ctx.fillStyle = '#7d6b5e';
+                    ctx.font = '14px Outfit, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('SUCIO', c.x, c.y);
+                }
+            });
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Toca un cartucho para llevarlo al laboratorio de restauración', 400, 50);
+        } else {
+            // Restoration room
+            const c = gd.selectedCartridge;
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Draw large cartridge being restored
+            ctx.fillStyle = (c.isGold && c.dust < 20) ? '#ffd700' : '#90a4ae';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 8;
+            ctx.fillRect(200, 100, 400, 380);
+            ctx.strokeRect(200, 100, 400, 380);
+
+            // Connector pins at the bottom
+            ctx.fillStyle = '#b57c1e';
+            ctx.fillRect(220, 450, 360, 30);
+            
+            // Gold pins
+            ctx.fillStyle = c.oxide < 30 ? '#ffd700' : '#795548';
+            for (let i = 0; i < 30; i++) {
+                ctx.fillRect(230 + i * 11, 450, 6, 25);
+            }
+
+            // Draw label
+            ctx.fillStyle = '#cfd8dc';
+            ctx.fillRect(240, 140, 320, 240);
+            if (c.labelDirty < 30) {
+                ctx.fillStyle = '#000000';
+                ctx.font = 'bold 24px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(c.name, 400, 250);
+                ctx.font = '18px Outfit, sans-serif';
+                ctx.fillText(`Precio: ${c.price} ¥`, 400, 300);
+            } else {
+                ctx.fillStyle = 'rgba(121, 85, 72, 0.8)';
+                ctx.fillRect(240, 140, 320, 240); // dirty overlay
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 20px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Etiqueta Embarrada', 400, 260);
+            }
+
+            // Draw dust on pins
+            if (c.dust > 0) {
+                ctx.fillStyle = `rgba(180, 180, 180, ${c.dust / 100})`;
+                ctx.fillRect(218, 448, 364, 34);
+            }
+
+            // Draw blowing dust particles
+            ctx.fillStyle = '#ffffff';
+            gd.particles.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // Action tool button selectors
+            const tools = ['blow', 'swab', 'wipe'];
+            const names = ['🌬️ SOPLAR', '🧹 LIMPIAR', '🧽 PULIR'];
+            for (let i = 0; i < 3; i++) {
+                ctx.fillStyle = gd.activeTool === tools[i] ? '#00e5ff' : '#37474f';
+                ctx.fillRect(50 + i * 180, 520, 160, 40);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 15px Outfit, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(names[i], 130 + i * 180, 545);
+            }
+
+            // Return/Buy button
+            ctx.fillStyle = '#2e7d32';
+            ctx.fillRect(600, 520, 150, 40);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(c.isGold ? '🛒 COMPRAR' : '↩️ VOLVER', 675, 545);
+
+            // Instructions HUD
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 18px Outfit, sans-serif';
+            ctx.fillText(`Polvo: ${Math.round(c.dust)}%  Óxido: ${Math.round(c.oxide)}%  Suciedad: ${Math.round(c.labelDirty)}%`, 400, 40);
+        }
+
+        // Apply retro CRT filter overlay
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        for (let y = 0; y < 600; y += 4) {
+            ctx.fillRect(0, y, 800, 2);
+        }
+
+        // HUD Main
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Juegos de Oro: ${gd.goldCount}/3`, 30, 40);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Yenes: ${gd.budget} ¥`, 770, 40);
+    },
+    inputRetroPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.selectedCartridge) {
+            gd.cartridges.forEach(c => {
+                if (!c.bought && Math.hypot(x - c.x, y - c.y) < 55) {
+                    gd.selectedCartridge = c;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+        } else {
+            // Select active tool
+            if (y > 520 && y < 560) {
+                if (x > 50 && x < 210) gd.activeTool = 'blow';
+                if (x > 230 && x < 390) gd.activeTool = 'swab';
+                if (x > 410 && x < 570) gd.activeTool = 'wipe';
+                if (x > 600 && x < 750) {
+                    const c = gd.selectedCartridge;
+                    // Buy cartridge if fully clean and gold
+                    if (c.isGold && c.dust < 20 && c.oxide < 20 && c.labelDirty < 20) {
+                        if (gd.budget >= c.price) {
+                            c.bought = true;
+                            gd.budget -= c.price;
+                            gd.goldCount++;
+                            this.score = Math.round((gd.goldCount / 3) * 100);
+                            gd.selectedCartridge = null;
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            if (gd.goldCount >= 3) this.win();
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                        }
+                    } else {
+                        // Return to shelf
+                        gd.selectedCartridge = null;
+                    }
+                }
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        }
+    },
+    releaseRetro() {},
+
+    // 6. day_17_skytree: Cervicales de Acero (Propulsores de balance contra viento y atardecer progresivos)
+    setupSkytree() {
+        this.gameData = {
+            altitude: 0,
+            elevatorX: 400,
+            wind: 0,
+            obstacles: [],
+            spawnTimer: 0,
+            lives: 3,
+            invulnTimer: 0,
+            thrusterPower: 180,
+            engineTemp: 0
+        };
+        this.score = 0;
+    },
+    updateSkytree(dt) {
+        const gd = this.gameData;
+        gd.altitude += dt * 120;
+        this.score = Math.min(100, Math.round((gd.altitude / 634) * 100));
+
+        if (gd.altitude >= 634) {
+            gd.altitude = 634;
+            this.win();
+            return;
+        }
+
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+
+        // Winds dynamic
+        gd.wind = Math.sin(this.gameTime * 3) * 220 + Math.cos(this.gameTime * 7) * 80;
+        gd.elevatorX += gd.wind * dt;
+
+        // Thruster balance slider simulation
+        if (this.mouse.isDown) {
+            const dragForce = (this.mouse.x - 400) * 1.5;
+            gd.elevatorX += dragForce * dt;
+        }
+
+        if (gd.elevatorX < 180) gd.elevatorX = 180;
+        if (gd.elevatorX > 620) gd.elevatorX = 620;
+
+        // Obstacles
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.65;
+            gd.obstacles.push({
+                x: 180 + Math.random() * 340,
+                y: -40,
+                w: 60 + Math.random() * 60,
+                h: 20
+            });
+        }
+
+        gd.obstacles.forEach((ob, idx) => {
+            ob.y += dt * 290;
+            if (gd.invulnTimer <= 0 && ob.y > 425 && ob.y < 465 && gd.elevatorX > ob.x - 20 && gd.elevatorX < ob.x + ob.w + 20) {
+                gd.obstacles.splice(idx, 1);
+                gd.lives--;
+                gd.invulnTimer = 1.0; // 1s safety invulnerability
+                this.triggerShake(15);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.lives <= 0) this.gameOver();
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(ob => ob.y < 650);
+    },
+    drawSkytree() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky Sunset/Night gradual transition based on altitude
+        const altProgress = gd.altitude / 634;
+        const grad = ctx.createLinearGradient(0, 0, 0, 600);
+        if (altProgress < 0.5) {
+            // Evening Sun
+            grad.addColorStop(0, '#f97316');
+            grad.addColorStop(1, '#ffedd5');
+        } else {
+            // Purple Night Sky
+            grad.addColorStop(0, '#0b0f19');
+            grad.addColorStop(0.6, '#311042');
+            grad.addColorStop(1, '#f97316');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Skytree structural pillars
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(170, 0); ctx.lineTo(240, 600);
+        ctx.moveTo(630, 0); ctx.lineTo(560, 600);
+        ctx.stroke();
+
+        // Parallax lattice details
+        for (let y = (this.gameTime * 240) % 240; y < 600; y += 240) {
+            ctx.beginPath();
+            ctx.moveTo(200, y); ctx.lineTo(600, y + 120);
+            ctx.moveTo(600, y); ctx.lineTo(200, y + 120);
+            ctx.stroke();
+        }
+
+        // Obstacles (floating girder beams)
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 3;
+        gd.obstacles.forEach(ob => {
+            ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+            ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        });
+
+        // Draw elevator
+        ctx.save();
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
+            ctx.globalAlpha = 0.4;
+        }
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.fillRect(gd.elevatorX - 25, 420, 50, 65);
+        ctx.strokeRect(gd.elevatorX - 25, 420, 50, 65);
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.elevatorX - 18, 430, 36, 20);
+        ctx.restore();
+
+        // Engine heat / Wind vector HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '15px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Vector del Viento: ${Math.round(gd.wind)} N`, 400, 500);
+
+        // HUD Alt
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}m / 634m`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Estabilizadores: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputSkytreePress(x, y) {},
+
+    // 7. day_17_p2p_sender: Sincronización P2P Emisor (Centralita con cables elásticos y chispas)
+    setupP2PSender() {
+        this.gameData = {
+            nodes: [
+                { id: 'R', color: 'red', x: 150, y: 180 },
+                { id: 'B', color: 'blue', x: 150, y: 280 },
+                { id: 'G', color: 'green', x: 150, y: 380 },
+                { id: 'Y', color: 'yellow', x: 150, y: 480 }
+            ],
+            relays: [
+                { id: 'N1', x: 400, y: 230, color: null },
+                { id: 'N2', x: 400, y: 430, color: null }
+            ],
+            targets: [
+                { id: 'R', color: 'red', x: 650, y: 280 },
+                { id: 'B', color: 'blue', x: 650, y: 180 },
+                { id: 'G', color: 'green', x: 650, y: 480 },
+                { id: 'Y', color: 'yellow', x: 650, y: 380 }
+            ],
+            draggingNode: null,
+            connections: {} // sourceColor -> { relayId, targetColor }
+        };
+        this.score = 0;
+    },
+    updateP2PSender(dt) {},
+    drawP2PSender() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Connections pathing
+        ctx.lineWidth = 5;
+        gd.nodes.forEach(n => {
+            const conn = gd.connections[n.color];
+            if (conn) {
+                ctx.strokeStyle = n.color;
+                const relay = gd.relays.find(r => r.id === conn.relayId);
+                const t = gd.targets.find(tg => tg.color === conn.targetColor);
+                
+                // Draw dynamic catenary/spring curve from source to relay
+                ctx.beginPath();
+                ctx.moveTo(n.x, n.y);
+                ctx.quadraticCurveTo((n.x + relay.x)/2, (n.y + relay.y)/2 + 20, relay.x, relay.y);
+                ctx.stroke();
+
+                // From relay to target
+                if (t) {
+                    ctx.beginPath();
+                    ctx.moveTo(relay.x, relay.y);
+                    ctx.quadraticCurveTo((relay.x + t.x)/2, (relay.y + t.y)/2 + 20, t.x, t.y);
+                    ctx.stroke();
+                }
+            }
+        });
+
+        // Draw dragging wire with catenary sag
+        if (gd.draggingNode) {
+            ctx.strokeStyle = gd.draggingNode.color;
+            ctx.beginPath();
+            ctx.moveTo(gd.draggingNode.x, gd.draggingNode.y);
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            ctx.quadraticCurveTo((gd.draggingNode.x + mx)/2, (gd.draggingNode.y + my)/2 + 25, mx, my);
+            ctx.stroke();
+        }
+
+        // Draw relays
+        gd.relays.forEach(r => {
+            ctx.fillStyle = r.color ? r.color : '#37474f';
+            ctx.beginPath(); ctx.arc(r.x, r.y, 25, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        });
+
+        // Draw emitters
+        gd.nodes.forEach(n => {
+            ctx.fillStyle = n.color;
+            ctx.beginPath(); ctx.arc(n.x, n.y, 18, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw targets
+        gd.targets.forEach(t => {
+            ctx.fillStyle = t.color;
+            ctx.fillRect(t.x - 18, t.y - 18, 36, 36);
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rutea los cables de red pasando por un nodo repetidor intermedio', 400, 80);
+    },
+    inputP2PSenderPress(x, y) {
+        const gd = this.gameData;
+        gd.nodes.forEach(n => {
+            if (Math.hypot(x - n.x, y - n.y) < 25) {
+                gd.draggingNode = n;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseP2PSender(x, y) {
+        const gd = this.gameData;
+        if (gd.draggingNode) {
+            let hit = false;
+            
+            // Check connection to relay
+            gd.relays.forEach(relay => {
+                if (Math.hypot(x - relay.x, y - relay.y) < 35) {
+                    gd.connections[gd.draggingNode.color] = { relayId: relay.id, targetColor: null };
+                    relay.color = gd.draggingNode.color;
+                    hit = true;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+
+            // If already connected to relay, try connecting relay to target
+            if (!hit) {
+                const conn = gd.connections[gd.draggingNode.color];
+                if (conn && conn.relayId) {
+                    gd.targets.forEach(t => {
+                        if (Math.hypot(x - t.x, y - t.y) < 35) {
+                            if (t.color === gd.draggingNode.color) {
+                                conn.targetColor = t.color;
+                                if (window.playProceduralSound) playProceduralSound('success');
+                                const count = Object.values(gd.connections).filter(c => c.targetColor !== null).length;
+                                this.score = Math.round((count / 4) * 100);
+                                if (count === 4) this.win();
+                            } else {
+                                if (window.playProceduralSound) playProceduralSound('error');
+                            }
+                        }
+                    });
+                }
+            }
+            gd.draggingNode = null;
+        }
+    },
+
+    // 8. day_17_height: Altura del Cielo (Elevación, azimut y fase láser en vector scope de radar)
+    setupHeight() {
+        this.gameData = {
+            pitch: 20,
+            yaw: 80,
+            phase: 45,
+            targetPitch: 140,
+            targetYaw: 220,
+            targetPhase: 180,
+            focusProgress: 0,
+            draggingKnob: null // 'P', 'Y', 'F'
+        };
+        this.score = 0;
+    },
+    updateHeight(dt) {
+        const gd = this.gameData;
+        if (gd.draggingKnob) {
+            const cx = gd.draggingKnob === 'P' ? 180 : (gd.draggingKnob === 'Y' ? 400 : 620);
+            const cy = 490;
+            const angle = Math.atan2(this.mouse.y - cy, this.mouse.x - cx) * 180 / Math.PI + 90;
+            const val = (angle + 360) % 360;
+
+            if (gd.draggingKnob === 'P') gd.pitch = val;
+            if (gd.draggingKnob === 'Y') gd.yaw = val;
+            if (gd.draggingKnob === 'F') gd.phase = val;
+        }
+
+        const diffP = Math.abs(gd.pitch - gd.targetPitch);
+        const diffY = Math.abs(gd.yaw - gd.targetYaw);
+        const diffF = Math.abs(gd.phase - gd.targetPhase);
+
+        if (diffP < 10 && diffY < 10 && diffF < 10) {
+            gd.focusProgress += dt * 45;
+            this.score = Math.min(100, Math.round(gd.focusProgress));
+            if (gd.focusProgress >= 100) this.win();
+        } else {
+            gd.focusProgress = Math.max(0, gd.focusProgress - dt * 20);
+        }
+    },
+    drawHeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark sci-fi oscilloscope screen
+        ctx.fillStyle = '#040d0f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Vector/Oscilloscope grid lines
+        ctx.strokeStyle = 'rgba(0, 255, 150, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(150, 60, 500, 320);
+        for (let x = 150; x <= 650; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 60); ctx.lineTo(x, 380); ctx.stroke();
+        }
+
+        // Draw Lissajous target figures (Láser Lock)
+        // Red target pattern
+        ctx.strokeStyle = '#d32f2f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 2; t += 0.05) {
+            const x = 400 + Math.sin(t * 3) * 120;
+            const y = 220 + Math.cos(t * 2 + (gd.targetPhase * Math.PI / 180)) * 100;
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Green player pattern (based on real-time knob values)
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00ff99';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let t = 0; t < Math.PI * 2; t += 0.05) {
+            const freqRatioX = gd.pitch * 0.02;
+            const freqRatioY = gd.yaw * 0.01;
+            const x = 400 + Math.sin(t * freqRatioX) * 120;
+            const y = 220 + Math.cos(t * freqRatioY + (gd.phase * Math.PI / 180)) * 100;
+            if (t === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Dials
+        const dials = ['P', 'Y', 'F'];
+        const values = [gd.pitch, gd.yaw, gd.phase];
+        const labels = ['Elevación (Pitch)', 'Azimut (Yaw)', 'Fase Láser'];
+        const colors = ['#00e5ff', '#ffd700', '#e040fb'];
+        for (let i = 0; i < 3; i++) {
+            const cx = 180 + i * 220;
+            const cy = 490;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = '#37474f';
+            ctx.beginPath(); ctx.arc(0, 0, 42, 0, Math.PI * 2); ctx.fill();
+            ctx.rotate((values[i] * Math.PI) / 180);
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(-3, -40, 6, 20);
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '14px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(labels[i], cx, 560);
+        }
+
+        // Focus meter
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 20, 300, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(250, 20, 3 * gd.focusProgress, 15);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.fillText('Ajusta el osciloscopio alineando las ondas telemétricas', 400, 420);
+    },
+    inputHeightPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - 180, y - 490) < 50) gd.draggingKnob = 'P';
+        if (Math.hypot(x - 400, y - 490) < 50) gd.draggingKnob = 'Y';
+        if (Math.hypot(x - 620, y - 490) < 50) gd.draggingKnob = 'F';
+        if (gd.draggingKnob && window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseHeight() {
+        this.gameData.draggingKnob = null;
+    },
+
+    // 9. day_17_sumida: Navegando el Sumida (Deriva hidrodinámica del Himiko y Sakura petals vortex)
+    setupSumida() {
+        this.gameData = {
+            boatX: 400,
+            boatAngle: 0,
+            boatVx: 0,
+            progress: 0,
+            crossedCount: 0,
+            bridgesPassed: 0,
+            lives: 3,
+            maxLives: 5,
+            
+            // Shooting
+            bullets: [],
+            shootCooldown: 0,
+            autoFire: true, // Auto-fire ON by default for mobile friendliness
+            
+            // Power-ups state
+            shieldActive: false,
+            doubleShotTimer: 0,
+            
+            // Obstacles
+            obstacles: [],
+            obstacleSpawnTimer: 1.0,
+            
+            // Power-ups in the water
+            powerups: [],
+            
+            // Custom particles (wake foam, score text)
+            customParticles: [],
+            
+            // Historic Sumida bridges (10 bridges instead of 5, making the game longer)
+            bridges: [
+                { y: -300, name: '1. Sakura Bridge (Rosa)', color: '#ff80ab', gateX: 240, gateWidth: 140, crossed: false },
+                { y: -950, name: '2. Kototoi Bridge (Gris)', color: '#90a4ae', gateX: 560, gateWidth: 140, crossed: false },
+                { y: -1600, name: '3. Azuma Bridge (Rojo)', color: '#ff1744', gateX: 300, gateWidth: 140, crossed: false },
+                { y: -2250, name: '4. Komagata Bridge (Azul)', color: '#29b6f6', gateX: 500, gateWidth: 140, crossed: false },
+                { y: -2900, name: '5. Umaya Bridge (Verde)', color: '#66bb6a', gateX: 400, gateWidth: 140, crossed: false },
+                { y: -3550, name: '6. Kuramae Bridge (Amarillo)', color: '#ffca28', gateX: 260, gateWidth: 140, crossed: false },
+                { y: -4200, name: '7. Kiyosu Bridge (Celeste)', color: '#00e5ff', gateX: 540, gateWidth: 140, crossed: false },
+                { y: -4850, name: '8. Eitai Bridge (Azul)', color: '#3f51b5', gateX: 330, gateWidth: 140, crossed: false },
+                { y: -5500, name: '9. Chuo Bridge (Blanco)', color: '#ffffff', gateX: 470, gateWidth: 140, crossed: false },
+                { y: -6150, name: '10. Tsukiji Bridge (Plateado)', color: '#cfd8dc', gateX: 400, gateWidth: 140, crossed: false }
+            ],
+            
+            // Floating sakura petals
+            sakuraPetals: Array.from({length: 30}, () => ({
+                x: 150 + Math.random() * 500,
+                y: Math.random() * 600,
+                vy: 80 + Math.random() * 40,
+                rotSpeed: 0.5 + Math.random() * 1.5,
+                angle: Math.random() * Math.PI * 2,
+                size: 3 + Math.random() * 5
+            })),
+            
+            waterScroll: 0,
+            invulnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateSumida(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+        
+        // Cooldowns and invulnerability timers
+        if (gd.shootCooldown > 0) gd.shootCooldown -= dt;
+        if (gd.doubleShotTimer > 0) gd.doubleShotTimer -= dt;
+        if (gd.invulnTimer > 0) gd.invulnTimer -= dt;
+        
+        // Water scroll and engine time
+        gd.waterScroll = (gd.waterScroll + dt * 150) % 600;
+        
+        // Steering controls (híbrido: botones táctiles en pantalla y arrastrar con ratón/toque)
+        let isButtonPressed = false;
+        
+        if (this.mouse.isDown) {
+            // Check Left Button area (bottom left)
+            if (this.mouse.x >= 30 && this.mouse.x <= 130 && this.mouse.y >= 520 && this.mouse.y <= 590) {
+                gd.boatX -= 320 * dt;
+                gd.boatAngle = lerp(gd.boatAngle, -0.25, 0.12);
+                isButtonPressed = true;
+            }
+            // Check Right Button area (bottom right)
+            else if (this.mouse.x >= 670 && this.mouse.x <= 770 && this.mouse.y >= 520 && this.mouse.y <= 590) {
+                gd.boatX += 320 * dt;
+                gd.boatAngle = lerp(gd.boatAngle, 0.25, 0.12);
+                isButtonPressed = true;
+            }
+        }
+        
+        if (!isButtonPressed) {
+            // Standard touch/mouse dragging follow
+            const targetX = this.mouse.x;
+            
+            // Only follow if mouse is clicked/held (on mobile) or hover (on desktop)
+            const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+            if (this.mouse.isDown || !isTouchDevice) {
+                // If they are not touching the bottom controls bar
+                if (!(this.mouse.isDown && this.mouse.y > 510)) {
+                    const dx = targetX - gd.boatX;
+                    gd.boatAngle = lerp(gd.boatAngle, dx * 0.003, 0.08); // Tilt on turn
+                    gd.boatVx = lerp(gd.boatVx, dx * 2.2, 0.05); // Latency drift
+                    gd.boatX += gd.boatVx * dt;
+                }
+            } else {
+                // Return boat to upright position when not steering
+                gd.boatAngle = lerp(gd.boatAngle, 0, 0.1);
+                gd.boatVx = lerp(gd.boatVx, 0, 0.1);
+            }
+        } else {
+            gd.boatVx = 0; // Reset velocity drift if using steering buttons
+        }
+
+        if (gd.boatX < 180) { gd.boatX = 180; gd.boatVx = 0; }
+        if (gd.boatX > 620) { gd.boatX = 620; gd.boatVx = 0; }
+
+        // Auto-fire logic
+        if (gd.autoFire && gd.shootCooldown <= 0 && this.state === 'playing') {
+            if (gd.doubleShotTimer > 0) {
+                gd.bullets.push({ x: gd.boatX - 15, y: 440, vy: -550 });
+                gd.bullets.push({ x: gd.boatX + 15, y: 440, vy: -550 });
+            } else {
+                gd.bullets.push({ x: gd.boatX, y: 440, vy: -550 });
+            }
+            gd.shootCooldown = 0.28; // Shoot every 280ms
+            if (window.playProceduralSound) window.playProceduralSound('jump');
+        }
+
+        // Spawn boat wake foam particles
+        if (Math.random() < 0.3) {
+            gd.customParticles.push({
+                x: gd.boatX + (Math.random() - 0.5) * 12,
+                y: 505,
+                vx: (Math.random() - 0.5) * 15,
+                vy: 120 + Math.random() * 40,
+                size: 3 + Math.random() * 5,
+                alpha: 0.6,
+                life: 1.0,
+                decay: 1.8,
+                type: 'foam'
+            });
+        }
+
+        // Update custom particles
+        for (let i = gd.customParticles.length - 1; i >= 0; i--) {
+            const p = gd.customParticles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.life -= dt * (p.decay || 1);
+            if (p.life <= 0) {
+                gd.customParticles.splice(i, 1);
+            }
+        }
+
+        // Update sakura petals (swirl when near boat)
+        gd.sakuraPetals.forEach(p => {
+            p.y += p.vy * dt;
+            p.angle += p.rotSpeed * dt;
+            
+            // Swirl around the boat's tail
+            if (p.y > 440 && p.y < 530 && Math.abs(p.x - gd.boatX) < 70) {
+                p.x += (p.x > gd.boatX ? 60 : -60) * dt;
+            }
+            if (p.y > 600) {
+                p.y = 0;
+                p.x = 150 + Math.random() * 500;
+            }
+        });
+
+        // Spawn obstacles
+        gd.obstacleSpawnTimer -= dt;
+        if (gd.obstacleSpawnTimer <= 0) {
+            // Spawn timer gets shorter as player crosses more bridges
+            gd.obstacleSpawnTimer = 1.4 + Math.random() * 1.2 - (gd.bridgesPassed * 0.1);
+            if (gd.obstacleSpawnTimer < 0.7) gd.obstacleSpawnTimer = 0.7;
+            
+            const types = ['bomb', 'bomb', 'boat', 'airplane'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const x = 190 + Math.random() * (610 - 190);
+            
+            let obstacle = {
+                id: Math.random(),
+                x: x,
+                y: -50,
+                type: type,
+                vx: 0,
+                vy: 0,
+                hp: 1,
+                maxHp: 1,
+                animTime: Math.random() * 10
+            };
+            
+            if (type === 'bomb') {
+                obstacle.vy = 90 + Math.random() * 40;
+            } else if (type === 'boat') {
+                obstacle.vy = 120 + Math.random() * 40;
+                obstacle.hp = 3;
+                obstacle.maxHp = 3;
+            } else if (type === 'airplane') {
+                obstacle.vy = 260 + Math.random() * 70;
+                obstacle.vx = (Math.random() - 0.5) * 80; // fly diagonally
+            }
+            
+            gd.obstacles.push(obstacle);
+        }
+
+        // Update bullets
+        for (let i = gd.bullets.length - 1; i >= 0; i--) {
+            const b = gd.bullets[i];
+            b.y += b.vy * dt;
+            
+            if (b.y < -20) {
+                gd.bullets.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with obstacles
+            let bulletRemoved = false;
+            for (let j = gd.obstacles.length - 1; j >= 0; j--) {
+                const o = gd.obstacles[j];
+                let collided = false;
+                
+                if (o.type === 'bomb') {
+                    collided = Math.hypot(b.x - o.x, b.y - o.y) < 16;
+                } else if (o.type === 'boat') {
+                    collided = b.x > o.x - 18 && b.x < o.x + 18 && b.y > o.y - 30 && b.y < o.y + 30;
+                } else if (o.type === 'airplane') {
+                    collided = b.x > o.x - 20 && b.x < o.x + 20 && b.y > o.y - 20 && b.y < o.y + 20;
+                }
+                
+                if (collided) {
+                    o.hp--;
+                    this.createExplosion(b.x, b.y, '#ffffff', 5, 0.4);
+                    
+                    if (o.hp <= 0) {
+                        // Destroy obstacle
+                        const color = o.type === 'bomb' ? '#ff3d00' : (o.type === 'boat' ? '#ffb300' : '#b0bec5');
+                        this.createExplosion(o.x, o.y, color, 15, 1.0);
+                        
+                        // Drop powerup
+                        this.dropSumidaPowerup(o.x, o.y);
+                        
+                        // Add points
+                        let pts = 10;
+                        if (o.type === 'boat') pts = 30;
+                        if (o.type === 'airplane') pts = 20;
+                        this.score += pts;
+                        this.addSumidaTextParticle(o.x, o.y, `+${pts}`, '#ffd54f');
+                        
+                        if (window.playProceduralSound) window.playProceduralSound('error'); // Deep boom
+                        gd.obstacles.splice(j, 1);
+                    } else {
+                        if (window.playProceduralSound) window.playProceduralSound('click');
+                    }
+                    
+                    gd.bullets.splice(i, 1);
+                    bulletRemoved = true;
+                    break;
+                }
+            }
+        }
+
+        // Update obstacles & player collisions
+        for (let i = gd.obstacles.length - 1; i >= 0; i--) {
+            const o = gd.obstacles[i];
+            o.y += o.vy * dt;
+            o.x += o.vx * dt;
+            
+            // Bounce on river borders
+            if (o.x < 170) { o.x = 170; o.vx = -o.vx; }
+            if (o.x > 630) { o.x = 630; o.vx = -o.vx; }
+            
+            if (o.y > 620) {
+                gd.obstacles.splice(i, 1);
+                continue;
+            }
+            
+            // Check collision with player boat (center at gd.boatX, 480)
+            let hit = false;
+            if (o.type === 'bomb') {
+                hit = Math.hypot(gd.boatX - o.x, 480 - o.y) < 28;
+            } else if (o.type === 'boat') {
+                hit = Math.abs(gd.boatX - o.x) < 32 && Math.abs(480 - o.y) < 45;
+            } else if (o.type === 'airplane') {
+                hit = Math.hypot(gd.boatX - o.x, 480 - o.y) < 32;
+            }
+            
+            if (hit) {
+                // Destroy obstacle
+                this.createExplosion(o.x, o.y, '#ff3d00', 15, 1.1);
+                gd.obstacles.splice(i, 1);
+                
+                // Damage player
+                if (gd.invulnTimer <= 0) {
+                    if (gd.shieldActive) {
+                        gd.shieldActive = false;
+                        gd.invulnTimer = 1.0;
+                        this.triggerShake(12);
+                        this.addSumidaTextParticle(gd.boatX, 430, "¡Escudo Roto!", "#00e5ff");
+                        if (window.playProceduralSound) window.playProceduralSound('error');
+                        this.createExplosion(gd.boatX, 480, '#00e5ff', 20, 1.1);
+                    } else {
+                        gd.lives--;
+                        gd.invulnTimer = 1.5;
+                        this.triggerShake(20);
+                        this.addSumidaTextParticle(gd.boatX, 430, "-1 Vida", "#ff1744");
+                        if (window.playProceduralSound) window.playProceduralSound('damage');
+                        this.createExplosion(gd.boatX, 480, '#ff1744', 30, 1.4);
+                        
+                        if (gd.lives <= 0) {
+                            this.gameOver();
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update powerups
+        for (let i = gd.powerups.length - 1; i >= 0; i--) {
+            const p = gd.powerups[i];
+            p.y += p.vy * dt;
+            p.pulseTime += dt;
+            
+            if (p.y > 620) {
+                gd.powerups.splice(i, 1);
+                continue;
+            }
+            
+            if (Math.hypot(gd.boatX - p.x, 480 - p.y) < 30) {
+                // Collected!
+                if (p.type === 'shield') {
+                    gd.shieldActive = true;
+                    this.addSumidaTextParticle(p.x, p.y, "+ESCUDO", "#00e5ff");
+                } else if (p.type === 'double') {
+                    gd.doubleShotTimer = 6.0;
+                    this.addSumidaTextParticle(p.x, p.y, "+DOBLE DISPARO", "#ff9100");
+                } else if (p.type === 'heart') {
+                    gd.lives = Math.min(gd.maxLives, gd.lives + 1);
+                    this.addSumidaTextParticle(p.x, p.y, "+1 VIDA", "#ff4081");
+                }
+                
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(p.x, p.y, p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081'), 12, 0.8);
+                gd.powerups.splice(i, 1);
+            }
+        }
+
+        // Update bridges
+        gd.bridges.forEach(b => {
+            b.y += dt * 170;
+            
+            if (b.y > 440 && !b.crossed) {
+                b.crossed = true;
+                gd.bridgesPassed++;
+                
+                const inGate = (gd.boatX >= b.gateX - b.gateWidth / 2) && (gd.boatX <= b.gateX + b.gateWidth / 2);
+                
+                if (inGate) {
+                    gd.crossedCount++;
+                    this.score = Math.round((gd.crossedCount / 10) * 100);
+                    this.addSumidaTextParticle(gd.boatX, 420, "¡Excelente!", "#00e676");
+                    if (window.playProceduralSound) window.playProceduralSound('success');
+                } else {
+                    if (gd.invulnTimer <= 0) {
+                        if (gd.shieldActive) {
+                            gd.shieldActive = false;
+                            gd.invulnTimer = 1.2;
+                            this.triggerShake(15);
+                            this.addSumidaTextParticle(gd.boatX, 420, "¡Escudo Roto!", "#00e5ff");
+                            if (window.playProceduralSound) window.playProceduralSound('error');
+                            this.createExplosion(gd.boatX, 480, '#00e5ff', 25, 1.2);
+                        } else {
+                            gd.lives--;
+                            gd.invulnTimer = 1.8;
+                            this.triggerShake(25);
+                            this.addSumidaTextParticle(gd.boatX, 420, "-1 Vida", "#ff1744");
+                            if (window.playProceduralSound) window.playProceduralSound('damage');
+                            this.createExplosion(gd.boatX, 480, '#ff1744', 30, 1.4);
+                            
+                            if (gd.lives <= 0) {
+                                this.gameOver();
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // Win check: when all 10 bridges have passed, win if alive
+                if (gd.bridgesPassed >= 10 && gd.lives > 0) {
+                    setTimeout(() => this.win(), 800);
+                }
+            }
+        });
+    },
+    drawSumida() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        // River water background
+        ctx.fillStyle = '#00838f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Water current wave lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 7; i++) {
+            const y = (gd.waterScroll + i * 100) % 600;
+            ctx.beginPath();
+            ctx.moveTo(150, y);
+            ctx.lineTo(650, y);
+            ctx.stroke();
+        }
+
+        // River banks (concrete shores)
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 0, 150, 600);
+        ctx.fillRect(650, 0, 150, 600);
+        
+        // Bank walkways lines
+        ctx.strokeStyle = '#546e7a';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(150, 0); ctx.lineTo(150, 600);
+        ctx.moveTo(650, 0); ctx.lineTo(650, 600);
+        ctx.stroke();
+
+        // Draw scrolling cherry blossom trees on the banks
+        const drawTree = (ctx, tx, ty, animTime) => {
+            ctx.save();
+            ctx.shadowBlur = 0;
+            
+            // Trunk
+            ctx.fillStyle = '#5d4037';
+            ctx.beginPath();
+            ctx.moveTo(tx - 6, ty + 40);
+            ctx.lineTo(tx + 6, ty + 40);
+            ctx.lineTo(tx + 4, ty - 10);
+            ctx.lineTo(tx - 4, ty - 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Branches
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(tx - 15, ty - 20);
+            ctx.moveTo(tx, ty - 5);
+            ctx.lineTo(tx + 18, ty - 25);
+            ctx.stroke();
+            
+            // Foliage (Sakura clouds)
+            const wobble = Math.sin(animTime * 1.5) * 3;
+            const foliage = [
+                { dx: 0, dy: -25, r: 24, c: '#ff80ab' },
+                { dx: -15, dy: -18, r: 20, c: '#f8bbd0' },
+                { dx: 15, dy: -22, r: 22, c: '#f8bbd0' },
+                { dx: -8, dy: -32, r: 18, c: '#ff4081' },
+                { dx: 8, dy: -30, r: 20, c: '#ff80ab' }
+            ];
+            
+            foliage.forEach(f => {
+                ctx.fillStyle = f.c;
+                ctx.beginPath();
+                ctx.arc(tx + f.dx + wobble, ty + f.dy, f.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            ctx.restore();
+        };
+
+        for (let i = 0; i < 4; i++) {
+            const y = (i * 200 + gd.waterScroll) % 700 - 80;
+            drawTree(ctx, 60, y, this.gameTime + i);
+            drawTree(ctx, 740, y, this.gameTime + i + 2.5);
+        }
+
+        // Bridges
+        gd.bridges.forEach(b => {
+            // Support pillars on shore
+            ctx.fillStyle = '#455a64';
+            ctx.fillRect(115, b.y, 35, 50);
+            ctx.fillRect(650, b.y, 35, 50);
+            
+            // Bridge deck (Left and Right parts leaving the gate passage empty)
+            ctx.fillStyle = b.color;
+            ctx.fillRect(150, b.y + 10, b.gateX - b.gateWidth / 2 - 150, 30);
+            ctx.fillRect(b.gateX + b.gateWidth / 2, b.y + 10, 650 - (b.gateX + b.gateWidth / 2), 30);
+            
+            // Steel arch above bridge spanning the entire width
+            ctx.strokeStyle = b.color;
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.arc(400, b.y + 65, 255, Math.PI + 0.3, Math.PI * 2 - 0.3);
+            ctx.stroke();
+            
+            // Vertical hanger cables
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1.5;
+            for (let x = 175; x < 625; x += 30) {
+                if (x < b.gateX - b.gateWidth / 2 || x > b.gateX + b.gateWidth / 2) {
+                    const dist = Math.abs(400 - x);
+                    const archY = b.y - 30 + (dist * dist) * 0.00085;
+                    if (archY < b.y + 10) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, b.y + 10);
+                        ctx.lineTo(x, archY);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Glowing navigation passage borders
+            ctx.save();
+            ctx.strokeStyle = '#00ff99';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00ff99';
+            ctx.shadowBlur = 8;
+            
+            ctx.beginPath();
+            ctx.moveTo(b.gateX - b.gateWidth / 2, b.y - 10);
+            ctx.lineTo(b.gateX - b.gateWidth / 2, b.y + 60);
+            ctx.moveTo(b.gateX + b.gateWidth / 2, b.y - 10);
+            ctx.lineTo(b.gateX + b.gateWidth / 2, b.y + 60);
+            ctx.stroke();
+            
+            // Pulsing green navigation arrows
+            const arrowPulse = Math.floor(this.gameTime * 7) % 3;
+            ctx.fillStyle = '#00ff99';
+            for (let i = 0; i < 2; i++) {
+                const arrY = b.y + i * 18 - 8 + arrowPulse;
+                ctx.beginPath();
+                ctx.moveTo(b.gateX - 8, arrY);
+                ctx.lineTo(b.gateX, arrY + 8);
+                ctx.lineTo(b.gateX + 8, arrY);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // Bridge labels
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0,0,0,0.85)';
+            ctx.shadowBlur = 4;
+            ctx.fillText(b.name, 400, b.y + 30);
+            ctx.shadowBlur = 0;
+        });
+
+        // Sakura petals floating on water
+        ctx.fillStyle = '#ff80ab';
+        gd.sakuraPetals.forEach(p => {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Draw custom particles (foam, text)
+        gd.customParticles.forEach(p => {
+            ctx.save();
+            ctx.globalAlpha = p.alpha * p.life;
+            if (p.type === 'foam') {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * (1.3 - p.life * 0.4), 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.type === 'text') {
+                ctx.fillStyle = p.color || '#ffffff';
+                ctx.font = `bold ${p.size}px Outfit, sans-serif`;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                ctx.shadowBlur = 5;
+                ctx.textAlign = 'center';
+                ctx.fillText(p.text, p.x, p.y);
+            }
+            ctx.restore();
+        });
+
+        // Bullets (Laser beams)
+        gd.bullets.forEach(b => {
+            ctx.save();
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y);
+            ctx.lineTo(b.x, b.y + 15);
+            ctx.stroke();
+            
+            // White core
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(b.x, b.y + 2);
+            ctx.lineTo(b.x, b.y + 13);
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        // Obstacles
+        gd.obstacles.forEach(o => {
+            if (o.type === 'bomb') {
+                // Floating naval mine
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Spikes
+                ctx.strokeStyle = '#546e7a';
+                ctx.lineWidth = 2.5;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(a) * 17, Math.sin(a) * 17);
+                    ctx.stroke();
+                    
+                    // Spike tips
+                    ctx.fillStyle = '#ff1744';
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(a) * 17, Math.sin(a) * 17, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Mine body
+                ctx.fillStyle = '#37474f';
+                ctx.strokeStyle = '#212121';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Glowing pulsing LED
+                const flash = Math.sin(this.gameTime * 14) > 0;
+                ctx.fillStyle = flash ? '#ff1744' : '#37000b';
+                ctx.shadowColor = '#ff1744';
+                ctx.shadowBlur = flash ? 8 : 0;
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+            } else if (o.type === 'boat') {
+                // Traditional Yakatabune pleasure boat
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Foam wake (on top/rear since it bajan)
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.beginPath();
+                ctx.arc(0, -32, 10 + Math.sin(this.gameTime * 10) * 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Wooden hull
+                ctx.fillStyle = '#8d6e63';
+                ctx.strokeStyle = '#3e2723';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(0, 32); // Pointy bow pointing down
+                ctx.lineTo(-14, 20);
+                ctx.lineTo(-14, -28); // stern
+                ctx.lineTo(14, -28);
+                ctx.lineTo(14, 20);
+                ctx.closePath();
+                ctx.fill(); ctx.stroke();
+                
+                // Cabin structure
+                ctx.fillStyle = '#4e342e';
+                ctx.fillRect(-10, -22, 20, 38);
+                
+                // Cabin windows/yellow lanterns rows on sides
+                for (let ly = -18; ly <= 10; ly += 7) {
+                    ctx.fillStyle = '#ffd54f';
+                    ctx.shadowColor = '#ffd54f';
+                    ctx.shadowBlur = 4;
+                    ctx.beginPath();
+                    ctx.arc(-11, ly, 2.5, 0, Math.PI * 2);
+                    ctx.arc(11, ly, 2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.shadowBlur = 0;
+                
+                // Boss HP bar (only if damaged)
+                if (o.hp < o.maxHp) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(-15, -36, 30, 4);
+                    ctx.fillStyle = '#00e676';
+                    ctx.fillRect(-15, -36, 30 * (o.hp / o.maxHp), 4);
+                }
+                ctx.restore();
+                
+            } else if (o.type === 'airplane') {
+                // Overhead commercial plane
+                // 1. Water shadow (drawn offset)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+                ctx.save();
+                ctx.translate(o.x, o.y + 45);
+                ctx.beginPath();
+                // Fuselage shadow
+                ctx.ellipse(0, 0, 22, 6, 0, 0, Math.PI * 2);
+                // Wings shadow
+                ctx.ellipse(0, 0, 6, 22, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+                
+                // 2. High altitude plane fuselage
+                ctx.save();
+                ctx.translate(o.x, o.y);
+                
+                // Wings
+                ctx.fillStyle = '#b0bec5';
+                ctx.strokeStyle = '#455a64';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 5, 23, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Fuselage body
+                ctx.fillStyle = '#eceff1';
+                ctx.strokeStyle = '#455a64';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 24, 7, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Tail wings
+                ctx.beginPath();
+                ctx.ellipse(-18, 0, 3, 9, 0, 0, Math.PI * 2);
+                ctx.fill(); ctx.stroke();
+                
+                // Blinking wingtip nav lights
+                const flash = Math.floor(this.gameTime * 8) % 2 === 0;
+                if (flash) {
+                    // Left wing (port) red light
+                    ctx.fillStyle = '#ff1744';
+                    ctx.beginPath(); ctx.arc(0, -22, 3, 0, Math.PI * 2); ctx.fill();
+                    // Right wing (starboard) green light
+                    ctx.fillStyle = '#00e676';
+                    ctx.beginPath(); ctx.arc(0, 22, 3, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        });
+
+        // Draw Power-ups
+        gd.powerups.forEach(p => {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            
+            // Neon pulse outer circle
+            ctx.strokeStyle = p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 16 + Math.sin(p.pulseTime * 8) * 3, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner circle
+            ctx.fillStyle = 'rgba(33, 33, 33, 0.85)';
+            ctx.strokeStyle = p.type === 'shield' ? '#00e5ff' : (p.type === 'double' ? '#ff9100' : '#ff4081');
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+            
+            // Icon
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let symbol = '🛡️';
+            if (p.type === 'double') symbol = '⚡';
+            if (p.type === 'heart') symbol = '❤️';
+            ctx.fillText(symbol, 0, 0);
+            ctx.restore();
+        });
+
+        // Draw Boat Himiko
+        ctx.save();
+        ctx.translate(gd.boatX, 480);
+        ctx.rotate(gd.boatAngle);
+        
+        // Thruster flame
+        if (gd.lives > 0) {
+            const flameSize = 14 + Math.sin(this.gameTime * 22) * 7;
+            ctx.fillStyle = '#00e5ff';
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.moveTo(-7, 30);
+            ctx.lineTo(0, 30 + flameSize);
+            ctx.lineTo(7, 30);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(-3, 30);
+            ctx.lineTo(0, 30 + flameSize * 0.6);
+            ctx.lineTo(3, 30);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Side stabilizers (wings)
+        ctx.fillStyle = '#9e9e9e';
+        ctx.strokeStyle = '#424242';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-16, 5);
+        ctx.lineTo(-25, 20);
+        ctx.lineTo(-16, 25);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(16, 5);
+        ctx.lineTo(25, 20);
+        ctx.lineTo(16, 25);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Main metal hull
+        ctx.fillStyle = '#e0e0e0';
+        ctx.strokeStyle = '#424242';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(0, -35); // Pointy nose
+        ctx.bezierCurveTo(-16, -20, -16, 15, -16, 30); // Left side
+        ctx.lineTo(16, 30); // Rear
+        ctx.bezierCurveTo(16, 15, 16, -20, 0, -35); // Right side
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Detail panel lines
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -35);
+        ctx.lineTo(0, -10);
+        ctx.moveTo(-16, 10);
+        ctx.lineTo(16, 10);
+        ctx.stroke();
+
+        // Canopy windows (Green emerald glass)
+        ctx.fillStyle = 'rgba(0, 230, 118, 0.35)';
+        ctx.strokeStyle = '#00e676';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.bezierCurveTo(-10, -8, -10, 12, -10, 24);
+        ctx.lineTo(10, 24);
+        ctx.bezierCurveTo(10, 12, 10, -8, 0, -18);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        // Reflection highlights
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(-4, 0, 2, 12, Math.PI / 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shield bubble
+        if (gd.shieldActive) {
+            ctx.restore();
+            ctx.save();
+            ctx.translate(gd.boatX, 480);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 3 + Math.sin(this.gameTime * 6) * 0.8;
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(0, 0, 42 + Math.sin(this.gameTime * 8) * 1.5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(0, 229, 255, 0.08)';
+            ctx.fill();
+            ctx.restore();
+            
+            ctx.save();
+            ctx.translate(gd.boatX, 480);
+            ctx.rotate(gd.boatAngle);
+        }
+        
+        // Flash red when invulnerable
+        if (gd.invulnTimer > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
+            ctx.fillStyle = 'rgba(255, 23, 73, 0.35)';
+            ctx.beginPath();
+            ctx.moveTo(0, -35);
+            ctx.bezierCurveTo(-16, -20, -16, 15, -16, 30);
+            ctx.lineTo(16, 30);
+            ctx.bezierCurveTo(16, 15, 16, -20, 0, -35);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // HUD Layout
+        // 1. Score
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        ctx.shadowBlur = 3;
+        ctx.fillText(`Puntos: ${this.score}`, 180, 35);
+        
+        // 2. Upcoming Bridge
+        if (gd.bridgesPassed < 10) {
+            const nextB = gd.bridges[gd.bridgesPassed];
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Siguiente: ${nextB.name}`, 400, 35);
+            
+            // Double shot timer remaining
+            if (gd.doubleShotTimer > 0) {
+                ctx.fillStyle = '#ff9100';
+                ctx.font = '14px Outfit, sans-serif';
+                ctx.fillText(`Doble Disparo: ${gd.doubleShotTimer.toFixed(1)}s`, 400, 500);
+            }
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("¡Ruta Completada!", 400, 35);
+        }
+        
+        // 3. Lives hearts (top right)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText("Vidas: ", 700, 34);
+        for (let i = 0; i < gd.maxLives; i++) {
+            ctx.fillStyle = i < gd.lives ? '#ff4081' : 'rgba(255, 255, 255, 0.2)';
+            ctx.font = '18px Outfit, sans-serif';
+            ctx.fillText("❤️", 715 + i * 22, 36);
+        }
+        ctx.shadowBlur = 0;
+
+        // 4. Progression Timeline on Left Bank
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(40, 130);
+        ctx.lineTo(40, 470);
+        ctx.stroke();
+        
+        const shortNames = ['Sakura', 'Kototoi', 'Azuma', 'Komagata', 'Umaya', 'Kuramae', 'Kiyosu', 'Eitai', 'Chuo', 'Tsukiji'];
+        for (let i = 0; i < 10; i++) {
+            const tickY = 130 + i * 37.7;
+            ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : '#ffffff';
+            ctx.beginPath();
+            ctx.arc(40, tickY, 4, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw name next to tick only for current/past bridges to avoid cluttering
+            if (i === gd.bridgesPassed || i === gd.bridgesPassed - 1 || i === gd.bridgesPassed + 1) {
+                ctx.fillStyle = gd.bridgesPassed > i ? '#00ff99' : 'rgba(255, 255, 255, 0.6)';
+                ctx.font = '9px Outfit, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(shortNames[i], 52, tickY + 3);
+            }
+        }
+        
+        let timelineFrac = 0;
+        if (gd.bridgesPassed < 10) {
+            const nextBridge = gd.bridges[gd.bridgesPassed];
+            const startY = -300 - gd.bridgesPassed * 650;
+            const range = 440 - startY;
+            const currentTravel = nextBridge.y - startY;
+            timelineFrac = clamp(currentTravel / range, 0, 1.0);
+        }
+        
+        const playerTimelineY = 130 + gd.bridgesPassed * 37.7 + (gd.bridgesPassed < 10 ? timelineFrac * 37.7 : 0);
+        ctx.fillStyle = '#ff9100';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(40, clamp(playerTimelineY, 130, 470), 6, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+
+        // 5. Draw On-Screen Mobile Controls Panel (at the bottom)
+        ctx.save();
+        ctx.shadowBlur = 0;
+        
+        // Draw controls bar background (dark translucent grey panel)
+        ctx.fillStyle = 'rgba(20, 26, 30, 0.85)';
+        ctx.strokeStyle = '#37474f';
+        ctx.lineWidth = 2;
+        ctx.fillRect(0, 520, 800, 80);
+        ctx.beginPath();
+        ctx.moveTo(0, 520);
+        ctx.lineTo(800, 520);
+        ctx.stroke();
+        
+        // Helper to draw a glowing button
+        const drawButton = (x, y, w, h, label, active, isPress) => {
+            ctx.save();
+            ctx.fillStyle = isPress ? 'rgba(0, 229, 255, 0.25)' : 'rgba(38, 50, 56, 0.8)';
+            ctx.strokeStyle = active ? '#00e5ff' : '#546e7a';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = active ? '#00e5ff' : 'transparent';
+            ctx.shadowBlur = active ? 6 : 0;
+            
+            // Rounded button
+            ctx.beginPath();
+            ctx.arc(x + 10, y + 10, 10, Math.PI, Math.PI * 1.5);
+            ctx.arc(x + w - 10, y + 10, 10, Math.PI * 1.5, 0);
+            ctx.arc(x + w - 10, y + h - 10, 10, 0, Math.PI * 0.5);
+            ctx.arc(x + 10, y + h - 10, 10, Math.PI * 0.5, Math.PI);
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            
+            ctx.fillStyle = active ? '#ffffff' : '#b0bec5';
+            ctx.font = 'bold 16px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, x + w / 2, y + h / 2);
+            ctx.restore();
+        };
+
+        const mouseIsDown = this.mouse.isDown;
+        const mx = this.mouse.x;
+        const my = this.mouse.y;
+
+        // Button States based on mouse coordinates when down
+        const isLeftPress = mouseIsDown && mx >= 30 && mx <= 130 && my >= 520 && my <= 590;
+        const isRightPress = mouseIsDown && mx >= 670 && mx <= 770 && my >= 520 && my <= 590;
+        const isAutoPress = mouseIsDown && mx >= 330 && mx <= 470 && my >= 520 && my <= 590;
+
+        // Draw Left Button
+        drawButton(30, 530, 100, 55, '◀ IZQ', true, isLeftPress);
+        
+        // Draw Right Button
+        drawButton(670, 530, 100, 55, 'DER ▶', true, isRightPress);
+        
+        // Draw Auto-Fire Toggle Button
+        const autoLabel = gd.autoFire ? 'AUTO: SÍ' : 'AUTO: NO';
+        drawButton(330, 530, 140, 55, autoLabel, gd.autoFire, isAutoPress);
+        
+        // Draw helper label for controls
+        ctx.fillStyle = '#90a4ae';
+        ctx.font = '11px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Controles duales: Usa los botones de abajo o arrastra directamente en el río.', 400, 592);
+        ctx.restore();
+    },
+    inputSumidaPress(x, y) {
+        const gd = this.gameData;
+        if (!gd || gd.lives <= 0 || this.state !== 'playing') return;
+        
+        // 1. Toggle Auto-Fire button check
+        if (x >= 330 && x <= 470 && y >= 520 && y <= 590) {
+            gd.autoFire = !gd.autoFire;
+            if (window.playProceduralSound) window.playProceduralSound('click');
+            return;
+        }
+        
+        // 2. Ignore steer button areas (they are handled in updateSumida continuously)
+        if ((x >= 30 && x <= 130 && y >= 520 && y <= 590) || (x >= 670 && x <= 770 && y >= 520 && y <= 590)) {
+            return;
+        }
+        
+        // 3. Manual firing (only if Auto-Fire is OFF)
+        if (!gd.autoFire && gd.shootCooldown <= 0) {
+            if (gd.doubleShotTimer > 0) {
+                gd.bullets.push({ x: gd.boatX - 15, y: 440, vy: -550 });
+                gd.bullets.push({ x: gd.boatX + 15, y: 440, vy: -550 });
+            } else {
+                gd.bullets.push({ x: gd.boatX, y: 440, vy: -550 });
+            }
+            gd.shootCooldown = 0.22;
+            if (window.playProceduralSound) window.playProceduralSound('jump');
+        }
+    },
+    dropSumidaPowerup(x, y) {
+        const gd = this.gameData;
+        if (!gd || Math.random() > 0.25) return;
+        
+        const types = ['shield', 'double', 'heart'];
+        const weights = [0.5, 0.35, 0.15];
+        
+        const rand = Math.random();
+        let type = 'shield';
+        if (rand < weights[0]) {
+            type = 'shield';
+        } else if (rand < weights[0] + weights[1]) {
+            type = 'double';
+        } else {
+            type = 'heart';
+        }
+        
+        gd.powerups.push({
+            x: x,
+            y: y,
+            vy: 110,
+            type: type,
+            pulseTime: 0
+        });
+    },
+    addSumidaTextParticle(x, y, text, color) {
+        const gd = this.gameData;
+        if (!gd) return;
+        
+        gd.customParticles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 20,
+            vy: -70 - Math.random() * 30,
+            text: text,
+            color: color,
+            alpha: 1.0,
+            size: 15,
+            life: 1.0,
+            decay: 1.6,
+            type: 'text'
+        });
+    },
+

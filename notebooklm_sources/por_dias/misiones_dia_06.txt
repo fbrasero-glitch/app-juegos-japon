@@ -1,0 +1,385 @@
+// MISIONES DEL DIA 6
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_6 = {
+    "day_6_evasion": {
+        tag: "physical",
+        day: 6,
+        title: "Técnica de Evasión",
+        role: "kid9",
+        xp: 20,
+        location: "Nijo",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🥷 Sigilo en el Puente del Shogun 🥷</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Cruza el puente de piedra dando pasos extremadamente silenciosos, sin rozar la suela de tus zapatillas. Pulsa el botón cuando cruces sin hacer ruido.</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:15px; border:2px solid #8d6e63; margin-bottom:15px;">
+                    <div style="font-size:1.1rem; font-weight:bold; color:#5d4037; margin-bottom:10px;">🔊 AUDITORÍA DE RUIDO ZEN:</div>
+                    <div style="width:100%; background:#eee; height:15px; border-radius:8px; overflow:hidden; border:1px solid #ccc;">
+                        <div id="noise-meter" style="width:10%; height:100%; background:#4caf50; transition:width 0.3s ease, background 0.3s ease;"></div>
+                    </div>
+                    <span id="noise-txt" style="font-size:0.75rem; font-weight:bold; color:#4caf50; display:block; margin-top:5px;">SILENCIO COMPLETO</span>
+                </div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:20px;">🔇 He Cruzado en Silencio</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const meter = document.getElementById('noise-meter');
+            const txt = document.getElementById('noise-txt');
+            
+            const int = setInterval(() => {
+                const noiseVal = Math.floor(Math.random() * 25);
+                meter.style.width = noiseVal + '%';
+                if (noiseVal > 15) {
+                    meter.style.background = '#ffd54f';
+                    txt.innerText = 'SUSURRO LEVE DETECTADO';
+                    txt.style.color = '#ffd54f';
+                } else {
+                    meter.style.background = '#4caf50';
+                    txt.innerText = 'SILENCIO COMPLETO';
+                    txt.style.color = '#4caf50';
+                }
+            }, 1000);
+            
+            document.getElementById('btn').addEventListener('click', () => {
+                clearInterval(int);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_6_evasion', {type:'physical', data:'Puente cruzado en silence absoluto'}, role);
+            });
+            
+            window._missionCleanup = () => clearInterval(int);
+        }
+    },
+
+    "day_6_clan": {
+        tag: "photo",
+        day: 6,
+        title: "El Retrato del Clan",
+        role: "both",
+        xp: 20,
+        location: "Castillo Nijo",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #263238 0%, #37474f 100%); border-radius:15px; border:3px solid #b0bec5; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🏯 Retrato del Clan Feudal ⚔️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#cfd8dc;">Buscad un muro del castillo espectacular. Configurad el temporizador de la cámara y posad toda la familia con la postura y mirada más seria de samuráis feudales.</p>
+                <div style="font-size:3rem; margin:15px 0;">🥋🛡️⚔️</div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#cfd8dc; border-color:#cfd8dc; color:#222; font-weight:bold; font-size:1.1rem; border-radius:25px;">📸 Retrato de Clan</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_6_clan', role, false, true)
+    },
+
+    "day_6_seal": {
+        tag: "photo",
+        day: 6,
+        title: "El Sello del Shogun",
+        role: "kid9",
+        xp: 15,
+        location: "Castillo Nijo",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff9c4 0%, #fff176 100%); border-radius:15px; border:3px solid #fbc02d; color:#f57f17; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">⚜️ El Escudo Tokugawa de Malva ⚜️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#e65100;">El emblema de tres hojas de malva del clan Shogun está tallado en vigas, tejas y portones de oro del castillo. ¡Encuentra uno y hazle una foto!</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px solid #fbc02d; display:inline-block; margin-bottom:15px;">
+                    <div style="font-size:3rem; filter:drop-shadow(0 2px 4px rgba(245,127,23,0.3));">🍀</div>
+                </div>
+                
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#fbc02d; border-color:#fbc02d; color:#222; font-weight:bold; border-radius:25px;">📸 Foto del Sello Shogunal</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_6_seal', role, false)
+    },
+
+    "day_6_clouds": {
+        tag: "writing",
+        day: 6,
+        title: "Jardín de Nubes",
+        role: "kid9",
+        xp: 15,
+        location: "Palacio",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌲 Pinos Nube del Palacio ☁️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Los pinos del Palacio Imperial de Kioto están esculpidos para parecer nubes. Encuentra el que tenga la forma más extraña y descríbelo: ¿a qué animal se parece?</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #0288d1; text-align:left; margin-bottom:15px;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#0288d1; display:block; margin-bottom:5px;">🦖 GUÍA DE ANIMALES IMAGINADOS:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+                        <button type="button" class="cloud-tag-btn" data-tag="Dragón" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🐉 Dragón</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Zorro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🦊 Zorro</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Pájaro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🦅 Pájaro</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Tortuga" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🐢 Tortuga</button>
+                    </div>
+                    <input type="text" id="ans" style="width:100%; border:1px solid #ccc; border-radius:5px; padding:8px; font-family:inherit; font-size:1rem; box-sizing:border-box;" placeholder="Escribe aquí tu observación...">
+                </div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; background:#0288d1; border-color:#0288d1; color:#fff; font-weight:bold; border-radius:20px;">📨 Mandar Reporte</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let selectedTag = '';
+            const tagBtns = document.querySelectorAll('.cloud-tag-btn');
+            
+            tagBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tagBtns.forEach(b => {
+                        b.style.background = '#fff';
+                        b.style.color = '#333';
+                    });
+                    btn.style.background = '#b3e5fc';
+                    btn.style.color = '#01579b';
+                    selectedTag = btn.dataset.tag;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                });
+            });
+            
+            document.getElementById('btn').addEventListener('click', () => {
+                const text = document.getElementById('ans').value.trim();
+                if (!text) {
+                    showAlert('TEXTO REQUERIDO', 'Describe qué forma de animal ves en el árbol.');
+                    return;
+                }
+                const result = selectedTag ? `[Tipo ${selectedTag}] ${text}` : text;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_6_clouds', {type:'text', data: result}, role);
+            });
+        }
+    },
+
+    "day_6_ninja_steps": {
+        tag: "game",
+        day: 6,
+        title: "Pasos de Ninja",
+        role: "kid9",
+        xp: 20,
+        location: "Nijo",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius:15px; border:3px solid #f44336; color:#b71c1c; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👣 Evita el Suelo Ruiseñor 👣</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#c62828;">El suelo de Nijo chirría como un pájaro para delatar intrusos. Toca la pantalla en el momento exacto en el que el pie cruce la zona roja.</p>
+                
+                <div style="background:#3e2723; border:3px solid #d7ccc8; border-radius:10px; padding:15px; position:relative; width:150px; height:240px; margin:0 auto 15px; overflow:hidden;">
+                    <div id="ninja-target" style="position:absolute; bottom:20px; width:120px; height:45px; background:rgba(255,0,0,0.4); border-radius:5px; border:2px dashed #ff1744; left:15px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.75rem; font-weight:bold;">ZONA SILENCIOSA</div>
+                    <div id="ninja-foot" style="position:absolute; top:-50px; left:50px; width:50px; height:50px; font-size:2.8rem; transition: transform 0.05s ease;">🥷</div>
+                </div>
+                
+                <button id="btn-step" class="btn-primary" style="width:100%; background:#f44336; border-color:#f44336; color:#fff; font-weight:bold; border-radius:20px; height:45px;">PISAR AHORA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let hits = 0;
+            let int;
+            let active = true;
+            let pos = -50;
+            const foot = document.getElementById('ninja-foot');
+            const btn = document.getElementById('btn-step');
+            
+            const loop = () => {
+                if(!active) return;
+                pos += 4;
+                foot.style.top = pos + 'px';
+                if(pos > 240) { pos = -50; }
+                int = requestAnimationFrame(loop);
+            };
+            loop();
+            
+            btn.addEventListener('click', () => {
+                if (!active) return;
+                if(pos >= 165 && pos <= 215) {
+                    hits++;
+                    pos = -50;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if(hits >= 3) {
+                        active = false;
+                        cancelAnimationFrame(int);
+                        foot.innerText = '🥷✨';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                        
+                        setTimeout(() => {
+                            submitMission('day_6_ninja_steps', {type:'game', data:'Pasos de ninja sincronizados en el suelo'}, role);
+                        }, 1200);
+                    } else {
+                        btn.innerText = `¡SILENCIO! (${hits}/3)`;
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('¡CHIRRIDO!', '¡El suelo de madera ha sonado como un ruiseñor! Concéntrate y pisa solo en la zona roja.');
+                }
+            });
+            window._missionCleanup = () => { active=false; cancelAnimationFrame(int); };
+        }
+    },
+
+    "day_6_tactical": {
+        tag: "expert",
+        day: 6,
+        title: "Infiltración Táctica",
+        role: "kid14",
+        xp: 20,
+        location: "Nijo",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#080b0e; border:1px solid #00e5ff; color:#00e5ff; box-shadow:0 4px 20px rgba(0,229,255,0.25);">
+                <p>>>> ANÁLISIS DE PERÍMETRO Y PUNTOS CIEGOS // CASTILLO NIJO</p>
+                <p style="color:#aaa; font-size:0.85rem;">Localiza 2 puntos ciegos (árboles, esquinas de muros, pasillos exteriores) e introduce tu ruta de escape sin pisar los suelos ruiseñor.</p>
+                
+                <div style="background:#111; border:1px solid #333; padding:10px; border-radius:5px; margin:15px 0;">
+                    <div style="font-size:0.75rem; color:#ffd700; margin-bottom:5px;">⚙️ COORDENADAS RECOMENDADAS:</div>
+                    <div style="font-size:0.8rem; display:flex; flex-direction:column; gap:4px; color:#fff;">
+                        <span>🛡️ P1: Muro Exterior del Foso</span>
+                        <span>🏯 P2: Jardín Ninomaru</span>
+                    </div>
+                </div>
+                
+                <textarea id="ans" style="width:100%; height:80px; background:#111; color:#00e5ff; border:1px solid #00e5ff; font-family:monospace; padding:8px; box-sizing:border-box; margin-bottom:10px;" placeholder=">>> Escribe tu informe de ruta táctica..."></textarea>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#00e5ff; color:#00e5ff; background:transparent;">TRANSMITIR VECTOR DE ESCAPE</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                const text = document.getElementById('ans').value.trim();
+                if (text.length < 15) {
+                    showAlert('DATOS INCOMPLETOS', 'Proporciona una descripción de ruta más detallada.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_6_tactical', {type:'text', data: text}, role);
+            });
+        }
+    },
+
+    "day_6_edict": {
+        tag: "writing",
+        day: 6,
+        title: "Edicto Imperial",
+        role: "kid14",
+        xp: 15,
+        location: "Palacio",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#12080a; border:1px solid #ff1744; color:#ff1744; box-shadow:0 4px 20px rgba(255,23,68,0.25);">
+                <p>>>> REDACCIÓN DE EDICITOS IMPERIALES // PROTOCOLO ABSURDO</p>
+                <p style="color:#aaa; font-size:0.85rem;">Eres el Emperador por un día en el Palacio de Kioto. Redacta un decreto ridículo que todos los visitantes deban obedecer.</p>
+                
+                <div style="margin:15px 0; padding:12px; background:#fff; border-radius:6px; border:2px solid #ff1744; color:#222; text-align:center; position:relative; font-family:Georgia, serif;">
+                    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">📜 DECRETO REAL 📜</div>
+                    <textarea id="ans" style="width:100%; height:60px; border:1px dashed #ff1744; background:transparent; font-family:inherit; padding:5px; font-size:0.95rem; box-sizing:border-box;" placeholder="Todos los súbditos deberán caminar a la pata coja en el palacio..."></textarea>
+                    <div style="position:absolute; bottom:5px; right:10px; font-size:2rem; opacity:0.8;">💮</div>
+                </div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#ff1744; color:#ff1744; background:transparent;">PROMULGAR DECRETO REAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                const val = document.getElementById('ans').value.trim();
+                if (!val) {
+                    showAlert('EDICTO VACÍO', 'El emperador debe redactar su decreto real antes de promulgarlo.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_6_edict', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_6_time_travel": {
+        tag: "photo",
+        day: 6,
+        title: "Viaje en el Tiempo",
+        role: "kid14",
+        xp: 15,
+        location: "Sannenzaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0c0812; border:1px solid #d500f9; color:#d500f9; box-shadow:0 4px 20px rgba(213,0,249,0.25);">
+                <p>>>> TOMA FOTOGRÁFICA CRONOLÓGICA // ERA EDO</p>
+                <p style="color:#00f0ff; font-size:0.85rem;">Encuentra una vista en Sannenzaka que emule el año 1600. Toma una foto intentando evitar elementos modernos (turistas con móvil, cables de luz, carteles plásticos).</p>
+                <div style="margin:15px 0; padding:10px; background:rgba(213,0,249,0.05); border:1px dashed #d500f9; border-radius:5px; text-align:center; font-size:0.8rem; color:#fff;">
+                    ⚡ REQUISITO TÁCTICO: Ángulo limpio sin contaminación tecnológica.
+                </div>
+                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:monospace; background:#d500f9; border-color:#d500f9; color:#fff; font-weight:bold;">📸 ABRIR OPTICA TEMPORAL</button>
+            </div>
+        `,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_6_time_travel', role, false)
+    },
+
+    "day_6_ring": {
+        tag: "physical",
+        day: 6,
+        title: "El Anillo Imperial",
+        role: "kid14",
+        xp: 20,
+        location: "Palacio Imperial",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
+                <p>>>> CRONOMETRAJE DE MARCHA: 100 PASOS IMPERIALES</p>
+                <p style="color:#aaa; font-size:0.85rem;">Mide tu cadencia de marcha real. Inicia el cronómetro, da exactamente 100 pasos por el recinto de gravilla y deténlo para compilar la telemetría.</p>
+                
+                <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px; margin:15px 0;">
+                    <div id="ring-chrono" style="font-size:2.5rem; font-weight:bold; color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5);">00:00.0</div>
+                    <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+                        <button id="btn-ring-start" style="padding:5px 15px; background:#00ff99; border:none; color:#222; font-weight:bold; border-radius:3px; cursor:pointer;">EMPEZAR</button>
+                        <button id="btn-ring-stop" style="padding:5px 15px; background:#ff5722; border:none; color:#fff; font-weight:bold; border-radius:3px; cursor:pointer;" disabled>DETENER</button>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="ans" value="">
+                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;" disabled>ENVIAR DATOS A CONTROL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let timer = null;
+            let startTime = 0;
+            let elapsed = 0;
+            const display = document.getElementById('ring-chrono');
+            const startBtn = document.getElementById('btn-ring-start');
+            const stopBtn = document.getElementById('btn-ring-stop');
+            const submitBtn = document.getElementById('btn-submit');
+            const ans = document.getElementById('ans');
+            
+            const update = () => {
+                const diff = Date.now() - startTime + elapsed;
+                const m = Math.floor(diff / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                const ms = Math.floor((diff % 1000) / 100);
+                display.innerText = `${String(m).padStart(2, '0')}:dots`; // truncated intentionally, but we write full code:
+                display.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${ms}`;
+            };
+            
+            startBtn.addEventListener('click', () => {
+                if (timer) return;
+                startTime = Date.now();
+                timer = setInterval(update, 100);
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                submitBtn.disabled = true;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            stopBtn.addEventListener('click', () => {
+                if (!timer) return;
+                clearInterval(timer);
+                timer = null;
+                elapsed += Date.now() - startTime;
+                startBtn.disabled = false;
+                startBtn.innerText = 'REANUDAR';
+                stopBtn.disabled = true;
+                submitBtn.disabled = false;
+                ans.value = display.innerText;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_6_ring', {type:'text', data: `Tiempo 100 pasos: ${ans.value}`}, role);
+            });
+            
+            window._missionCleanup = () => { if(timer) clearInterval(timer); };
+        }
+    },
+
+
+};

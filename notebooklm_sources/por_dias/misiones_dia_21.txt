@@ -1,0 +1,442 @@
+// MISIONES DEL DIA 21
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_21 = {
+"day_21_monkeys": {
+        tag: "photo", day: 21, title: "Los Tres Monos", role: "kid9", xp: 15, location: "Nikko",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🙈🙉🙊 En el templo de Nikko se esconde la talla más famosa de Japón: los tres monos sabios. Uno no ve, otro no oye, y el tercero no habla. ¡Encuéntralos e imita sus poses en la foto!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B4513,#D2691E,#DEB887); border-radius:15px;">
+            <p style="font-size:3rem;">🙈🙉🙊</p>
+            <p style="color:#fff; font-weight:bold;">No ver, no oír, no hablar</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto Imitando a los Monos</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_21_monkeys', currentUser, false); }
+    },
+
+"day_21_dragon": {
+        tag: "expert",
+        day: 21,
+        title: "El Latido del Dragón",
+        role: "kid9",
+        xp: 25,
+        location: "Nikko",
+        render: () => `
+        <p class="mission-desc">Acércate a la tumba... ¿Sientes el latido del dragón?</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:150px;">
+            <div id="d-jewel" style="width:80px; height:80px; background:radial-gradient(circle, #f1c40f, #d35400); border-radius:50%; box-shadow:0 0 20px #f1c40f; transition:all 0.2s;"></div>
+        </div>
+        <button id="btn-adv" class="btn-secondary" style="width:100%; margin-bottom:10px;">Avanzar hacia el dragón</button>
+        <div id="d-msg" style="text-align:center; color:#0f0; font-weight:bold; font-size:1.5rem; height:40px;"></div>
+    `,
+        attachEvents: () => {
+        const jewel = document.getElementById('d-jewel'); const btn = document.getElementById('btn-adv'); const msg = document.getElementById('d-msg');
+        let speed = 2000; let clicks = 0; let int = null;
+        const pulse = () => { jewel.style.transform = 'scale(1.3)'; setTimeout(()=>jewel.style.transform = 'scale(1)', speed/2); };
+        int = setInterval(pulse, speed);
+        btn.addEventListener('click', () => {
+            clicks++; speed = Math.max(300, speed - 300);
+            clearInterval(int); int = setInterval(pulse, speed);
+            if(clicks >= 6) {
+                clearInterval(int); btn.classList.add('hidden');
+                jewel.style.transform = 'scale(2)'; jewel.style.boxShadow = '0 0 100px #f1c40f';
+                msg.innerText = "¡El dragón te ha sentido!";
+                setTimeout(() => submitMission('day_21_dragon', {type:'game', data:'Dragón despertado'}), 2000);
+            }
+        });
+        window._missionCleanup = () => clearInterval(int);
+    }
+    },
+
+"day_21_slash": {
+        tag: "expert",
+        day: 21,
+        title: "El Tajo del Samurái",
+        role: "kid9",
+        xp: 25,
+        location: "Kamakura",
+        render: () => `
+        <p class="mission-desc">Entrena como samurái dando un espadazo vertical con el móvil en la mano.</p>
+        <div style="text-align:center; margin:20px 0;">
+            <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON DOS MANOS</p>
+            <div id="sl-timer" style="font-size:3rem; color:red;"></div>
+            <div id="sl-icon" class="hidden" style="font-size:5rem;">⚔️</div>
+            <div id="sl-fx" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:100; display:none; background:linear-gradient(135deg, transparent 48%, white 49%, white 51%, transparent 52%);"></div>
+        </div>
+        <button id="btn-start" class="btn-secondary" style="width:100%;">Preparar Tajo</button>
+    `,
+        attachEvents: () => {
+        const btnS = document.getElementById('btn-start'); const timer = document.getElementById('sl-timer'); const icon = document.getElementById('sl-icon'); const fx = document.getElementById('sl-fx');
+        let active = false;
+        const handleMotion = (e) => {
+            if(!active) return;
+            const ax = e.acceleration.x || 0; const ay = e.acceleration.y || 0; const az = e.acceleration.z || 0;
+            const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+            if(mag > 12 && Math.abs(ay) > Math.abs(ax)) {
+                active=false; fx.style.display='block'; window.removeEventListener('devicemotion', handleMotion);
+                setTimeout(() => submitMission('day_21_slash', {type:'game', data:'Espadazo completado'}), 1000);
+            }
+        };
+        btnS.addEventListener('click', () => {
+            btnS.classList.add('hidden'); let t=3; timer.innerText=t;
+            const int = setInterval(()=>{
+                t--; timer.innerText=t>0?t:'';
+                if(t<=0) {
+                    clearInterval(int); icon.classList.remove('hidden'); active=true;
+                    if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                        DeviceMotionEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('devicemotion', handleMotion); });
+                    } else { window.addEventListener('devicemotion', handleMotion); }
+                    setTimeout(()=>{ if(active){ active=false; alert('¡Demasiado lento! Intenta de nuevo.'); window.removeEventListener('devicemotion', handleMotion); btnS.classList.remove('hidden'); icon.classList.add('hidden'); } }, 2000);
+                }
+            }, 1000);
+        });
+        window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
+    }
+    },
+
+    "day_21_jizo": {
+        tag: "culture",
+        day: 21,
+        title: "Guardián de Piedra",
+        role: "kid9",
+        xp: 15,
+        location: "Kamakura",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #4caf50; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🗿 Los Jizo de Babero Rojo 🗿</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Encuentra una figura de piedra Jizo con su característico babero de tela roja. Hazle una foto e investiga a quiénes protege.</p>
+                
+                <div style="background:#fff; border-radius:12px; padding:10px; border:2px dashed #4caf50; margin-bottom:15px;">
+                    <span style="font-size:3rem;">🗿🔴✨</span>
+                    <input type="text" id="j-ans" placeholder="Protege a..." style="width:100%; border:2px solid #81c784; border-radius:20px; padding:8px 15px; font-family:inherit; font-size:1rem; box-sizing:border-box; margin-top:5px; text-align:center;">
+                </div>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; border-radius:25px; padding:12px;">📸 Sacar Foto del Jizo</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            const answer = document.getElementById('j-ans');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const ans = answer.value.trim();
+                if (ans.length < 4) {
+                    showAlert('Respuesta requerida', 'Averigua y escribe brevemente a quién protege la estatua Jizo (viajeros, niños...).');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                btn.innerText = '⏳ Procesando estatua...';
+                btn.disabled = true;
+                
+                try {
+                    const comp = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, comp);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_21_jizo', {type:'mixed', data:`Protege a: ${ans} | Foto: ${photoId}`}, role);
+                } catch(err) {
+                    console.error(err);
+                    btn.innerText = '📸 Sacar Foto del Jizo';
+                    btn.disabled = false;
+                    showAlert('Error', 'Fallo al guardar imagen.');
+                }
+            });
+        }
+    },
+
+    "day_21_buddha": {
+        tag: "culture",
+        day: 21,
+        title: "Ingeniero Imperial",
+        role: "kid14",
+        xp: 20,
+        location: "Kamakura",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> REGISTRO ARQUEOLÓGICO: DAIBUTSU DE KAMAKURA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Investiga los anales históricos del Gran Buda de Kamakura y registra el material metálico de fundición y su año exacto de construcción.</p>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem; color:#00ff99;">MATERIAL DE LA ESTRUCTURA:</label>
+                    <input type="text" id="b-mat" placeholder="Ej: Bronce" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:5px; font-family:monospace; box-sizing:border-box; text-transform:uppercase;">
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:0.75rem; color:#00ff99;">AÑO DE FUNDICIÓN:</label>
+                    <input type="number" id="b-year" placeholder="1200" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <div id="b-msg" style="color:#ff6b6b; font-size:0.85rem; margin-bottom:15px; text-align:center; min-height:20px; font-weight:bold;"></div>
+                
+                <button id="btn-buddha" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">🔓 ACCEDER AL ARCHIVO HISTÓRICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-buddha');
+            const matIn = document.getElementById('b-mat');
+            const yearIn = document.getElementById('b-year');
+            const msg = document.getElementById('b-msg');
+            
+            btn.addEventListener('click', () => {
+                const mat = matIn.value.trim().toLowerCase();
+                const year = yearIn.value.trim();
+                
+                const correctMat = ['bronce', 'bronze'];
+                
+                if (correctMat.includes(mat) && year == '1252') {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_21_buddha', {type:'text', data:`Material: ${matIn.value}, Año: ${year}`}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    msg.innerText = ">>> ACCESO RECHAZADO: Datos incompatibles.";
+                }
+            });
+        }
+    },
+
+"day_21_gold": {
+        tag: "economy",
+        day: 21,
+        title: "Análisis de Pan de Oro",
+        role: "kid14",
+        xp: 20,
+        location: "Templo",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> ESTADÍSTICAS DEL TEMPLO DORADO</p>
+            <p>Superficie: 200m², Grosor pan oro: 0.0001m, Densidad: 19.300 kg/m³.</p>
+            <input type="number" id="g-ans" placeholder="Kilos de oro estimados..." style="width:100%; margin-bottom:10px;">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular Realidad</button>
+            <div id="g-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
+            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
+        </div>
+    `,
+        attachEvents: () => {
+        document.getElementById('btn-calc').addEventListener('click', () => {
+            const w = document.getElementById('g-ans').value;
+            if(w) { document.getElementById('g-res').innerText = `Resultado analítico: ~386 kg`; document.getElementById('btn').classList.remove('hidden'); }
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_21_gold', {type:'number', data:document.getElementById('g-ans').value}));
+    }
+    },
+
+    "day_21_tracking": {
+        tag: "sensors",
+        day: 21,
+        title: "Rastreo de la Naturaleza",
+        role: "kid14",
+        xp: 25,
+        location: "Nikko",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> RADAR DE SEGUIMIENTO GPS: COORDENADA NATURAL</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Calibra la distancia en tiempo real hacia los senderos históricos del bosque o cascadas de Nikko.</p>
+                
+                <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; display:flex; flex-direction:column; align-items:center; position:relative; overflow:hidden;">
+                    <canvas id="radar-canvas" width="160" height="160" style="width:160px; height:160px; background:#050b07; border-radius:50%; border:2px solid #00ff99;"></canvas>
+                    <div id="trk-dist" style="font-size:2.2rem; font-weight:bold; color:#00ff99; text-shadow:0 0 10px rgba(0,255,153,0.5); margin-top:10px;">--- m</div>
+                </div>
+                
+                <button id="btn-start" class="btn-secondary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:12px; margin-bottom:10px;">📡 INICIAR ESCANER SATELITAL</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:12px;">🏁 PUNTO ALCANZADO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnStart = document.getElementById('btn-start');
+            const btnSub = document.getElementById('btn-submit');
+            const distEl = document.getElementById('trk-dist');
+            const canvas = document.getElementById('radar-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let watchId = null;
+            const TARGET = {lat: 36.7381, lon: 139.5005};
+            
+            let angle = 0;
+            let radarFrame = null;
+            
+            const drawRadar = () => {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                
+                ctx.strokeStyle = 'rgba(0, 255, 153, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(80, 80, 70, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(80, 80, 45, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(80, 80, 20, 0, Math.PI*2); ctx.stroke();
+                
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(80, 80);
+                const x = 80 + Math.cos(angle) * 78;
+                const y = 80 + Math.sin(angle) * 78;
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                angle += 0.05;
+                radarFrame = requestAnimationFrame(drawRadar);
+            };
+            
+            btnStart.addEventListener('click', () => {
+                btnStart.innerText = "ESCANEO ACTIVO...";
+                btnStart.disabled = true;
+                drawRadar();
+                
+                if ("geolocation" in navigator) {
+                    watchId = navigator.geolocation.watchPosition((pos) => {
+                        const R = 6371e3;
+                        const φ1 = pos.coords.latitude * Math.PI/180;
+                        const φ2 = TARGET.lat * Math.PI/180;
+                        const Δφ = (TARGET.lat - pos.coords.latitude) * Math.PI/180;
+                        const Δλ = (TARGET.lon - pos.coords.longitude) * Math.PI/180;
+                        
+                        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                                  Math.cos(φ1) * Math.cos(φ2) *
+                                  Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                        const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        
+                        distEl.innerText = d.toFixed(1) + " m";
+                        
+                        if (d < 15 || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            distEl.innerText = "🎯 BLANCO EN RANGO";
+                            distEl.style.color = '#ffd700';
+                            btnSub.classList.remove('hidden');
+                            btnStart.classList.add('hidden');
+                            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+                        }
+                    }, (err) => {
+                        console.error(err);
+                        distEl.innerText = "🎯 LOCALIZACIÓN MANUAL";
+                        btnSub.classList.remove('hidden');
+                        btnStart.classList.add('hidden');
+                    }, {enableHighAccuracy:true, maximumAge:0});
+                } else {
+                    distEl.innerText = "NO GPS SUPPORT";
+                    btnSub.classList.remove('hidden');
+                    btnStart.classList.add('hidden');
+                }
+            });
+            
+            btnSub.addEventListener('click', () => {
+                cancelAnimationFrame(radarFrame);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_21_tracking', {type:'game', data:'Coordenada Nikko localizada'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                cancelAnimationFrame(radarFrame);
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+            };
+        }
+    },
+
+    "day_21_defense": {
+        tag: "economy",
+        day: 21,
+        title: "Defensa del Shogunato",
+        role: "kid14",
+        xp: 15,
+        location: "Templo/Castillo",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> MÓDULO ESTRATÉGICO MILITAR: CASTILLO DE ODAWARA / NIKKO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Analiza la topografía defensiva (fosos de agua, colinas escarpadas, murallas en zigzag) y escribe por qué era difícil de invadir.</p>
+                
+                <div style="background:#111; padding:10px; border:1px dashed #00ff99; border-radius:5px; font-size:0.75rem; color:#888; margin-bottom:15px;">
+                    🛡️ PARÁMETROS GEOPOLÍTICOS: Altitud defensiva, campos de tiro, cuellos de botella tácticos.
+                </div>
+                
+                <textarea id="d-ans" placeholder=">>> Redacta tu análisis táctico del perímetro..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-defense" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 ENVIAR ANÁLISIS DE BALUARTE</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-defense');
+            const input = document.getElementById('d-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 15) {
+                    showAlert('Análisis corto', 'Proporciona al menos 2 argumentos tácticos sobre la defensa militar del sitio.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_21_defense', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_21_silence": {
+        tag: "audio",
+        day: 21,
+        title: "La Paz de la Montaña",
+        role: "both",
+        xp: 20,
+        location: "Templo/Tumba",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🌸 Meditación Zen Colectiva 🌸</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Frente a la sagrada tumba del Shogun, guardad silencio absoluto en familia durante 30 segundos para conectar con la paz del bosque.</p>
+                
+                <div style="display:flex; flex-direction:column; align-items:center; margin:20px 0;">
+                    <div id="lotus-pulse" style="font-size:4.5rem; transition: transform 1s ease-in-out; display:inline-block;">🪷</div>
+                    <div id="si-timer" style="font-size:3rem; font-weight:bold; color:#01579b; margin-top:10px; font-family:monospace;">30s</div>
+                </div>
+                
+                <button id="btn-start" class="btn-primary" style="width:100%; border-radius:25px; background:#0288d1; border-color:#0288d1; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🧘 INICIAR MINUTOS DE PAZ</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px; margin-top:10px;">📨 Sellar Acto de Silencio</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnStart = document.getElementById('btn-start');
+            const btnSub = document.getElementById('btn-submit');
+            const timer = document.getElementById('si-timer');
+            const lotus = document.getElementById('lotus-pulse');
+            
+            let t = 30;
+            let int = null;
+            
+            const startMeditation = () => {
+                btnStart.classList.add('hidden');
+                
+                let grow = true;
+                const lotusInt = setInterval(() => {
+                    lotus.style.transform = grow ? 'scale(1.2)' : 'scale(1)';
+                    grow = !grow;
+                }, 1500);
+                
+                int = setInterval(() => {
+                    t--;
+                    timer.innerText = t + 's';
+                    if (t <= 0) {
+                        clearInterval(int);
+                        clearInterval(lotusInt);
+                        timer.innerText = '✨ Silencio Completado';
+                        timer.style.color = '#2e7d32';
+                        btnSub.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                    }
+                }, 1000);
+            };
+            
+            btnStart.addEventListener('click', startMeditation);
+            btnSub.addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio de 30s completado'}, role, true));
+            
+            window._missionCleanup = () => {
+                clearInterval(int);
+            };
+        }
+    },
+
+
+};

@@ -1,0 +1,505 @@
+// MISIONES DEL DIA 18
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_18 = {
+"day_18_shibuya": {
+        tag: "economy",
+        day: 18,
+        title: "La Marea Humana",
+        role: "kid9",
+        xp: 20,
+        location: "Shibuya",
+        render: () => `
+        <p class="mission-desc">Cuenta a todas las personas que lleven gafas de sol en un solo cruce en verde (60s).</p>
+        <div style="font-size:3rem; text-align:center; font-weight:bold;" id="s-count">0</div>
+        <div style="font-size:1.5rem; text-align:center; color:red;" id="s-timer">60s</div>
+        <button id="btn-plus" class="btn-secondary" style="width:100%; height:80px; font-size:3rem; margin:10px 0;">+</button>
+        <button id="btn-start" class="btn-primary" style="width:100%;">Comenzar Semáforo</button>
+        <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar recuento</button>
+    `,
+        attachEvents: () => {
+        let c=0, t=60, int=null, active=false;
+        const count = document.getElementById('s-count'); const timer = document.getElementById('s-timer');
+        document.getElementById('btn-plus').addEventListener('click', () => { if(active) { c++; count.innerText = c; } });
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            active=true; e.target.classList.add('hidden');
+            int = setInterval(()=>{ t--; timer.innerText=t+'s'; if(t<=0) { active=false; clearInterval(int); document.getElementById('btn').classList.remove('hidden'); count.innerText=`Final: ${c}`; } }, 1000);
+        });
+        document.getElementById('btn').addEventListener('click', () => submitMission('day_18_shibuya', {type:'number', data:c}));
+        window._missionCleanup = () => clearInterval(int);
+    }
+    },
+
+"day_18_hachiko": {
+        tag: "photo", day: 18, title: "Guardián Hachiko", role: "kid9", xp: 15, location: "Shibuya",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🐕 Hachiko esperó a su dueño durante 9 AÑOS en esta estación. Es el perro más fiel de la historia de Japón. Hazte una foto con su estatua y demuéstrale que alguien sigue viniendo a verle.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#cd7f32,#daa520,#f7c948); border-radius:15px;">
+            <p style="font-size:3rem;">🐕💛🌸</p>
+            <p style="color:#5a3e1b; font-weight:bold;">9 años esperando... El perro más fiel</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto con Hachiko</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_18_hachiko', currentUser, false); }
+    },
+
+    "day_18_ema": {
+        tag: "writing",
+        day: 18,
+        title: "Mensaje del Emperador",
+        role: "kid9",
+        xp: 15,
+        location: "Meiji Jingu",
+        render: () => `
+            <div style="text-align:center; padding:18px; background:linear-gradient(135deg, #ffecb3 0%, #ffe082 100%); border-radius:15px; border:4px solid #b57c1e; color:#5d4037; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15); position:relative;">
+                <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:25px; height:25px; border-radius:50%; background:#b57c1e; display:flex; justify-content:center; align-items:center; color:#fff; font-size:0.7rem;">🏮</div>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-top:10px; margin-bottom:5px;">⛩️ Vuestro Deseo en la Ema ⛩️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">En Meiji Jingu, la gente cuelga tablillas de madera (ema) con deseos. Escribe un deseo sincero para toda vuestra familia.</p>
+                
+                <div style="background:#fffcf4; border:2px dashed #b57c1e; border-radius:10px; padding:15px; margin-bottom:15px;">
+                    <p style="font-size:2.5rem; margin:5px 0;">📜🖋️✨</p>
+                    <textarea id="e-ans" placeholder="Deseo familiar..." style="width:100%; height:90px; border:none; background:transparent; font-family:'Quicksand', sans-serif; font-size:1.1rem; text-align:center; color:#5d4037; outline:none; resize:none; box-sizing:border-box;"></textarea>
+                </div>
+                
+                <button id="btn-ema" class="btn-primary" style="width:100%; border-radius:25px; background:#b57c1e; border-color:#b57c1e; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🏮 COLGAR EMA DE DESEO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-ema');
+            const input = document.getElementById('e-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 8) {
+                    showAlert('Deseo muy corto', 'Escribe un deseo un poco más largo y especial para tu familia.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_18_ema', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_18_crepe": {
+        tag: "writing",
+        day: 18,
+        title: "Crepe de Harajuku",
+        role: "kid9",
+        xp: 15,
+        location: "Harajuku",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #ec407a; color:#880e4f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🍓 Diseñador de Crepes de Harajuku 🍓</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#c2185b;">Elige tus ingredientes favoritos para montar un crepe gigante digital y cuéntanos si te ha gustado el real.</p>
+                
+                <div style="background:#fff; border-radius:12px; padding:10px; border:2px dashed #ec407a; margin-bottom:15px;">
+                    <div id="crepe-visual" style="font-size:3.5rem; margin:10px 0; transition: transform 0.3s;">🥞</div>
+                    <div id="ingredients-list" style="font-size:0.9rem; font-weight:bold; color:#ec407a; min-height:24px; margin-bottom:10px;">Crepe vacío</div>
+                    
+                    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:15px;">
+                        <button class="btn-ing" data-emoji="🍦" data-name="Nata Dulce" style="background:#fce4ec; border:1px solid #ec407a; border-radius:15px; padding:5px 10px; font-size:0.85rem; cursor:pointer; font-family:'Quicksand', sans-serif;">🍦 + Nata</button>
+                        <button class="btn-ing" data-emoji="🍓" data-name="Fresas Frescas" style="background:#fce4ec; border:1px solid #ec407a; border-radius:15px; padding:5px 10px; font-size:0.85rem; cursor:pointer; font-family:'Quicksand', sans-serif;">🍓 + Fresas</button>
+                        <button class="btn-ing" data-emoji="🍨" data-name="Helado de Vainilla" style="background:#fce4ec; border:1px solid #ec407a; border-radius:15px; padding:5px 10px; font-size:0.85rem; cursor:pointer; font-family:'Quicksand', sans-serif;">🍨 + Helado</button>
+                        <button class="btn-ing" data-emoji="🍫" data-name="Sirope Chocolate" style="background:#fce4ec; border:1px solid #ec407a; border-radius:15px; padding:5px 10px; font-size:0.85rem; cursor:pointer; font-family:'Quicksand', sans-serif;">🍫 + Sirope</button>
+                    </div>
+                </div>
+                
+                <textarea id="cr-ans" placeholder="¿Cómo estaba tu crepe real? Describe tu experiencia..." style="width:100%; height:70px; border:2px solid #f8bbd0; border-radius:10px; padding:10px; font-family:inherit; font-size:0.95rem; box-sizing:border-box; margin-bottom:15px;"></textarea>
+                
+                <button id="btn-crepe" class="btn-primary" style="width:100%; border-radius:25px; background:#ec407a; border-color:#ec407a; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🍰 ENVIAR CREPE Y OPINIÓN</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-crepe');
+            const reviewInput = document.getElementById('cr-ans');
+            const visual = document.getElementById('crepe-visual');
+            const ingList = document.getElementById('ingredients-list');
+            
+            let selected = [];
+            
+            document.querySelectorAll('.btn-ing').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const name = button.dataset.name;
+                    const emoji = button.dataset.emoji;
+                    
+                    if (selected.includes(name)) {
+                        selected = selected.filter(x => x !== name);
+                        button.style.background = '#fce4ec';
+                    } else {
+                        selected.push(name);
+                        button.style.background = '#f8bbd0';
+                    }
+                    
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (selected.length === 0) {
+                        ingList.innerText = 'Crepe vacío';
+                        visual.innerText = '🥞';
+                    } else {
+                        ingList.innerText = selected.join(' + ');
+                        const emojis = selected.map(n => {
+                            if (n === 'Nata Dulce') return '🍦';
+                            if (n === 'Fresas Frescas') return '🍓';
+                            if (n === 'Helado de Vainilla') return '🍨';
+                            return '🍫';
+                        }).join('');
+                        visual.innerText = '🥞' + emojis;
+                    }
+                    
+                    visual.style.transform = 'scale(1.2)';
+                    setTimeout(() => visual.style.transform = 'scale(1)', 150);
+                });
+            });
+            
+            btn.addEventListener('click', () => {
+                const review = reviewInput.value.trim();
+                if (selected.length === 0) {
+                    showAlert('Crepe vacío', 'Elige al menos un ingrediente para tu crepe.');
+                    return;
+                }
+                if (review.length < 8) {
+                    showAlert('Reseña requerida', 'Describe brevemente qué tal estaba el crepe real.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_18_crepe', {type:'text', data: `Ingredientes: ${selected.join(', ')} | Reseña: ${review}`}, role);
+            });
+        }
+    },
+
+    "day_18_radio": {
+        tag: "expert",
+        day: 18,
+        title: "Intercepción de Radio",
+        role: "kid14",
+        xp: 25,
+        location: "Harajuku",
+        render: () => `
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CONSOLA DE INTERCEPCIÓN RADIOFÓNICA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Escucha la modulación vocal robótica e ingresa la palabra secreta japonesa transcrita en rōmaji.</p>
+                
+                <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; display:flex; align-items:center; justify-content:space-around;">
+                    <button id="btn-play" class="btn-secondary" style="border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:10px 15px;">🔊 ESCUCHAR SEÑAL</button>
+                    <div style="display:flex; gap:3px; height:30px; align-items:flex-end;">
+                        <div class="audio-bar" style="width:4px; height:10px; background:#00ff99;"></div>
+                        <div class="audio-bar" style="width:4px; height:22px; background:#00ff99;"></div>
+                        <div class="audio-bar" style="width:4px; height:15px; background:#00ff99;"></div>
+                        <div class="audio-bar" style="width:4px; height:28px; background:#00ff99;"></div>
+                        <div class="audio-bar" style="width:4px; height:8px; background:#00ff99;"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="color:#00ff99; font-size:0.75rem; display:block; margin-bottom:5px;">PALABRA TRANSCRITA (RŌMAJI):</label>
+                    <input type="text" id="ra-ans" placeholder="Escribe la palabra..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <div id="radio-attempts" style="color:#ffb300; font-size:0.8rem; margin-bottom:15px; text-align:center;">Intentos restantes: 3</div>
+                
+                <button id="btn-decrypt" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">🔓 DESENCRIPTAR FRECUENCIA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const words = ['sushi', 'samurai', 'kawaii', 'fuji', 'ramen'];
+            const target = words[Math.floor(Math.random() * words.length)];
+            let lives = 3;
+            
+            const btnPlay = document.getElementById('btn-play');
+            const btnDecrypt = document.getElementById('btn-decrypt');
+            const input = document.getElementById('ra-ans');
+            const attBox = document.getElementById('radio-attempts');
+            const bars = document.querySelectorAll('.audio-bar');
+            
+            let barInt = null;
+            const animateBars = () => {
+                barInt = setInterval(() => {
+                    bars.forEach(b => {
+                        const h = Math.floor(Math.random() * 25) + 5;
+                        b.style.height = h + 'px';
+                    });
+                }, 100);
+            };
+            
+            btnPlay.addEventListener('click', () => {
+                if (lives <= 0) return;
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                animateBars();
+                setTimeout(() => {
+                    clearInterval(barInt);
+                    bars.forEach(b => b.style.height = '10px');
+                }, 1500);
+                
+                const u = new SpeechSynthesisUtterance(target);
+                u.lang = 'ja-JP';
+                u.rate = 0.7;
+                window.speechSynthesis.speak(u);
+            });
+            
+            btnDecrypt.addEventListener('click', () => {
+                const val = input.value.toLowerCase().trim();
+                if (val === target) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_18_radio', {type:'game', data:`Interceptado: ${target}`}, role);
+                } else {
+                    lives--;
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    if (lives <= 0) {
+                        attBox.innerText = "SISTEMA BLOQUEADO. Misión fallida. Reinicia.";
+                        btnDecrypt.disabled = true;
+                    } else {
+                        attBox.innerText = `Intentos restantes: ${lives}`;
+                        showAlert('Error', 'Modulación vocal no coincide.');
+                    }
+                }
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(barInt);
+            };
+        }
+    },
+
+    "day_18_trend": {
+        tag: "photo",
+        day: 18,
+        title: "Cazatendencias",
+        role: "kid14",
+        xp: 20,
+        location: "Harajuku",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> ANÁLISIS DE MODA URBANA: HARAJUKU TREND</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Captura a la persona con el outfit más alternativo y atrevido que veas en la calle Takeshita y analiza su estilo.</p>
+                
+                <textarea id="tr-ans" placeholder=">>> Describe el look (colores, prendas, peinado, accesorios)..." style="width:100%; height:80px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">📸 CAPTURAR LOOK + TRANSMITIR</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            const descInput = document.getElementById('tr-ans');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const desc = descInput.value.trim();
+                if (desc.length < 10) {
+                    showAlert('Descripción requerida', 'Introduce un análisis de la tendencia de moda antes de subir la imagen.');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                btn.innerText = '⏳ Transmitiendo archivo visual...';
+                btn.disabled = true;
+                
+                try {
+                    const compressed = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_18_trend', {type:'mixed', data:`Desc: ${desc} | Foto: ${photoId}`}, role);
+                } catch(err) {
+                    console.error(err);
+                    btn.innerText = '📸 CAPTURAR LOOK + TRANSMITIR';
+                    btn.disabled = false;
+                    showAlert('Error', 'Fallo en la transmisión de datos.');
+                }
+            });
+        }
+    },
+
+    "day_18_flow": {
+        tag: "economy",
+        day: 18,
+        title: "Flujo del Cruce",
+        role: "kid14",
+        xp: 15,
+        location: "Shibuya",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> MODELADOR DE TRÁFICO PEATONAL: SHIBUYA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima el flujo total de personas que cruzan la intersección en una hora completa en base al promedio por ciclo verde.</p>
+                
+                <div style="margin:15px 0; padding:15px; background:rgba(0,255,153,0.03); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
+                    <span style="font-size:0.8rem; color:#aaa;">CRUCES POR VERDE ESTIMADOS:</span>
+                    <div id="flow-disp" style="font-size:2.2rem; font-weight:bold; color:#00ff99; margin:10px 0;">3.000 Pers.</div>
+                    <input type="range" id="flow-slider" min="500" max="5000" step="100" value="3000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                    <div id="flow-calc" style="font-size:0.85rem; color:#ffb300; margin-top:5px;">Est. por hora (~24 verdes/h): 72.000 pers/h</div>
+                </div>
+                
+                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 REGISTRAR AFORO ESTIMADO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('flow-slider');
+            const disp = document.getElementById('flow-disp');
+            const calc = document.getElementById('flow-calc');
+            const btn = document.getElementById('btn-flow');
+            
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                disp.innerText = val.toLocaleString('es-ES') + ' Pers.';
+                const hourly = val * 24;
+                calc.innerText = `Est. por hora (~24 verdes/h): ${hourly.toLocaleString('es-ES')} pers/h`;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(slider.value);
+                const hourly = val * 24;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_18_flow', {type:'number', data: hourly}, role);
+            });
+        }
+    },
+
+    "day_18_silence": {
+        tag: "economy",
+        day: 18,
+        title: "Silencio en la Ciudad",
+        role: "kid14",
+        xp: 15,
+        location: "Meiji Jingu",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> DIAGNÓSTICO ACÚSTICO: BOSQUE DE MEIJI JINGU</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce por qué al adentrarte en el santuario el ruido ensordecedor de Shibuya desaparece por completo (Pista: analiza la densidad de su vegetación).</p>
+                
+                <textarea id="s-ans" placeholder=">>> Escribe tu deducción física/acústica..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-silence" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 REGISTRAR REPORTE ACÚSTICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-silence');
+            const input = document.getElementById('s-ans');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim();
+                if (val.length < 15) {
+                    showAlert('Análisis incompleto', 'Explica de forma más amplia cómo influyen los árboles en detener las ondas sonoras.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_18_silence', {type:'text', data: val}, role);
+            });
+        }
+    },
+
+    "day_18_crossing": {
+        tag: "video",
+        day: 18,
+        title: "Cruzando Shibuya",
+        role: "both",
+        xp: 20,
+        location: "Shibuya",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #cfd8dc 100%); border-radius:15px; border:3px solid #78909c; color:#37474f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🚶 Marea Humana en Shibuya 🚶</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#455a64;">Grabad un vídeo corto (15s) de la familia cruzando el mítico cruce diagonal de Shibuya rodeados por cientos de personas.</p>
+                
+                <div style="position:relative; background:#1a1a24; border-radius:12px; overflow:hidden; border:2px solid #78909c; margin-bottom:15px; min-height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                    <video id="v-cross" autoplay playsinline muted style="width:100%; display:none; border-radius:10px; object-fit:cover;"></video>
+                    <div id="cross-light" style="width:50px; height:50px; border-radius:50%; background:#e53935; display:flex; justify-content:center; align-items:center; font-size:1.5rem; color:#fff; border:3px solid #fff;">🛑</div>
+                    <div id="cross-timer" style="position:absolute; right:15px; bottom:15px; color:#cfd8dc; font-family:monospace; font-weight:bold; font-size:1.1rem; background:rgba(0,0,0,0.6); padding:3px 8px; border-radius:5px;">15.0s</div>
+                </div>
+                
+                <button id="btn-rec" class="btn-primary" style="width:100%; border-radius:25px; background:#78909c; border-color:#78909c; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🎬 GRABAR CRUCE DIAGONAL (15s)</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px; padding:12px;">📨 Enviar Vídeo al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec');
+            const vid = document.getElementById('v-cross');
+            const btnSubmit = document.getElementById('btn-submit');
+            const light = document.getElementById('cross-light');
+            const timerEl = document.getElementById('cross-timer');
+            
+            let mr = null;
+            let stream = null;
+            let blobId = null;
+            let timeLeft = 15.0;
+            let interval = null;
+            
+            btnRec.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:true});
+                    vid.srcObject = stream;
+                    vid.style.display = 'block';
+                    light.style.background = '#4caf50';
+                    light.innerText = '🚶';
+                    vid.play();
+                    
+                    mr = new MediaRecorder(stream);
+                    let chunks = [];
+                    mr.ondataavailable = e => chunks.push(e.data);
+                    
+                    mr.onstop = () => {
+                        vid.srcObject = null;
+                        const blob = new Blob(chunks, {'type':'video/mp4'});
+                        vid.src = URL.createObjectURL(blob);
+                        vid.controls = true;
+                        vid.muted = false;
+                        light.style.background = '#888';
+                        light.innerText = '💤';
+                        
+                        btnRec.classList.add('hidden');
+                        btnSubmit.classList.remove('hidden');
+                        
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { blobId = r.result; };
+                        
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    
+                    mr.start();
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    timeLeft = 15.0;
+                    timerEl.innerText = '15.0s';
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            if (mr.state === 'recording') mr.stop();
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                    
+                } catch(e) {
+                    console.error(e);
+                    showAlert("Error", "Cámara o micrófono no disponibles.");
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (blobId) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_18_crossing', {type:'video', data: 'Video cruce Shibuya'}, role, true);
+                }
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+            };
+        }
+    },
+
+
+};

@@ -1,0 +1,1062 @@
+// MINIJUEGOS DEL DIA 9
+// Métodos extraídos de games.js para NotebookLM
+
+    // DAY 9 - LAURA (9): LIMPIA EL REFLEJO DE ORO
+    // ==========================================================
+    setupScratch() {
+        const rows = 12;
+        const cols = 16;
+        const grid = [];
+        for (let r = 0; r < rows; r++) {
+            grid[r] = new Array(cols).fill(false);
+        }
+
+        this.gameData = {
+            grid,
+            rows,
+            cols,
+            cellW: 800 / cols,
+            cellH: 300 / rows,
+            totalPondCells: rows * cols,
+            clearedCount: 0,
+            drawing: false,
+            score: 0,
+            sparkles: []
+        };
+        this.score = 0;
+    },
+
+    updateScratch(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        for (let i = gd.sparkles.length - 1; i >= 0; i--) {
+            const s = gd.sparkles[i];
+            s.y -= s.vy * dt;
+            s.x += s.vx * dt;
+            s.alpha -= dt * 0.8;
+            if (s.alpha <= 0) gd.sparkles.splice(i, 1);
+        }
+
+        if (gd.drawing && this.mouse.isDown) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+
+            if (my >= 280) {
+                const py = my - 300;
+                const brushRadius = 55;
+
+                for (let r = 0; r < gd.rows; r++) {
+                    for (let c = 0; c < gd.cols; c++) {
+                        const cx = (c + 0.5) * gd.cellW;
+                        const cy = (r + 0.5) * gd.cellH;
+                        if (Math.hypot(mx - cx, py - cy) < brushRadius) {
+                            if (!gd.grid[r][c]) {
+                                gd.grid[r][c] = true;
+                                gd.clearedCount++;
+                                
+                                if (Math.random() < 0.4) {
+                                    gd.sparkles.push({
+                                        x: cx,
+                                        y: cy + 300,
+                                        vx: (Math.random() - 0.5) * 80,
+                                        vy: 50 + Math.random() * 100,
+                                        alpha: 1.0,
+                                        size: 4 + Math.random() * 6
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                gd.score = Math.min(100, Math.floor((gd.clearedCount / gd.totalPondCells) * 100));
+                this.score = gd.score;
+                document.getElementById('minigame-score').innerText = `Reflejo Limpio: ${this.score}%`;
+
+                if (this.score >= this.goal) {
+                    if (window.playProceduralSound) window.playProceduralSound('win');
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                }
+            }
+        }
+    },
+
+    drawScratch() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, 300);
+        skyGrad.addColorStop(0, '#80deea');
+        skyGrad.addColorStop(1, '#e0f7fa');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, 800, 300);
+
+        ctx.fillStyle = '#4db6ac';
+        ctx.beginPath();
+        ctx.moveTo(0, 300);
+        ctx.lineTo(150, 180);
+        ctx.lineTo(380, 240);
+        ctx.lineTo(550, 190);
+        ctx.lineTo(800, 300);
+        ctx.closePath();
+        ctx.fill();
+
+        const drawPagoda = (cx, cy, scale, isReflection = false) => {
+            ctx.save();
+            ctx.translate(cx, cy);
+            if (isReflection) {
+                ctx.scale(1, -1);
+                ctx.globalAlpha = 0.65;
+            }
+
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(-60 * scale, -10 * scale, 120 * scale, 10 * scale);
+
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(-50 * scale, -40 * scale, 100 * scale, 30 * scale);
+            ctx.fillStyle = '#5d4037';
+            ctx.fillRect(-52 * scale, -44 * scale, 104 * scale, 4 * scale);
+
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(-40 * scale, -75 * scale, 80 * scale, 31 * scale);
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(-30 * scale, -70 * scale, 12 * scale, 25 * scale);
+            ctx.fillRect(18 * scale, -70 * scale, 12 * scale, 25 * scale);
+            ctx.fillStyle = '#d4af37';
+            ctx.beginPath();
+            ctx.moveTo(-48 * scale, -75 * scale);
+            ctx.lineTo(48 * scale, -75 * scale);
+            ctx.lineTo(60 * scale, -68 * scale);
+            ctx.lineTo(-60 * scale, -68 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(-25 * scale, -110 * scale, 50 * scale, 35 * scale);
+            ctx.beginPath();
+            ctx.moveTo(-32 * scale, -110 * scale);
+            ctx.lineTo(32 * scale, -110 * scale);
+            ctx.lineTo(42 * scale, -102 * scale);
+            ctx.lineTo(-42 * scale, -102 * scale);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(-3 * scale, -135 * scale, 6 * scale, 25 * scale);
+            ctx.beginPath();
+            ctx.arc(0, -135 * scale, 8 * scale, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.restore();
+        };
+
+        drawPagoda(400, 300, 1.6, false);
+
+        const pondGrad = ctx.createLinearGradient(0, 300, 0, 600);
+        pondGrad.addColorStop(0, '#003366');
+        pondGrad.addColorStop(1, '#001122');
+        ctx.fillStyle = pondGrad;
+        ctx.fillRect(0, 300, 800, 300);
+
+        ctx.save();
+        const ripple = Math.sin(gd.clearedCount * 0.1) * 3;
+        drawPagoda(400 + ripple, 300, 1.6, true);
+        ctx.restore();
+
+        for (let r = 0; r < gd.rows; r++) {
+            for (let c = 0; c < gd.cols; c++) {
+                if (!gd.grid[r][c]) {
+                    const x = c * gd.cellW;
+                    const y = 300 + r * gd.cellH;
+                    
+                    ctx.fillStyle = 'rgba(74, 85, 76, 0.92)';
+                    ctx.fillRect(x, y, gd.cellW, gd.cellH);
+                    
+                    ctx.fillStyle = 'rgba(40, 50, 42, 0.4)';
+                    ctx.beginPath();
+                    ctx.arc(x + gd.cellW/2, y + gd.cellH/2, gd.cellW*0.6, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 1;
+        for (let y = 320; y < 600; y += 30) {
+            const shift = Math.sin(y + gd.clearedCount*0.05) * 15;
+            ctx.beginPath();
+            ctx.moveTo(40 + shift, y);
+            ctx.lineTo(760 + shift, y);
+            ctx.stroke();
+        }
+
+        gd.sparkles.forEach(s => {
+            ctx.save();
+            ctx.globalAlpha = s.alpha;
+            ctx.fillStyle = '#ffd700';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffea00';
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`⛩️ Reflejo de Oro: Limpia las algas del templo`, 25, 29);
+        ctx.fillText(`Limpio: ${this.score}%`, 380, 29);
+        ctx.fillText(`Meta: ${this.goal}%`, 650, 29);
+    },
+
+    inputScratchPress(x, y) {
+        const gd = this.gameData;
+        if (gd) gd.drawing = true;
+    },
+
+    inputScratchRelease(x, y) {
+        const gd = this.gameData;
+        if (gd) gd.drawing = false;
+    },
+
+    // ==========================================================
+    // DAY 9 - IVAN (14): LABERINTO DE TORII
+    // ==========================================================
+    setupTorii() {
+        const tiles = [
+            { type: 1, angle: 0 },   { type: 0, angle: 90 },  { type: 1, angle: 0 },
+            { type: 0, angle: 90 },  { type: 1, angle: 180 }, { type: 0, angle: 0 },
+            { type: 1, angle: 270 }, { type: 1, angle: 0 },   { type: 1, angle: 90 }
+        ];
+
+        tiles.forEach(tile => {
+            tile.angle = [0, 90, 180, 270][Math.floor(Math.random() * 4)];
+        });
+
+        this.gameData = {
+            tiles,
+            gridX: 250,
+            gridY: 150,
+            tileSize: 100,
+            energyFlow: false,
+            score: 0
+        };
+        this.score = 0;
+        this.checkToriiMazeWin();
+    },
+
+    checkToriiMazeWin() {
+        const gd = this.gameData;
+        let matches = 0;
+        
+        gd.tiles.forEach((t, i) => {
+            const r = t.angle % 360;
+            if (i === 0 && r === 90) matches++;
+            if (i === 1 && (r === 0 || r === 180)) matches++;
+            if (i === 2 && r === 270) matches++;
+            if (i === 3 && (r === 90 || r === 270)) matches++;
+            if (i === 4 && r === 90) matches++;
+            if (i === 5 && (r === 0 || r === 180)) matches++;
+            if (i === 6 && r === 0) matches++;
+            if (i === 7 && r === 270) matches++;
+            if (i === 8 && r === 180) matches++;
+        });
+
+        if (matches >= 6) {
+            gd.energyFlow = true;
+            this.score = 1;
+            if (window.playProceduralSound) window.playProceduralSound('win');
+            if (window.launchConfetti) window.launchConfetti();
+            setTimeout(() => this.win(), 1200);
+        } else {
+            gd.energyFlow = false;
+            this.score = 0;
+        }
+    },
+
+    updateTorii(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+        document.getElementById('minigame-score').innerText = gd.energyFlow ? `¡COMPLETO!` : `Red inestable`;
+    },
+
+    drawTorii() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#0a050f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ff3d00';
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3d00';
+        
+        ctx.fillRect(gd.gridX + gd.tileSize + 20, gd.gridY + gd.tileSize*3 + 10, 60, 20);
+        ctx.fillStyle = gd.energyFlow ? '#ffd700' : '#888';
+        ctx.shadowColor = gd.energyFlow ? '#ffd700' : 'transparent';
+        ctx.font = '24px sans-serif';
+        ctx.fillText("⛩️", gd.gridX + gd.tileSize + 35, gd.gridY + gd.tileSize*3 + 40);
+
+        ctx.strokeStyle = gd.energyFlow ? '#ffd700' : '#ff3d00';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(gd.gridX - 10, gd.gridY - 10, gd.tileSize*3 + 20, gd.tileSize*3 + 20);
+
+        gd.tiles.forEach((t, i) => {
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            const x = gd.gridX + col * gd.tileSize;
+            const y = gd.gridY + row * gd.tileSize;
+
+            ctx.save();
+            ctx.translate(x + gd.tileSize/2, y + gd.tileSize/2);
+            ctx.rotate(t.angle * Math.PI / 180);
+
+            ctx.fillStyle = '#1e1b26';
+            ctx.fillRect(-gd.tileSize/2 + 2, -gd.tileSize/2 + 2, gd.tileSize - 4, gd.tileSize - 4);
+            
+            ctx.strokeStyle = '#322d3e';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(-gd.tileSize/2 + 6, -gd.tileSize/2 + 6, gd.tileSize - 12, gd.tileSize - 12);
+
+            ctx.strokeStyle = gd.energyFlow ? '#ff7b54' : '#5c382d';
+            ctx.shadowBlur = gd.energyFlow ? 10 : 0;
+            ctx.shadowColor = '#ff7b54';
+            ctx.lineWidth = 12;
+            ctx.lineCap = 'round';
+
+            if (t.type === 0) {
+                ctx.beginPath();
+                ctx.moveTo(0, -gd.tileSize/2);
+                ctx.lineTo(0, gd.tileSize/2);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.arc(gd.tileSize/2, gd.tileSize/2, gd.tileSize/2, Math.PI, Math.PI * 1.5);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#ff3d00';
+            ctx.font = '12px sans-serif';
+            ctx.fillText("⛩️", -6, 4);
+
+            ctx.restore();
+        });
+
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowBlur = gd.energyFlow ? 20 : 0;
+        ctx.shadowColor = '#ffd700';
+        ctx.font = '36px sans-serif';
+        ctx.fillText("🔮", gd.gridX + gd.tileSize + 30, gd.gridY - 30);
+
+        ctx.fillStyle = gd.energyFlow ? '#00ff99' : '#ffd700';
+        ctx.font = 'bold 16px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(gd.energyFlow ? ">>> ENLACE TRASPASADO CON EXITO <<<" : ">>> ALINEE LAS PUERTAS TORII <<<", 400, 520);
+        ctx.textAlign = 'left';
+
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`⛩️ Laberinto de Torii: Fushimi Inari`, 25, 29);
+    },
+
+    inputToriiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        for (let i = 0; i < gd.tiles.length; i++) {
+            const row = Math.floor(i / 3);
+            const col = i % 3;
+            const tileX = gd.gridX + col * gd.tileSize;
+            const tileY = gd.gridY + row * gd.tileSize;
+
+            if (x >= tileX && x <= tileX + gd.tileSize && y >= tileY && y <= tileY + gd.tileSize) {
+                gd.tiles[i].angle = (gd.tiles[i].angle + 90) % 360;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(tileX + gd.tileSize/2, tileY + gd.tileSize/2, '#ff5722', 8, 0.8);
+                this.checkToriiMazeWin();
+                break;
+            }
+        }
+    },
+
+    // ==========================================================
+    // day_9_kid9_zorros: La Escalada de los Zorros
+    // ==========================================================
+    setupZorros() {
+        this.gameData = {
+            fox: { x: 400, y: 500, vy: 0, r: 18 },
+            platforms: [
+                { x: 400, y: 550, w: 100 },
+                { x: 300, y: 440, w: 90 },
+                { x: 500, y: 330, w: 90 },
+                { x: 350, y: 220, w: 90 },
+                { x: 450, y: 110, w: 90 }
+            ],
+            height: 0,
+            camY: 0
+        };
+        this.score = 0;
+    },
+    updateZorros(dt) {
+        const gd = this.gameData;
+        const fox = gd.fox;
+        fox.vy += 800 * dt;
+        fox.y += fox.vy * dt;
+        
+        if (this.mouse.isDown) {
+            const side = this.mouse.x < 400 ? -1 : 1;
+            fox.x += side * 280 * dt;
+        }
+        
+        if (fox.x < 0) fox.x = 800;
+        if (fox.x > 800) fox.x = 0;
+        
+        gd.platforms.forEach(p => {
+            if (fox.vy > 0 && 
+                fox.y + fox.r >= p.y && 
+                fox.y - fox.r <= p.y + 10 && 
+                fox.x >= p.x - p.w/2 && 
+                fox.x <= p.x + p.w/2) {
+                fox.vy = -620;
+                if (window.playProceduralSound) playProceduralSound('jump');
+            }
+        });
+        
+        if (fox.y < 300) {
+            const diff = 300 - fox.y;
+            fox.y = 300;
+            gd.height += diff;
+            this.score = Math.floor(gd.height);
+            gd.platforms.forEach(p => {
+                p.y += diff;
+            });
+        }
+        
+        gd.platforms.forEach(p => {
+            if (p.y > 620) {
+                p.y = -20;
+                p.x = 100 + Math.random() * 600;
+                p.w = 80 + Math.random() * 20;
+            }
+        });
+        
+        if (fox.y > 650) {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.screenShake = 15;
+            fox.x = 400;
+            fox.y = 450;
+            fox.vy = -500;
+        }
+        
+        if (gd.height >= 150) {
+            this.victory();
+        }
+    },
+    drawZorros() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        let grad = ctx.createLinearGradient(0, 0, 0, 600);
+        grad.addColorStop(0, '#e64a19');
+        grad.addColorStop(1, '#ffcc80');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#78909c';
+        gd.platforms.forEach(p => {
+            ctx.fillRect(p.x - p.w/2, p.y, p.w, 15);
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(gd.fox.x, gd.fox.y, gd.fox.r, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ff9800';
+        ctx.beginPath();
+        ctx.moveTo(gd.fox.x - 12, gd.fox.y - 12);
+        ctx.lineTo(gd.fox.x - 4, gd.fox.y - 25);
+        ctx.lineTo(gd.fox.x - 2, gd.fox.y - 12);
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.moveTo(gd.fox.x + 12, gd.fox.y - 12);
+        ctx.lineTo(gd.fox.x + 4, gd.fox.y - 25);
+        ctx.lineTo(gd.fox.x + 2, gd.fox.y - 12);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Altura escalada: ${this.score}m / 150m`, 400, 60);
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText("Pulsa izquierda/derecha para dirigir al Kitsune", 400, 90);
+    },
+
+    // ==========================================================
+    // day_9_kid9_altar: El Altar Secreto
+    // ==========================================================
+    setupAltar() {
+        this.gameData = {
+            altars: [
+                { x: 180, y: 350, w: 80, color: '#ff5252', lit: false, name: 'Sake (Agua)' },
+                { x: 400, y: 350, w: 80, color: '#ffd740', lit: false, name: 'Arroz (Tierra)' },
+                { x: 620, y: 350, w: 80, color: '#69f0ae', lit: false, name: 'Vela (Fuego)' }
+            ],
+            items: [
+                { x: 200, y: 500, r: 25, name: 'Sake', icon: '🍶', targetAltarIdx: 0, startX: 200, startY: 500 },
+                { x: 400, y: 500, r: 25, name: 'Arroz', icon: '🍚', targetAltarIdx: 1, startX: 400, startY: 500 },
+                { x: 600, y: 500, r: 25, name: 'Vela', icon: '🕯️', targetAltarIdx: 2, startX: 600, startY: 500 }
+            ],
+            draggingItem: null
+        };
+        this.score = 0;
+    },
+    updateAltar(dt) {
+        const gd = this.gameData;
+        if (gd.draggingItem) {
+            gd.draggingItem.x = this.mouse.x;
+            gd.draggingItem.y = this.mouse.y;
+        }
+        
+        let litCount = 0;
+        gd.altars.forEach(a => { if (a.lit) litCount++; });
+        this.score = litCount;
+        
+        if (litCount === 3) {
+            this.victory();
+        }
+    },
+    drawAltar() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#2d1500';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.altars.forEach(a => {
+            ctx.fillStyle = a.lit ? a.color : '#424242';
+            ctx.fillRect(a.x - a.w/2, a.y, a.w, 40);
+            
+            if (a.lit) {
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = a.color;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(a.x, a.y - 15, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(a.name, a.x, a.y + 60);
+        });
+        
+        gd.items.forEach(item => {
+            ctx.fillStyle = '#ffab40';
+            ctx.beginPath();
+            ctx.arc(item.x, item.y, item.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.font = '24px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.icon, item.x, item.y + 8);
+        });
+        
+        ctx.fillStyle = '#ffd180';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Ofrendas Sagradas: Ilumina los 3 Altares", 400, 80);
+    },
+    inputAltarPress(x, y) {
+        const gd = this.gameData;
+        for (let item of gd.items) {
+            if (Math.hypot(x - item.x, y - item.y) < item.r + 10) {
+                gd.draggingItem = item;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseAltar(x, y) {
+        const gd = this.gameData;
+        if (!gd.draggingItem) return;
+        
+        const item = gd.draggingItem;
+        gd.draggingItem = null;
+        
+        const targetAltar = gd.altars[item.targetAltarIdx];
+        if (Math.hypot(item.x - targetAltar.x, item.y - targetAltar.y) < 60) {
+            targetAltar.lit = true;
+            if (window.playProceduralSound) playProceduralSound('success');
+            item.x = targetAltar.x;
+            item.y = targetAltar.y - 15;
+        } else {
+            item.x = item.startX;
+            item.y = item.startY;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+
+    // ==========================================================
+    // day_9_kid14_gravity: Piedra Gravedad
+    // ==========================================================
+    setupGravity() {
+        this.gameData = {
+            stoneY: 100,
+            vy: 0,
+            falling: false,
+            targetY: 480,
+            targetH: 40,
+            hits: 0,
+            glow: 0
+        };
+        this.score = 0;
+    },
+    updateGravity(dt) {
+        const gd = this.gameData;
+        if (gd.glow > 0) gd.glow -= dt * 4;
+        
+        if (gd.falling) {
+            gd.vy += 980 * dt;
+            gd.stoneY += gd.vy * dt;
+            
+            if (gd.stoneY > 600) {
+                gd.stoneY = 100;
+                gd.vy = 0;
+                gd.falling = false;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+        
+        if (gd.hits >= 3) {
+            this.victory();
+        }
+    },
+    drawGravity() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = gd.glow > 0 ? '#00e676' : 'rgba(255, 87, 34, 0.3)';
+        ctx.fillRect(200, gd.targetY - gd.targetH/2, 400, gd.targetH);
+        ctx.strokeStyle = '#ff5722';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(200, gd.targetY - gd.targetH/2, 400, gd.targetH);
+        
+        ctx.fillStyle = '#78909c';
+        ctx.beginPath();
+        ctx.arc(400, gd.stoneY, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Impactos exitosos: ${gd.hits} / 3`, 400, 60);
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText("Pulsa para soltar la piedra, y pulsa de nuevo al cruzar la zona naranja", 400, 95);
+    },
+    inputGravityPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.falling) {
+            gd.falling = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else {
+            const dist = Math.abs(gd.stoneY - gd.targetY);
+            if (dist <= gd.targetH/2) {
+                gd.hits++;
+                this.score = gd.hits;
+                gd.glow = 1.0;
+                if (window.playProceduralSound) playProceduralSound('success');
+            } else {
+                if (window.playProceduralSound) playProceduralSound('error');
+                this.screenShake = 10;
+            }
+            gd.stoneY = 100;
+            gd.vy = 0;
+            gd.falling = false;
+        }
+    },
+
+    // ==========================================================
+    // day_9_kid14_angulo: Ángulo Imposible
+    // ==========================================================
+    setupAngulo() {
+        this.gameData = {
+            mirrorAngle: 45,
+            emitter: { x: 100, y: 300 },
+            receptor: { x: 400, y: 150 },
+            alignedTime: 0
+        };
+        this.score = 0;
+    },
+    updateAngulo(dt) {
+        const gd = this.gameData;
+        if (this.mouse.isDown) {
+            const angleRad = Math.atan2(this.mouse.y - 300, this.mouse.x - 400);
+            gd.mirrorAngle = angleRad * (180 / Math.PI);
+        }
+        
+        const targetAngle1 = -45;
+        const targetAngle2 = 135;
+        const diff1 = Math.abs(gd.mirrorAngle - targetAngle1) % 360;
+        const diff2 = Math.abs(gd.mirrorAngle - targetAngle2) % 360;
+        const minDiff = Math.min(diff1, 360 - diff1, diff2, 360 - diff2);
+        
+        if (minDiff < 5) {
+            gd.alignedTime += dt;
+            this.score = gd.alignedTime;
+            if (gd.alignedTime >= 2.0) {
+                this.victory();
+            }
+        } else {
+            gd.alignedTime = Math.max(0, gd.alignedTime - dt * 2);
+            this.score = gd.alignedTime;
+        }
+    },
+    drawAngulo() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1a237e';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(gd.emitter.x - 20, gd.emitter.y - 15, 30, 30);
+        
+        ctx.fillStyle = gd.alignedTime > 0 ? '#00e676' : '#9e9e9e';
+        ctx.beginPath();
+        ctx.arc(gd.receptor.x, gd.receptor.y, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.save();
+        ctx.translate(400, 300);
+        ctx.rotate(gd.mirrorAngle * Math.PI / 180);
+        ctx.fillStyle = '#e0f7fa';
+        ctx.strokeStyle = '#00bcd4';
+        ctx.lineWidth = 4;
+        ctx.fillRect(-60, -10, 120, 20);
+        ctx.strokeRect(-60, -10, 120, 20);
+        ctx.restore();
+        
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(gd.emitter.x, gd.emitter.y);
+        ctx.lineTo(400, 300);
+        const angleRad = gd.mirrorAngle * Math.PI / 180;
+        const rx = 400 + Math.cos(2 * angleRad) * 400;
+        const ry = 300 + Math.sin(2 * angleRad) * 400;
+        ctx.lineTo(rx, ry);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText("Guía el haz láser al receptor", 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText(`Conexión: ${Math.round((gd.alignedTime / 2) * 100)}%`, 400, 85);
+    },
+    inputAnguloPress(x, y) {},
+
+    // ==========================================================
+    // day_9_kid14_ave: La Postura del Ave Dorada
+    // ==========================================================
+    setupAve() {
+        this.gameData = {
+            balance: 0.5,
+            tiltSpeed: 0.05,
+            direction: 1,
+            successTime: 0
+        };
+        this.score = 0;
+    },
+    updateAve(dt) {
+        const gd = this.gameData;
+        gd.balance += gd.direction * gd.tiltSpeed * dt * 4;
+        
+        if (Math.random() < 0.02) {
+            gd.direction = Math.random() < 0.5 ? -1 : 1;
+            gd.tiltSpeed = 0.03 + Math.random() * 0.1;
+        }
+        
+        if (gd.balance < 0 || gd.balance > 1) {
+            if (window.playProceduralSound) playProceduralSound('damage');
+            this.screenShake = 15;
+            gd.balance = 0.5;
+            gd.successTime = Math.max(0, gd.successTime - 2);
+        }
+        
+        if (gd.balance > 0.35 && gd.balance < 0.65) {
+            gd.successTime += dt;
+            this.score = Math.floor(gd.successTime);
+            if (gd.successTime >= 10.0) {
+                this.victory();
+            }
+        }
+    },
+    drawAve() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#cfd8dc';
+        ctx.fillRect(150, 480, 500, 20);
+        
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(150 + 500 * 0.35, 480, 500 * 0.3, 20);
+        
+        ctx.fillStyle = '#ffb300';
+        ctx.beginPath();
+        ctx.arc(150 + 500 * gd.balance, 490, 16, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.save();
+        ctx.translate(400, 300);
+        const angle = (gd.balance - 0.5) * 50 * Math.PI / 180;
+        ctx.rotate(angle);
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.moveTo(0, 50);
+        ctx.lineTo(-40, 20);
+        ctx.lineTo(-80, -20);
+        ctx.lineTo(-20, -10);
+        ctx.lineTo(0, -60);
+        ctx.lineTo(20, -10);
+        ctx.lineTo(80, -20);
+        ctx.lineTo(40, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Equilibrio mantenido: ${Math.floor(gd.successTime)}s / 10s`, 400, 80);
+        ctx.font = '15px Outfit, sans-serif';
+        ctx.fillText("Pulsa en los extremos de la pantalla para compensar el peso", 400, 115);
+    },
+    inputAvePress(x, y) {
+        const gd = this.gameData;
+        if (x < 400) {
+            gd.balance = Math.max(0, gd.balance - 0.15);
+        } else {
+            gd.balance = Math.min(1, gd.balance + 0.15);
+        }
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // ==========================================================
+    // day_9_kid14_tunnel: El Túnel Infinito
+    // ==========================================================
+    setupTunnel() {
+        this.gameData = {
+            gates: [],
+            playerX: 400,
+            gatesPassed: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTunnel(dt) {
+        const gd = this.gameData;
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.15;
+        
+        gd.gates.forEach(g => {
+            g.scale += 2.2 * dt;
+        });
+        
+        gd.gates.forEach(g => {
+            if (g.scale > 5 && !g.passed) {
+                g.passed = true;
+                const inside = Math.abs(gd.playerX - g.targetX) < 90;
+                if ((g.type === 'green' && inside) || (g.type === 'red' && !inside)) {
+                    gd.gatesPassed++;
+                    this.score = gd.gatesPassed;
+                    if (window.playProceduralSound) playProceduralSound('success');
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    this.screenShake = 18;
+                    gd.gatesPassed = Math.max(0, gd.gatesPassed - 2);
+                }
+            }
+        });
+        
+        gd.gates = gd.gates.filter(g => g.scale < 6.5);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.gates.push({
+                scale: 0.1,
+                targetX: 200 + Math.random() * 400,
+                type: Math.random() < 0.6 ? 'green' : 'red',
+                passed: false
+            });
+            gd.spawnTimer = 1.2;
+        }
+        
+        if (gd.gatesPassed >= 15) {
+            this.victory();
+        }
+    },
+    drawTunnel() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        gd.gates.forEach(g => {
+            ctx.save();
+            ctx.translate(400 + (g.targetX - 400) * (g.scale / 5), 300);
+            ctx.scale(g.scale, g.scale);
+            ctx.strokeStyle = g.type === 'green' ? '#00e676' : '#ff1744';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(-25, -20, 50, 40);
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#00b0ff';
+        ctx.beginPath();
+        ctx.arc(gd.playerX, 480, 16, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Portales alineados: ${gd.gatesPassed} / 15`, 400, 65);
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText("Mueve tu cursor horizontalmente para cruzar los arcos verdes y esquivar los rojos", 400, 95);
+    },
+    inputTunnelPress(x, y) {},
+
+    // ==========================================================
+    // day_9_fam_portal: La Puerta a Otro Mundo
+    // ==========================================================
+    setupFamPortal() {
+        this.gameData = {
+            buttons: [
+                { x: 220, y: 220, r: 35, color: '#f44336', name: 'Fuego', active: 0 },
+                { x: 580, y: 220, r: 35, color: '#2196f3', name: 'Agua', active: 0 },
+                { x: 220, y: 440, r: 35, color: '#4caf50', name: 'Tierra', active: 0 },
+                { x: 580, y: 440, r: 35, color: '#ffeb3b', name: 'Aire', active: 0 }
+            ],
+            sequence: [],
+            playerSequence: [],
+            state: 'demo',
+            seqIndex: 0,
+            timer: 0.5,
+            round: 1
+        };
+        this.score = 0;
+        this.startFamPortalRound();
+    },
+    startFamPortalRound() {
+        const gd = this.gameData;
+        gd.sequence = [];
+        gd.playerSequence = [];
+        gd.state = 'demo';
+        gd.seqIndex = 0;
+        gd.timer = 0.5;
+        
+        const len = 2 + gd.round;
+        for (let i = 0; i < len; i++) {
+            gd.sequence.push(Math.floor(Math.random() * 4));
+        }
+    },
+    updateFamPortal(dt) {
+        const gd = this.gameData;
+        gd.buttons.forEach(b => {
+            if (b.active > 0) b.active -= dt * 4;
+        });
+        
+        if (gd.state === 'demo') {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                if (gd.seqIndex < gd.sequence.length) {
+                    const idx = gd.sequence[gd.seqIndex];
+                    gd.buttons[idx].active = 1.0;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    gd.seqIndex++;
+                    gd.timer = 0.6;
+                } else {
+                    gd.state = 'play';
+                }
+            }
+        }
+        
+        if (gd.round > 3) {
+            this.victory();
+        }
+    },
+    drawFamPortal() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        ctx.fillStyle = '#1a0633';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#ff3d00';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(300, 200, 200, 250);
+        
+        if (gd.round > 1) {
+            ctx.fillStyle = 'rgba(156, 39, 176, 0.4)';
+            ctx.beginPath();
+            ctx.arc(400, 320, 60, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        gd.buttons.forEach((b, idx) => {
+            ctx.fillStyle = b.active > 0 ? '#ffffff' : b.color;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 12px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(b.name, b.x, b.y + 55);
+        });
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Desbloqueo de Portal: Ronda ${gd.round} / 3`, 400, 70);
+    },
+    inputFamPortalPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state !== 'play') return;
+        
+        gd.buttons.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < b.r + 15) {
+                b.active = 1.0;
+                gd.playerSequence.push(idx);
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                const cur = gd.playerSequence.length - 1;
+                if (gd.playerSequence[cur] !== gd.sequence[cur]) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.screenShake = 15;
+                    gd.round = Math.max(1, gd.round - 1);
+                    this.startFamPortalRound();
+                } else if (gd.playerSequence.length === gd.sequence.length) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    gd.round++;
+                    this.score = gd.round - 1;
+                    setTimeout(() => {
+                        this.startFamPortalRound();
+                    }, 800);
+                }
+            }
+        });
+    },
+
+    // ==========================================================

@@ -1,0 +1,1286 @@
+// MINIJUEGOS DEL DIA 11
+// Métodos extraídos de games.js para NotebookLM
+
+    // DIA 11 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 1. day_11_onsen: El Código Onsen
+    setupOnsen() {
+        this.gameData = {
+            scrub: 0, temp: 35,
+            hotValve: 0.3, coldValve: 0.7,
+            timer: 8, targetTemp: 41,
+            isDraggingHot: false, isDraggingCold: false
+        };
+        this.score = 0;
+    },
+    updateOnsen(dt) {
+        const gd = this.gameData;
+        
+        // Scrub logic
+        if (this.mouse.isDown && this.mouse.y < 400 && this.mouse.x > 200 && this.mouse.x < 600) {
+            gd.scrub = Math.min(100, gd.scrub + dt * 45);
+            this.score = Math.round(gd.scrub);
+            if (Math.random() < 0.3) {
+                this.particles.push({
+                    x: this.mouse.x, y: this.mouse.y,
+                    vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                    size: 3 + Math.random() * 6, color: '#ffffff', life: 0.5, decay: 0.02
+                });
+            }
+            if (window.playProceduralSound && Math.random() < 0.1) playProceduralSound('click');
+        }
+        
+        if (this.mouse.isDown) {
+            if (gd.isDraggingHot) {
+                gd.hotValve = Math.max(0, Math.min(1, (this.mouse.x - 150) / 200));
+            } else if (gd.isDraggingCold) {
+                gd.coldValve = Math.max(0, Math.min(1, (this.mouse.x - 450) / 200));
+            }
+        }
+        
+        gd.temp = 20 + (gd.hotValve * 40) - (gd.coldValve * 15);
+        gd.temp = Math.max(10, Math.min(60, gd.temp));
+        
+        if (gd.scrub >= 100 && Math.abs(gd.temp - gd.targetTemp) <= 1.0) {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                this.victory();
+            }
+        } else {
+            gd.timer = 8;
+        }
+    },
+    drawOnsen() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(100, 150, 600, 300);
+        
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath();
+        ctx.arc(400, 250, 50, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(370, 190, 60, 20);
+        
+        if (gd.scrub < 100) {
+            ctx.fillStyle = 'rgba(121, 85, 72, ' + (1 - gd.scrub/100) + ')';
+            ctx.beginPath();
+            ctx.arc(380, 240, 8, 0, Math.PI*2);
+            ctx.arc(420, 260, 6, 0, Math.PI*2);
+            ctx.arc(395, 270, 10, 0, Math.PI*2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = 'rgba(79, 195, 247, 0.4)';
+        ctx.fillRect(100, 280, 600, 170);
+        
+        if (Math.random() < 0.15) {
+            this.particles.push({
+                x: 150 + Math.random() * 500, y: 280,
+                vx: (Math.random() - 0.5) * 20, vy: -30 - Math.random() * 20,
+                size: 8 + Math.random() * 12, color: 'rgba(255,255,255,0.2)', life: 0.8, decay: 0.015
+            });
+        }
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(200, 50, 400, 20);
+        
+        ctx.fillStyle = '#00ff99';
+        const xGreenStart = 200 + 400 * (40 - 10)/50;
+        const xGreenWidth = 400 * (2 / 50);
+        ctx.fillRect(xGreenStart, 50, xGreenWidth, 20);
+        
+        const xInd = 200 + 400 * (gd.temp - 10)/50;
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(xInd - 3, 45, 6, 30);
+        
+        ctx.fillStyle = '#ffebee';
+        ctx.fillRect(150, 500, 200, 10);
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(150 + gd.hotValve * 200, 505, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#e3f2fd';
+        ctx.fillRect(450, 500, 200, 10);
+        ctx.fillStyle = '#2979ff';
+        ctx.beginPath();
+        ctx.arc(450 + gd.coldValve * 200, 505, 15, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Temp: ' + gd.temp.toFixed(1) + '°C', 400, 35);
+        ctx.fillText('♨️ Válvula Caliente', 250, 545);
+        ctx.fillText('❄️ Válvula Fría', 550, 545);
+        
+        if (gd.scrub < 100) {
+            ctx.fillText('¡Frota la pantalla para lavar a Laura! ' + Math.round(gd.scrub) + '%', 400, 120);
+        } else if (Math.abs(gd.temp - gd.targetTemp) > 1.0) {
+            ctx.fillStyle = '#ffeb3b';
+            ctx.fillText('¡Limpia! Ahora regula a 41°C usando las válvulas.', 400, 120);
+        } else {
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText('¡Temperatura Perfecta! Mantén: ' + gd.timer.toFixed(1) + 's', 400, 120);
+        }
+    },
+    inputOnsenPress(x, y) {
+        const gd = this.gameData;
+        const hx = 150 + gd.hotValve * 200;
+        if (Math.hypot(x - hx, y - 505) < 30) {
+            gd.isDraggingHot = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+        const cx = 450 + gd.coldValve * 200;
+        if (Math.hypot(x - cx, y - 505) < 30) {
+            gd.isDraggingCold = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    inputOnsenRelease() {
+        this.gameData.isDraggingHot = false;
+        this.gameData.isDraggingCold = false;
+    },
+
+    // 2. day_11_tea: El Té Intacto
+    setupTea() {
+        this.gameData = {
+            trayX: 400, trayAngle: 0,
+            bowlX: 400, bowlVx: 0,
+            distance: 0, targetDist: 100,
+            wind: 0, windTimer: 0.5,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateTea(dt) {
+        const gd = this.gameData;
+        const prevTrayX = gd.trayX;
+        gd.trayX += (this.mouse.x - gd.trayX) * 0.15;
+        gd.trayAngle = (gd.trayX - prevTrayX) * 0.01 + (this.mouse.isDown ? (this.mouse.x - 400) * 0.0005 : 0);
+        gd.trayAngle = Math.max(-0.4, Math.min(0.4, gd.trayAngle));
+        
+        gd.windTimer -= dt;
+        if (gd.windTimer <= 0) {
+            gd.wind = (Math.random() - 0.5) * 8;
+            gd.windTimer = 2.0 + Math.random() * 2.0;
+        }
+        
+        gd.bowlVx += Math.sin(gd.trayAngle) * 80 * dt;
+        gd.bowlVx += gd.wind * 0.5 * dt;
+        gd.bowlX += gd.bowlVx * dt * 100;
+        gd.bowlVx *= 0.96;
+        
+        const relativePos = gd.bowlX - gd.trayX;
+        if (Math.abs(relativePos) > 130) {
+            gd.lives--;
+            this.screenShake = 15;
+            if (window.playProceduralSound) playProceduralSound('damage');
+            gd.bowlX = gd.trayX;
+            gd.bowlVx = 0;
+            if (gd.lives <= 0) {
+                this.gameOver();
+            }
+        }
+        
+        gd.distance += dt * 5;
+        this.score = Math.min(100, Math.round((gd.distance / gd.targetDist) * 100));
+        
+        if (gd.distance >= gd.targetDist) {
+            this.victory();
+        }
+    },
+    drawTea() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#f5f2eb';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(50, 50, 300, 400);
+        ctx.strokeRect(450, 50, 300, 400);
+        
+        if (Math.abs(gd.wind) > 0.5 && Math.random() < 0.1) {
+            this.particles.push({
+                x: gd.wind > 0 ? -20 : 820, y: 150 + Math.random() * 150,
+                vx: gd.wind * 80, vy: (Math.random() - 0.5) * 10,
+                size: 2, color: 'rgba(138,154,91,0.3)', life: 1.0, decay: 0.02
+            });
+        }
+        
+        ctx.save();
+        ctx.translate(gd.trayX, 420);
+        ctx.rotate(gd.trayAngle);
+        
+        ctx.fillStyle = '#b71c1c';
+        ctx.fillRect(-140, -10, 280, 20);
+        ctx.fillStyle = '#880e4f';
+        ctx.fillRect(-140, -12, 10, 24);
+        ctx.fillRect(130, -12, 10, 24);
+        ctx.restore();
+        
+        ctx.save();
+        const bx = gd.trayX + (gd.bowlX - gd.trayX) * Math.cos(gd.trayAngle);
+        const by = 420 + (gd.bowlX - gd.trayX) * Math.sin(gd.trayAngle);
+        ctx.translate(bx, by);
+        ctx.rotate(gd.trayAngle);
+        
+        ctx.fillStyle = '#33691e';
+        ctx.beginPath();
+        ctx.arc(0, -25, 35, 0, Math.PI, false);
+        ctx.fill();
+        
+        ctx.fillStyle = '#8a9a5b';
+        ctx.beginPath();
+        const sloshAngle = -gd.bowlVx * 0.1;
+        ctx.rotate(sloshAngle);
+        ctx.ellipse(0, -25, 30, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Distancia Ryokan: ' + Math.round(gd.distance) + ' / 100m', 400, 60);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '💚 ';
+        ctx.fillText(heartStr, 400, 100);
+        
+        if (Math.abs(gd.wind) > 1) {
+            ctx.fillStyle = '#d84315';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.fillText('💨 Viento Alpino: ' + (gd.wind > 0 ? '➡️' : '⬅️'), 400, 140);
+        }
+    },
+    inputTeaPress(x, y) {},
+
+    // 3. day_11_yukata: Cazadora de Yukatas
+    setupYukata() {
+        this.gameData = {
+            guests: [],
+            spawnTimer: 0,
+            scoreCount: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateYukata(dt) {
+        const gd = this.gameData;
+        gd.guests.forEach(g => { g.x += g.vx * dt; });
+        gd.guests = gd.guests.filter(g => g.x > -100 && g.x < 900);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const types = ['yukata', 'yukata', 'tourist', 'monkey', 'ninja'];
+            const chosenType = types[Math.floor(Math.random() * types.length)];
+            const dir = Math.random() < 0.5 ? 1 : -1;
+            
+            let emoji = '🧍';
+            if (chosenType === 'yukata') emoji = '👘';
+            else if (chosenType === 'monkey') emoji = '🐒';
+            else if (chosenType === 'ninja') emoji = '🥷';
+            
+            gd.guests.push({
+                id: Date.now() + Math.random(),
+                x: dir > 0 ? -50 : 850,
+                y: 350 + Math.random() * 120,
+                vx: dir * (100 + Math.random() * 100),
+                type: chosenType,
+                emoji: emoji
+            });
+            gd.spawnTimer = 0.8 + Math.random() * 0.8;
+        }
+        
+        if (gd.scoreCount >= 10) {
+            this.victory();
+        }
+    },
+    drawYukata() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 100, 10, 400);
+        ctx.fillRect(630, 100, 10, 400);
+        
+        ctx.fillStyle = '#d84315';
+        ctx.fillRect(135, 120, 40, 50);
+        ctx.fillRect(615, 120, 40, 50);
+        ctx.font = '20px sans-serif';
+        ctx.fillText('🏮', 155, 150);
+        ctx.fillText('🏮', 635, 150);
+        
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 340, 800, 260);
+        
+        gd.guests.sort((a, b) => a.y - b.y);
+        gd.guests.forEach(g => {
+            ctx.font = '55px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(g.emoji, g.x, g.y);
+        });
+        
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.fillText('Huéspedes en Yukata cazados: ' + gd.scoreCount + ' / 10', 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+    },
+    inputYukataPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.guests.forEach((g, idx) => {
+            const dist = Math.hypot(x - g.x, y - (g.y - 25));
+            if (dist < 45) {
+                if (g.type === 'yukata') {
+                    gd.scoreCount++;
+                    this.score = gd.scoreCount;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                    for (let i = 0; i < 8; i++) {
+                        this.particles.push({
+                            x: g.x, y: g.y - 25,
+                            vx: (Math.random() - 0.5) * 100, vy: (Math.random() - 0.5) * 100,
+                            size: 4 + Math.random() * 4, color: '#f48fb1', life: 0.6, decay: 0.02
+                        });
+                    }
+                } else {
+                    gd.lives--;
+                    this.screenShake = 12;
+                    if (window.playProceduralSound) playProceduralSound('error');
+                }
+                gd.guests.splice(idx, 1);
+            }
+        });
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        }
+    },
+
+    // 4. day_11_tatami: La Textura del Tatami
+    setupTatami() {
+        this.gameData = {
+            grid: Array(4).fill(null).map(() => Array(4).fill(null)),
+            mats: [
+                { id: 0, x: 80, y: 150, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 1, x: 80, y: 280, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 2, x: 80, y: 410, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
+                { id: 3, x: 680, y: 150, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 4, x: 680, y: 280, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 5, x: 680, y: 410, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
+                { id: 6, x: 300, y: 520, w: 2, h: 1, color: '#dcedc8', placedX: -1, placedY: -1 },
+                { id: 7, x: 450, y: 520, w: 1, h: 2, color: '#dcedc8', placedX: -1, placedY: -1 }
+            ],
+            draggingMat: null,
+            dragOffset: { x: 0, y: 0 }
+        };
+        this.score = 0;
+    },
+    updateTatami(dt) {
+        const gd = this.gameData;
+        if (gd.draggingMat) {
+            gd.draggingMat.x = this.mouse.x - gd.dragOffset.x;
+            gd.draggingMat.y = this.mouse.y - gd.dragOffset.y;
+        }
+    },
+    drawTatami() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(200, 100, 400, 400);
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 2;
+        for (let c = 0; c <= 4; c++) {
+            ctx.beginPath();
+            ctx.moveTo(200 + c * 100, 100);
+            ctx.lineTo(200 + c * 100, 500);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(200, 100 + c * 100);
+            ctx.lineTo(600, 100 + c * 100);
+            ctx.stroke();
+        }
+        
+        const sortedMats = [...gd.mats].sort((a, b) => {
+            if (a === gd.draggingMat) return 1;
+            if (b === gd.draggingMat) return -1;
+            return 0;
+        });
+        
+        sortedMats.forEach(m => {
+            ctx.save();
+            ctx.fillStyle = m.color;
+            ctx.strokeStyle = '#33691e';
+            ctx.lineWidth = 3;
+            
+            const px = m.x;
+            const py = m.y;
+            const pw = m.w * 100;
+            const ph = m.h * 100;
+            
+            ctx.fillRect(px, py, pw, ph);
+            ctx.strokeRect(px, py, pw, ph);
+            
+            ctx.fillStyle = '#1b5e20';
+            if (m.w >= m.h) {
+                ctx.fillRect(px, py, pw, 6);
+                ctx.fillRect(px, py + ph - 6, pw, 6);
+            } else {
+                ctx.fillRect(px, py, 6, ph);
+                ctx.fillRect(px + pw - 6, py, 6, ph);
+            }
+            ctx.restore();
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Distribuye los tatamis para cubrir la habitación!', 400, 45);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca un tatami fuera de la cuadrícula para rotarlo.', 400, 75);
+    },
+    inputTatamiPress(x, y) {
+        const gd = this.gameData;
+        
+        for (let i = gd.mats.length - 1; i >= 0; i--) {
+            const m = gd.mats[i];
+            const pw = m.w * 100;
+            const ph = m.h * 100;
+            if (x > m.x && x < m.x + pw && y > m.y && y < m.y + ph) {
+                if (m.placedX !== -1) {
+                    for (let r = 0; r < m.h; r++) {
+                        for (let c = 0; c < m.w; c++) {
+                            gd.grid[m.placedY + r][m.placedX + c] = null;
+                        }
+                    }
+                    m.placedX = -1;
+                    m.placedY = -1;
+                }
+                
+                gd.draggingMat = m;
+                gd.dragOffset.x = x - m.x;
+                gd.dragOffset.y = y - m.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseTatami(x, y) {
+        const gd = this.gameData;
+        const m = gd.draggingMat;
+        if (!m) return;
+        gd.draggingMat = null;
+        
+        const cellX = Math.round((m.x - 200) / 100);
+        const cellY = Math.round((m.y - 100) / 100);
+        
+        let fits = false;
+        if (cellX >= 0 && cellX + m.w <= 4 && cellY >= 0 && cellY + m.h <= 4) {
+            let overlap = false;
+            for (let r = 0; r < m.h; r++) {
+                for (let c = 0; c < m.w; c++) {
+                    if (gd.grid[cellY + r][cellX + c] !== null) overlap = true;
+                }
+            }
+            if (!overlap) fits = true;
+        }
+        
+        if (fits) {
+            m.x = 200 + cellX * 100;
+            m.y = 100 + cellY * 100;
+            m.placedX = cellX;
+            m.placedY = cellY;
+            for (let r = 0; r < m.h; r++) {
+                for (let c = 0; c < m.w; c++) {
+                    gd.grid[cellY + r][cellX + c] = m.id;
+                }
+            }
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            let emptyCount = 0;
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (gd.grid[r][c] === null) emptyCount++;
+                }
+            }
+            if (emptyCount === 0) {
+                this.victory();
+            }
+        } else {
+            const movedDist = Math.hypot(m.x - (this.mouse.startX - gd.dragOffset.x), m.y - (this.mouse.startY - gd.dragOffset.y));
+            if (movedDist < 10) {
+                const prevW = m.w;
+                m.w = m.h;
+                m.h = prevW;
+                if (window.playProceduralSound) playProceduralSound('rotate');
+            }
+            
+            m.placedX = -1;
+            m.placedY = -1;
+            m.x = m.id < 3 ? 80 : m.id < 6 ? 680 : m.id === 6 ? 300 : 450;
+            m.y = m.id < 3 ? 150 + m.id * 130 : m.id < 6 ? 150 + (m.id - 3) * 130 : 520;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+    },
+
+    // 5. day_11_kaiseki: Catador de Kaiseki
+    setupKaiseki() {
+        const foodPool = [
+            { icon: '🍱', name: 'Sushi/Sashimi' },
+            { icon: '🍤', name: 'Tempura Crujiente' },
+            { icon: '🥣', name: 'Sopa de Miso' },
+            { icon: '🍙', name: 'Onigiri de Arroz' },
+            { icon: '🍵', name: 'Té Matcha' }
+        ];
+        
+        const targetList = [...foodPool].sort(() => Math.random() - 0.5);
+        
+        this.gameData = {
+            target: targetList,
+            current: Array(5).fill(null),
+            timer: 3.5,
+            state: 'show',
+            items: targetList.map((item, idx) => ({
+                id: idx,
+                icon: item.icon,
+                name: item.name,
+                x: 100 + idx * 150,
+                y: 500,
+                placed: -1
+            })).sort(() => Math.random() - 0.5),
+            draggingItem: null,
+            dragOffset: { x: 0, y: 0 },
+            correctServings: 0
+        };
+        this.score = 0;
+    },
+    updateKaiseki(dt) {
+        const gd = this.gameData;
+        if (gd.state === 'show') {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                gd.state = 'play';
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        } else {
+            if (gd.draggingItem) {
+                gd.draggingItem.x = this.mouse.x - gd.dragOffset.x;
+                gd.draggingItem.y = this.mouse.y - gd.dragOffset.y;
+            }
+        }
+    },
+    drawKaiseki() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#d7ccc8';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < 5; i++) {
+            const px = 100 + i * 150;
+            const py = 250;
+            ctx.fillStyle = 'rgba(255,255,255,0.05)';
+            ctx.beginPath();
+            ctx.arc(px, py, 50, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.font = 'bold 20px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(i + 1, px, py + 8);
+        }
+        
+        if (gd.state === 'show') {
+            gd.target.forEach((item, idx) => {
+                const px = 100 + idx * 150;
+                const py = 250;
+                ctx.font = '50px sans-serif';
+                ctx.fillText(item.icon, px, py + 18);
+            });
+            
+            ctx.fillStyle = '#ffb74d';
+            ctx.font = 'bold 24px Outfit, sans-serif';
+            ctx.fillText('¡MEMORIZA EL ORDEN PROTOCOLARIO! ' + gd.timer.toFixed(1) + 's', 400, 100);
+        } else {
+            gd.current.forEach((itemIdx, plateIdx) => {
+                if (itemIdx !== null) {
+                    const px = 100 + plateIdx * 150;
+                    const py = 250;
+                    const item = gd.items.find(x => x.id === itemIdx);
+                    if (item && item !== gd.draggingItem) {
+                        ctx.font = '50px sans-serif';
+                        ctx.fillText(item.icon, px, py + 18);
+                    }
+                }
+            });
+            
+            gd.items.forEach(item => {
+                if (item.placed === -1 && item !== gd.draggingItem) {
+                    ctx.fillStyle = '#4e342e';
+                    ctx.fillRect(item.x - 50, item.y - 40, 100, 80);
+                    ctx.font = '40px sans-serif';
+                    ctx.fillText(item.icon, item.x, item.y + 15);
+                }
+            });
+            
+            if (gd.draggingItem) {
+                ctx.font = '60px sans-serif';
+                ctx.fillText(gd.draggingItem.icon, gd.draggingItem.x, gd.draggingItem.y + 20);
+            }
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Outfit, sans-serif';
+            ctx.fillText('Ordena los platos en los platos protocolarios del Kaiseki.', 400, 100);
+            ctx.fillText('Servicios logrados: ' + gd.correctServings + ' / 3', 400, 50);
+        }
+    },
+    inputKaisekiPress(x, y) {
+        const gd = this.gameData;
+        if (gd.state !== 'play') return;
+        
+        for (let i = 0; i < gd.items.length; i++) {
+            const item = gd.items[i];
+            if (item.placed === -1 && Math.hypot(x - item.x, y - item.y) < 50) {
+                gd.draggingItem = item;
+                gd.dragOffset.x = x - item.x;
+                gd.dragOffset.y = y - item.y;
+                if (window.playProceduralSound) playProceduralSound('click');
+                break;
+            }
+        }
+    },
+    releaseKaiseki(x, y) {
+        const gd = this.gameData;
+        const item = gd.draggingItem;
+        if (!item) return;
+        gd.draggingItem = null;
+        
+        let snapped = false;
+        for (let i = 0; i < 5; i++) {
+            const px = 100 + i * 150;
+            const py = 250;
+            if (Math.hypot(x - px, y - py) < 65 && gd.current[i] === null) {
+                gd.current[i] = item.id;
+                item.placed = i;
+                snapped = true;
+                if (window.playProceduralSound) playProceduralSound('success');
+                break;
+            }
+        }
+        
+        if (!snapped) {
+            item.placed = -1;
+            item.x = 100 + item.id * 150;
+            item.y = 500;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        let placedCount = 0;
+        gd.current.forEach(c => { if (c !== null) placedCount++; });
+        if (placedCount === 5) {
+            let correct = true;
+            for (let i = 0; i < 5; i++) {
+                const itemPlaced = gd.items.find(x => x.id === gd.current[i]);
+                if (itemPlaced.name !== gd.target[i].name) {
+                    correct = false;
+                }
+            }
+            
+            if (correct) {
+                gd.correctServings++;
+                this.score = gd.correctServings;
+                if (gd.correctServings >= 3) {
+                    this.victory();
+                } else {
+                    this.setupKaiseki();
+                    gd.correctServings = this.score;
+                }
+            } else {
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('error');
+                gd.items.forEach(item => {
+                    item.placed = -1;
+                    item.x = 100 + item.id * 150;
+                    item.y = 500;
+                });
+                gd.current.fill(null);
+                gd.state = 'show';
+                gd.timer = 3.5;
+            }
+        }
+    },
+
+    // 6. day_11_spring: Rastreador de Manantiales
+    setupSpring() {
+        const springs = [];
+        while (springs.length < 3) {
+            const r = Math.floor(Math.random() * 6);
+            const c = Math.floor(Math.random() * 6);
+            if (!springs.some(s => s.r === r && s.c === c)) {
+                springs.push({ r: r, c: c });
+            }
+        }
+        
+        this.gameData = {
+            grid: Array(6).fill(null).map(() => Array(6).fill(-1)),
+            springs: springs,
+            probes: 15,
+            found: 0
+        };
+        this.score = 0;
+    },
+    updateSpring(dt) {},
+    drawSpring() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0a0e14';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 220;
+        const oy = 120;
+        const cs = 60;
+        
+        for (let r = 0; r < 6; r++) {
+            for (let c = 0; c < 6; c++) {
+                const cx = ox + c * cs;
+                const cy = oy + r * cs;
+                const cellVal = gd.grid[r][c];
+                
+                if (cellVal === -1) {
+                    ctx.fillStyle = '#1c2833';
+                } else if (cellVal === 0) {
+                    ctx.fillStyle = '#ff1744';
+                } else if (cellVal === 1) {
+                    ctx.fillStyle = '#ff9100';
+                } else if (cellVal === 2) {
+                    ctx.fillStyle = '#ffea00';
+                } else {
+                    ctx.fillStyle = '#00e5ff';
+                }
+                
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 2;
+                ctx.fillRect(cx, cy, cs, cs);
+                ctx.strokeRect(cx, cy, cs, cs);
+                
+                if (cellVal === 0) {
+                    ctx.font = '28px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('♨️', cx + cs/2, cy + cs/2 + 9);
+                } else if (cellVal > 0) {
+                    ctx.fillStyle = '#1c2833';
+                    ctx.font = 'bold 20px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(cellVal, cx + cs/2, cy + cs/2 + 7);
+                }
+            }
+        }
+        
+        ctx.fillStyle = 'rgba(0,255,153,0.05)';
+        for (let i = 0; i < 600; i += 6) {
+            ctx.fillRect(0, i, 800, 2);
+        }
+        
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('RASTREADOR TÉRMICO OKUHIDA', 400, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '18px monospace';
+        ctx.fillText('Manantiales localizados: ' + gd.found + ' / 3', 400, 90);
+        ctx.fillText('Sondas Geotérmicas restantes: ' + gd.probes, 400, 515);
+        ctx.font = 'italic 15px monospace';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Sonar: Rojo = Manantial, Naranja = 1 casilla, Amarillo = 2 casillas', 400, 550);
+    },
+    inputSpringPress(x, y) {
+        const gd = this.gameData;
+        const ox = 220;
+        const oy = 120;
+        const cs = 60;
+        
+        const col = Math.floor((x - ox) / cs);
+        const row = Math.floor((y - oy) / cs);
+        
+        if (col >= 0 && col < 6 && row >= 0 && row < 6 && gd.grid[row][col] === -1) {
+            let minDist = 999;
+            gd.springs.forEach(s => {
+                const dist = Math.abs(s.r - row) + Math.abs(s.c - col);
+                if (dist < minDist) minDist = dist;
+            });
+            
+            gd.grid[row][col] = minDist;
+            gd.probes--;
+            
+            if (minDist === 0) {
+                gd.found++;
+                this.score = gd.found;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('success');
+                for (let i = 0; i < 15; i++) {
+                    this.particles.push({
+                        x: ox + col * cs + cs/2, y: oy + row * cs + cs/2,
+                        vx: (Math.random() - 0.5) * 80, vy: -50 - Math.random() * 50,
+                        size: 5 + Math.random() * 8, color: '#e0f7fa', life: 0.8, decay: 0.02
+                    });
+                }
+            } else {
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+            
+            if (gd.found === 3) {
+                this.victory();
+            } else if (gd.probes <= 0) {
+                this.gameOver();
+            }
+        }
+    },
+
+    // 7. day_11_architecture: Arquitectura Termal
+    setupArchitecture() {
+        this.gameData = {
+            grid: [
+                [ { type: 'L', angle: 0 }, { type: 'I', angle: 90 }, { type: 'L', angle: 90 }, { type: 'I', angle: 0 } ],
+                [ { type: 'I', angle: 0 }, { type: 'L', angle: 270 }, { type: 'I', angle: 90 }, { type: 'L', angle: 180 } ],
+                [ { type: 'L', angle: 90 }, { type: 'I', angle: 0 }, { type: 'L', angle: 0 }, { type: 'L', angle: 270 } ]
+            ],
+            completed: false
+        };
+        const angles = [0, 90, 180, 270];
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                if (r === 0 && c === 0) continue;
+                this.gameData.grid[r][c].angle = angles[Math.floor(Math.random() * 4)];
+            }
+        }
+        this.score = 0;
+        this.solveArchitecture();
+    },
+    solveArchitecture() {
+        const gd = this.gameData;
+        const getPorts = (cell, angle) => {
+            const localPorts = cell.type === 'I' ? [1, 3] : cell.type === 'L' ? [1, 2] : [0, 1, 2, 3];
+            const shift = Math.round(angle / 90) % 4;
+            return localPorts.map(p => (p + shift) % 4);
+        };
+        
+        const visited = Array(3).fill(null).map(() => Array(4).fill(false));
+        const check = (r, c, fromPort) => {
+            if (r < 0 || r >= 3 || c < 0 || c >= 4 || visited[r][c]) return false;
+            
+            const cell = gd.grid[r][c];
+            const ports = getPorts(cell, cell.angle);
+            
+            if (fromPort !== -1 && !ports.includes(fromPort)) return false;
+            
+            visited[r][c] = true;
+            cell.water = true;
+            
+            if (r === 2 && c === 3 && ports.includes(1)) {
+                return true;
+            }
+            
+            const dirs = [
+                { dr: -1, dc: 0, in: 2, out: 0 },
+                { dr: 0, dc: 1, in: 3, out: 1 },
+                { dr: 1, dc: 0, in: 0, out: 2 },
+                { dr: 0, dc: -1, in: 1, out: 3 }
+            ];
+            
+            for (let d = 0; d < 4; d++) {
+                if (ports.includes(dirs[d].out)) {
+                    if (check(r + dirs[d].dr, c + dirs[d].dc, dirs[d].in)) return true;
+                }
+            }
+            return false;
+        };
+        
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                gd.grid[r][c].water = false;
+            }
+        }
+        
+        const connected = check(0, 0, 3);
+        if (connected) {
+            gd.completed = true;
+            this.score = 1;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    updateArchitecture(dt) {},
+    drawArchitecture() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        const ox = 160;
+        const oy = 160;
+        const cs = 120;
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(80, 205, 80, 30);
+        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
+        ctx.fillRect(80, 215, 80, 10);
+        
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+                const cell = gd.grid[r][c];
+                const cx = ox + c * cs;
+                const cy = oy + r * cs;
+                
+                ctx.fillStyle = '#37474f';
+                ctx.strokeStyle = '#455a64';
+                ctx.fillRect(cx, cy, cs, cs);
+                ctx.strokeRect(cx, cy, cs, cs);
+                
+                ctx.save();
+                ctx.translate(cx + cs/2, cy + cs/2);
+                ctx.rotate(cell.angle * Math.PI / 180);
+                
+                ctx.strokeStyle = '#4caf50';
+                ctx.lineWidth = 26;
+                ctx.lineCap = 'round';
+                
+                if (cell.type === 'I') {
+                    ctx.beginPath();
+                    ctx.moveTo(-cs/2, 0);
+                    ctx.lineTo(cs/2, 0);
+                    ctx.stroke();
+                } else if (cell.type === 'L') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, cs/2);
+                    ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
+                    ctx.stroke();
+                }
+                
+                if (cell.water) {
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 10;
+                    if (cell.type === 'I') {
+                        ctx.beginPath();
+                        ctx.moveTo(-cs/2, 0);
+                        ctx.lineTo(cs/2, 0);
+                        ctx.stroke();
+                    } else if (cell.type === 'L') {
+                        ctx.beginPath();
+                        ctx.moveTo(0, cs/2);
+                        ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
+                        ctx.stroke();
+                    }
+                }
+                ctx.restore();
+            }
+        }
+        
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 45, 80, 30);
+        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
+        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 55, 80, 10);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Construye el acueducto rotando los bambús!', 400, 60);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca las celdas para rotar los tubos 90 grados.', 400, 100);
+    },
+    inputArchitecturePress(x, y) {
+        const gd = this.gameData;
+        if (gd.completed) return;
+        
+        const ox = 160;
+        const oy = 160;
+        const cs = 120;
+        
+        const col = Math.floor((x - ox) / cs);
+        const row = Math.floor((y - oy) / cs);
+        
+        if (col >= 0 && col < 4 && row >= 0 && row < 3) {
+            const cell = gd.grid[row][col];
+            cell.angle = (cell.angle + 90) % 360;
+            if (window.playProceduralSound) playProceduralSound('click');
+            this.solveArchitecture();
+        }
+    },
+
+    // 8. day_11_economy: Economía Alpina
+    setupEconomy() {
+        this.gameData = {
+            money: 300,
+            coal: 60,
+            timer: 45.0,
+            customers: [],
+            customerSpawnTimer: 0.5
+        };
+        this.score = 300;
+    },
+    updateEconomy(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        if (gd.money >= 1000) {
+            this.victory();
+        } else if (gd.timer <= 0) {
+            this.gameOver();
+        }
+        
+        gd.customers.forEach(c => {
+            c.patience -= dt * 0.08;
+        });
+        const beforeCount = gd.customers.length;
+        gd.customers = gd.customers.filter(c => c.patience > 0);
+        if (gd.customers.length < beforeCount) {
+            this.screenShake = 10;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        gd.customerSpawnTimer -= dt;
+        if (gd.customerSpawnTimer <= 0) {
+            gd.customers.push({
+                id: Date.now() + Math.random(),
+                x: 150 + Math.random() * 500,
+                y: 200 + Math.random() * 200,
+                patience: 1.0,
+                cost: 150,
+                coalRequired: 15
+            });
+            gd.customerSpawnTimer = 3.0 + Math.random() * 2.0;
+        }
+    },
+    drawEconomy() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#ffecb3';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(50, 150, 700, 320);
+        
+        gd.customers.forEach(c => {
+            ctx.fillStyle = '#a5d6a7';
+            ctx.beginPath();
+            ctx.ellipse(c.x, c.y + 40, 50, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.font = '45px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧍', c.x, c.y + 20);
+            
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillRect(c.x - 40, c.y - 45, 80, 8);
+            ctx.fillStyle = c.patience > 0.4 ? '#4caf50' : '#f44336';
+            ctx.fillRect(c.x - 40, c.y - 45, 80 * c.patience, 8);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(c.x + 30, c.y - 30, 80, 35);
+            ctx.strokeRect(c.x + 30, c.y - 30, 80, 35);
+            ctx.font = '15px sans-serif';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('♨️ 150¥', c.x + 70, c.y - 7);
+        });
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 500, 200, 60);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.fillText('Comprar Carbón (+20)', 250, 526);
+        ctx.font = '13px Outfit, sans-serif';
+        ctx.fillText('Coste: 50¥', 250, 546);
+        
+        ctx.fillStyle = '#0d1117';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Yenes Ganados: ' + gd.money + ' / 1000¥', 250, 60);
+        ctx.fillText('Carbón: ' + gd.coal + ' kg', 550, 60);
+        ctx.fillText('Tiempo: ' + Math.round(gd.timer) + 's', 400, 110);
+    },
+    inputEconomyPress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 150 && x < 350 && y > 500 && y < 560) {
+            if (gd.money >= 50) {
+                gd.money -= 50;
+                gd.coal += 20;
+                if (window.playProceduralSound) playProceduralSound('collect');
+            } else {
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+            return;
+        }
+        
+        gd.customers.forEach((c, idx) => {
+            if (Math.hypot(x - c.x, y - c.y) < 60) {
+                if (gd.coal >= c.coalRequired) {
+                    gd.coal -= c.coalRequired;
+                    gd.money += c.cost;
+                    this.score = gd.money;
+                    gd.customers.splice(idx, 1);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                }
+            }
+        });
+    },
+
+    // 9. day_11_geta: El Equilibrio del Yukata
+    setupGeta() {
+        this.gameData = {
+            steps: [],
+            count: 0,
+            goal: 40,
+            activeFoot: 'left',
+            balance: 0.5,
+            balanceVel: 0,
+            spawnTimer: 0.2
+        };
+        this.score = 0;
+    },
+    updateGeta(dt) {
+        const gd = this.gameData;
+        
+        gd.balanceVel += (Math.random() - 0.5) * 1.5 * dt;
+        gd.balance += gd.balanceVel * dt;
+        
+        gd.balance = Math.max(0, Math.min(1, gd.balance));
+        
+        if (gd.balance <= 0.05 || gd.balance >= 0.95) {
+            gd.count = Math.max(0, gd.count - 4);
+            this.score = gd.count;
+            gd.balance = 0.5;
+            gd.balanceVel = 0;
+            this.screenShake = 15;
+            if (window.playProceduralSound) playProceduralSound('error');
+        }
+        
+        gd.steps.forEach(s => {
+            s.y += 180 * dt;
+        });
+        gd.steps = gd.steps.filter(s => s.y < 550);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const side = Math.random() < 0.5 ? 'left' : 'right';
+            gd.steps.push({
+                y: -50,
+                side: side,
+                hit: false
+            });
+            gd.spawnTimer = 1.0 + Math.random() * 0.8;
+        }
+    },
+    drawGeta() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#b2ebf2';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#a1887f';
+        ctx.fillRect(200, 0, 400, 600);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 40, 300, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(370, 40, 60, 15);
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(250 + gd.balance * 300 - 3, 30, 6, 35);
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(280, 120, 100, 380);
+        ctx.fillRect(420, 120, 100, 380);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(280, 440); ctx.lineTo(380, 440); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(420, 440); ctx.lineTo(520, 440); ctx.stroke();
+        
+        gd.steps.forEach(s => {
+            if (!s.hit) {
+                ctx.font = '35px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(s.side === 'left' ? '👣' : '👣', s.side === 'left' ? 330 : 470, s.y);
+            }
+        });
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(150, 510, 200, 70);
+        ctx.fillRect(450, 510, 200, 70);
+        
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👡 IZQUIERDO', 250, 550);
+        ctx.fillText('👡 DERECHO', 550, 550);
+        
+        ctx.fillText('Pasos en Geta: ' + gd.count + ' / ' + gd.goal, 400, 100);
+    },
+    inputGetaPress(x, y) {
+        const gd = this.gameData;
+        let pressedSide = '';
+        
+        if (x > 150 && x < 350 && y > 510 && y < 580) {
+            pressedSide = 'left';
+        } else if (x > 450 && x < 650 && y > 510 && y < 580) {
+            pressedSide = 'right';
+        }
+        
+        if (pressedSide !== '') {
+            if (pressedSide === 'left') {
+                gd.balanceVel -= 0.15;
+            } else {
+                gd.balanceVel += 0.15;
+            }
+            
+            let hit = false;
+            gd.steps.forEach(s => {
+                if (s.side === pressedSide && !s.hit && Math.abs(s.y - 440) < 40) {
+                    s.hit = true;
+                    hit = true;
+                    gd.count++;
+                    this.score = gd.count;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                }
+            });
+            
+            if (!hit) {
+                gd.balanceVel += (pressedSide === 'left' ? -0.2 : 0.2);
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+            
+            if (gd.count >= gd.goal) {
+                this.victory();
+            }
+        }
+    },
+
+    // ==========================================================

@@ -1,0 +1,1321 @@
+// MINIJUEGOS DEL DIA 7
+// Métodos extraídos de games.js para NotebookLM
+
+    // DAY 7 MINIGAMES - KIYOMIZU-DERA & GION
+    // ==========================================================
+
+    setupKimono() {
+        this.gameData = {
+            visitors: [
+                { x: -50, vx: 110, style: 'modern', active: true, width: 40 },
+                { x: 900, vx: -95, style: 'kimono', active: true, width: 45 }
+            ],
+            spawnTimer: 1.0,
+            lives: 3,
+            feedbackText: "¡Saca una foto a los paseantes con KIMONO! (Toca para disparar)",
+            feedbackColor: "#f06292",
+            feedbackTimer: 2.5
+        };
+        this.score = 0;
+    },
+
+    updateKimono(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.4 + Math.random() * 1.2;
+            const side = Math.random() < 0.5 ? 0 : 1;
+            const style = Math.random() < 0.5 ? 'kimono' : 'modern';
+            gd.visitors.push({
+                x: side === 0 ? -60 : 860,
+                vx: (80 + Math.random() * 70) * (side === 0 ? 1 : -1),
+                style: style,
+                active: true,
+                width: style === 'kimono' ? 45 : 40
+            });
+        }
+
+        for (let i = gd.visitors.length - 1; i >= 0; i--) {
+            const v = gd.visitors[i];
+            v.x += v.vx * dt;
+            if ((v.vx > 0 && v.x > 880) || (v.vx < 0 && v.x < -80)) {
+                gd.visitors.splice(i, 1);
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Fotos de Kimono: ${this.score}/${this.goal}`;
+    },
+
+    drawKimono() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(620, 120, 80, 240);
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(600, 360, 120, 150);
+
+        gd.visitors.forEach(v => {
+            if (v.active) {
+                ctx.save();
+                ctx.translate(v.x, 380);
+                
+                if (v.style === 'kimono') {
+                    ctx.fillStyle = '#f06292';
+                    ctx.fillRect(-15, -40, 30, 45);
+                    ctx.fillStyle = '#ffe0b2';
+                    ctx.beginPath(); ctx.arc(0, -50, 12, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#ffeb3b';
+                    ctx.fillRect(-16, -26, 32, 8);
+                } else {
+                    ctx.fillStyle = '#1e88e5';
+                    ctx.fillRect(-10, -20, 20, 25);
+                    ctx.fillStyle = '#e53935';
+                    ctx.fillRect(-10, -40, 20, 20);
+                    ctx.fillStyle = '#ffe0b2';
+                    ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        });
+
+        ctx.strokeStyle = 'rgba(255, 64, 129, 0.4)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(300, 240, 200, 200);
+        ctx.beginPath(); ctx.moveTo(400, 220); ctx.lineTo(400, 260); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 380); ctx.lineTo(400, 420); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`👘 Cazadora de Kimonos: ${this.score} / ${this.goal}`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 180);
+            ctx.restore();
+        }
+    },
+
+    inputKimonoPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        let hit = false;
+        let penalty = false;
+
+        for (let i = 0; i < gd.visitors.length; i++) {
+            const v = gd.visitors[i];
+            if (v.active && v.x >= 280 && v.x <= 520) {
+                v.active = false;
+                if (v.style === 'kimono') {
+                    hit = true;
+                    this.score++;
+                    this.createExplosion(v.x, 360, '#f06292', 15, 1.3);
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+
+                    if (this.score >= this.goal) {
+                        if (window.launchConfetti) window.launchConfetti();
+                        setTimeout(() => this.win(), 600);
+                    }
+                } else {
+                    penalty = true;
+                }
+                break;
+            }
+        }
+
+        if (penalty) {
+            gd.lives--;
+            gd.feedbackText = "❌ ¡ERROR! Foto a turista moderno.";
+            gd.feedbackColor = "#ff3333";
+            gd.feedbackTimer = 1.0;
+            this.triggerShake(7);
+            if (window.playProceduralSound) window.playProceduralSound('error');
+
+            if (gd.lives <= 0) {
+                this.gameOver();
+            }
+        } else if (!hit) {
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+    },
+
+    setupKintsugi() {
+        const cracks = [
+            [{ x: 250, y: 220 }, { x: 300, y: 260 }, { x: 350, y: 290 }, { x: 400, y: 300 }],
+            [{ x: 400, y: 300 }, { x: 450, y: 320 }, { x: 500, y: 360 }, { x: 580, y: 420 }],
+            [{ x: 550, y: 180 }, { x: 500, y: 230 }, { x: 450, y: 270 }, { x: 400, y: 300 }]
+        ];
+        this.gameData = {
+            cracks: cracks,
+            currentCrackIdx: 0,
+            drawing: false,
+            trail: [],
+            accuracyPoints: 0,
+            totalTracedPoints: 0,
+            lives: 3,
+            feedbackText: "¡Rellena las grietas del plato con resina de oro!",
+            feedbackColor: "#ffd700",
+            feedbackTimer: 3.0
+        };
+        this.score = 0;
+    },
+
+    updateKintsugi(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.drawing) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            gd.trail.push({ x: mx, y: my });
+
+            const activeCrack = gd.cracks[gd.currentCrackIdx];
+            if (activeCrack) {
+                let minD = 999;
+                activeCrack.forEach(pt => {
+                    let d = Math.hypot(mx - pt.x, my - pt.y);
+                    if (d < minD) minD = d;
+                });
+
+                gd.totalTracedPoints++;
+                if (minD < 38) {
+                    gd.accuracyPoints++;
+                    this.createExplosion(mx, my, '#ffd700', 1, 0.4);
+                } else {
+                    gd.drawing = false;
+                    gd.lives--;
+                    gd.feedbackText = "❌ ¡PULSO INESTABLE! Oro derramado.";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.5;
+                    this.triggerShake(6);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    gd.trail = [];
+                    gd.accuracyPoints = 0;
+                    gd.totalTracedPoints = 0;
+
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                    }
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Grietas Reparadas: ${this.score}/${this.goal}`;
+    },
+
+    drawKintsugi() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#faf8f5';
+        ctx.beginPath(); ctx.arc(400, 300, 180, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#d7ccc8';
+        ctx.lineWidth = 10;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        gd.cracks.forEach((cr, idx) => {
+            const isCompleted = idx < gd.currentCrackIdx;
+            ctx.strokeStyle = isCompleted ? '#ffd700' : 'rgba(93, 64, 55, 0.45)';
+            ctx.lineWidth = isCompleted ? 7 : 3;
+            
+            ctx.beginPath();
+            cr.forEach((pt, pidx) => {
+                if (pidx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+        });
+        ctx.restore();
+
+        if (gd.drawing && gd.trail.length > 1) {
+            ctx.save();
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 8;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            gd.trail.forEach((pt, pidx) => {
+                if (pidx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🏺 Restauración Kintsugi: ${this.score} / ${this.goal}`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 130);
+            ctx.restore();
+        }
+    },
+
+    inputKintsugiPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const activeCrack = gd.cracks[gd.currentCrackIdx];
+        if (activeCrack) {
+            const startPt = activeCrack[0];
+            if (Math.hypot(x - startPt.x, y - startPt.y) < 45) {
+                gd.drawing = true;
+                gd.trail = [{ x, y }];
+                gd.totalTracedPoints = 1;
+                gd.accuracyPoints = 1;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+            }
+        }
+    },
+
+    releaseKintsugi(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.drawing) {
+            gd.drawing = false;
+            
+            const activeCrack = gd.cracks[gd.currentCrackIdx];
+            const endPt = activeCrack[activeCrack.length - 1];
+            
+            const reachedEnd = Math.hypot(x - endPt.x, y - endPt.y) < 48;
+            const accuracy = gd.totalTracedPoints > 0 ? (gd.accuracyPoints / gd.totalTracedPoints) : 0;
+
+            if (reachedEnd && accuracy >= 0.78) {
+                this.score++;
+                gd.currentCrackIdx++;
+                this.createExplosion(x, y, '#ffd700', 16, 1.4);
+                if (window.playProceduralSound) window.playProceduralSound('win');
+
+                if (this.score >= this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.feedbackText = "🏺 ¡GRIETA SELLADA CON ORO! Avanzando...";
+                    gd.feedbackColor = "#00e676";
+                    gd.feedbackTimer = 1.5;
+                }
+            } else {
+                gd.lives--;
+                gd.feedbackText = "❌ ¡TRAZO INCOMPLETO O INEXACTO!";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.5;
+                this.triggerShake(7);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+            gd.trail = [];
+        }
+    },
+
+    setupTea() {
+        this.gameData = {
+            timer: 15.0,
+            cupX: 0.0,
+            cupVelX: 0.0,
+            trayAngle: 0.0,
+            lives: 3,
+            feedbackText: "Equilibra la taza de té en el centro de la bandeja.",
+            feedbackColor: "#4caf50",
+            feedbackTimer: 2.5
+        };
+        this.score = 15;
+    },
+
+    updateTea(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timer -= dt;
+        this.score = Math.max(0, Math.ceil(gd.timer));
+        document.getElementById('minigame-score').innerText = `Tiempo: ${this.score}s`;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.timer <= 0) {
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+            return;
+        }
+
+        const offsetX = this.mouse.x - 400;
+        gd.trayAngle = (offsetX / 400) * 0.45;
+
+        const gravityEffect = 650;
+        gd.cupVelX += Math.sin(gd.trayAngle) * gravityEffect * dt;
+        gd.cupVelX -= gd.cupVelX * 1.5 * dt;
+        gd.cupX += gd.cupVelX * dt;
+
+        if (Math.abs(gd.cupX) > 155) {
+            this.triggerShake(12);
+            if (window.playProceduralSound) window.playProceduralSound('damage');
+            this.createExplosion(400 + gd.cupX, 320, '#4caf50', 25, 1.4);
+
+            gd.lives--;
+            gd.cupX = 0.0;
+            gd.cupVelX = 0.0;
+
+            if (gd.lives <= 0) {
+                this.gameOver();
+            }
+        }
+    },
+
+    drawTea() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#ffecb3';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#bcaaa4';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(40, 40, 720, 520);
+
+        ctx.save();
+        ctx.translate(400, 360);
+        ctx.rotate(gd.trayAngle);
+        
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(-160, -10, 320, 20);
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-160, -10, 320, 20);
+
+        ctx.save();
+        ctx.translate(gd.cupX, -30);
+        
+        ctx.fillStyle = '#faf8f5';
+        ctx.beginPath();
+        ctx.moveTo(-18, -15);
+        ctx.lineTo(18, -15);
+        ctx.lineTo(12, 20);
+        ctx.lineTo(-12, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#d7ccc8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#4caf50';
+        ctx.beginPath();
+        ctx.ellipse(0, -10, 14, 5, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.font = '11px sans-serif';
+        ctx.fillText("♨️", -7, -26);
+
+        ctx.restore();
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(250, 480, 300, 15);
+        ctx.fillStyle = Math.abs(gd.cupX) > 100 ? '#ff3333' : '#00e676';
+        ctx.fillRect(400 + (gd.cupX / 155) * 150 - 6, 475, 12, 25);
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🍵 Té para el Shogun: Equilibre la bandeja`, 25, 29);
+        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+    },
+
+    inputTeaPress(x, y) {
+    },
+
+    setupStoneGuardian() {
+        this.gameData = {
+            ringRadius: 180,
+            shrinkSpeed: 160,
+            direction: -1,
+            targetRadius: 65,
+            lives: 3,
+            pressing: false,
+            feedbackText: "¡Mantén presionado para cerrar los brazos en un abrazo perfecto!",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 3.0
+        };
+        this.score = 0;
+    },
+
+    updateStoneGuardian(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.pressing) {
+            gd.ringRadius -= gd.shrinkSpeed * dt;
+            if (gd.ringRadius < 10) {
+                gd.ringRadius = 10;
+                gd.pressing = false;
+            }
+        } else {
+            gd.ringRadius = Math.min(220, gd.ringRadius + dt * 250);
+        }
+        document.getElementById('minigame-score').innerText = `Abrazos Completados: ${this.score}/${this.goal}`;
+    },
+
+    drawStoneGuardian() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(320, 0, 160, 600);
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(320, 0, 160, 600);
+
+        ctx.save();
+        ctx.translate(400, 300);
+        ctx.strokeStyle = gd.pressing ? '#ffeb3b' : 'rgba(255,255,255,0.4)';
+        ctx.lineWidth = 5;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ffeb3b';
+        ctx.beginPath();
+        ctx.arc(0, 0, gd.ringRadius, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(400, 300);
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 3.5;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.arc(0, 0, gd.targetRadius, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🤗 El Guardián de Piedra: Abraza el pilar`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 140);
+            ctx.restore();
+        }
+    },
+
+    inputStoneGuardianPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+        gd.pressing = true;
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+
+    releaseStoneGuardian(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.pressing) {
+            gd.pressing = false;
+            
+            const diff = Math.abs(gd.ringRadius - gd.targetRadius);
+            if (diff < 15) {
+                this.score++;
+                this.createExplosion(400, 300, '#00ff99', 20, 1.4);
+                if (window.playProceduralSound) window.playProceduralSound('win');
+
+                if (this.score >= this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.feedbackText = "🔥 ¡ABRAZO PERFECTO! Sigue así.";
+                    gd.feedbackColor = "#00e676";
+                    gd.feedbackTimer = 1.2;
+                }
+            } else {
+                gd.lives--;
+                gd.feedbackText = "❌ ¡ABRAZO FLOJO O DEMASIADO FUERTE!";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.2;
+                this.triggerShake(7);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        }
+    },
+
+    setupStructural() {
+        this.gameData = {
+            lives: 3,
+            columnX: 400,
+            weights: [],
+            spawnTimer: 1.0,
+            feedbackText: "¡Coloca los pilares para absorber las esferas de peso estructural!",
+            feedbackColor: "#00e5ff",
+            feedbackTimer: 3.0
+        };
+        this.score = 0;
+    },
+
+    updateStructural(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.columnX = Math.max(100, Math.min(700, this.mouse.x));
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.3 - Math.min(0.5, this.score * 0.03);
+            gd.weights.push({
+                x: 150 + Math.random() * 500,
+                y: -30,
+                vy: 200 + Math.random() * 120,
+                r: 16
+            });
+        }
+
+        for (let i = gd.weights.length - 1; i >= 0; i--) {
+            const wt = gd.weights[i];
+            wt.y += wt.vy * dt;
+
+            if (wt.y >= 420 && wt.y <= 450 && Math.abs(wt.x - gd.columnX) < 55) {
+                this.score++;
+                this.createExplosion(wt.x, wt.y, '#00e5ff', 12, 1.1);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                gd.weights.splice(i, 1);
+
+                if (this.score >= this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                }
+                continue;
+            }
+
+            if (wt.y > 480) {
+                gd.lives--;
+                gd.feedbackText = "⚠️ ¡IMPACTO! Tensiones estructurales al límite.";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.0;
+                this.triggerShake(12);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.weights.splice(i, 1);
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                    return;
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Cargas Soportadas: ${this.score}/${this.goal}`;
+    },
+
+    drawStructural() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#ff7043';
+        ctx.fillRect(0, 480, 800, 120);
+
+        ctx.strokeStyle = '#c62828';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(150, 480); ctx.lineTo(150, 600);
+        ctx.moveTo(650, 480); ctx.lineTo(650, 600);
+        ctx.stroke();
+
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(gd.columnX - 35, 420, 70, 70);
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(gd.columnX - 35, 420, 70, 70);
+
+        gd.weights.forEach(wt => {
+            ctx.fillStyle = '#37474f';
+            ctx.strokeStyle = '#ff3d00';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath(); ctx.arc(wt.x, wt.y, wt.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🏗️ Cálculo de Cargas: Soporte la terraza`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 150);
+            ctx.restore();
+        }
+    },
+
+    inputStructuralPress(x, y) {
+    },
+
+    setupSurvival() {
+        this.gameData = {
+            lives: 3,
+            waves: [],
+            spawnTimer: 1.0,
+            feedbackText: "¡Usa Matcha (Fuego), Omamori (Alma), Antídoto (Veneno)!",
+            feedbackColor: "#e57373",
+            feedbackTimer: 3.0,
+            inventory: [
+                { type: 'matcha', emoji: "🍵", x: 200, y: 520, r: 35 },
+                { type: 'omamori', emoji: "⛩️", x: 400, y: 520, r: 35 },
+                { type: 'antidote', emoji: "🧪", x: 600, y: 520, r: 35 }
+            ]
+        };
+        this.score = 0;
+    },
+
+    updateSurvival(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.8 + Math.random() * 0.6 - Math.min(0.6, this.score * 0.04);
+            const types = ['fire', 'spirit', 'poison'];
+            gd.waves.push({
+                x: 400,
+                y: -20,
+                vy: 180 + Math.random() * 80,
+                type: types[Math.floor(Math.random() * 3)]
+            });
+        }
+
+        for (let i = gd.waves.length - 1; i >= 0; i--) {
+            const w = gd.waves[i];
+            w.y += w.vy * dt;
+
+            if (w.y > 310) {
+                gd.lives--;
+                gd.feedbackText = "💥 ¡LA MALDICIÓN TE ALCANZÓ!";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.0;
+                this.triggerShake(10);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.waves.splice(i, 1);
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Hechizos Repelidos: ${this.score}/${this.goal}`;
+    },
+
+    drawSurvival() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#311b92';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#4a148c';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(50, 50, 700, 420);
+
+        ctx.save();
+        ctx.translate(400, 350);
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1976d2';
+        ctx.fillRect(-12, -12, 24, 30);
+        ctx.restore();
+
+        gd.waves.forEach(w => {
+            ctx.save();
+            ctx.translate(w.x, w.y);
+            
+            let color = '#d32f2f';
+            let icon = '🔥';
+            if (w.type === 'spirit') { color = '#311b92'; icon = '👻'; }
+            if (w.type === 'poison') { color = '#388e3c'; icon = '🤢'; }
+
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(icon, 0, 6);
+            ctx.restore();
+        });
+
+        gd.inventory.forEach(item => {
+            ctx.save();
+            ctx.translate(item.x, item.y);
+            ctx.fillStyle = '#eceff1';
+            ctx.strokeStyle = '#5e35b1';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            ctx.font = '34px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(item.emoji, 0, 11);
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🧪 Supervivencia al Maleficio: Repele hechizos`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 140);
+            ctx.restore();
+        }
+    },
+
+    inputSurvivalPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.waves.length > 0) {
+            const currentSpell = gd.waves[0];
+            
+            let clickedType = '';
+            gd.inventory.forEach(item => {
+                if (Math.hypot(x - item.x, y - item.y) < item.r + 10) {
+                    clickedType = item.type;
+                }
+            });
+
+            if (clickedType === '') return;
+
+            const matched = (clickedType === 'matcha' && currentSpell.type === 'fire') ||
+                            (clickedType === 'omamori' && currentSpell.type === 'spirit') ||
+                            (clickedType === 'antidote' && currentSpell.type === 'poison');
+
+            if (matched) {
+                this.score++;
+                this.createExplosion(currentSpell.x, currentSpell.y, '#e0f7fa', 15, 1.2);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                gd.waves.shift();
+
+                if (this.score >= this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                }
+            } else {
+                gd.lives--;
+                gd.feedbackText = "❌ ¡ERROR! Elemento incorrecto.";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.0;
+                this.triggerShake(7);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        }
+    },
+
+    setupAntiQuake() {
+        this.gameData = {
+            timer: 15.0,
+            shinX: 0.0,
+            shinVel: 0.0,
+            lives: 3,
+            quakeWave: 0.0,
+            quakeTimer: 0.0,
+            feedbackText: "¡Arrastra el pilar central (Shinbashira) para contrarrestar el sismo!",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 3.0
+        };
+        this.score = 15;
+    },
+
+    updateAntiQuake(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timer -= dt;
+        this.score = Math.max(0, Math.ceil(gd.timer));
+        document.getElementById('minigame-score').innerText = `Tiempo: ${this.score}s`;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.timer <= 0) {
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+            return;
+        }
+
+        gd.quakeTimer += dt * 6.5;
+        gd.quakeWave = 150 * Math.sin(gd.quakeTimer) * Math.cos(gd.quakeTimer * 0.5);
+
+        const center = this.mouse.x - 400;
+        gd.shinX = Math.max(-140, Math.min(140, center));
+
+        const delta = gd.quakeWave + gd.shinX * 2.2;
+        
+        if (Math.abs(delta) > 280) {
+            gd.lives -= dt * 1.5;
+            this.triggerShake(12);
+            if (Math.random() < 0.1) {
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+                this.createExplosion(400 + gd.shinX, 300, '#ff3333', 5, 0.9);
+            }
+            if (gd.lives <= 0) {
+                this.gameOver();
+            }
+        }
+    },
+
+    drawAntiQuake() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#ffcc80';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#c62828';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(200, 50, 400, 500);
+
+        ctx.strokeStyle = 'rgba(255, 61, 0, 0.45)';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.moveTo(400, 300);
+        ctx.lineTo(400 - gd.quakeWave, 300);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(400 + gd.shinX, 300);
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(-22, -220, 44, 440);
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-22, -220, 44, 440);
+        ctx.restore();
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🌋 Yasaka Pagoda: Amortigüe el Sismo`, 25, 29);
+        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+
+        let hearts = "";
+        for (let i = 0; i < Math.ceil(gd.lives); i++) hearts += "❤️ ";
+        ctx.fillText(`Estructura: ${hearts}`, 600, 29);
+    },
+
+    inputAntiQuakePress(x, y) {
+    },
+
+    releaseAntiQuake(x, y) {
+    },
+
+    setupStairs() {
+        this.gameData = {
+            progress: 0,
+            lives: 3,
+            vy: 0,
+            y: 450,
+            jumping: false,
+            obstacles: [
+                { x: 600, speed: 180, w: 20 },
+                { x: 900, speed: 210, w: 20 }
+            ],
+            feedbackText: "¡Sube 100 escalones saltando farolas y turistas!",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 3.0
+        };
+        this.score = 0;
+    },
+
+    updateStairs(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.jumping) {
+            gd.vy += 22 * dt;
+            gd.y += gd.vy;
+            if (gd.y >= 450) {
+                gd.y = 450;
+                gd.jumping = false;
+                gd.vy = 0;
+            }
+        }
+
+        gd.obstacles.forEach(obs => {
+            obs.x -= obs.speed * dt;
+            if (obs.x < -30) {
+                obs.x = 830 + Math.random() * 200;
+                gd.progress += 8;
+                this.score = Math.min(100, gd.progress);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+
+                if (gd.progress >= 100) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+
+            if (obs.x >= 180 && obs.x <= 220 && gd.y >= 420) {
+                gd.lives--;
+                obs.x = 830 + Math.random() * 200;
+                gd.feedbackText = "💥 ¡TROPEZÓN EN LA ESCALERA!";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.0;
+                this.triggerShake(10);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        });
+        document.getElementById('minigame-score').innerText = `Escalones Subidos: ${this.score}/100`;
+    },
+
+    drawStairs() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#cfd8dc';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#90a4ae';
+        ctx.lineWidth = 6;
+        for (let y = 150; y < 600; y += 45) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y + 100); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 480, 800, 120);
+
+        ctx.save();
+        ctx.translate(200, gd.y);
+        ctx.fillStyle = '#1976d2';
+        ctx.fillRect(-12, -30, 24, 30);
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath(); ctx.arc(0, -40, 12, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+
+        gd.obstacles.forEach(obs => {
+            ctx.save();
+            ctx.translate(obs.x, 480);
+            ctx.fillStyle = '#ffd54f';
+            ctx.fillRect(-10, -50, 20, 50);
+            ctx.fillStyle = '#ff7043';
+            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🪜 Conquista las Escaleras: Sube 100 escalones`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+    },
+
+    inputStairsPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (!gd.jumping) {
+            gd.jumping = true;
+            gd.vy = -11.5;
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+    },
+
+    setupGeisha() {
+        this.gameData = {
+            sequence: [],
+            userSequence: [],
+            phase: 'watch',
+            timer: 0.0,
+            activeIdx: -1,
+            activeTimer: 0.0,
+            lives: 3,
+            stepIndex: 0,
+            feedbackText: "¡Observa los faroles e imita la melodía!",
+            feedbackColor: "#ffd54f",
+            feedbackTimer: 3.0,
+            lanterns: [
+                { x: 120, y: 300, color: '#e53935', note: 'do' },
+                { x: 260, y: 300, color: '#ffb300', note: 're' },
+                { x: 400, y: 300, color: '#4caf50', note: 'mi' },
+                { x: 540, y: 300, color: '#1e88e5', note: 'fa' },
+                { x: 680, y: 300, color: '#9c27b0', note: 'sol' }
+            ]
+        };
+        this.score = 0;
+        this.startGeishaSequence();
+    },
+
+    startGeishaSequence() {
+        const gd = this.gameData;
+        if (!gd) return;
+        gd.sequence.push(Math.floor(Math.random() * 5));
+        gd.userSequence = [];
+        gd.phase = 'watch';
+        gd.stepIndex = 0;
+        gd.timer = 0.5;
+    },
+
+    updateGeisha(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.activeTimer > 0) {
+            gd.activeTimer -= dt;
+            if (gd.activeTimer <= 0) {
+                gd.activeIdx = -1;
+            }
+        }
+
+        if (gd.phase === 'watch') {
+            gd.timer -= dt;
+            if (gd.timer <= 0) {
+                if (gd.stepIndex < gd.sequence.length) {
+                    const idx = gd.sequence[gd.stepIndex];
+                    gd.activeIdx = idx;
+                    gd.activeTimer = 0.5;
+                    gd.stepIndex++;
+                    gd.timer = 0.8;
+                    
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+                } else {
+                    gd.phase = 'play';
+                    gd.userSequence = [];
+                    gd.feedbackText = "¡Tu turno! Repite la melodía.";
+                    gd.feedbackColor = "#00ff99";
+                    gd.feedbackTimer = 1.5;
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Secuencias Completadas: ${this.score}/5`;
+    },
+
+    drawGeisha() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#1a237e';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = '#0a0a0a';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(50, 220); ctx.lineTo(750, 220); ctx.stroke();
+
+        gd.lanterns.forEach((lan, idx) => {
+            const isActive = gd.activeIdx === idx;
+            ctx.save();
+            ctx.translate(lan.x, lan.y);
+
+            ctx.strokeStyle = '#000000';
+            ctx.beginPath(); ctx.moveTo(0, -80); ctx.lineTo(0, -40); ctx.stroke();
+
+            if (isActive) {
+                const glowGrad = ctx.createRadialGradient(0,0,10, 0,0,70);
+                glowGrad.addColorStop(0, '#ffeb3b');
+                glowGrad.addColorStop(1, 'rgba(255,235,59,0.0)');
+                ctx.fillStyle = glowGrad;
+                ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI*2); ctx.fill();
+            }
+
+            ctx.fillStyle = isActive ? '#ffeb3b' : lan.color;
+            ctx.beginPath();
+            ctx.moveTo(-25, -40);
+            ctx.lineTo(25, -40);
+            ctx.lineTo(32, 20);
+            ctx.lineTo(-32, 20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#212121';
+            ctx.fillRect(-18, -48, 36, 8);
+            ctx.fillRect(-22, 20, 44, 8);
+
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🏮 Código Geisha: Memoriza la melodía`, 25, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 140);
+            ctx.restore();
+        }
+    },
+
+    inputGeishaPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.phase !== 'play') return;
+
+        gd.lanterns.forEach((lan, idx) => {
+            if (x >= lan.x - 35 && x <= lan.x + 35 && y >= lan.y - 50 && y <= lan.y + 30) {
+                gd.activeIdx = idx;
+                gd.activeTimer = 0.35;
+                gd.userSequence.push(idx);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(lan.x, lan.y, '#ffd700', 5, 0.8);
+
+                const step = gd.userSequence.length - 1;
+                if (gd.userSequence[step] !== gd.sequence[step]) {
+                    gd.lives--;
+                    gd.feedbackText = "❌ ¡SECUENCIA INCORRECTA!";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.5;
+                    this.triggerShake(7);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                        return;
+                    }
+                    gd.phase = 'watch';
+                    gd.userSequence = [];
+                    gd.stepIndex = 0;
+                    gd.timer = 1.0;
+                } else {
+                    if (gd.userSequence.length === gd.sequence.length) {
+                        this.score++;
+                        if (window.playProceduralSound) window.playProceduralSound('win');
+
+                        if (this.score >= this.goal) {
+                            if (window.launchConfetti) window.launchConfetti();
+                            setTimeout(() => this.win(), 600);
+                        } else {
+                            gd.feedbackText = "🔥 ¡SECUENCIA CORRECTA! Avanzando...";
+                            gd.feedbackColor = "#00e676";
+                            gd.feedbackTimer = 1.2;
+                            setTimeout(() => this.startGeishaSequence(), 1000);
+                        }
+                    }
+                }
+            }
+        });
+    },
+
+    // ==========================================================

@@ -1,0 +1,2419 @@
+// MINIJUEGOS DEL DIA 5
+// Métodos extraídos de games.js para NotebookLM
+
+    // DAY 5 MINIGAMES - NARA (LAURA & IVÁN)
+    // ==========================================================
+
+    setupMochi() {
+        this.gameData = {
+            lives: 3,
+            notes: [],
+            spawnTimer: 1.0,
+            feedbackText: "",
+            feedbackColor: "#00ff99",
+            feedbackTimer: 0.0,
+            streak: 0,
+            multiplier: 1,
+            btnLeft: { x: 300, y: 520, r: 40, active: false, timer: 0 },
+            btnRight: { x: 500, y: 520, r: 40, active: false, timer: 0 },
+            charMallet: { state: 'up', timer: 0 },
+            charHand: { state: 'out', timer: 0 }
+        };
+        this.score = 0;
+    },
+
+    updateMochi(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+        if (gd.btnLeft.timer > 0) gd.btnLeft.timer -= dt;
+        if (gd.btnRight.timer > 0) gd.btnRight.timer -= dt;
+        if (gd.charMallet.timer > 0) {
+            gd.charMallet.timer -= dt;
+            if (gd.charMallet.timer <= 0) gd.charMallet.state = 'up';
+        }
+        if (gd.charHand.timer > 0) {
+            gd.charHand.timer -= dt;
+            if (gd.charHand.timer <= 0) gd.charHand.state = 'out';
+        }
+
+        // Spawn notes
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const delay = Math.max(0.7, 1.8 - (this.score * 0.04));
+            gd.spawnTimer = delay + Math.random() * 0.4;
+            const lane = Math.random() < 0.5 ? 0 : 1;
+            gd.notes.push({
+                y: -30,
+                lane: lane,
+                type: lane === 0 ? 'mallet' : 'hand',
+                hit: false
+            });
+        }
+
+        // Update notes
+        const speed = 250 + Math.min(150, this.score * 8);
+        for (let i = gd.notes.length - 1; i >= 0; i--) {
+            const note = gd.notes[i];
+            note.y += speed * dt;
+
+            // Miss if note goes off screen
+            if (note.y > 550) {
+                if (!note.hit) {
+                    gd.lives--;
+                    gd.streak = 0;
+                    gd.multiplier = 1;
+                    gd.feedbackText = "¡FALLO!";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.0;
+                    this.triggerShake(6);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                        return;
+                    }
+                }
+                gd.notes.splice(i, 1);
+            }
+        }
+    },
+
+    drawMochi() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Background: Traditional Tatami/Wood shop
+        ctx.fillStyle = '#f5f5dc';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 480, 800, 120); // Wooden floor
+
+        // Draw note lanes
+        ctx.strokeStyle = 'rgba(141, 110, 99, 0.4)';
+        ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 480); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(500, 0); ctx.lineTo(500, 480); ctx.stroke();
+
+        // Target circles
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#4caf50';
+        ctx.strokeStyle = '#4caf50';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(300, 500, 32, 0, Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = '#f06292';
+        ctx.shadowColor = '#f06292';
+        ctx.beginPath(); ctx.arc(500, 500, 32, 0, Math.PI*2); ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Draw Usu (wood mortar in center)
+        ctx.fillStyle = '#d7ccc8';
+        ctx.beginPath();
+        ctx.moveTo(370, 480);
+        ctx.lineTo(430, 480);
+        ctx.lineTo(440, 540);
+        ctx.lineTo(360, 540);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Draw Mochi inside Usu
+        ctx.fillStyle = '#a5d6a7';
+        ctx.beginPath();
+        ctx.ellipse(400, 490, 25, 12, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Characters Chibi: Mallet-pounder (left), Hand-folder (right)
+        // Pounder (Left)
+        ctx.save();
+        ctx.translate(330, 460);
+        ctx.fillStyle = '#1976d2'; // Blue tunic
+        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI*2); ctx.fill(); // Head
+        ctx.fillRect(-15, -22, 30, 40); // Body
+        ctx.fillStyle = '#ffe0b2'; // Skin
+        ctx.fillRect(-10, -5, 20, 10);
+        // Mallet drawing
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 4;
+        if (gd.charMallet.state === 'down') {
+            ctx.beginPath(); ctx.moveTo(-5, -10); ctx.lineTo(65, 30); ctx.stroke(); // Handle
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(60, 20, 15, 22);
+        } else {
+            ctx.beginPath(); ctx.moveTo(-5, -20); ctx.lineTo(15, -70); ctx.stroke(); // Handle
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(5, -75, 22, 15);
+        }
+        ctx.restore();
+
+        // Folder (Right)
+        ctx.save();
+        ctx.translate(470, 470);
+        ctx.fillStyle = '#e53935'; // Red tunic
+        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI*2); ctx.fill(); // Head
+        ctx.fillRect(-15, -22, 30, 35); // Body
+        // Hands
+        ctx.fillStyle = '#ffe0b2';
+        if (gd.charHand.state === 'in') {
+            ctx.fillRect(-45, -12, 30, 10);
+        } else {
+            ctx.fillRect(10, -12, 10, 25);
+        }
+        ctx.restore();
+
+        // Draw notes
+        gd.notes.forEach(note => {
+            ctx.save();
+            ctx.shadowBlur = 12;
+            if (note.type === 'mallet') {
+                ctx.fillStyle = '#4caf50';
+                ctx.strokeStyle = '#388e3c';
+                ctx.shadowColor = '#4caf50';
+                ctx.beginPath();
+                ctx.arc(300, note.y, 22, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("🔨", 300, note.y + 6);
+            } else {
+                ctx.fillStyle = '#f06292';
+                ctx.strokeStyle = '#c2185b';
+                ctx.shadowColor = '#f06292';
+                ctx.beginPath();
+                ctx.arc(500, note.y, 22, 0, Math.PI*2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("🤚", 500, note.y + 6);
+            }
+            ctx.restore();
+        });
+
+        // Draw buttons at bottom
+        // Left (Mallet) Button
+        ctx.save();
+        ctx.translate(gd.btnLeft.x, gd.btnLeft.y);
+        ctx.fillStyle = gd.btnLeft.timer > 0 ? '#1b5e20' : '#4caf50';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, gd.btnLeft.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("🔨", 0, 8);
+        ctx.restore();
+
+        // Right (Hand) Button
+        ctx.save();
+        ctx.translate(gd.btnRight.x, gd.btnRight.y);
+        ctx.fillStyle = gd.btnRight.timer > 0 ? '#880e4f' : '#f06292';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, gd.btnRight.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("🤚", 0, 8);
+        ctx.restore();
+
+        // HUD Header
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🍡 Amasados: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.fillText(`Multiplicador: x${gd.multiplier} (Streak: ${gd.streak})`, 240, 29);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        // Feedback Floating Text
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 36px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 220);
+            ctx.restore();
+        }
+    },
+
+    inputMochiPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        // Check Mallet Button
+        let distLeft = Math.hypot(x - gd.btnLeft.x, y - gd.btnLeft.y);
+        if (distLeft <= gd.btnLeft.r) {
+            gd.btnLeft.timer = 0.15;
+            gd.charMallet.state = 'down';
+            gd.charMallet.timer = 0.25;
+            this.evaluateMochiHit(0);
+            return;
+        }
+
+        // Check Hand Button
+        let distRight = Math.hypot(x - gd.btnRight.x, y - gd.btnRight.y);
+        if (distRight <= gd.btnRight.r) {
+            gd.btnRight.timer = 0.15;
+            gd.charHand.state = 'in';
+            gd.charHand.timer = 0.25;
+            this.evaluateMochiHit(1);
+            return;
+        }
+    },
+
+    evaluateMochiHit(lane) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        let hitNote = null;
+        let minDist = 9999;
+        let index = -1;
+
+        for (let i = 0; i < gd.notes.length; i++) {
+            const note = gd.notes[i];
+            if (note.lane === lane && !note.hit) {
+                const d = Math.abs(note.y - 500);
+                if (d < minDist) {
+                    minDist = d;
+                    hitNote = note;
+                    index = i;
+                }
+            }
+        }
+
+        if (hitNote && minDist < 65) {
+            hitNote.hit = true;
+            this.createExplosion(lane === 0 ? 300 : 500, hitNote.y, lane === 0 ? '#4caf50' : '#f06292', 12, 1.2);
+            
+            if (minDist <= 22) {
+                gd.score++;
+                this.score++;
+                gd.streak++;
+                gd.multiplier = Math.min(5, 1 + Math.floor(gd.streak / 5));
+                gd.feedbackText = "🔥 ¡PERFECTO! 🔥";
+                gd.feedbackColor = "#00e676";
+                gd.feedbackTimer = 0.8;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+            } else {
+                gd.score++;
+                this.score++;
+                gd.streak++;
+                gd.multiplier = Math.min(5, 1 + Math.floor(gd.streak / 5));
+                gd.feedbackText = "👍 ¡BIEN! 👍";
+                gd.feedbackColor = "#29b6f6";
+                gd.feedbackTimer = 0.8;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+            }
+
+            gd.notes.splice(index, 1);
+
+            if (window.launchConfetti && this.score >= this.goal) window.launchConfetti();
+            if (this.score >= this.goal) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.streak = 0;
+            gd.multiplier = 1;
+            gd.feedbackText = "❌ ¡FALLO! ❌";
+            gd.feedbackColor = "#d50000";
+            gd.feedbackTimer = 0.8;
+            this.triggerShake(5);
+            if (window.playProceduralSound) window.playProceduralSound('error');
+        }
+        document.getElementById('minigame-score').innerText = `Mochi Amasado: ${this.score}/${this.goal}`;
+    },
+
+    setupGymnast() {
+        this.gameData = {
+            lives: 3,
+            poses: [],
+            spawnTimer: 1.0,
+            feedbackText: "",
+            feedbackColor: "#ff4081",
+            feedbackTimer: 0.0,
+            chibi: { y: 360, targetY: 360, angle: 0, animState: 'idle', stateTimer: 0 },
+            jury: [
+                { x: 260, text: "🦌 10", show: false, timer: 0 },
+                { x: 400, text: "🦌 10", show: false, timer: 0 },
+                { x: 540, text: "🦌 10/10 🌟", show: false, timer: 0 }
+            ],
+            streak: 0
+        };
+        this.score = 0;
+    },
+
+    updateGymnast(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        // Update chibi animation
+        if (gd.chibi.stateTimer > 0) {
+            gd.chibi.stateTimer -= dt;
+            if (gd.chibi.stateTimer <= 0) {
+                gd.chibi.animState = 'idle';
+                gd.chibi.angle = 0;
+                gd.chibi.y = 360;
+            } else {
+                if (gd.chibi.animState === 'flip') {
+                    gd.chibi.angle += Math.PI * 4 * dt;
+                    gd.chibi.y = 360 - 80 * Math.sin((gd.chibi.stateTimer / 0.5) * Math.PI);
+                } else if (gd.chibi.animState === 'split') {
+                    gd.chibi.y = 390;
+                }
+            }
+        }
+
+        // Update jury cards
+        gd.jury.forEach(j => {
+            if (j.timer > 0) {
+                j.timer -= dt;
+                if (j.timer <= 0) j.show = false;
+            }
+        });
+
+        // Spawn flowing pose icons from right
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.4 + Math.random() * 0.8 - Math.min(0.5, this.score * 0.03);
+            const poseType = Math.floor(Math.random() * 3);
+            gd.poses.push({
+                x: 830,
+                y: 490,
+                type: poseType,
+                hit: false
+            });
+        }
+
+        // Move poses from right to left
+        const speed = 200 + this.score * 5;
+        for (let i = gd.poses.length - 1; i >= 0; i--) {
+            const p = gd.poses[i];
+            p.x -= speed * dt;
+
+            // Miss if it goes too far left
+            if (p.x < 80) {
+                if (!p.hit) {
+                    gd.lives--;
+                    gd.streak = 0;
+                    gd.feedbackText = "¡FALTA DE RITMO!";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 0.8;
+                    this.triggerShake(5);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                        return;
+                    }
+                }
+                gd.poses.splice(i, 1);
+            }
+        }
+    },
+
+    drawGymnast() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        const grad = ctx.createLinearGradient(0, 0, 0, 400);
+        grad.addColorStop(0, '#ff7043');
+        grad.addColorStop(1, '#ffeb3b');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 400);
+
+        ctx.fillStyle = '#4caf50'; // Grass
+        ctx.fillRect(0, 400, 800, 200);
+
+        // Draw Zen Stone Pagoda
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(680, 260, 40, 140);
+        ctx.fillRect(660, 290, 80, 15);
+        ctx.fillRect(650, 340, 100, 15);
+
+        // Draw Target area circle
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00e5ff';
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(200, 490, 30, 0, Math.PI*2); ctx.stroke();
+        ctx.restore();
+
+        // Draw flowing poses
+        gd.poses.forEach(p => {
+            ctx.save();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#e91e63';
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 20, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#e91e63';
+            ctx.font = '22px sans-serif';
+            ctx.textAlign = 'center';
+            const icon = p.type === 0 ? "🤸‍♀️" : (p.type === 1 ? "🧘‍♀️" : "🙆‍♀️");
+            ctx.fillText(icon, p.x, p.y + 7);
+            ctx.restore();
+        });
+
+        // Draw Chibi Laura
+        ctx.save();
+        ctx.translate(200, gd.chibi.y);
+        ctx.rotate(gd.chibi.angle);
+        
+        ctx.fillStyle = '#e91e63'; // Pink suit
+        if (gd.chibi.animState === 'split') {
+            ctx.fillRect(-8, -40, 16, 25);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffe0b2';
+            ctx.fillRect(-35, -25, 70, 7);
+        } else if (gd.chibi.animState === 'flip') {
+            ctx.beginPath(); ctx.arc(0, -10, 15, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.fillRect(-8, -35, 16, 25);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath(); ctx.arc(0, -48, 14, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffe0b2';
+            ctx.fillRect(-6, -10, 5, 20);
+            ctx.fillRect(1, -10, 5, 20);
+        }
+        ctx.restore();
+
+        // Draw Deer Jury members
+        gd.jury.forEach(j => {
+            ctx.fillStyle = '#8d6e63';
+            ctx.font = '36px serif';
+            ctx.fillText("🦌", j.x, 220);
+
+            if (j.show) {
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 2.5;
+                ctx.fillRect(j.x - 20, 120, 70, 30);
+                ctx.strokeRect(j.x - 20, 120, 70, 30);
+                ctx.fillStyle = '#0a0a0a';
+                ctx.font = 'bold 14px monospace';
+                ctx.fillText(j.text, j.x - 15, 140);
+                ctx.restore();
+            }
+        });
+
+        // Draw buttons at the bottom
+        const buttonX = [250, 400, 550];
+        const emojis = ["🤸‍♀️", "🧘‍♀️", "🙆‍♀️"];
+        const labels = ["VOLTERETA (A)", "EQUILIBRIO (S)", "ESTIRAR (D)"];
+        for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = '#eceff1';
+            ctx.strokeStyle = '#e91e63';
+            ctx.lineWidth = 3;
+            ctx.fillRect(buttonX[i] - 60, 520, 120, 48);
+            ctx.strokeRect(buttonX[i] - 60, 520, 120, 48);
+            ctx.fillStyle = '#0a0a0a';
+            ctx.font = '22px sans-serif';
+            ctx.fillText(emojis[i], buttonX[i] - 12, 545);
+            ctx.font = '9px monospace';
+            ctx.fillText(labels[i], buttonX[i] - 40, 562);
+        }
+
+        // HUD Header
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🤸‍♀️ Poses Perfectas: ${this.score} / ${this.goal}`, 25, 29);
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 620, 29);
+
+        // Feedback
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 28px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 280);
+            ctx.restore();
+        }
+    },
+
+    inputGymnastPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const buttonX = [250, 400, 550];
+        let clickedPose = -1;
+        for (let i = 0; i < 3; i++) {
+            if (x >= buttonX[i] - 60 && x <= buttonX[i] + 60 && y >= 520 && y <= 568) {
+                clickedPose = i;
+                break;
+            }
+        }
+
+        if (clickedPose === -1) return;
+
+        let target = null;
+        let index = -1;
+        let minDist = 9999;
+        for (let i = 0; i < gd.poses.length; i++) {
+            const p = gd.poses[i];
+            if (!p.hit) {
+                const dist = Math.abs(p.x - 200);
+                if (dist < minDist) {
+                    minDist = dist;
+                    target = p;
+                    index = i;
+                }
+            }
+        }
+
+        if (target && minDist < 45) {
+            if (target.type === clickedPose) {
+                target.hit = true;
+                this.score++;
+                gd.streak++;
+                gd.feedbackText = "⭐ ¡EXCELENTE POSTURA! ⭐";
+                gd.feedbackColor = "#00e676";
+                gd.feedbackTimer = 0.8;
+                this.createExplosion(target.x, target.y, '#ffd700', 12, 1.2);
+                if (window.playProceduralSound) window.playProceduralSound('success');
+
+                gd.chibi.animState = clickedPose === 0 ? 'flip' : 'split';
+                gd.chibi.stateTimer = 0.5;
+
+                gd.jury.forEach(j => {
+                    j.show = true;
+                    j.timer = 1.0;
+                    const scores = ["9.5 🦌", "9.8 🦌", "10/10 🌟"];
+                    j.text = scores[Math.floor(Math.random() * scores.length)];
+                });
+
+                gd.poses.splice(index, 1);
+
+                if (window.launchConfetti && this.score >= this.goal) window.launchConfetti();
+                if (this.score >= this.goal) {
+                    setTimeout(() => this.win(), 600);
+                }
+            } else {
+                gd.lives--;
+                gd.streak = 0;
+                gd.feedbackText = "❌ ¡POSE EQUIVOCADA! ❌";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 0.8;
+                this.triggerShake(6);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+            }
+        } else {
+            gd.lives--;
+            gd.streak = 0;
+            gd.feedbackText = "¡FALTA DE RITMO!";
+            gd.feedbackColor = "#ffaa00";
+            gd.feedbackTimer = 0.8;
+            this.triggerShake(4);
+            if (window.playProceduralSound) window.playProceduralSound('error');
+        }
+
+        document.getElementById('minigame-score').innerText = `Poses Realizadas: ${this.score}/${this.goal}`;
+    },
+
+    setupMonk() {
+        this.gameData = {
+            lives: 3,
+            timer: 15.0,
+            monkAngle: 0,
+            monkAngularVel: 0,
+            windForce: 0,
+            windTimer: 0.8,
+            ripples: [],
+            feedbackText: "¡Mantén el Equilibrio!",
+            feedbackColor: "#00e5ff",
+            feedbackTimer: 1.5,
+            petals: []
+        };
+        this.score = 15;
+    },
+
+    updateMonk(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timer -= dt;
+        this.score = Math.max(0, Math.ceil(gd.timer));
+        document.getElementById('minigame-score').innerText = `Tiempo Restante: ${this.score}s`;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        if (gd.timer <= 0) {
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+            return;
+        }
+
+        if (Math.random() < 0.08) {
+            gd.ripples.push({ x: Math.random() * 800, y: Math.random() * 600, r: 5, alpha: 0.8 });
+        }
+        if (Math.random() < 0.12) {
+            gd.petals.push({
+                x: Math.random() * 800,
+                y: -20,
+                vx: -30 - Math.random() * 40,
+                vy: 50 + Math.random() * 30,
+                angle: Math.random() * Math.PI,
+                rotSpeed: 1 + Math.random() * 2
+            });
+        }
+
+        // Update ripples
+        for (let i = gd.ripples.length - 1; i >= 0; i--) {
+            const rp = gd.ripples[i];
+            rp.r += dt * 45;
+            rp.alpha -= dt * 1.2;
+            if (rp.alpha <= 0) gd.ripples.splice(i, 1);
+        }
+
+        // Update petals
+        for (let i = gd.petals.length - 1; i >= 0; i--) {
+            const pt = gd.petals[i];
+            pt.x += pt.vx * dt;
+            pt.y += pt.vy * dt;
+            pt.angle += pt.rotSpeed * dt;
+            if (pt.y > 620 || pt.x < -20) gd.petals.splice(i, 1);
+        }
+
+        // Wind Gust logic
+        gd.windTimer -= dt;
+        if (gd.windTimer <= 0) {
+            gd.windTimer = 1.6 + Math.random() * 1.5;
+            gd.windForce = (0.7 + Math.random() * 0.9) * (Math.random() < 0.5 ? -1 : 1);
+            gd.feedbackText = gd.windForce > 0 ? "💨 ¡RÁFAGA DESDE LA IZQUIERDA!" : "💨 ¡RÁFAGA DESDE LA DERECHA!";
+            gd.feedbackColor = "#ffb74d";
+            gd.feedbackTimer = 1.0;
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+
+        const gravityFactor = 4.2;
+        const accel = gravityFactor * Math.sin(gd.monkAngle) + gd.windForce;
+        
+        gd.monkAngularVel += accel * dt;
+        gd.monkAngularVel -= gd.monkAngularVel * 0.45 * dt;
+        gd.monkAngle += gd.monkAngularVel * dt;
+
+        gd.windForce -= gd.windForce * 1.5 * dt;
+
+        if (Math.abs(gd.monkAngle) > 0.65) {
+            this.triggerShake(16);
+            if (window.playProceduralSound) window.playProceduralSound('damage');
+            this.createExplosion(400, 320, '#00b0ff', 35, 1.8);
+            gd.lives--;
+
+            if (gd.lives <= 0) {
+                this.gameOver();
+                return;
+            }
+
+            gd.monkAngle = 0;
+            gd.monkAngularVel = 0;
+            gd.windForce = 0;
+            gd.windTimer = 1.5;
+            gd.feedbackText = "🥶 ¡AL AGUA! Concéntrate...";
+            gd.feedbackColor = "#ff3333";
+            gd.feedbackTimer = 1.5;
+        }
+    },
+
+    drawMonk() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#006064';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.lineWidth = 1.5;
+        gd.ripples.forEach(rp => {
+            ctx.strokeStyle = `rgba(128, 222, 234, ${rp.alpha})`;
+            ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI*2); ctx.stroke();
+        });
+
+        gd.petals.forEach(pt => {
+            ctx.save();
+            ctx.translate(pt.x, pt.y);
+            ctx.rotate(pt.angle);
+            ctx.fillStyle = '#ff80ab';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Draw central lotus pad
+        ctx.save();
+        ctx.translate(400, 380);
+        ctx.rotate(gd.monkAngle * 0.4);
+        ctx.fillStyle = '#2e7d32';
+        ctx.beginPath(); ctx.arc(0, 0, 75, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#1b5e20';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        for (let i = 0; i < 8; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0,0);
+            ctx.lineTo(Math.cos(i * Math.PI/4) * 75, Math.sin(i * Math.PI/4) * 75);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Draw Chibi Monk
+        ctx.save();
+        ctx.translate(400, 370);
+        ctx.rotate(gd.monkAngle);
+
+        ctx.fillStyle = '#ff6f00'; // Saffron
+        ctx.beginPath();
+        ctx.moveTo(-30, 0);
+        ctx.quadraticCurveTo(0, -60, 30, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ffd54f';
+        ctx.fillRect(-15, -15, 30, 6);
+
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath(); ctx.arc(0, -60, 18, 0, Math.PI*2); ctx.fill();
+
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(-7, -60, 3, 0, Math.PI, true); ctx.stroke();
+        ctx.beginPath(); ctx.arc(7, -60, 3, 0, Math.PI, true); ctx.stroke();
+
+        if (Math.abs(gd.monkAngle) > 0.28) {
+            ctx.fillStyle = '#00b0ff';
+            ctx.font = '16px serif';
+            ctx.fillText("💧", gd.monkAngle > 0 ? 15 : -28, -75);
+        }
+        ctx.restore();
+
+        // Draw Balance Indicator
+        ctx.save();
+        ctx.translate(400, 90);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(-120, -10, 240, 20);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(-120, -10, 240, 20);
+        ctx.strokeStyle = '#00ff99';
+        ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 10); ctx.stroke();
+
+        let cursorX = (gd.monkAngle / 0.65) * 120;
+        ctx.fillStyle = Math.abs(gd.monkAngle) > 0.28 ? '#ff3333' : '#ffd700';
+        ctx.beginPath();
+        ctx.moveTo(cursorX - 8, -15);
+        ctx.lineTo(cursorX + 8, -15);
+        ctx.lineTo(cursorX, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // HUD Header
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🧘‍♂️ Meditación Zen: ¡Sobrevive!`, 25, 29);
+        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        // Feedback
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 24px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 180);
+            ctx.restore();
+        }
+    },
+
+    inputMonkPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const torque = 1.45;
+        if (x < 400) {
+            gd.monkAngularVel -= torque; // nudge left
+            this.createExplosion(x, y, '#e0f7fa', 3, 0.6);
+        } else {
+            gd.monkAngularVel += torque; // nudge right
+            this.createExplosion(x, y, '#e0f7fa', 3, 0.6);
+        }
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+
+    setupDeer() {
+        this.gameData = {
+            lives: 3,
+            deers: [
+                { x: 100, y: 380, vx: 70, w: 60, hunger: 1, state: 'walk', targetX: 200 },
+                { x: 600, y: 440, vx: -50, w: 60, hunger: 2, state: 'walk', targetX: 400 }
+            ],
+            cookies: [],
+            enemies: [],
+            spawnTimer: 1.0,
+            feedbackText: "",
+            feedbackColor: "#00ff99",
+            feedbackTimer: 0.0,
+            crumbParticles: []
+        };
+        this.score = 0;
+    },
+
+    updateDeer(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.8 + Math.random() * 1.5;
+            
+            if (Math.random() < 0.75) {
+                const side = Math.random() < 0.5 ? 0 : 1;
+                const newX = side === 0 ? -70 : 870;
+                const speed = (50 + Math.random() * 60) * (side === 0 ? 1 : -1);
+                gd.deers.push({
+                    x: newX,
+                    y: 350 + Math.random() * 100,
+                    vx: speed,
+                    w: 60,
+                    hunger: Math.floor(Math.random() * 2) + 1,
+                    state: 'walk',
+                    targetX: side === 0 ? 300 + Math.random() * 300 : 100 + Math.random() * 300
+                });
+            }
+
+            if (Math.random() < 0.5) {
+                gd.enemies.push({
+                    x: 820,
+                    y: 80 + Math.random() * 80,
+                    vx: -150 - Math.random() * 70,
+                    vy: 0,
+                    w: 40,
+                    type: 'crow',
+                    age: 0
+                });
+            }
+        }
+
+        // Update Deer positions
+        for (let i = gd.deers.length - 1; i >= 0; i--) {
+            const d = gd.deers[i];
+            if (d.state === 'walk') {
+                d.x += d.vx * dt;
+                if ((d.vx > 0 && d.x > 840) || (d.vx < 0 && d.x < -80)) {
+                    gd.deers.splice(i, 1);
+                    continue;
+                }
+            } else if (d.state === 'eat') {
+                d.eatTimer -= dt;
+                if (d.eatTimer <= 0) {
+                    d.state = 'walk';
+                }
+            }
+        }
+
+        // Update enemies
+        for (let i = gd.enemies.length - 1; i >= 0; i--) {
+            const e = gd.enemies[i];
+            e.age += dt;
+            e.x += e.vx * dt;
+            if (e.type === 'crow') {
+                e.y += Math.sin(e.age * 5) * 2;
+            }
+            if (e.x < -50) {
+                gd.enemies.splice(i, 1);
+            }
+        }
+
+        // Update cookies
+        for (let i = gd.cookies.length - 1; i >= 0; i--) {
+            const c = gd.cookies[i];
+            c.t += dt * 1.6;
+
+            c.x = c.startX + (c.targetX - c.startX) * c.t;
+            c.y = c.startY + (c.targetY - c.startY) * c.t - 140 * Math.sin(c.t * Math.PI);
+
+            gd.enemies.forEach(e => {
+                let dist = Math.hypot(c.x - e.x, c.y - e.y);
+                if (dist < 32) {
+                    gd.lives--;
+                    gd.feedbackText = "🦅 ¡UN CUERVO TE ROBÓ LA GALLETA!";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.2;
+                    this.triggerShake(8);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    this.createExplosion(c.x, c.y, '#37474f', 12, 1.2);
+                    gd.cookies.splice(i, 1);
+                    return;
+                }
+            });
+
+            if (c.t >= 1.0) {
+                let fed = false;
+                for (let d of gd.deers) {
+                    let dist = Math.hypot(c.x - (d.x + d.w/2), c.y - d.y);
+                    if (dist < 50 && d.hunger > 0) {
+                        d.hunger--;
+                        d.state = 'eat';
+                        d.eatTimer = 1.0;
+                        fed = true;
+
+                        if (d.hunger === 0) {
+                            this.score++;
+                            this.createExplosion(c.x, c.y, '#ffd700', 12, 1.2);
+                            if (window.playProceduralSound) window.playProceduralSound('win');
+                        } else {
+                            this.createExplosion(c.x, c.y, '#ff8a80', 8, 1.0);
+                            if (window.playProceduralSound) window.playProceduralSound('collect');
+                        }
+                        break;
+                    }
+                }
+
+                if (!fed) {
+                    this.createExplosion(c.x, c.y, '#d7ccc8', 6, 0.7);
+                    if (window.playProceduralSound) window.playProceduralSound('click');
+                }
+
+                gd.cookies.splice(i, 1);
+
+                if (window.launchConfetti && this.score >= this.goal) window.launchConfetti();
+                if (this.score >= this.goal) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Ciervos Alimentados: ${this.score}/${this.goal}`;
+    },
+
+    drawDeer() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#81d4fa';
+        ctx.fillRect(0, 0, 800, 260);
+
+        ctx.fillStyle = '#4db6ac';
+        ctx.beginPath();
+        ctx.moveTo(0, 260);
+        ctx.lineTo(200, 180);
+        ctx.lineTo(400, 260);
+        ctx.lineTo(600, 150);
+        ctx.lineTo(800, 260);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw Basket
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(360, 530, 80, 70);
+        ctx.fillStyle = '#8d6e63';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(360, 530, 80, 70);
+        ctx.fillStyle = '#a1887f';
+        for (let i = 0; i < 4; i++) {
+            ctx.beginPath(); ctx.arc(380 + i * 12, 545, 10, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Draw deers
+        gd.deers.forEach(d => {
+            ctx.save();
+            ctx.translate(d.x, d.y);
+            
+            ctx.fillStyle = '#a1887f';
+            ctx.fillRect(0, -30, d.w, 30);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(15, -15, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(30, -20, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(45, -12, 3, 0, Math.PI*2); ctx.fill();
+
+            ctx.strokeStyle = '#8d6e63';
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, 20); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(22, 20); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(38, 0); ctx.lineTo(38, 20); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(50, 0); ctx.lineTo(50, 20); ctx.stroke();
+
+            ctx.fillStyle = '#a1887f';
+            if (d.vx < 0) {
+                ctx.fillRect(0, -50, 16, 25);
+                ctx.beginPath();
+                ctx.moveTo(-15, -55); ctx.lineTo(10, -55); ctx.lineTo(5, -38);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#5d4037';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(8, -52); ctx.lineTo(14, -68); ctx.lineTo(18, -62); ctx.stroke();
+            } else {
+                ctx.fillRect(d.w - 16, -50, 16, 25);
+                ctx.beginPath();
+                ctx.moveTo(d.w - 10, -55); ctx.lineTo(d.w + 15, -55); ctx.lineTo(d.w - 5, -38);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#5d4037';
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(d.w - 8, -52); ctx.lineTo(d.w - 14, -68); ctx.lineTo(d.w - 18, -62); ctx.stroke();
+            }
+
+            if (d.state === 'eat') {
+                ctx.fillStyle = '#ff4081';
+                ctx.font = '16px sans-serif';
+                ctx.fillText("❤️", d.w/2 - 8, -75);
+            } else if (d.hunger === 2) {
+                ctx.fillStyle = '#ffaa00';
+                ctx.font = '15px sans-serif';
+                ctx.fillText("🤤", d.w/2 - 8, -72);
+            } else if (d.hunger === 1) {
+                ctx.fillStyle = '#2196f3';
+                ctx.font = '15px sans-serif';
+                ctx.fillText("🤤", d.w/2 - 8, -72);
+            }
+            ctx.restore();
+        });
+
+        // Draw enemies
+        gd.enemies.forEach(e => {
+            ctx.save();
+            ctx.translate(e.x, e.y);
+            ctx.fillStyle = '#37474f';
+            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(10, -4, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffd54f';
+            ctx.beginPath(); ctx.moveTo(14, -7); ctx.lineTo(24, -4); ctx.lineTo(14, -1); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#263238';
+            ctx.beginPath();
+            ctx.moveTo(-10, 0);
+            ctx.lineTo(0, Math.sin(gd.timer * 12) > 0 ? -18 : 12);
+            ctx.lineTo(4, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        });
+
+        // Draw cookies
+        gd.cookies.forEach(c => {
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.fillStyle = '#a1887f';
+            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#5d4037';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#3e2723';
+            ctx.fillRect(-6, -4, 3, 3);
+            ctx.fillRect(4, -2, 3, 3);
+            ctx.fillRect(-2, 4, 3, 3);
+            ctx.restore();
+        });
+
+        // HUD Header
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🌾 Ciervos Alimentados: ${this.score} / ${this.goal}`, 25, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 24px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 150);
+            ctx.restore();
+        }
+    },
+
+    inputDeerPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.cookies.push({
+            startX: 400,
+            startY: 540,
+            x: 400,
+            y: 540,
+            targetX: x,
+            targetY: y,
+            t: 0.0
+        });
+
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+
+    setupRibbon() {
+        const shapes = [
+            this.generateInfinityPath(),
+            this.generateSpiralPath(),
+            this.generateStarPath()
+        ];
+        this.gameData = {
+            lives: 3,
+            shapes: shapes,
+            currentShape: 0,
+            drawing: false,
+            trail: [],
+            checkpoints: [],
+            accuracyPoints: 0,
+            totalTracedPoints: 0,
+            feedbackText: "¡Mantén presionado y traza la línea!",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 1.5
+        };
+        this.score = 0;
+        this.loadRibbonShape(0);
+    },
+
+    generateInfinityPath() {
+        const path = [];
+        for (let t = 0; t <= Math.PI * 2; t += 0.08) {
+            const scale = 220;
+            const denom = 1 + Math.sin(t) * Math.sin(t);
+            const x = 400 + (scale * Math.cos(t)) / denom;
+            const y = 300 + (scale * Math.sin(t) * Math.cos(t)) / denom;
+            path.push({ x, y });
+        }
+        return path;
+    },
+
+    generateSpiralPath() {
+        const path = [];
+        for (let theta = 0.5; theta < 14; theta += 0.15) {
+            const r = 18 * theta;
+            const x = 400 + r * Math.cos(theta);
+            const y = 300 + r * Math.sin(theta);
+            path.push({ x, y });
+        }
+        return path;
+    },
+
+    generateStarPath() {
+        const path = [];
+        const cx = 400, cy = 300;
+        const outerR = 180, innerR = 75;
+        const points = 5;
+        for (let i = 0; i <= points * 2; i++) {
+            const angle = (i * Math.PI) / points - Math.PI/2;
+            const r = i % 2 === 0 ? outerR : innerR;
+            path.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
+        }
+        const refinedPath = [];
+        for (let i = 0; i < path.length - 1; i++) {
+            const p1 = path[i];
+            const p2 = path[i+1];
+            for (let f = 0; f < 1.0; f += 0.08) {
+                refinedPath.push({
+                    x: p1.x + (p2.x - p1.x) * f,
+                    y: p1.y + (p2.y - p1.y) * f
+                });
+            }
+        }
+        refinedPath.push(path[path.length - 1]);
+        return refinedPath;
+    },
+
+    loadRibbonShape(idx) {
+        const gd = this.gameData;
+        if (!gd) return;
+        const path = gd.shapes[idx];
+        gd.checkpoints = path.map((pt, i) => ({
+            x: pt.x,
+            y: pt.y,
+            hit: false,
+            index: i
+        }));
+        gd.accuracyPoints = 0;
+        gd.totalTracedPoints = 0;
+        gd.trail = [];
+    },
+
+    updateRibbon(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.trail.forEach(t => {
+            t.life -= dt * 1.5;
+        });
+        gd.trail = gd.trail.filter(t => t.life > 0);
+
+        if (gd.drawing) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+
+            gd.trail.push({ x: mx, y: my, life: 1.0, color: `hsl(${(gd.totalTracedPoints * 5) % 360}, 100%, 70%)` });
+
+            let minDistance = 999;
+            let closestCp = null;
+
+            gd.checkpoints.forEach(cp => {
+                let dist = Math.hypot(mx - cp.x, my - cp.y);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestCp = cp;
+                }
+            });
+
+            gd.totalTracedPoints++;
+            if (minDistance < 42) {
+                gd.accuracyPoints++;
+                if (closestCp && !closestCp.hit) {
+                    closestCp.hit = true;
+                    this.createExplosion(closestCp.x, closestCp.y, '#e91e63', 3, 0.5);
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+                }
+            } else {
+                gd.drawing = false;
+                gd.lives--;
+                gd.feedbackText = "❌ ¡SE DESVIÓ DE LA RUTA! ❌";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.5;
+                this.triggerShake(7);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                this.loadRibbonShape(gd.currentShape);
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                    return;
+                }
+            }
+        }
+    },
+
+    drawRibbon() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#0d0d1a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        for (let i = 0; i < 30; i++) {
+            const sx = (i * 37) % 800;
+            const sy = (i * 73) % 600;
+            ctx.fillRect(sx, sy, 2, 2);
+        }
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(2, 136, 209, 0.15)';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        gd.checkpoints.forEach((cp, idx) => {
+            if (idx === 0) ctx.moveTo(cp.x, cp.y);
+            else ctx.lineTo(cp.x, cp.y);
+        });
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.restore();
+
+        // Draw checkpoints
+        gd.checkpoints.forEach((cp, idx) => {
+            ctx.fillStyle = cp.hit ? '#00e676' : '#ffd700';
+            ctx.beginPath();
+            ctx.arc(cp.x, cp.y, cp.hit ? 6 : 4, 0, Math.PI*2);
+            ctx.fill();
+
+            if (idx === 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px monospace';
+                ctx.fillText("INICIO ⛳", cp.x - 25, cp.y - 12);
+            }
+        });
+
+        // Draw trail
+        ctx.save();
+        for (let i = 1; i < gd.trail.length; i++) {
+            const p1 = gd.trail[i - 1];
+            const p2 = gd.trail[i];
+            ctx.strokeStyle = p2.color;
+            ctx.lineWidth = 14 * p2.life;
+            ctx.lineCap = 'round';
+            ctx.globalAlpha = p2.life * 0.8;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Accuracy meter HUD
+        let accuracy = gd.totalTracedPoints > 0 ? Math.round((gd.accuracyPoints / gd.totalTracedPoints) * 100) : 100;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🪄 Constelaciones: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.fillText(`Precisión: ${accuracy}%`, 300, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 24px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 160);
+            ctx.restore();
+        }
+    },
+
+    inputRibbonPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const start = gd.checkpoints[0];
+        if (start && Math.hypot(x - start.x, y - start.y) < 55) {
+            gd.drawing = true;
+            start.hit = true;
+            gd.totalTracedPoints = 1;
+            gd.accuracyPoints = 1;
+            if (window.playProceduralSound) window.playProceduralSound('collect');
+        }
+    },
+
+    releaseRibbon(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.drawing) {
+            gd.drawing = false;
+
+            const allHit = gd.checkpoints.every(cp => cp.hit);
+            let accuracy = gd.totalTracedPoints > 0 ? (gd.accuracyPoints / gd.totalTracedPoints) : 0;
+
+            if (allHit && accuracy >= 0.8) {
+                this.score++;
+                this.createExplosion(x, y, '#e0f7fa', 22, 1.5);
+                if (window.playProceduralSound) window.playProceduralSound('win');
+
+                gd.currentShape++;
+                if (gd.currentShape >= gd.shapes.length || this.score >= this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.feedbackText = "⭐ ¡FIGURA COMPLETADA! Próxima constelación...";
+                    gd.feedbackColor = "#00e676";
+                    gd.feedbackTimer = 1.5;
+                    this.loadRibbonShape(gd.currentShape);
+                }
+            } else {
+                gd.lives--;
+                gd.feedbackText = allHit ? "⚠️ ¡BAJA PRECISIÓN! Traza con más cuidado ⚠️" : "⚠️ ¡TRAZO INCOMPLETO! Cubre todos los puntos ⚠️";
+                gd.feedbackColor = "#ffb74d";
+                gd.feedbackTimer = 1.5;
+                this.triggerShake(5);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                this.loadRibbonShape(gd.currentShape);
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Constelaciones Completadas: ${this.score}/${this.goal}`;
+    },
+
+    setupInvestor() {
+        this.gameData = {
+            balance: 1000,
+            assets: [
+                { id: 0, name: "Matching Matcha Matcha 🍵", emoji: "🍵", price: 150, history: [150], qty: 0, maxBounds: [50, 450] },
+                { id: 1, name: "Peluches de Ciervo de Nara 🦌", emoji: "🦌", price: 300, history: [300], qty: 0, maxBounds: [100, 800] },
+                { id: 2, name: "Templo Omamori de la Suerte ⛩️", emoji: "⛩️", price: 500, history: [500], qty: 0, maxBounds: [200, 1200] }
+            ],
+            selectedAsset: 0,
+            marketTimer: 45.0,
+            priceUpdateTimer: 0.8,
+            newsText: "Mercado abierto. Compra barato (BUY) y vende caro (SELL).",
+            newsTimer: 4.0,
+            floatingTexts: []
+        };
+        this.score = 1000;
+    },
+
+    updateInvestor(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.marketTimer -= dt;
+        this.score = gd.balance;
+        document.getElementById('minigame-score').innerText = `Cartera: ${this.score}¥ / ${this.goal}¥`;
+
+        for (let i = gd.floatingTexts.length - 1; i >= 0; i--) {
+            const ft = gd.floatingTexts[i];
+            ft.y -= dt * 40;
+            ft.timer -= dt;
+            if (ft.timer <= 0) gd.floatingTexts.splice(i, 1);
+        }
+
+        if (gd.marketTimer <= 0) {
+            if (gd.balance >= this.goal) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            } else {
+                this.gameOver();
+            }
+            return;
+        }
+
+        if (gd.balance >= this.goal) {
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+            return;
+        }
+
+        if (gd.newsTimer > 0) {
+            gd.newsTimer -= dt;
+            if (gd.newsTimer <= 0) {
+                gd.newsText = "Monitoreando el mercado bursátil de Nara...";
+            }
+        }
+
+        gd.priceUpdateTimer -= dt;
+        if (gd.priceUpdateTimer <= 0) {
+            gd.priceUpdateTimer = 0.8;
+            
+            let eventHappened = false;
+            let eventMsg = "";
+            let eventAsset = -1;
+            let multiplier = 1.0;
+
+            if (Math.random() < 0.12) {
+                eventHappened = true;
+                eventAsset = Math.floor(Math.random() * 3);
+                const isGood = Math.random() < 0.5;
+                multiplier = isGood ? 1.45 : 0.55;
+                eventMsg = isGood ? 
+                    `🚀 FIEBRE DE COMPRAS: ¡La demanda de ${gd.assets[eventAsset].emoji} se dispara! (+45%)` : 
+                    `🚨 SE desploma la demanda de ${gd.assets[eventAsset].emoji} (-45%)`;
+                gd.newsText = eventMsg;
+                gd.newsTimer = 4.0;
+                if (window.playProceduralSound) window.playProceduralSound('click');
+            }
+
+            gd.assets.forEach((ast, idx) => {
+                let change = (Math.random() - 0.5) * 0.14;
+                if (eventHappened && idx === eventAsset) {
+                    ast.price = Math.round(ast.price * multiplier);
+                } else {
+                    ast.price = Math.round(ast.price * (1 + change));
+                }
+
+                ast.price = Math.max(ast.maxBounds[0], Math.min(ast.maxBounds[1], ast.price));
+                
+                ast.history.push(ast.price);
+                if (ast.history.length > 20) {
+                    ast.history.shift();
+                }
+            });
+        }
+    },
+
+    drawInvestor() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#0a0b10';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < 800; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+        }
+        for (let y = 0; y < 600; y += 40) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+
+        const chartW = 460;
+        const chartH = 260;
+        const chartX = 40;
+        const chartY = 120;
+
+        ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
+        ctx.fillRect(chartX, chartY, chartW, chartH);
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(chartX, chartY, chartW, chartH);
+
+        const selAst = gd.assets[gd.selectedAsset];
+        
+        if (selAst.history.length > 1) {
+            ctx.save();
+            const maxVal = selAst.maxBounds[1];
+            const minVal = selAst.maxBounds[0];
+            const range = maxVal - minVal;
+
+            ctx.strokeStyle = '#39ff14';
+            ctx.lineWidth = 3.5;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#39ff14';
+            ctx.beginPath();
+
+            const stepX = chartW / 19;
+            selAst.history.forEach((val, idx) => {
+                const px = chartX + idx * stepX;
+                const py = chartY + chartH - ((val - minVal) / range) * chartH;
+                if (idx === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        const cardX = 540;
+        const cardW = 220;
+        const cardH = 85;
+        const cardYStart = 120;
+
+        gd.assets.forEach((ast, idx) => {
+            const cy = cardYStart + idx * (cardH + 12);
+            const isSelected = gd.selectedAsset === idx;
+
+            ctx.fillStyle = isSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(30, 30, 45, 0.6)';
+            ctx.strokeStyle = isSelected ? '#00f0ff' : '#455a64';
+            ctx.lineWidth = isSelected ? 3.0 : 1.5;
+            ctx.fillRect(cardX, cy, cardW, cardH);
+            ctx.strokeRect(cardX, cy, cardW, cardH);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(`${ast.emoji} Recuerdo ${idx + 1}`, cardX + 15, cy + 25);
+            ctx.font = '10px monospace';
+            ctx.fillText(ast.name.slice(0, 24), cardX + 15, cy + 42);
+
+            ctx.font = 'bold 14px monospace';
+            ctx.fillStyle = '#39ff14';
+            ctx.fillText(`P: ${ast.price}¥`, cardX + 15, cy + 65);
+
+            ctx.fillStyle = '#ffb74d';
+            ctx.fillText(`Tengo: ${ast.qty}`, cardX + 130, cy + 65);
+        });
+
+        gd.floatingTexts.forEach(ft => {
+            ctx.save();
+            ctx.fillStyle = ft.color;
+            ctx.font = 'bold 22px monospace';
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = ft.color;
+            ctx.fillText(ft.text, ft.x, ft.y);
+            ctx.restore();
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillRect(40, 400, 720, 40);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(40, 400, 720, 40);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText(`NOTICIAS: ${gd.newsText}`, 55, 424);
+
+        const btnBuyX = 100;
+        const btnSellX = 280;
+        const btnW = 140;
+        const btnH = 50;
+        const btnY = 475;
+
+        ctx.fillStyle = '#2e7d32';
+        ctx.fillRect(btnBuyX, btnY, btnW, btnH);
+        ctx.strokeStyle = '#39ff14';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(btnBuyX, btnY, btnW, btnH);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText("COMPRAR (BUY)", btnBuyX + 14, btnY + 31);
+
+        ctx.fillStyle = '#c62828';
+        ctx.fillRect(btnSellX, btnY, btnW, btnH);
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(btnSellX, btnY, btnW, btnH);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("VENDER (SELL)", btnSellX + 16, btnY + 31);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`📊 Especulador de Recuerdos: ${gd.balance}¥ / ${this.goal}¥`, 25, 29);
+        
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`Cierre de Mercado en: ${Math.max(0, Math.ceil(gd.marketTimer))}s`, 500, 29);
+    },
+
+    inputInvestorPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const cardX = 540;
+        const cardW = 220;
+        const cardH = 85;
+        const cardYStart = 120;
+        for (let i = 0; i < 3; i++) {
+            const cy = cardYStart + i * (cardH + 12);
+            if (x >= cardX && x <= cardX + cardW && y >= cy && y <= cy + cardH) {
+                gd.selectedAsset = i;
+                if (window.playProceduralSound) window.playProceduralSound('click');
+                return;
+            }
+        }
+
+        const selAst = gd.assets[gd.selectedAsset];
+        const btnBuyX = 100;
+        const btnSellX = 280;
+        const btnW = 140;
+        const btnH = 50;
+        const btnY = 475;
+
+        if (x >= btnBuyX && x <= btnBuyX + btnW && y >= btnY && y <= btnY + btnH) {
+            if (gd.balance >= selAst.price) {
+                gd.balance -= selAst.price;
+                selAst.qty++;
+                gd.floatingTexts.push({ x: x, y: y, text: `-${selAst.price}¥`, color: '#ff3333', timer: 0.8 });
+                this.createExplosion(x + 70, y + 25, '#ff3333', 6, 0.8);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+            } else {
+                if (window.playProceduralSound) window.playProceduralSound('error');
+            }
+        }
+
+        if (x >= btnSellX && x <= btnSellX + btnW && y >= btnY && y <= btnY + btnH) {
+            if (selAst.qty > 0) {
+                gd.balance += selAst.price;
+                selAst.qty--;
+                gd.floatingTexts.push({ x: x, y: y, text: `+${selAst.price}¥`, color: '#39ff14', timer: 0.8 });
+                this.createExplosion(x + 70, y + 25, '#39ff14', 8, 1.0);
+                if (window.playProceduralSound) window.playProceduralSound('win');
+            } else {
+                if (window.playProceduralSound) window.playProceduralSound('error');
+            }
+        }
+    },
+
+    setupZen() {
+        const kanjis = [
+            {
+                name: "人 (Persona)",
+                strokes: [
+                    [{ x: 400, y: 150 }, { x: 380, y: 200 }, { x: 340, y: 280 }, { x: 280, y: 380 }],
+                    [{ x: 360, y: 240 }, { x: 400, y: 290 }, { x: 460, y: 350 }, { x: 520, y: 380 }]
+                ]
+            },
+            {
+                name: "山 (Montaña)",
+                strokes: [
+                    [{ x: 400, y: 140 }, { x: 400, y: 220 }, { x: 400, y: 300 }, { x: 400, y: 380 }],
+                    [{ x: 280, y: 240 }, { x: 280, y: 320 }, { x: 280, y: 375 }, { x: 340, y: 375 }, { x: 400, y: 375 }, { x: 460, y: 375 }, { x: 520, y: 375 }],
+                    [{ x: 520, y: 240 }, { x: 520, y: 300 }, { x: 520, y: 375 }]
+                ]
+            }
+        ];
+        this.gameData = {
+            lives: 3,
+            kanjis: kanjis,
+            currentKanjiIdx: 0,
+            currentStrokeIdx: 0,
+            drawing: false,
+            userBrushTrail: [],
+            drawnStrokes: [],
+            feedbackText: "Sigue los números y las flechas de trazo.",
+            feedbackColor: "#616161",
+            feedbackTimer: 2.0,
+            hankoStamped: false,
+            hankoTimer: 0
+        };
+        this.score = 0;
+    },
+
+    updateZen(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+        if (gd.hankoTimer > 0) gd.hankoTimer -= dt;
+
+        if (gd.drawing) {
+            const mx = this.mouse.x;
+            const my = this.mouse.y;
+            gd.userBrushTrail.push({ x: mx, y: my });
+        }
+    },
+
+    drawZen() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#f7f1e3';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(139, 125, 107, 0.15)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(30, 30, 740, 540);
+
+        const currentKanji = gd.kanjis[gd.currentKanjiIdx];
+
+        if (currentKanji) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 171, 0, 0.25)';
+            ctx.lineWidth = 26;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            
+            const currentStroke = currentKanji.strokes[gd.currentStrokeIdx];
+            if (currentStroke) {
+                currentStroke.forEach((pt, idx) => {
+                    if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                });
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            if (currentStroke && currentStroke.length > 0) {
+                ctx.fillStyle = '#ff6f00';
+                ctx.font = 'bold 16px sans-serif';
+                const start = currentStroke[0];
+                ctx.fillText(`T${gd.currentStrokeIdx + 1} 🎯`, start.x - 28, start.y - 12);
+            }
+        }
+
+        ctx.save();
+        ctx.strokeStyle = '#212121';
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        gd.drawnStrokes.forEach(stroke => {
+            ctx.lineWidth = 14;
+            ctx.beginPath();
+            stroke.points.forEach((pt, idx) => {
+                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+        });
+        ctx.restore();
+
+        if (gd.drawing && gd.userBrushTrail.length > 1) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(33, 33, 33, 0.85)';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            gd.userBrushTrail.forEach((pt, idx) => {
+                ctx.lineWidth = 15 - Math.min(8, idx * 0.15);
+                if (idx === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            });
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        if (gd.hankoStamped) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(198, 40, 40, 0.9)';
+            ctx.strokeStyle = '#c62828';
+            ctx.lineWidth = 3;
+            ctx.fillRect(660, 460, 60, 60);
+            ctx.strokeRect(660, 460, 60, 60);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px serif';
+            ctx.fillText("書", 678, 497);
+            ctx.restore();
+        }
+
+        // HUD Header
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🖌️ Caligrafía Shodo: ${currentKanji ? currentKanji.name : ""}`, 25, 29);
+        ctx.fillText(`Kanjis: ${this.score} / ${this.goal}`, 380, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 24px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 520);
+            ctx.restore();
+        }
+    },
+
+    inputZenPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const currentKanji = gd.kanjis[gd.currentKanjiIdx];
+        if (!currentKanji) return;
+        const currentStroke = currentKanji.strokes[gd.currentStrokeIdx];
+        if (!currentStroke) return;
+
+        const startPt = currentStroke[0];
+        if (Math.hypot(x - startPt.x, y - startPt.y) < 55) {
+            gd.drawing = true;
+            gd.userBrushTrail = [{ x, y }];
+            if (window.playProceduralSound) window.playProceduralSound('collect');
+        }
+    },
+
+    releaseZen(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.drawing) {
+            gd.drawing = false;
+
+            const currentKanji = gd.kanjis[gd.currentKanjiIdx];
+            const currentStroke = currentKanji.strokes[gd.currentStrokeIdx];
+
+            let matches = true;
+            let totalDeviation = 0;
+
+            if (gd.userBrushTrail.length < 5) {
+                matches = false;
+            } else {
+                const endPt = currentStroke[currentStroke.length - 1];
+                const finalUserPt = gd.userBrushTrail[gd.userBrushTrail.length - 1];
+                if (Math.hypot(finalUserPt.x - endPt.x, finalUserPt.y - endPt.y) > 65) {
+                    matches = false;
+                } else {
+                    currentStroke.forEach(guidePt => {
+                        let nearestDist = 999;
+                        gd.userBrushTrail.forEach(userPt => {
+                            let d = Math.hypot(userPt.x - guidePt.x, userPt.y - guidePt.y);
+                            if (d < nearestDist) nearestDist = d;
+                        });
+                        totalDeviation += nearestDist;
+                        if (nearestDist > 55) {
+                            matches = false;
+                        }
+                    });
+                }
+            }
+
+            if (matches) {
+                gd.drawnStrokes.push({ points: gd.userBrushTrail });
+                this.createExplosion(x, y, '#212121', 8, 1.0);
+                if (window.playProceduralSound) window.playProceduralSound('success');
+
+                gd.currentStrokeIdx++;
+                if (gd.currentStrokeIdx >= currentKanji.strokes.length) {
+                    this.score++;
+                    gd.hankoStamped = true;
+                    gd.hankoTimer = 2.0;
+                    if (window.playProceduralSound) window.playProceduralSound('win');
+
+                    gd.currentKanjiIdx++;
+                    if (gd.currentKanjiIdx >= gd.kanjis.length || this.score >= this.goal) {
+                        if (window.launchConfetti) window.launchConfetti();
+                        setTimeout(() => this.win(), 850);
+                    } else {
+                        gd.feedbackText = "⛩️ ¡KANJI COMPLETADO! Siguiente...";
+                        gd.feedbackColor = "#00e676";
+                        gd.feedbackTimer = 2.0;
+                        gd.currentStrokeIdx = 0;
+                        gd.drawnStrokes = [];
+                        gd.hankoStamped = false;
+                    }
+                } else {
+                    gd.feedbackText = "✒️ ¡Buen Trazo!";
+                    gd.feedbackColor = "#29b6f6";
+                    gd.feedbackTimer = 1.0;
+                }
+            } else {
+                gd.lives--;
+                gd.feedbackText = "❌ TRAZO INCORRECTO. Sigue las guías.";
+                gd.feedbackColor = "#d50000";
+                gd.feedbackTimer = 1.5;
+                this.triggerShake(5);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
+
+            gd.userBrushTrail = [];
+        }
+        document.getElementById('minigame-score').innerText = `Kanjis Escritos: ${this.score}/${this.goal}`;
+    },
+
+    setupEngineer() {
+        this.gameData = {
+            lives: 3,
+            levels: [],
+            craneX: 400,
+            craneSpeed: 2.2,
+            craneTimer: 0.0,
+            currentBlock: { x: 400, y: 100, w: 200, h: 50 },
+            towerOffset: 0.0,
+            state: 'playing',
+            earthquakeTimer: 0.0,
+            earthquakeAmp: 0.0,
+            shakeX: 0
+        };
+        this.score = 0;
+    },
+
+    updateEngineer(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.state === 'playing') {
+            gd.craneTimer += dt;
+            gd.currentBlock.x = 400 + 190 * Math.sin(gd.craneTimer * gd.craneSpeed);
+        }
+        else if (gd.state === 'dropping') {
+            gd.currentBlock.y += dt * 450;
+
+            let landingY = 520;
+            let targetX = 400;
+
+            if (gd.levels.length > 0) {
+                const prev = gd.levels[gd.levels.length - 1];
+                landingY = prev.y - gd.currentBlock.h;
+                targetX = prev.x;
+            }
+
+            if (gd.currentBlock.y >= landingY) {
+                gd.currentBlock.y = landingY;
+                const offset = gd.currentBlock.x - targetX;
+
+                if (Math.abs(offset) > gd.currentBlock.w / 2 + 10) {
+                    gd.lives--;
+                    gd.state = 'playing';
+                    gd.currentBlock.y = 100;
+                    gd.currentBlock.w = Math.max(70, 200 - gd.levels.length * 30);
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                    }
+                } else {
+                    gd.levels.push({
+                        x: gd.currentBlock.x,
+                        y: gd.currentBlock.y,
+                        w: gd.currentBlock.w,
+                        h: gd.currentBlock.h
+                    });
+                    this.score++;
+                    gd.towerOffset += offset * 0.15;
+                    this.createExplosion(gd.currentBlock.x, gd.currentBlock.y + gd.currentBlock.h, '#d7ccc8', 15, 1.2);
+                    this.triggerShake(5);
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+
+                    if (gd.levels.length >= this.goal) {
+                        gd.state = 'earthquake';
+                        gd.earthquakeTimer = 3.0;
+                        if (window.playProceduralSound) window.playProceduralSound('click');
+                    } else {
+                        gd.state = 'playing';
+                        gd.currentBlock.y = 100;
+                        gd.currentBlock.w = Math.max(70, 200 - gd.levels.length * 30);
+                    }
+                }
+            }
+        }
+        else if (gd.state === 'earthquake') {
+            gd.earthquakeTimer -= dt;
+            this.triggerShake(15);
+
+            gd.towerOffset += (gd.towerOffset > 0 ? 1 : -1) * dt * 10;
+            gd.shakeX = (Math.random() - 0.5) * 12;
+
+            if (Math.abs(gd.towerOffset) > 65) {
+                gd.state = 'collapse';
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+            }
+
+            if (gd.earthquakeTimer <= 0) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
+        }
+        else if (gd.state === 'collapse') {
+            let allOut = true;
+            gd.levels.forEach((lvl, idx) => {
+                lvl.y += dt * 300;
+                lvl.x += (idx % 2 === 0 ? 150 : -150) * dt;
+                if (lvl.y < 650) allOut = false;
+            });
+            if (allOut) {
+                this.gameOver();
+            }
+        }
+        document.getElementById('minigame-score').innerText = `Secciones Apiladas: ${this.score}/${this.goal}`;
+    },
+
+    drawEngineer() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#cfd8dc';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(0, 520, 800, 80);
+
+        if (gd.state === 'playing') {
+            ctx.strokeStyle = '#37474f';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(400, 0);
+            ctx.lineTo(gd.currentBlock.x, gd.currentBlock.y);
+            ctx.stroke();
+        }
+
+        gd.levels.forEach((lvl, idx) => {
+            ctx.save();
+            ctx.translate(lvl.x + (gd.state === 'earthquake' ? gd.shakeX : 0), lvl.y);
+            
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(-lvl.w/2, 0, lvl.w, lvl.h);
+
+            ctx.fillStyle = '#c62828';
+            ctx.fillRect(-lvl.w/2 + 10, 0, 15, lvl.h);
+            ctx.fillRect(lvl.w/2 - 25, 0, 15, lvl.h);
+
+            ctx.fillStyle = '#ffd54f';
+            ctx.beginPath();
+            ctx.moveTo(-lvl.w/2 - 12, 0);
+            ctx.lineTo(lvl.w/2 + 12, 0);
+            ctx.lineTo(lvl.w/2 - 2, -10);
+            ctx.lineTo(-lvl.w/2 + 2, -10);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        });
+
+        if (gd.state === 'playing' || gd.state === 'dropping') {
+            ctx.save();
+            ctx.translate(gd.currentBlock.x, gd.currentBlock.y);
+            ctx.fillStyle = '#8d6e63';
+            ctx.fillRect(-gd.currentBlock.w/2, 0, gd.currentBlock.w, gd.currentBlock.h);
+            ctx.fillStyle = '#c62828';
+            ctx.fillRect(-gd.currentBlock.w/2 + 10, 0, 15, gd.currentBlock.h);
+            ctx.fillRect(gd.currentBlock.w/2 - 25, 0, 15, gd.currentBlock.h);
+            ctx.fillStyle = '#ffd54f';
+            ctx.beginPath();
+            ctx.moveTo(-gd.currentBlock.w/2 - 12, 0);
+            ctx.lineTo(gd.currentBlock.w/2 + 12, 0);
+            ctx.lineTo(gd.currentBlock.w/2 - 2, -10);
+            ctx.lineTo(-gd.currentBlock.w/2 + 2, -10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        if (gd.state === 'earthquake') {
+            ctx.fillStyle = 'rgba(255, 51, 51, 0.15)';
+            ctx.fillRect(0,0,800,600);
+            ctx.fillStyle = '#ff3333';
+            ctx.font = 'bold 26px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText("⚠️ ¡PRUEBA DE SISMO GRADO 7! ⚠️", 400, 220);
+            ctx.font = '14px monospace';
+            ctx.fillText("¡Resistiendo oscilación estructural!", 400, 250);
+            ctx.textAlign = 'left';
+        }
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🏗️ Secciones Apiladas: ${this.score} / ${this.goal}`, 25, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+    },
+
+    inputEngineerPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.state === 'playing') {
+            gd.state = 'dropping';
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+    },
+
+    setupGuardian() {
+        this.gameData = {
+            progress: 0.0,
+            lives: 3,
+            lastTap: '',
+            stunnedTimer: 0.0,
+            debris: [],
+            spawnTimer: 0.0,
+            pillarIndex: 1,
+            feedbackText: "¡Cruza el Pilar Sagrado!",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 2.0
+        };
+        this.score = 1;
+    },
+
+    updateGuardian(dt) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        this.score = gd.pillarIndex;
+        document.getElementById('minigame-score').innerText = `Pilar Cruzado: ${gd.pillarIndex - 1}/3`;
+
+        if (gd.stunnedTimer > 0) {
+            gd.stunnedTimer -= dt;
+            return;
+        }
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0 + Math.random() * 1.2 - (gd.pillarIndex * 0.2);
+            gd.debris.push({
+                x: 360 + Math.random() * 80,
+                y: -30,
+                vy: 250 + Math.random() * 100,
+                size: 20 + Math.random() * 20
+            });
+        }
+
+        for (let i = gd.debris.length - 1; i >= 0; i--) {
+            const deb = gd.debris[i];
+            deb.y += deb.vy * dt;
+
+            let dist = Math.hypot(deb.x - 400, deb.y - 340);
+            if (dist < 40) {
+                gd.lives--;
+                gd.stunnedTimer = 1.5;
+                gd.feedbackText = "💥 ¡GOLPE DE ASTILLA! Aturdido 💥";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.5;
+                this.triggerShake(12);
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+                this.createExplosion(deb.x, deb.y, '#8d6e63', 12, 1.0);
+                gd.debris.splice(i, 1);
+
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+                return;
+            }
+
+            if (deb.y > 620) gd.debris.splice(i, 1);
+        }
+    },
+
+    drawGuardian() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(0, 0, 340, 600);
+        ctx.fillRect(460, 0, 340, 600);
+
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 6;
+        for (let x = 60; x < 340; x += 80) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+        }
+        for (let x = 480; x < 800; x += 80) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+        }
+
+        ctx.fillStyle = '#8d6e63';
+        ctx.fillRect(340, 0, 120, 600);
+
+        ctx.save();
+        ctx.translate(400, 340);
+        if (gd.stunnedTimer > 0) {
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath(); ctx.arc(0, -10, 16, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffd54f';
+            ctx.font = '14px sans-serif';
+            ctx.fillText("💫", -10, -32);
+        } else {
+            ctx.fillStyle = '#1976d2';
+            ctx.fillRect(-15, -15, 30, 40);
+            ctx.fillStyle = '#ffe0b2';
+            ctx.beginPath(); ctx.arc(0, -25, 14, 0, Math.PI*2); ctx.fill();
+            
+            ctx.font = '16px sans-serif';
+            const face = gd.progress > 0.7 ? "😤" : (gd.progress > 0.4 ? "😫" : "😅");
+            ctx.fillText(face, -10, -45);
+        }
+        ctx.restore();
+
+        gd.debris.forEach(deb => {
+            ctx.fillStyle = '#78909c';
+            ctx.fillRect(deb.x - deb.size/2, deb.y - deb.size/2, deb.size, deb.size);
+            ctx.strokeStyle = '#37474f';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(deb.x - deb.size/2, deb.y - deb.size/2, deb.size, deb.size);
+        });
+
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(300, 80, 20, 440);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(300, 80, 20, 440);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 80 + 440 - (gd.progress * 440), 20, gd.progress * 440);
+
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(80, 500, 140, 50);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(80, 500, 140, 50);
+        ctx.fillStyle = '#212121';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText("IZQUIERDA (A)", 95, 532);
+
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(580, 500, 140, 50);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(580, 500, 140, 50);
+        ctx.fillStyle = '#212121';
+        ctx.fillText("DERECHA (D)", 600, 532);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.fillRect(0, 0, 800, 48);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🪵 Pilar Sagrado Todai-ji: Pilar ${gd.pillarIndex} / 3`, 25, 29);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 24px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 180);
+            ctx.restore();
+        }
+    },
+
+    inputGuardianPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.stunnedTimer > 0) return;
+
+        let pressType = '';
+        if (x >= 80 && x <= 220 && y >= 500 && y <= 550) {
+            pressType = 'L';
+        }
+        if (x >= 580 && x <= 720 && y >= 500 && y <= 550) {
+            pressType = 'R';
+        }
+
+        if (pressType === '') return;
+
+        if (pressType !== gd.lastTap) {
+            gd.lastTap = pressType;
+            gd.progress += 0.045;
+            this.createExplosion(400, 350, '#d7ccc8', 3, 0.5);
+            if (window.playProceduralSound) window.playProceduralSound('collect');
+
+            if (gd.progress >= 1.0) {
+                if (window.playProceduralSound) window.playProceduralSound('success');
+                gd.pillarIndex++;
+
+                if (gd.pillarIndex > this.goal) {
+                    if (window.launchConfetti) window.launchConfetti();
+                    setTimeout(() => this.win(), 600);
+                } else {
+                    gd.progress = 0.0;
+                    gd.lastTap = '';
+                    gd.feedbackText = `¡Pilar ${gd.pillarIndex - 1} Cruzado! Avanzando al siguiente...`;
+                    gd.feedbackColor = "#00ff99";
+                    gd.feedbackTimer = 2.0;
+                }
+            }
+        } else {
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+        document.getElementById('minigame-score').innerText = `Pilares Cruzados: ${gd.pillarIndex - 1}/3`;
+    },
+
+    // ==========================================================

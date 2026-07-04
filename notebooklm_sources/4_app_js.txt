@@ -4,11 +4,11 @@
 
 const DEFAULT_STATE = {
     kid9: { 
-        name: "Laura", xp: 0, level: 0, missions: {}, wallet: 0,
+        name: "Laura", xp: 0, level: 0, missions: {}, 
         badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
     },
     kid14: { 
-        name: "Iván", xp: 0, level: 0, missions: {}, wallet: 0,
+        name: "Iván", xp: 0, level: 0, missions: {},
         badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
     },
     judgePIN: "1234"
@@ -114,9 +114,6 @@ function loadState() {
             if (!gameState[kid].counters) gameState[kid].counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
             if (!gameState[kid].album) gameState[kid].album = {};
             if (!gameState[kid].rewards) gameState[kid].rewards = {};
-            if (gameState[kid].wallet === undefined) {
-                gameState[kid].wallet = (gameState[kid].xp || 0) * 5;
-            }
         });
     } else {
         gameState = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -431,20 +428,6 @@ function renderDaysList(role) {
     
     // Aplicar Tema Dinámico
     document.body.className = role === 'kid9' ? 'theme-laura' : 'theme-ivan';
-
-    // Configurar visibilidad de la tienda hacker y actualizar cartera
-    const shopBtn = document.getElementById('btn-open-shop');
-    if (shopBtn) {
-        if (role === 'kid9') {
-            shopBtn.classList.remove('hidden');
-        } else {
-            shopBtn.classList.add('hidden');
-        }
-    }
-    const walletText = document.getElementById('user-wallet-amount');
-    if (walletText) {
-        walletText.innerText = gameState[role].wallet || 0;
-    }
     
     // Header Stats y Lógica de Niveles
     const levelsArr = role === 'kid9' ? LEVELS_LAURA : LEVELS_IVAN;
@@ -1349,7 +1332,6 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
     let leveledUp = false;
     let newBadges = [];
 
-    let yenEarned = xp * 5;
     if (isFamily) {
         gameState['kid9'].missions[missionId].status = 'approved';
         gameState['kid14'].missions[missionId].status = 'approved';
@@ -1357,8 +1339,6 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
         gameState['kid14'].missions[missionId].awardedXP = xp;
         gameState['kid9'].xp += xp;
         gameState['kid14'].xp += xp;
-        gameState['kid9'].wallet = (gameState['kid9'].wallet || 0) + yenEarned;
-        gameState['kid14'].wallet = (gameState['kid14'].wallet || 0) + yenEarned;
         
         let l1 = checkLevelUp('kid9');
         let l2 = checkLevelUp('kid14');
@@ -1373,7 +1353,6 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
         gameState[kid].missions[missionId].status = 'approved';
         gameState[kid].missions[missionId].awardedXP = xp;
         gameState[kid].xp += xp;
-        gameState[kid].wallet = (gameState[kid].wallet || 0) + yenEarned;
         
         leveledUp = checkLevelUp(kid);
         newBadges = checkBadges(kid, missionId);
@@ -1562,18 +1541,13 @@ document.getElementById('btn-back').addEventListener('click', () => {
     } else if (currentUser) {
         const isMissionView = !document.getElementById('view-mission').classList.contains('hidden');
         const isPassportView = !document.getElementById('view-passport').classList.contains('hidden');
-        const isShopView = !document.getElementById('view-shop').classList.contains('hidden');
-        const isAlbumView = !document.getElementById('view-album').classList.contains('hidden');
-        const isAlbumCatView = !document.getElementById('view-album-category').classList.contains('hidden');
         
         if (isMissionView) {
             // Estábamos en una prueba -> volver al día
             renderDayMissions(currentUser, currentDay, currentDayMissions);
-        } else if (isPassportView || isShopView || isAlbumView) {
-            // Estábamos en el pasaporte, tienda o álbum -> volver a la lista de días
+        } else if (isPassportView) {
+            // Estábamos en el pasaporte -> volver a la lista de días o home
             renderDaysList(currentUser);
-        } else if (isAlbumCatView) {
-            switchView('view-album', true, "Álbum del Coleccionista");
         } else {
             // Estamos en view-days
             if (currentDay !== null) {
@@ -1984,97 +1958,6 @@ window.onload = async () => {
     setTimeout(() => {
         checkAppUpdates(false);
     }, 1000);
-};
-
-// ==========================================
-// LÓGICA DE LA TIENDA HACKER DE LAURA
-// ==========================================
-document.getElementById('btn-open-shop').addEventListener('click', () => {
-    if (!currentUser || currentUser === 'judge') return;
-    renderShop();
-});
-
-function renderShop() {
-    const userWallet = gameState[currentUser].wallet || 0;
-    
-    // Actualizar monedero en la vista de la tienda
-    document.getElementById('shop-wallet-amount').innerText = userWallet;
-    
-    let purchases = {};
-    try {
-        purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
-    } catch(e) {}
-    
-    // Botón de galletas
-    const btnCookie = document.getElementById('btn-buy-cookie');
-    if (purchases.cookie) {
-        btnCookie.innerText = "✓ Adquirido";
-        btnCookie.disabled = true;
-        btnCookie.style.background = "#2e7d32";
-    } else {
-        btnCookie.innerText = "Adquirir Modificación (250 ¥)";
-        btnCookie.disabled = false;
-        btnCookie.style.background = "#8e24aa";
-    }
-    
-    // Botón de kintsugi
-    const btnKintsugi = document.getElementById('btn-buy-kintsugi');
-    if (purchases.kintsugi) {
-        btnKintsugi.innerText = "✓ Adquirido";
-        btnKintsugi.disabled = true;
-        btnKintsugi.style.background = "#2e7d32";
-    } else {
-        btnKintsugi.innerText = "Adquirir Modificación (400 ¥)";
-        btnKintsugi.disabled = false;
-        btnKintsugi.style.background = "#8e24aa";
-    }
-    
-    // Botón de pescados
-    const btnFish = document.getElementById('btn-buy-fish');
-    if (purchases.fish) {
-        btnFish.innerText = "✓ Adquirido";
-        btnFish.disabled = true;
-        btnFish.style.background = "#2e7d32";
-    } else {
-        btnFish.innerText = "Adquirir Modificación (500 ¥)";
-        btnFish.disabled = false;
-        btnFish.style.background = "#8e24aa";
-    }
-    
-    switchView('view-shop', true, "Tienda Hacker");
-}
-
-window.buyUpgrade = (itemKey, cost) => {
-    if (!currentUser || currentUser !== 'kid9') {
-        alert("Solo Laura puede adquirir estas modificaciones tecnológicas.");
-        return;
-    }
-    
-    let wallet = gameState[currentUser].wallet || 0;
-    if (wallet < cost) {
-        alert("No tienes suficientes Yenes para adquirir esta modificación.");
-        return;
-    }
-    
-    // Deducir dinero de la cartera
-    gameState[currentUser].wallet = wallet - cost;
-    saveState();
-    
-    // Registrar compra en localStorage
-    let purchases = {};
-    try {
-        purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
-    } catch(e) {}
-    purchases[itemKey] = true;
-    localStorage.setItem('minigames_shop_purchases', JSON.stringify(purchases));
-    
-    // Reproducir sonido si está disponible
-    if (window.playProceduralSound) window.playProceduralSound('success');
-    
-    // Refrescar tienda
-    renderShop();
-    
-    alert("¡Modificación tecnológica activada con éxito!");
 };
 
 // ==========================================

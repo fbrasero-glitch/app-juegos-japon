@@ -1,0 +1,406 @@
+// MISIONES DEL DIA 15
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_15 = {
+    "day_15_waterfall": {
+        tag: "audio",
+        day: 15,
+        title: "Melodía de Shiraito",
+        role: "kid9",
+        xp: 20,
+        location: "Cascada Shiraito",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #80deea 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌊 El Estruendo de Shiraito 🌊</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">La cascada tiene 150m de ancho y cae en hilos finos. Inicia la grabación para capturar el sonido del agua chocando contra el estanque.</p>
+                
+                <div style="background:#1a1a24; padding:10px; border-radius:10px; margin-bottom:15px; border:2px solid #00acc1; position:relative;">
+                    <canvas id="water-wave" width="280" height="80" style="width:100%; height:80px; display:block; background:#111; border-radius:5px;"></canvas>
+                    <div id="water-timer" style="position:absolute; right:15px; bottom:15px; color:#00acc1; font-family:monospace; font-size:1.1rem; font-weight:bold;">05.0s</div>
+                </div>
+                
+                <button id="btn-rec-water" class="btn-primary" style="width:100%; border-radius:25px; background:#00acc1; border-color:#00acc1; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">🎤 INICIAR GRABACIÓN (5s)</button>
+                <button id="btn-submit-water" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px;">📨 Enviar Audio al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec-water');
+            const btnSubmit = document.getElementById('btn-submit-water');
+            const canvas = document.getElementById('water-wave');
+            const ctx = canvas.getContext('2d');
+            const timerEl = document.getElementById('water-timer');
+            
+            let recording = false;
+            let audioCtx = null;
+            let analyser = null;
+            let source = null;
+            let stream = null;
+            let animationFrame = null;
+            let dataArray = [];
+            let timeLeft = 5.0;
+            let interval = null;
+            
+            const drawWave = () => {
+                if (!recording) return;
+                animationFrame = requestAnimationFrame(drawWave);
+                
+                analyser.getByteTimeDomainData(dataArray);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#00acc1';
+                ctx.beginPath();
+                
+                const sliceWidth = canvas.width / dataArray.length;
+                let x = 0;
+                
+                for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            };
+            
+            btnRec.addEventListener('click', async () => {
+                if (recording) return;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    
+                    source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    recording = true;
+                    timeLeft = 5.0;
+                    timerEl.innerText = '05.0s';
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    
+                    drawWave();
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            recording = false;
+                            cancelAnimationFrame(animationFrame);
+                            
+                            stream.getTracks().forEach(t => t.stop());
+                            if (audioCtx) audioCtx.close();
+                            
+                            ctx.fillStyle = '#111';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.beginPath();
+                            ctx.moveTo(0, canvas.height/2);
+                            ctx.lineTo(canvas.width, canvas.height/2);
+                            ctx.strokeStyle = '#00838f';
+                            ctx.stroke();
+                            
+                            timerEl.innerText = '00.0s';
+                            btnRec.innerText = '✨ Audio Capturado';
+                            btnSubmit.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error', 'Micrófono no disponible.');
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                submitMission('day_15_waterfall', {type: 'audio', data: 'Sonido de cascada Shiraito grabado'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                recording = false;
+                clearInterval(interval);
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
+        }
+    },
+
+"day_15_thatch": {
+        tag: "photo", day: 15, title: "La Aldea de Paja", role: "kid9", xp: 15, location: "Shirakawa-go",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏠 Las casas de Shirakawa-go tienen techos de paja tan gruesos que parecen sombreros gigantes. Algunos tienen más de 60cm de grosor. ¡Fotografía el techo más impresionante!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B7355,#D2B48C,#F5DEB3); border-radius:15px;">
+            <p style="font-size:3rem;">🏠❄️🌾</p>
+            <p style="color:#5a3e1b; font-weight:bold;">Casas que resisten 2 metros de nieve</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Techo de Paja</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_15_thatch', currentUser, false); }
+    },
+
+"day_15_fish": {
+        tag: "expert",
+        day: 15,
+        title: "Pez de Cristal",
+        role: "kid9",
+        xp: 20,
+        location: "Estanques",
+        render: () => `
+        <p class="mission-desc">Dibuja el pez más bonito que hayas visto en el agua cristalina.</p>
+        <div style="background:#fff; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
+            <canvas id="fish-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
+            <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Pez</button>
+        </div>
+    `,
+        attachEvents: () => {
+        const can = document.getElementById('fish-can'); const ctx = can.getContext('2d');
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        let drawing = false;
+        const getPos = (e) => { const rect=can.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY; return {x:cx-rect.left, y:cy-rect.top}; };
+        const start = (e) => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
+        const draw = (e) => { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+        const stop = () => { drawing=false; };
+        can.addEventListener('mousedown', start); can.addEventListener('mousemove', draw); can.addEventListener('mouseup', stop); can.addEventListener('mouseout', stop);
+        can.addEventListener('touchstart', start, {passive:false}); can.addEventListener('touchmove', draw, {passive:false}); can.addEventListener('touchend', stop);
+        
+        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0,0,can.width,can.height));
+        document.getElementById('btn-sub').addEventListener('click', async () => {
+            const data = can.toDataURL(); const id = 'fish_'+Date.now();
+            await savePhotoToDB(id, data); submitMission('day_15_fish', {type:'photo', data:id});
+        });
+    }
+    },
+
+"day_15_shogun": {
+        tag: "physical", day: 15, title: "El Trono del Shogun", role: "kid9", xp: 15, location: "Takayama",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">👑 Encuentra el lugar con la mejor vista de la aldea y siéntate como si fueras la Shogun que gobierna todo lo que ve. Mantén la postura real durante 10 segundos.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a1a2e,#4a148c); border-radius:15px;">
+            <p style="font-size:3rem;">👑🏯⚔️</p>
+            <div id="sh-timer" style="font-size:2.5rem; color:#d4af37; font-family:monospace; margin:10px 0;">10</div>
+        </div>
+        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">👑 Adoptar Postura Real</button>
+        <button id="btn" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar al Juez</button>`,
+        attachEvents: () => {
+            let t=10,int=null;
+            document.getElementById('btn-start').addEventListener('click',(e)=>{
+                e.target.classList.add('hidden');
+                int=setInterval(()=>{t--;document.getElementById('sh-timer').innerText=t;if(t<=0){clearInterval(int);document.getElementById('btn').classList.remove('hidden');document.getElementById('sh-timer').innerText='👑';}},1000);
+            });
+            document.getElementById('btn').addEventListener('click',()=>submitMission('day_15_shogun',{type:'game',data:'Postura Shogun completada'}));
+            window._missionCleanup=()=>clearInterval(int);
+        }
+    },
+
+    "day_15_deity": {
+        tag: "writing",
+        day: 15,
+        title: "Santuario Escondido",
+        role: "kid14",
+        xp: 15,
+        location: "Fujisan Hongu Sengen Taisha",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CONSULTA DE REGISTROS ESPIRITUALES: SENGEN TAISHA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Busca información y escribe el nombre oficial de la deidad principal consagrada en este histórico santuario de la base del volcán (Pista: es la princesa de los cerezos en flor).</p>
+                
+                <div style="margin-bottom:15px;">
+                    <input type="text" id="deity-name" placeholder="Nombre de la deidad..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:5px; font-family:monospace; box-sizing:border-box; text-transform:uppercase;">
+                </div>
+                
+                <button id="btn-deity" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">🔓 VERIFICAR REGISTRO MÍTICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-deity');
+            const input = document.getElementById('deity-name');
+            
+            btn.addEventListener('click', () => {
+                const val = input.value.trim().toLowerCase();
+                const correct = ['konohanasakuya-hime', 'konohana sakuya hime', 'konohanasakuyahime', 'konohana sakuya'];
+                
+                if (correct.includes(val)) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_15_deity', {type:'text', data: input.value}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('DATOS ERRÓNEOS', 'La deidad principal indicada no coincide con Konohanasakuya-hime. Inténtalo de nuevo.');
+                }
+            });
+        }
+    },
+
+    "day_15_honcho": {
+        tag: "photo",
+        day: 15,
+        title: "Perspectiva Honcho Street",
+        role: "kid14",
+        xp: 20,
+        location: "Honcho Street",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁMARA TÁCTICA: ENCUADRE HONCHO STREET</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Conigue la famosa toma donde la perspectiva lineal de la calle de tiendas enmarca perfectamente la mole nevada del Fuji al fondo.</p>
+                
+                <div style="font-size:3rem; text-align:center; margin:15px 0;">📏🗻📐</div>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">📸 CAPTURAR PERSPECTIVA URBANA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                btn.innerText = '⏳ Almacenando captura...';
+                btn.disabled = true;
+                
+                try {
+                    const compressed = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_15_honcho', {type:'photo', data: photoId}, role);
+                } catch(err) {
+                    console.error(err);
+                    btn.innerText = '📸 CAPTURAR PERSPECTIVA URBANA';
+                    btn.disabled = false;
+                    showAlert('Error', 'Fallo al procesar la imagen.');
+                }
+            });
+        }
+    },
+
+    "day_15_flow": {
+        tag: "economy",
+        day: 15,
+        title: "Aforo de la Cascada",
+        role: "kid14",
+        xp: 15,
+        location: "Cascada Shiraito",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁLCULO DE AFORO HÍDRICO: SHIRAITO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima la cantidad de caudal que cae por segundo a lo largo de los 150m de pared rocosa de la cascada.</p>
+                
+                <div style="margin:20px 0; padding:15px; background:rgba(0,255,153,0.03); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
+                    <span style="font-size:0.8rem; color:#aaa;">CAUDAL ESTIMADO:</span>
+                    <div id="flow-disp" style="font-size:2rem; font-weight:bold; color:#ffd700; margin:10px 0;">1.500 Litros/s</div>
+                    <input type="range" id="flow-slider" min="100" max="5000" step="100" value="1500" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                </div>
+                
+                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 ENVIAR DATOS DE AFORO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('flow-slider');
+            const disp = document.getElementById('flow-disp');
+            const btn = document.getElementById('btn-flow');
+            
+            slider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                disp.innerText = val.toLocaleString('es-ES') + ' Litros/s';
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(slider.value);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_15_flow', {type:'number', data: val}, role);
+            });
+        }
+    },
+
+    "day_15_roof": {
+        tag: "writing",
+        day: 15,
+        title: "Ingeniería Tradicional",
+        role: "kid14",
+        xp: 15,
+        location: "Iyashi no Sato",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CUESTIONARIO DE INGENIERÍA: CASAS DE PAJA (KAYABUKI)</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce por qué los tejados de paja en Iyashi no Sato tienen una inclinación tan empinada (estilo Gassho-zukuri, como manos rezando).</p>
+                
+                <textarea id="roof-desc" placeholder=">>> Escribe tu explicación sobre el clima o la física del tejado..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-roof" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 REGISTRAR LEY STRUCTURAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-roof');
+            const input = document.getElementById('roof-desc');
+            
+            btn.addEventListener('click', () => {
+                const txt = input.value.trim();
+                if (txt.length < 15) {
+                    showAlert('INFORMACIÓN INSUFICIENTE', 'Describe de forma más completa el factor climatológico (pista: nieve pesada en invierno).');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_15_roof', {type:'text', data: txt}, role);
+            });
+        }
+    },
+
+    "day_15_dragon": {
+        tag: "writing",
+        day: 15,
+        title: "La Leyenda del Dragón",
+        role: "both",
+        xp: 20,
+        location: "Lago Kawaguchi",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff9c4 0%, #fff59d 100%); border-radius:15px; border:3px solid #fbc02d; color:#f57f17; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🐉 Cuento del Dragón de Kawaguchiko 🐉</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#f57f17;">Reto grupal: Escribid juntos una leyenda corta sobre el dragón mitológico que duerme en el fondo del lago para proteger el monte Fuji.</p>
+                
+                <div style="margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; display:block; margin-bottom:5px;">Vuestra leyenda de fantasía:</label>
+                    <textarea id="dragon-tale" placeholder="Escribid la historia..." style="width:100%; height:110px; border:2px solid #fbc02d; border-radius:10px; padding:10px; font-family:inherit; font-size:0.95rem; box-sizing:border-box;"></textarea>
+                </div>
+                
+                <button id="btn-dragon" class="btn-primary" style="width:100%; background:#fbc02d; border-color:#fbc02d; color:#000; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(251,192,45,0.3);">🐉 SELLAR RECUERDO DE LA LEYENDA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-dragon');
+            const text = document.getElementById('dragon-tale');
+            
+            btn.addEventListener('click', () => {
+                const val = text.value.trim();
+                if (val.length < 25) {
+                    showAlert('Cuento muy corto', 'Escribid al menos 3 frases completas sobre vuestra criatura mágica.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_15_dragon', {type:'text', data: val}, role, true);
+            });
+        }
+    },
+
+
+};

@@ -1,0 +1,410 @@
+// MISIONES DEL DIA 2
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_2 = {
+"day_2_vending": {
+        tag: "photo",
+        day: 2,
+        title: "El Detective de Vending",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `<p class="mission-desc">Las máquinas expendedoras en Japón venden cosas locas. Haz foto a la Vending Machine más rara que veas hoy.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_vending', role, false)
+    },
+
+    "day_2_maze": {
+        tag: "expert",
+        day: 2,
+        title: "Mapeo del Laberinto",
+        role: "kid14",
+        xp: 20,
+        location: "Metro",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+                <p>>>> INFILTRACIÓN SUBTERRÁNEA - CRONÓMETRO DE ESCAPE</p>
+                <p style="color:#aaa;">Inicia el cronómetro cuando pongas un pie fuera del vagón y deténlo cuando salgas a la calle.</p>
+                <div id="chrono-container" style="margin:20px 0;"></div>
+                <input type="hidden" id="ans" value="">
+                <button id="btn-maze" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">ENVIAR REPORTE TÁCTICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const container = document.getElementById('chrono-container');
+            const input = document.getElementById('ans');
+            const btn = document.getElementById('btn-maze');
+            
+            initSpyStopwatch(container, (timeStr) => {
+                input.value = timeStr;
+            });
+
+            btn.addEventListener('click', () => {
+                if (!input.value || input.value === '00:00.0') {
+                    showAlert('ERROR DE TELEMETRÍA', 'Debes iniciar y pausar el cronómetro para registrar un tiempo real.');
+                    return;
+                }
+                submitMission('day_2_maze', {type:'text', data:`Tiempo de escape: ${input.value}`}, role);
+            });
+        }
+    },
+
+    "day_2_kanji": {
+        tag: "writing",
+        day: 2,
+        title: "Kanjis de Emergencia",
+        role: "kid14",
+        xp: 15,
+        location: "Metro",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+                <p>>>> PROTOCOLO DE ORIENTACIÓN: SEÑALES DE EVACUACIÓN</p>
+                <p style="color:#aaa;">Haz clic sobre el cartel verde oficial que representa la "Salida de Emergencia":</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:15px 0;">
+                    <div class="kanji-option" data-correct="false" style="padding:12px; border:1px solid #333; border-radius:5px; text-align:center; cursor:pointer; background:#111;">
+                        <span style="font-size:1.5rem; font-weight:bold; color:#ff5555;">出口</span><br>
+                        <span style="font-size:0.75rem; color:#666;">(Salida común)</span>
+                    </div>
+                    <div class="kanji-option" data-correct="true" style="padding:12px; border:1px solid #333; border-radius:5px; text-align:center; cursor:pointer; background:#111; display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <div style="width:24px; height:24px; background:#00aa50; border-radius:3px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.8rem; font-weight:bold;">🏃</div>
+                        <div>
+                            <span style="font-size:1.5rem; font-weight:bold; color:#00ff00;">非常口</span>
+                        </div>
+                    </div>
+                    <div class="kanji-option" data-correct="false" style="padding:12px; border:1px solid #333; border-radius:5px; text-align:center; cursor:pointer; background:#111;">
+                        <span style="font-size:1.5rem; font-weight:bold; color:#5555ff;">改札口</span><br>
+                        <span style="font-size:0.75rem; color:#666;">(Tornos de billetes)</span>
+                    </div>
+                </div>
+                <div id="translation-section" class="hidden">
+                    <p style="color:#00ff99;">>>> Cartel verificado. Introduce la traducción al rōmaji o español (ej: "hijouguchi" o "salida de emergencia"):</p>
+                    <input type="text" id="kanji-ans" style="width:100%; margin-bottom:10px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:5px;">
+                    <button id="btn-kanji" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">EJECUTAR DECODIFICACIÓN</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const options = document.querySelectorAll('.kanji-option');
+            const transSection = document.getElementById('translation-section');
+            const input = document.getElementById('kanji-ans');
+            const btn = document.getElementById('btn-kanji');
+            
+            options.forEach(opt => {
+                opt.addEventListener('click', function() {
+                    options.forEach(o => o.style.borderColor = '#333');
+                    if (this.dataset.correct === 'true') {
+                        this.style.borderColor = '#00ff00';
+                        transSection.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    } else {
+                        this.style.borderColor = '#ff0000';
+                        transSection.classList.add('hidden');
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        showAlert('SEÑAL INCORRECTA', 'Ese cartel no corresponde a la salida de emergencia de evacuación verde.');
+                    }
+                });
+            });
+
+            btn.addEventListener('click', () => {
+                const txt = input.value.toLowerCase().trim();
+                const valid = ['hijouguchi', 'hijoguchi', 'hijōguchi', 'salida de emergencia', 'salida de urgencia', 'salida de escape', 'salida'];
+                if (valid.includes(txt)) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_2_kanji', {type:'text', data: txt}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ERROR DE TRADUCCIÓN', 'La traducción no es correcta. Inténtalo de nuevo.');
+                }
+            });
+        }
+    },
+
+    "day_2_audit": {
+        tag: "economy",
+        day: 2,
+        title: "Auditoría de Vending",
+        role: "kid14",
+        xp: 15,
+        location: "Calle",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+                <p>>>> SIMULADOR DE MÁQUINA DE VENDING (JIDOHANBAIKI)</p>
+                <p style="color:#aaa;">Registra el precio real observado para la botella de agua mineral:</p>
+                <div style="margin-bottom:15px;">
+                    <input type="number" id="vending-observed-price" placeholder="Precio en yenes (ej: 110)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:5px;">
+                    <button id="btn-vending-set" class="btn-secondary" style="width:100%; margin-top:5px; font-size:0.8rem;">ESTABLECER PRECIO DE VENTA</button>
+                </div>
+                <div id="vending-machine-ui" class="hidden" style="background:#222; border:3px solid #444; border-radius:10px; padding:15px; color:#fff;">
+                    <div style="display:flex; justify-content:space-between; background:#111; padding:5px; border-radius:5px; margin-bottom:15px; font-family:monospace;">
+                        <span style="color:#00ff00;">CREDIT: <span id="vending-inserted">0</span>¥</span>
+                        <span style="color:#ffd700;">PRICE: <span id="vending-target-price">0</span>¥</span>
+                    </div>
+                    <div style="text-align:center; background:#333; padding:10px; border-radius:5px; margin-bottom:15px; border:2px solid #555;">
+                        <span style="font-size:2.5rem;">💧</span><br>
+                        <span style="font-size:0.8rem; font-weight:bold; color:#00a2ff;">SUNTORY WATER</span><br>
+                        <button id="btn-buy-water" style="margin-top:5px; background:#e74c3c; border:none; color:#fff; padding:3px 10px; border-radius:3px; font-size:0.7rem; font-weight:bold; cursor:pointer;" disabled>VENTA</button>
+                    </div>
+                    <p style="margin:0 0 5px 0; font-size:0.8rem; color:#aaa; text-align:center;">Hacer clic para insertar monedas:</p>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button class="coin-btn" data-val="100" style="width:40px; height:40px; border-radius:50%; background:#ccc; color:#333; border:2px solid #999; font-weight:bold; font-size:0.75rem; cursor:pointer;">100¥</button>
+                        <button class="coin-btn" data-val="50" style="width:40px; height:40px; border-radius:50%; background:#bfa38a; color:#333; border:2px solid #9e8067; font-weight:bold; font-size:0.75rem; cursor:pointer;">50¥</button>
+                        <button class="coin-btn" data-val="10" style="width:40px; height:40px; border-radius:50%; background:#d48a37; color:#fff; border:2px solid #b36e22; font-weight:bold; font-size:0.75rem; cursor:pointer;">10¥</button>
+                    </div>
+                </div>
+                <div id="vending-success-ui" class="hidden" style="text-align:center; margin-top:15px;">
+                    <p style="color:#00ff00; font-weight:bold;">🍾 ¡AGUA EXPULSADA CON ÉXITO!</p>
+                    <button id="btn-vending-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">TRANSMITIR REPORTE DE AUDITORÍA</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const priceInput = document.getElementById('vending-observed-price');
+            const btnSet = document.getElementById('btn-vending-set');
+            const machineUI = document.getElementById('vending-machine-ui');
+            const successUI = document.getElementById('vending-success-ui');
+            const insertedEl = document.getElementById('vending-inserted');
+            const targetEl = document.getElementById('vending-target-price');
+            const coinBtns = document.querySelectorAll('.coin-btn');
+            const buyBtn = document.getElementById('btn-buy-water');
+            const submitBtn = document.getElementById('btn-vending-submit');
+            
+            let targetPrice = 0;
+            let inserted = 0;
+            
+            btnSet.addEventListener('click', () => {
+                const p = parseInt(priceInput.value);
+                if (isNaN(p) || p < 80 || p > 180) {
+                    showAlert('PRECIO NO VÁLIDO', 'El precio observado debe estar entre 80¥ y 180¥.');
+                    return;
+                }
+                targetPrice = p;
+                targetEl.innerText = p;
+                inserted = 0;
+                insertedEl.innerText = 0;
+                machineUI.classList.remove('hidden');
+                successUI.classList.add('hidden');
+                buyBtn.disabled = true;
+                buyBtn.style.background = '#888';
+                priceInput.disabled = true;
+                btnSet.disabled = true;
+            });
+
+            coinBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const val = parseInt(btn.dataset.val);
+                    inserted += val;
+                    insertedEl.innerText = inserted;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (inserted >= targetPrice) {
+                        buyBtn.disabled = false;
+                        buyBtn.style.background = '#00ff00';
+                        buyBtn.style.boxShadow = '0 0 10px #00ff00';
+                    }
+                });
+            });
+
+            buyBtn.addEventListener('click', () => {
+                if (inserted >= targetPrice) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    machineUI.classList.add('hidden');
+                    successUI.classList.remove('hidden');
+                }
+            });
+
+            submitBtn.addEventListener('click', () => {
+                submitMission('day_2_audit', {type:'number', data: targetPrice}, role);
+            });
+        }
+    },
+
+    "day_2_yokai": {
+        tag: "photo",
+        day: 2,
+        title: "Caza del Yōkai Oficial",
+        role: "kid9",
+        xp: 15,
+        location: "Calle",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e;">
+                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">👾 Radar Yōkai de las Calles</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Encuentra una mascota, muñeco o cartel manga y captúralo con el radar.</p>
+                <div style="width:160px; height:160px; border-radius:50%; background:#1a1a24; border:5px solid #8d6e63; margin:0 auto 15px; position:relative; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+                    <div id="radar-sweep" style="position:absolute; top:50%; left:50%; width:100px; height:100px; background:linear-gradient(45deg, rgba(244,143,177,0.4), transparent); transform-origin: top left; animation: radarSweep 3s linear infinite; pointer-events:none;"></div>
+                    <div style="position:absolute; width:100%; height:1px; background:rgba(255,255,255,0.1); top:50%;"></div>
+                    <div style="position:absolute; height:100%; width:1px; background:rgba(255,255,255,0.1); left:50%;"></div>
+                    <div id="radar-blip" style="position:absolute; width:12px; height:12px; border-radius:50%; background:#ff4081; top:35%; left:65%; animation: blipBlink 1.5s infinite; opacity:0; pointer-events:none;"></div>
+                    <div style="display:flex; align-items:center; justify-content:center; height:100%; font-size:3rem; z-index:2; position:relative;">📡</div>
+                </div>
+                <p id="radar-status" style="font-size:0.85rem; color:#8d6e63; font-style:italic; min-height:1.2rem;">>>> Escaneando espectro espiritual...</p>
+                <button id="btn-cam-yokai" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:25px; margin-top:10px;">📸 Capturar con Lente Yōkai</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const blip = document.getElementById('radar-blip');
+            const status = document.getElementById('radar-status');
+            
+            setTimeout(() => {
+                if (blip) {
+                    blip.style.opacity = '1';
+                    status.innerText = '⚠️ YŌKAI DETECTADO A 15 METROS';
+                    status.style.color = '#ff4081';
+                    status.style.fontWeight = 'bold';
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            }, 2500);
+
+            attachCameraFlow('btn-cam-yokai', 'day_2_yokai', role, false);
+        }
+    },
+
+    "day_2_posture": {
+        tag: "physical",
+        day: 2,
+        title: "Equilibrio Silencioso",
+        role: "kid9",
+        xp: 20,
+        location: "Metro",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20;">
+                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">🦊 El Jardín del Silencio Kitsune 🌸</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El zorrito Kitsune está meditando. No hagas ruido y mantén la calma durante 30 segundos.</p>
+                <div id="kitsune-garden" style="height:150px; background:#fff; border-radius:10px; border:2px solid #81c784; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <span id="kitsune-character" style="font-size:4.5rem; transition:transform 0.5s ease; z-index:2;">🦊</span>
+                    <span id="kitsune-status-txt" style="font-size:0.8rem; font-weight:bold; color:#2e7d32; margin-top:5px; z-index:2;">(Esperando calma...)</span>
+                    <canvas id="sakura-canvas" width="280" height="150" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;"></canvas>
+                </div>
+                <p id="crono-disp" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">30s</p>
+                <button id="btn-start-kitsune" class="btn-primary" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">Iniciar Meditación Zen</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const startBtn = document.getElementById('btn-start-kitsune');
+            const cronoDisp = document.getElementById('crono-disp');
+            const kitsune = document.getElementById('kitsune-character');
+            const statusTxt = document.getElementById('kitsune-status-txt');
+            const canvas = document.getElementById('sakura-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let timer = 30;
+            let interval = null;
+            let animating = false;
+            let animFrame = null;
+            
+            const petals = [];
+            for(let i=0; i<15; i++) {
+                petals.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * -canvas.height,
+                    r: Math.random() * 4 + 2,
+                    d: Math.random() * 1 + 0.5,
+                    angle: Math.random() * 360
+                });
+            }
+            
+            const animateSakura = () => {
+                if (!animating) return;
+                animFrame = requestAnimationFrame(animateSakura);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(255, 182, 193, 0.75)';
+                
+                petals.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    p.y += p.d;
+                    p.x += Math.sin(p.y / 20) * 0.5;
+                    if (p.y > canvas.height) {
+                        p.y = -10;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+            };
+            
+            startBtn.addEventListener('click', () => {
+                startBtn.classList.add('hidden');
+                timer = 30;
+                cronoDisp.innerText = '30s';
+                kitsune.innerText = '🦊';
+                statusTxt.innerText = '¡Shh! Meditando...';
+                
+                animating = true;
+                animateSakura();
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                interval = setInterval(() => {
+                    timer--;
+                    cronoDisp.innerText = `${timer}s`;
+                    
+                    kitsune.style.transform = timer % 2 === 0 ? 'scale(1.1)' : 'scale(1)';
+                    
+                    if (timer <= 0) {
+                        clearInterval(interval);
+                        animating = false;
+                        cancelAnimationFrame(animFrame);
+                        kitsune.innerText = '🦊✨';
+                        statusTxt.innerText = '¡Meditación superada con honor!';
+                        cronoDisp.style.color = '#4caf50';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                        
+                        setTimeout(() => {
+                            submitMission('day_2_posture', {type:'text', data:'Meditación Zen 30 segundos'}, role);
+                        }, 1500);
+                    }
+                }, 1000);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+                animating = false;
+                if (animFrame) cancelAnimationFrame(animFrame);
+            };
+        }
+    },
+
+"day_2_melody": {
+        tag: "audio",
+        day: 2,
+        title: "Melodía Subterránea",
+        role: "kid9",
+        xp: 20,
+        location: "Metro",
+        render: () => `<p class="mission-desc">Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala!</p>
+                       <button id="btn-rec" class="btn-primary" style="width:100%; height:80px; border-radius:40px; font-size:1.5rem">🎤 Grabar 5s</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-rec', 'day_2_melody', role, false)
+    },
+
+"day_2_shogun": {
+        tag: "expert",
+        day: 2,
+        title: "Protocolo Shōgun",
+        role: "kid14",
+        xp: 25,
+        location: "Calles",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+                <p>>>> MODO GUÍA: ON.</p>
+                <p>Guía a la familia desde la estación hasta el hotel o restaurante objetivo usando un mapa local de la estación, sin que los padres usen Google Maps.</p>
+                <button id="btn" class="btn-primary" style="width:100%">Misión Completada (El Juez confirmará)</button>
+            </div>
+        `,
+        attachEvents: (role) => { document.getElementById('btn').addEventListener('click', () => submitMission('day_2_shogun', {type:'text', data:'Ruta guiada con éxito'}, role)); }
+    },
+
+"day_2_ekistamp": {
+        tag: "photo",
+        day: 2,
+        title: "Coleccionista de Eki-Stamps",
+        role: "both",
+        xp: 15,
+        location: "Estaciones",
+        render: () => `<p class="mission-desc">Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta.</p>
+                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
+        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_ekistamp', role, false, true)
+    },
+
+
+};

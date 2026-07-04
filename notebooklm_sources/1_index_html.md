@@ -1,3 +1,8 @@
+# Interfaz de la Aplicación (index.html)
+
+Este documento contiene la estructura HTML de la aplicación Pasaporte Japón.
+
+```xml
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -74,60 +79,14 @@
                     <div class="xp-fill" id="user-xp-fill"></div>
                 </div>
             </div>
-            <div class="wallet-badge" id="user-wallet" style="font-weight: bold; color: #ffca28; display: flex; align-items: center; gap: 4px; padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 20px;">
-                💰 <span id="user-wallet-amount">0</span> ¥
-            </div>
         </div>
-        <div style="padding: 0 16px; margin-bottom: 16px; display: flex; gap: 8px;">
-            <button id="btn-open-album" class="btn-secondary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <div style="padding: 0 16px; margin-bottom: 16px;">
+            <button id="btn-open-album" class="btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 📸 Álbum del Coleccionista
-            </button>
-            <button id="btn-open-shop" class="btn-secondary hidden" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #4a148c, #8e24aa); color: white; border: 1px solid #ea80fc;">
-                🛠️ Tienda Hacker
             </button>
         </div>
         <div id="days-list" class="list-container">
             <!-- Los días se inyectan dinámicamente aquí -->
-        </div>
-    </div>
-
-    <!-- TIENDA DE MODIFICACIONES TECNOLÓGICAS -->
-    <div id="view-shop" class="view hidden">
-        <div class="shop-wallet-container" style="background: rgba(255, 202, 40, 0.15); border: 1px solid #ffca28; padding: 16px; border-radius: 12px; margin: 16px; text-align: center; box-shadow: 0 4px 12px rgba(255,202,40,0.1);">
-            <h3 style="margin: 0; color: #ffca28; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                💰 Saldo Disponible: <span id="shop-wallet-amount" style="font-weight: bold; font-size: 1.4rem;">0</span> ¥
-            </h3>
-        </div>
-        <div class="shop-items-container" style="padding: 0 16px; display: flex; flex-direction: column; gap: 16px; margin-bottom: 30px;">
-            <!-- Upgrade 1: Day 5 - Deer Galaxy -->
-            <div class="shop-item" id="shop-item-cookie" style="background: var(--color-card-bg); border: var(--card-border); padding: 16px; border-radius: var(--radius-main); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-soft);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #ea80fc; font-size: 1.15rem; display: flex; align-items: center; gap: 6px;">🍪 Sensor de Galletas Nara</strong>
-                    <span style="background: #4a148c; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; color: white;">250 ¥</span>
-                </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--color-text); opacity: 0.8; line-height: 1.4;">Aumenta el radio de detección de las galletas en Nara (de 40px a 56px). Permite alimentar a los ciervos a mayor distancia sin peligro.</p>
-                <button id="btn-buy-cookie" class="btn-primary" style="background: #8e24aa; border: none; padding: 10px; border-radius: 8px; font-weight: bold; transition: all 0.2s;" onclick="buyUpgrade('cookie', 250)">Adquirir Modificación</button>
-            </div>
-
-            <!-- Upgrade 2: Day 7 - Kintsugi -->
-            <div class="shop-item" id="shop-item-kintsugi" style="background: var(--color-card-bg); border: var(--card-border); padding: 16px; border-radius: var(--radius-main); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-soft);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #ea80fc; font-size: 1.15rem; display: flex; align-items: center; gap: 6px;">🏺 Aguja de Oro Kintsugi</strong>
-                    <span style="background: #4a148c; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; color: white;">400 ¥</span>
-                </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--color-text); opacity: 0.8; line-height: 1.4;">Expande el margen de precisión de la resina de oro (de 35px a 52px). Facilita tolerar pulsos inestables y evitar derrames de oro.</p>
-                <button id="btn-buy-kintsugi" class="btn-primary" style="background: #8e24aa; border: none; padding: 10px; border-radius: 8px; font-weight: bold; transition: all 0.2s;" onclick="buyUpgrade('kintsugi', 400)">Adquirir Modificación</button>
-            </div>
-
-            <!-- Upgrade 3: Day 22 - Fish Logistics -->
-            <div class="shop-item" id="shop-item-fish" style="background: var(--color-card-bg); border: var(--card-border); padding: 16px; border-radius: var(--radius-main); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow-soft);">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <strong style="color: #ea80fc; font-size: 1.15rem; display: flex; align-items: center; gap: 6px;">⚙️ Regulador de Cintas (Pescado)</strong>
-                    <span style="background: #4a148c; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; color: white;">500 ¥</span>
-                </div>
-                <p style="margin: 0; font-size: 0.9rem; color: var(--color-text); opacity: 0.8; line-height: 1.4;">Ralentiza la velocidad base de las cajas en las cintas (de 100px/s a 70px/s). Concede más tiempo para desviar los envíos correctamente.</p>
-                <button id="btn-buy-fish" class="btn-primary" style="background: #8e24aa; border: none; padding: 10px; border-radius: 8px; font-weight: bold; transition: all 0.2s;" onclick="buyUpgrade('fish', 500)">Adquirir Modificación</button>
-            </div>
         </div>
     </div>
 
@@ -262,21 +221,10 @@
     <!-- VISTA DE MINIJUEGO -->
     <div id="view-minigame" class="view hidden" style="background: #050508; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 5000; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Quicksand', 'Nunito', sans-serif; box-sizing: border-box;">
         
-        <!-- Elementos Decorativos de Fondo (Tema) -->
-        <div class="decor-sakura s1"></div>
-        <div class="decor-sakura s2"></div>
-        <div class="decor-sakura s3"></div>
-        <div class="decor-sakura s4"></div>
-        <div class="decor-sakura s5"></div>
-        <div class="decor-cyber c1"></div>
-        <div class="decor-cyber c2"></div>
-        <div class="decor-cyber c3"></div>
-        <div class="decor-cyber c4"></div>
-        
         <!-- Game container -->
-        <div id="minigame-container" style="position: relative; width: 100%; height: 100%; max-width: 133.33vh; max-height: 75vw; aspect-ratio: 4 / 3; background: #050508; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.85); border: 4px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; margin: auto; touch-action: none;">
+        <div id="minigame-container" style="position: relative; width: 100%; height: 100%; background: #050508; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.5); touch-action: none;">
             
-            <canvas id="minigame-canvas" width="800" height="600" style="width: 100%; height: 100%; display: block; touch-action: none;"></canvas>
+            <canvas id="minigame-canvas" width="800" height="600" style="width: 100%; height: 100%; display: block; image-rendering: pixelated; touch-action: none;"></canvas>
             
             <!-- HUD Header overlay -->
             <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 12; pointer-events: none;">
@@ -349,3 +297,5 @@
     <script src="app.js?v=11"></script>
 </body>
 </html>
+
+```

@@ -1,0 +1,523 @@
+// MISIONES DEL DIA 14
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_14 = {
+"day_14_rock": {
+        tag: "photo", day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Hakone",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌋 Las rocas volcánicas de Hakone huelen a azufre y tienen colores extraños: amarillo, naranja, gris... Encuentra la roca más rara y fotografíala de cerca. ¡Cuidado, huele fatal!</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B0000,#ff6b35,#f7c948); border-radius:15px;">
+            <p style="font-size:3rem;">🌋🪨💨</p>
+            <p style="color:#fff; font-weight:bold;">¡Huele a huevo podrido!</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Roca Volcánica</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_rock', currentUser, false); }
+    },
+
+    "day_14_kid9_echo": {
+        tag: "audio",
+        day: 14,
+        title: "El Sonido que Muere",
+        role: "kid9",
+        xp: 20,
+        location: "Bosque Aokigahara",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌲 El Silencio de Aokigahara 🌲</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El suelo volcánico poroso del bosque absorbe el sonido. Inicia la grabación, da una palmada fuerte y registra el silencio absoluto que la sigue durante 5 segundos.</p>
+                
+                <div style="background:#1a1a24; padding:10px; border-radius:10px; margin-bottom:15px; border:2px solid #81c784; position:relative;">
+                    <canvas id="echo-wave" width="280" height="80" style="width:100%; height:80px; display:block; background:#111; border-radius:5px;"></canvas>
+                    <div id="echo-timer" style="position:absolute; right:15px; bottom:15px; color:#81c784; font-family:monospace; font-size:1.1rem; font-weight:bold;">05.0s</div>
+                </div>
+                
+                <button id="btn-rec-echo" class="btn-primary" style="width:100%; border-radius:25px; background:#2e7d32; border-color:#2e7d32; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">🎤 INICIAR PRUEBA SÓNICA (5s)</button>
+                <button id="btn-submit-echo" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px;">📨 Enviar Grabación al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec-echo');
+            const btnSubmit = document.getElementById('btn-submit-echo');
+            const canvas = document.getElementById('echo-wave');
+            const ctx = canvas.getContext('2d');
+            const timerEl = document.getElementById('echo-timer');
+            
+            let recording = false;
+            let audioCtx = null;
+            let analyser = null;
+            let source = null;
+            let stream = null;
+            let animationFrame = null;
+            let dataArray = [];
+            let timeLeft = 5.0;
+            let interval = null;
+            
+            const drawWave = () => {
+                if (!recording) return;
+                animationFrame = requestAnimationFrame(drawWave);
+                
+                analyser.getByteTimeDomainData(dataArray);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#81c784';
+                ctx.beginPath();
+                
+                const sliceWidth = canvas.width / dataArray.length;
+                let x = 0;
+                
+                for (let i = 0; i < dataArray.length; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            };
+            
+            btnRec.addEventListener('click', async () => {
+                if (recording) return;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    
+                    source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    recording = true;
+                    timeLeft = 5.0;
+                    timerEl.innerText = '05.0s';
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    
+                    drawWave();
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            recording = false;
+                            cancelAnimationFrame(animationFrame);
+                            
+                            stream.getTracks().forEach(t => t.stop());
+                            if (audioCtx) audioCtx.close();
+                            
+                            ctx.fillStyle = '#111';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.beginPath();
+                            ctx.moveTo(0, canvas.height/2);
+                            ctx.lineTo(canvas.width, canvas.height/2);
+                            ctx.strokeStyle = '#4caf50';
+                            ctx.stroke();
+                            
+                            timerEl.innerText = '00.0s';
+                            btnRec.innerText = '✨ Silencio Registrado';
+                            btnSubmit.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                    
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error', 'Micrófono no disponible.');
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                submitMission('day_14_kid9_echo', {type: 'audio', data: 'Sonido grabado de Aokigahara'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                recording = false;
+                clearInterval(interval);
+                if (animationFrame) cancelAnimationFrame(animationFrame);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
+        }
+    },
+
+"day_14_root": {
+        tag: "photo", day: 14, title: "Guardián del Bosque", role: "kid9", xp: 15, location: "Hakone",
+        render: () => `
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌳 En el bosque de Hakone, las raíces de los árboles gigantes salen de la tierra como tentáculos. Encuentra el árbol con las raíces más impresionantes y posa junto a él como su guardiana.</p>
+        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a472a,#2d5a27); border-radius:15px;">
+            <p style="font-size:3rem;">🌳🧝‍♀️✨</p>
+            <p style="color:#90EE90; font-style:italic;">El bosque tiene guardianes secretos</p>
+        </div>
+        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto con el Árbol Guardián</button>`,
+        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_root', currentUser, false); }
+    },
+
+"day_14_compass": {
+        tag: "expert",
+        day: 14,
+        title: "Brújula al Cráter",
+        role: "kid9",
+        xp: 25,
+        location: "Fuji",
+        render: () => `
+        <p class="mission-desc">Apunta con el móvil exactamente hacia la cima del Fuji.</p>
+        <div style="display:flex; justify-content:center; align-items:center; height:200px; background:#1a252c; border-radius:50%; width:200px; margin:20px auto; position:relative; border:4px solid #34495e; box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+            <div id="c-arrow" style="font-size:4rem; transition:transform 0.1s; transform-origin:center; color:#e74c3c; text-shadow:0 0 10px red;">⬆️</div>
+            <div id="c-target" style="position:absolute; top:10px; font-size:1.5rem; color:#f1c40f;">🗻</div>
+        </div>
+        <button id="btn-c-start" class="btn-secondary" style="width:100%;">Activar Brújula</button>
+        <button id="btn-c-sub" class="btn-primary hidden" style="width:100%; margin-top:10px;">¡Acertaste! Enviar</button>
+    `,
+        attachEvents: () => {
+        const arrow = document.getElementById('c-arrow');
+        const btnS = document.getElementById('btn-c-start');
+        const btnV = document.getElementById('btn-c-sub');
+        let active = false;
+        
+        const handleOri = (e) => {
+            if(!active) return;
+            let rot = e.webkitCompassHeading || e.alpha || 0;
+            arrow.style.transform = `rotate(${-rot}deg)`;
+            if(Math.abs(rot - 180) < 15) { 
+                active = false;
+                arrow.style.color = "#2ecc71"; arrow.style.textShadow = "0 0 10px #2ecc71";
+                btnS.classList.add('hidden'); btnV.classList.remove('hidden'); launchConfetti();
+                window.removeEventListener('deviceorientation', handleOri);
+            }
+        };
+        
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "Gira el móvil...";
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('deviceorientation', handleOri); });
+            } else { window.addEventListener('deviceorientation', handleOri); }
+        });
+        btnV.addEventListener('click', () => submitMission('day_14_compass', {type:'game', data:'Orientación correcta al cráter'}));
+        window._missionCleanup = () => { active=false; window.removeEventListener('deviceorientation', handleOri); };
+    }
+    },
+
+    "day_14_radar": {
+        tag: "sensors",
+        day: 14,
+        title: "Radar de Altitud Cero",
+        role: "kid14",
+        xp: 25,
+        location: "Fuji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> RASTREADOR GPS: PUNTO CIEGO DE COBERTURA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Camina alejándote de las construcciones de la 5ª Estación del Fuji. Tu objetivo es encontrar un punto ciego en la lectura satelital.</p>
+                
+                <div style="text-align:center; margin:20px 0; padding:15px; border:1px dashed #00ff99; border-radius:5px; background:rgba(0,255,153,0.02);">
+                    <div id="radar-pulse" style="font-size:1.5rem; font-weight:bold; color:#00ff99; margin-bottom:8px; animation: blink 1s infinite;">█ MONITOR ACTIVADO</div>
+                    <div id="gps-dist" style="font-size:2.5rem; font-weight:bold; color:#ffd700; margin:10px 0;">-- m</div>
+                    <p id="gps-status" style="font-size:0.75rem; color:#aaa;">Esperando telemetría del satélite...</p>
+                </div>
+                
+                <button id="btn-radar" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">📡 ENVIAR LOCALIZACIÓN DEL PUNTO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const dEl = document.getElementById('gps-dist');
+            const mEl = document.getElementById('gps-status');
+            const btn = document.getElementById('btn-radar');
+            let watchId = null;
+            const targetLat = 35.3606; // Mock 5th station approx coordinate
+            const targetLon = 138.7274;
+            const R = 6371000;
+            
+            if('geolocation' in navigator) {
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat1 = pos.coords.latitude * Math.PI/180;
+                    const lat2 = targetLat * Math.PI/180;
+                    const dLat = (targetLat - pos.coords.latitude) * Math.PI/180;
+                    const dLon = (targetLon - pos.coords.longitude) * Math.PI/180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const d = R * c;
+                    
+                    dEl.innerText = Math.round(d) + ' m';
+                    if(d < 100) {
+                        mEl.innerText = ">>> PUNTO CIEGO ALCANZADO (Distancia < 100m)";
+                        mEl.style.color = "#00ff99";
+                        btn.classList.remove('hidden');
+                    } else {
+                        mEl.innerText = ">>> Señal estable. Aléjate de las tiendas.";
+                        mEl.style.color = "#ffd700";
+                    }
+                }, (err) => {
+                    mEl.innerText = "Error telemétrico: " + err.message;
+                }, {enableHighAccuracy: true, timeout: 5000});
+            } else {
+                mEl.innerText = "GPS no disponible.";
+            }
+            
+            let cheat = 0;
+            dEl.addEventListener('click', () => {
+                cheat++;
+                if (cheat >= 5) {
+                    dEl.innerText = '8 m';
+                    mEl.innerText = ">>> SIMULACIÓN DE PUNTO CIEGO (Bypass)";
+                    mEl.style.color = "#00ff99";
+                    btn.classList.remove('hidden');
+                    if (window.playProceduralSound) playProceduralSound('success');
+                }
+            });
+            
+            btn.addEventListener('click', () => {
+                if (watchId) navigator.geolocation.clearWatch(watchId);
+                submitMission('day_14_radar', {type:'game', data:'Punto de altitud cero verificado'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                if(watchId) navigator.geolocation.clearWatch(watchId);
+            };
+        }
+    },
+
+    "day_14_pressure": {
+        tag: "video",
+        day: 14,
+        title: "La Ley de la Presión",
+        role: "kid14",
+        xp: 20,
+        location: "Fuji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁMARA TELEMÉTRICA: EXPERIMENTO DE PRESIÓN ALPINO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">La baja presión atmosférica en la 5ª Estación (2300m) hace que las bolsas de patatas o snacks cerradas se hinchen. Grábate en vídeo (mínimo 5 segundos) demostrando el fenómeno y explicando por qué ocurre.</p>
+                
+                <div id="video-box" style="margin-bottom:15px; text-align:center; position:relative; background:#111; border-radius:5px; overflow:hidden; border:1px dashed #00ff99; min-height:150px; display:flex; justify-content:center; align-items:center;">
+                    <video id="p-vid" autoplay playsinline muted style="width:100%; height:150px; object-fit:cover; display:none;"></video>
+                    <div id="vid-status" style="color:#00ff99; font-size:0.85rem;">Consola de grabación inactiva</div>
+                </div>
+                
+                <button id="btn-rec" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; margin-bottom:10px;">🎬 INICIAR GRABACIÓN (5s)</button>
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 TRANSMITIR REPORTE FOTÓNICO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec');
+            const btnSubmit = document.getElementById('btn-submit');
+            const vid = document.getElementById('p-vid');
+            const status = document.getElementById('vid-status');
+            
+            let mr = null;
+            let chunks = [];
+            let stream = null;
+            let videoBlob = null;
+            
+            btnRec.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+                    vid.srcObject = stream;
+                    vid.style.display = 'block';
+                    status.style.display = 'none';
+                    
+                    mr = new MediaRecorder(stream);
+                    chunks = [];
+                    mr.ondataavailable = e => chunks.push(e.data);
+                    
+                    mr.onstop = () => {
+                        vid.srcObject = null;
+                        videoBlob = new Blob(chunks, { type: 'video/mp4' });
+                        vid.src = URL.createObjectURL(videoBlob);
+                        vid.controls = true;
+                        vid.muted = false;
+                        
+                        btnRec.innerText = '🎬 VOLVER A GRABAR';
+                        btnSubmit.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    
+                    mr.start();
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando explicación (5s)...';
+                    
+                    setTimeout(() => {
+                        if (mr.state === 'recording') mr.stop();
+                        btnRec.disabled = false;
+                    }, 5000);
+                    
+                } catch(e) {
+                    console.error(e);
+                    status.innerText = "Error de cámara: " + e.message;
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (videoBlob) {
+                    submitMission('day_14_pressure', {type:'video', data: 'Video explicacion presion (Guardado local)'}, role);
+                }
+            });
+            
+            window._missionCleanup = () => {
+                if (mr && mr.state !== 'inactive') mr.stop();
+                if (stream) stream.getTracks().forEach(t => t.stop());
+            };
+        }
+    },
+
+    "day_14_altimeter": {
+        tag: "expert",
+        day: 14,
+        title: "Altímetro Hacker",
+        role: "kid14",
+        xp: 15,
+        location: "Fuji",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁLCULO DE DIFERENCIAL DE ALTITUD</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">La 5ª Estación está situada a 2.300 metros sobre el nivel del mar. La cumbre geodésica del Monte Fuji tiene una altura de 3.776 metros. Calcula cuántos metros exactos de desnivel vertical separan ambos puntos.</p>
+                
+                <div style="margin:15px 0; display:flex; gap:10px; align-items:center; justify-content:center;">
+                    <span>3776 m - 2300 m =</span>
+                    <input type="number" id="alt-diff" placeholder="Metros..." style="width:120px; background:#111; color:#ffd700; border:1px solid #ffd700; padding:10px; border-radius:5px; font-family:monospace; text-align:center; font-size:1.2rem;">
+                </div>
+                
+                <p id="alt-status" style="font-size:0.85rem; color:#ffd700; text-align:center; min-height:1.2rem;">>>> Introduce el diferencial...</p>
+                <button id="btn-alt" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">🔓 VALIDAR DIFERENCIAL VERTICAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-alt');
+            const input = document.getElementById('alt-diff');
+            const status = document.getElementById('alt-status');
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(input.value);
+                const correct = 3776 - 2300; // 1476
+                
+                if (val === correct) {
+                    status.innerText = '>>> ¡CÁLCULO EXACTO! Desnivel: 1.476 metros.';
+                    status.style.color = '#00ff99';
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    setTimeout(() => {
+                        submitMission('day_14_altimeter', {type:'number', data: val}, role);
+                    }, 1200);
+                } else {
+                    status.innerText = '>>> ERROR: Lectura barométrica incompatible.';
+                    status.style.color = '#e74c3c';
+                    if (window.playProceduralSound) playProceduralSound('error');
+                }
+            });
+        }
+    },
+
+    "day_14_kid14_echo": {
+        tag: "writing",
+        day: 14,
+        title: "Densidad de Aokigahara",
+        role: "kid14",
+        xp: 15,
+        location: "Aokigahara",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> REPORTE CIENTÍFICO: ABSORCIÓN ACÚSTICA DEL BOSQUE</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce y redacta la explicación física de por qué en el bosque de Aokigahara no hay eco y el sonido parece desaparecer al instante (Pista: relaciona la textura del suelo de roca volcánica con los árboles).</p>
+                
+                <textarea id="echo-explanation" placeholder=">>> Escribe tu reporte físico aquí..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                
+                <button id="btn-echo-report" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 TRANSMITIR INFORME DE RESONANCIA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-echo-report');
+            const input = document.getElementById('echo-explanation');
+            
+            btn.addEventListener('click', () => {
+                const txt = input.value.trim();
+                if (txt.length < 15) {
+                    showAlert('INFORME CORTO', 'El informe requiere mayor detalle analítico de la densidad acústica.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_14_kid14_echo', {type:'text', data: txt}, role);
+            });
+        }
+    },
+
+    "day_14_oxygen": {
+        tag: "physical",
+        day: 14,
+        title: "Oxígeno Alpino",
+        role: "both",
+        xp: 20,
+        location: "Fuji",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border-radius:15px; border:3px solid #4dd0e1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">💨 Reto de Apnea Familiar 💨</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">A 2300 metros hay menos moléculas de oxígeno en el aire. ¡Toda la familia debe aguantar la respiración durante 15 segundos juntos!</p>
+                
+                <div style="text-align:center; margin:15px 0; background:#fff; padding:15px; border-radius:10px; border:2px solid #4dd0e1;">
+                    <div style="font-size:3.5rem; animation: pulse 1s infinite;" id="lung-emoji">🫁</div>
+                    <div id="apnea-timer" style="font-size:2.5rem; font-weight:bold; color:#00838f;">15s</div>
+                </div>
+                
+                <button id="btn-apnea" class="btn-primary" style="width:100%; background:#00bcd4; border-color:#00bcd4; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(0,188,212,0.3);">⏱️ EMPEZAR APNEA EN FAMILIA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-apnea');
+            const timerEl = document.getElementById('apnea-timer');
+            const lung = document.getElementById('lung-emoji');
+            
+            let active = false;
+            let time = 15;
+            let interval = null;
+            
+            btn.addEventListener('click', () => {
+                if (active) return;
+                
+                active = true;
+                time = 15;
+                timerEl.innerText = '15s';
+                btn.disabled = true;
+                btn.innerText = '😤 ¡Aguantad la respiración!';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                interval = setInterval(() => {
+                    time--;
+                    timerEl.innerText = time + 's';
+                    
+                    if (time <= 0) {
+                        clearInterval(interval);
+                        timerEl.innerText = '¡COMPLETADO!';
+                        timerEl.style.color = '#4caf50';
+                        lung.innerText = '✨🫁✨';
+                        
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                        
+                        setTimeout(() => {
+                            submitMission('day_14_oxygen', {type:'game', data: 'Apnea familiar 15s completada'}, role, true);
+                        }, 1200);
+                    }
+                }, 1000);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+            };
+        }
+    },
+
+
+};

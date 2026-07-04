@@ -1,0 +1,1001 @@
+// MINIJUEGOS DEL DIA 13
+// Métodos extraídos de games.js para NotebookLM
+
+    // DIA 13 MINIGAMES IMPLEMENTATION
+    // ==========================================================
+
+    // 19. day_13_stairs: La Escalada Chureito
+    setupStairs() {
+        this.gameData = {
+            stepsClimbed: 0,
+            targetSteps: 398,
+            playerY: 450,
+            playerVy: 0,
+            jumping: false,
+            obstacles: [],
+            spawnTimer: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateStairs(dt) {
+        const gd = this.gameData;
+        
+        if (gd.lives > 0 && gd.stepsClimbed < gd.targetSteps) {
+            gd.stepsClimbed += dt * 30;
+            this.score = Math.min(398, Math.round(gd.stepsClimbed));
+        }
+        
+        if (gd.jumping) {
+            gd.playerVy += 1400 * dt;
+            gd.playerY += gd.playerVy * dt;
+            
+            if (gd.playerY >= 450) {
+                gd.playerY = 450;
+                gd.jumping = false;
+            }
+        }
+        
+        gd.obstacles.forEach(o => {
+            o.y += 240 * dt;
+        });
+        
+        gd.obstacles.forEach(o => {
+            if (o.y > 420 && o.y < 460 && Math.abs(o.x - 400) < 40 && gd.playerY > 410) {
+                gd.lives--;
+                this.screenShake = 15;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                o.y = 999;
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(o => o.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.obstacles.push({
+                x: 350 + Math.random() * 100,
+                y: 100,
+                emoji: Math.random() < 0.5 ? '🐒' : '🪨'
+            });
+            gd.spawnTimer = 1.2 + Math.random() * 1.0;
+        }
+        
+        if (gd.lives <= 0) {
+            this.gameOver();
+        } else if (gd.stepsClimbed >= gd.targetSteps) {
+            this.victory();
+        }
+    },
+    drawStairs() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#b3e5fc';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#3f51b5';
+        ctx.beginPath();
+        ctx.moveTo(100, 400); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(500, 400);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(212, 250); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(388, 250);
+        ctx.fill();
+        
+        ctx.fillStyle = '#cfd8dc';
+        ctx.fillRect(300, 150, 200, 450);
+        
+        ctx.strokeStyle = '#90a4ae';
+        ctx.lineWidth = 4;
+        const offset = Math.round(gd.stepsClimbed * 4) % 40;
+        for (let y = 150; y < 600; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(300, y + offset);
+            ctx.lineTo(500, y + offset);
+            ctx.stroke();
+        }
+        
+        gd.obstacles.forEach(o => {
+            ctx.font = '35px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(o.emoji, o.x, o.y);
+        });
+        
+        ctx.font = '50px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦊', 400, gd.playerY);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('Escalones Chureito: ' + Math.round(gd.stepsClimbed) + ' / 398', 400, 60);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 100);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca para SALTAR obstáculos y subir los escalones.', 400, 560);
+    },
+    inputStairsPress() {
+        const gd = this.gameData;
+        if (!gd.jumping) {
+            gd.jumping = true;
+            gd.playerVy = -500;
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+
+    // 20. day_13_manhole: El Sello del Lago
+    setupManhole() {
+        this.gameData = {
+            colors: ['#cccccc', '#cccccc', '#cccccc', '#cccccc'],
+            targets: ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'],
+            selectedColor: '#e53935'
+        };
+        this.score = 0;
+    },
+    updateManhole(dt) {
+        const gd = this.gameData;
+        let match = true;
+        for (let i = 0; i < 4; i++) {
+            if (gd.colors[i] !== gd.targets[i]) match = false;
+        }
+        if (match) {
+            this.score = 100;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    drawManhole() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#cfd8dc';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(400, 260, 180, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const colors = gd.colors;
+        const angles = [
+            { s: -Math.PI * 0.75, e: -Math.PI * 0.25 },
+            { s: -Math.PI * 0.25, e: Math.PI * 0.25 },
+            { s: Math.PI * 0.25, e: Math.PI * 0.75 },
+            { s: Math.PI * 0.75, e: Math.PI * 1.25 }
+        ];
+        
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = colors[i];
+            ctx.beginPath();
+            ctx.moveTo(400, 260);
+            ctx.arc(400, 260, 175, angles[i].s, angles[i].e);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+        
+        ctx.fillStyle = '#cfd8dc';
+        ctx.beginPath();
+        ctx.moveTo(350, 310); ctx.lineTo(400, 210); ctx.lineTo(450, 310); ctx.closePath();
+        ctx.fill();
+        
+        const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
+        brushColors.forEach((bc, idx) => {
+            ctx.fillStyle = bc;
+            ctx.fillRect(160 + idx * 130, 480, 80, 45);
+            ctx.strokeStyle = gd.selectedColor === bc ? '#ffffff' : '#37474f';
+            ctx.lineWidth = gd.selectedColor === bc ? 4 : 2;
+            ctx.strokeRect(160 + idx * 130, 480, 80, 45);
+        });
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡Colorea la tapa de alcantarilla artística de Kawaguchiko!', 400, 50);
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Selecciona un esmalte abajo y toca las secciones del sello.', 400, 90);
+    },
+    inputManholePress(x, y) {
+        const gd = this.gameData;
+        
+        const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
+        for (let i = 0; i < 4; i++) {
+            const bx = 160 + i * 130;
+            if (x > bx && x < bx + 80 && y > 480 && y < 525) {
+                gd.selectedColor = brushColors[i];
+                if (window.playProceduralSound) playProceduralSound('click');
+                return;
+            }
+        }
+        
+        const dist = Math.hypot(x - 400, y - 260);
+        if (dist < 175) {
+            const angle = Math.atan2(y - 260, x - 400);
+            let sector = -1;
+            if (angle > -Math.PI * 0.75 && angle <= -Math.PI * 0.25) sector = 0;
+            else if (angle > -Math.PI * 0.25 && angle <= Math.PI * 0.25) sector = 1;
+            else if (angle > Math.PI * 0.25 && angle <= Math.PI * 0.75) sector = 2;
+            else sector = 3;
+            
+            if (sector !== -1) {
+                gd.colors[sector] = gd.selectedColor;
+                if (window.playProceduralSound) playProceduralSound('success');
+            }
+        }
+    },
+
+    // 21. day_13_icecream: Helados Exóticos
+    setupIcecream() {
+        this.gameData = {
+            scoops: [],
+            lives: 3,
+            swingAngle: 0,
+            activeScoopColor: '#4caf50',
+            activeScoopName: 'Wasabi'
+        };
+        this.score = 0;
+        this.spawnNewScoop();
+    },
+    spawnNewScoop() {
+        const flavors = [
+            { c: '#81c784', name: 'Wasabi Verde' },
+            { c: '#ba68c8', name: 'Lavanda' },
+            { c: '#90a4ae', name: 'Sésamo Negro' },
+            { c: '#ffd54f', name: 'Melón Dorado' }
+        ];
+        const chosen = flavors[Math.floor(Math.random() * flavors.length)];
+        this.gameData.activeScoopColor = chosen.c;
+        this.gameData.activeScoopName = chosen.name;
+    },
+    updateIcecream(dt) {
+        const gd = this.gameData;
+        
+        gd.swingAngle = Math.sin(this.gameTime * 3) * 0.8;
+        
+        gd.scoops.forEach(s => {
+            if (s.state === 'dropping') {
+                s.y += 350 * dt;
+                
+                const targetY = gd.scoops.length === 1 ? 440 : gd.scoops[gd.scoops.indexOf(s) - 1].y - 35;
+                const targetX = gd.scoops.length === 1 ? 400 : gd.scoops[gd.scoops.indexOf(s) - 1].x;
+                
+                if (s.y >= targetY) {
+                    if (Math.abs(s.x - targetX) < 30) {
+                        s.state = 'stacked';
+                        s.y = targetY;
+                        this.score = gd.scoops.length;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        if (gd.scoops.length >= 6) {
+                            this.victory();
+                        } else {
+                            this.spawnNewScoop();
+                        }
+                    } else {
+                        gd.lives--;
+                        this.screenShake = 12;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        gd.scoops.pop();
+                        
+                        if (gd.lives <= 0) {
+                            this.gameOver();
+                        } else {
+                            this.spawnNewScoop();
+                        }
+                    }
+                }
+            }
+        });
+    },
+    drawIcecream() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#4db6ac';
+        ctx.beginPath();
+        ctx.moveTo(0, 480); ctx.lineTo(200, 300); ctx.lineTo(400, 480); ctx.closePath(); ctx.fill();
+        
+        ctx.fillStyle = '#d7ccc8';
+        ctx.strokeStyle = '#8d6e63';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(370, 440); ctx.lineTo(430, 440); ctx.lineTo(400, 550); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        
+        gd.scoops.forEach(s => {
+            if (s.state === 'stacked') {
+                ctx.fillStyle = s.color;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        
+        const active = gd.scoops.find(s => s.state === 'dropping');
+        if (active) {
+            ctx.fillStyle = active.color;
+            ctx.beginPath();
+            ctx.arc(active.x, active.y, 25, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            const swingX = 400 + Math.sin(gd.swingAngle) * 150;
+            ctx.strokeStyle = '#37474f';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(400, 20); ctx.lineTo(swingX, 90); ctx.stroke();
+            
+            ctx.fillStyle = gd.activeScoopColor;
+            ctx.beginPath();
+            ctx.arc(swingX, 90, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        ctx.fillStyle = '#006064';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Bolas apiladas: ' + gd.scoops.filter(x => x.state === 'stacked').length + ' / 6', 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+        
+        ctx.font = '16px Outfit, sans-serif';
+        ctx.fillText('Toca la pantalla para soltar la bola cuando esté alineada.', 400, 580);
+    },
+    inputIcecreamPress() {
+        const gd = this.gameData;
+        if (!gd.scoops.some(s => s.state === 'dropping')) {
+            const swingX = 400 + Math.sin(gd.swingAngle) * 150;
+            gd.scoops.push({
+                x: swingX,
+                y: 90,
+                color: gd.activeScoopColor,
+                state: 'dropping'
+            });
+            if (window.playProceduralSound) playProceduralSound('jump');
+        }
+    },
+    releaseIcecream() {},
+
+    // 22. day_13_yokai: Filtro de Yōkai
+    setupYokai() {
+        const list = [];
+        for (let i = 0; i < 5; i++) {
+            list.push({
+                id: i,
+                x: 100 + Math.random() * 600,
+                y: 150 + Math.random() * 280,
+                emoji: ['👻', '🦊', '👺', '🐍', '🏮'][i],
+                found: false
+            });
+        }
+        this.gameData = {
+            yokais: list,
+            lensX: 400,
+            lensY: 300,
+            count: 0
+        };
+        this.score = 0;
+    },
+    updateYokai(dt) {
+        const gd = this.gameData;
+        gd.lensX += (this.mouse.x - gd.lensX) * 0.2;
+        gd.lensY += (this.mouse.y - gd.lensY) * 0.2;
+    },
+    drawYokai() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#08080c';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fillRect(150, 100, 40, 500);
+        ctx.fillRect(480, 50, 50, 550);
+        
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
+        ctx.clip();
+        
+        ctx.fillStyle = '#651fff';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillRect(150, 100, 40, 500);
+        ctx.fillRect(480, 50, 50, 550);
+        
+        gd.yokais.forEach(y => {
+            const dist = Math.hypot(y.x - gd.lensX, y.y - gd.lensY);
+            if (dist < 90 && !y.found) {
+                ctx.font = '55px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(y.emoji, y.x, y.y + 20);
+                
+                ctx.strokeStyle = '#00ff99';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(y.x - 30, y.y - 30, 60, 60);
+            }
+        });
+        ctx.restore();
+        
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        gd.yokais.forEach(y => {
+            if (y.found) {
+                ctx.font = '30px sans-serif';
+                ctx.fillText('📜', y.x, y.y);
+            }
+        });
+        
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Yokais capturados: ' + gd.count + ' / 5', 400, 50);
+        ctx.font = '15px monospace';
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Desplaza el visor espectral y toca al Yokai para sellarlo.', 400, 560);
+    },
+    inputYokaiPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.yokais.forEach(yk => {
+            const lensDist = Math.hypot(yk.x - gd.lensX, yk.y - gd.lensY);
+            if (lensDist < 90 && !yk.found && Math.hypot(x - yk.x, y - yk.y) < 40) {
+                yk.found = true;
+                gd.count++;
+                this.score = gd.count;
+                if (window.playProceduralSound) playProceduralSound('collect');
+                
+                for (let i = 0; i < 8; i++) {
+                    this.particles.push({
+                        x: yk.x, y: yk.y,
+                        vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                        size: 3, color: '#00ff99', life: 0.6, decay: 0.02
+                    });
+                }
+                
+                if (gd.count >= 5) {
+                    this.victory();
+                }
+            }
+        });
+    },
+
+    // 23. day_13_perspective: Perspectiva del Gigante
+    setupPerspective() {
+        this.gameData = {
+            scale: 0.35,
+            x: 280,
+            y: 350,
+            targetX: 435,
+            targetY: 260,
+            isMoving: false
+        };
+        this.score = 0;
+    },
+    updatePerspective(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown) {
+            if (this.mouse.y > 480 && this.mouse.y < 520 && this.mouse.x > 150 && this.mouse.x < 350) {
+                gd.scale = 0.1 + ((this.mouse.x - 150) / 200) * 0.8;
+            }
+            else if (Math.hypot(this.mouse.x - gd.x, this.mouse.y - gd.y) < 60) {
+                gd.isMoving = true;
+            }
+            
+            if (gd.isMoving) {
+                gd.x = this.mouse.x;
+                gd.y = this.mouse.y;
+            }
+        } else {
+            gd.isMoving = false;
+        }
+        
+        const dist = Math.hypot(gd.x - gd.targetX, gd.y - gd.targetY);
+        const scaleDiff = Math.abs(gd.scale - 0.45);
+        
+        const accuracy = Math.round(Math.max(0, 100 - dist * 0.6 - scaleDiff * 80));
+        this.score = accuracy;
+    },
+    drawPerspective() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e1f5fe';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#5c6bc0';
+        ctx.beginPath();
+        ctx.moveTo(250, 420); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(650, 420);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(395, 280); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(515, 280);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 410, 800, 190);
+        
+        ctx.strokeStyle = 'rgba(255,23,68,0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.targetX, gd.targetY, 20, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(gd.x, gd.y);
+        ctx.scale(gd.scale, gd.scale);
+        
+        ctx.fillStyle = '#ff8a80';
+        ctx.fillRect(-25, -25, 50, 50);
+        ctx.fillStyle = '#ff8a65';
+        ctx.fillRect(25, -10, 30, 15);
+        ctx.fillStyle = '#ffe0b2';
+        ctx.beginPath(); ctx.arc(0, -50, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(150, 510, 200, 10);
+        ctx.fillStyle = '#0288d1';
+        ctx.beginPath();
+        ctx.arc(150 + ((gd.scale - 0.1)/0.8)*200, 515, 12, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(520, 495, 160, 45);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.fillText('📸 DISPARAR', 600, 523);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('ÓPTICA FUJI: ALINEACIÓN DE PERSPECTIVA', 400, 50);
+        ctx.fillText('Coincidencia del encuadre: ' + this.score + '% / 90%', 400, 95);
+        
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillText('Escala', 250, 545);
+    },
+    inputPerspectivePress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 520 && x < 680 && y > 495 && y < 540) {
+            if (this.score >= 90) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.victory();
+            } else {
+                this.screenShake = 10;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    releasePerspective() {},
+
+    // 24. day_13_tunnels: Navegantes del Asfalto
+    setupTunnels() {
+        this.gameData = {
+            playerX: 400,
+            obstacles: [],
+            spawnTimer: 0,
+            distance: 0,
+            tunnelsPassed: 0,
+            targetTunnels: 3,
+            tunnelActive: true,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateTunnels(dt) {
+        const gd = this.gameData;
+        gd.distance += dt * 45;
+        
+        gd.obstacles.forEach(o => {
+            o.y += 240 * dt;
+        });
+        
+        gd.obstacles.forEach(o => {
+            if (o.y > 450 && o.y < 510 && Math.abs(o.x - gd.playerX) < 45) {
+                if (o.type === 'battery') {
+                    gd.distance += 40;
+                    if (window.playProceduralSound) playProceduralSound('collect');
+                } else {
+                    gd.lives--;
+                    this.screenShake = 15;
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                }
+                o.y = 999;
+            }
+        });
+        gd.obstacles = gd.obstacles.filter(o => o.y < 600);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            const isBatt = Math.random() < 0.35;
+            gd.obstacles.push({
+                x: 200 + Math.random() * 400,
+                y: -50,
+                type: isBatt ? 'battery' : 'barrier',
+                emoji: isBatt ? '⚡' : '🚧'
+            });
+            gd.spawnTimer = 0.8 + Math.random() * 0.8;
+        }
+        
+        const tunnelThreshold = (gd.tunnelsPassed + 1) * 150;
+        if (gd.distance >= tunnelThreshold) {
+            gd.tunnelsPassed++;
+            this.score = gd.tunnelsPassed;
+            if (window.playProceduralSound) playProceduralSound('success');
+            
+            if (gd.tunnelsPassed >= gd.targetTunnels) {
+                this.victory();
+            }
+        }
+        
+        gd.playerX += (this.mouse.x - gd.playerX) * 0.25;
+        gd.playerX = Math.max(150, Math.min(650, gd.playerX));
+    },
+    drawTunnels() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#08080a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, 600); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(650, 0); ctx.lineTo(650, 600); ctx.stroke();
+        
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 235, 59, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(gd.playerX, 480);
+        ctx.lineTo(gd.playerX - 160, 0);
+        ctx.lineTo(gd.playerX + 160, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        
+        gd.obstacles.forEach(o => {
+            const inLight = (o.y > 100 || Math.abs(o.x - gd.playerX) < 120);
+            if (inLight) {
+                ctx.font = '45px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(o.emoji, o.x, o.y);
+            }
+        });
+        
+        ctx.fillStyle = '#00b0ff';
+        ctx.fillRect(gd.playerX - 25, 480, 50, 80);
+        ctx.fillStyle = '#ffd54f';
+        ctx.fillRect(gd.playerX - 20, 480, 8, 8);
+        ctx.fillRect(gd.playerX + 12, 480, 8, 8);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Túneles atravesados: ' + gd.tunnelsPassed + ' / ' + gd.targetTunnels, 400, 50);
+        
+        let heartStr = '';
+        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
+        ctx.fillText(heartStr, 400, 95);
+    },
+    inputTunnelsPress() {},
+
+    // 25. day_13_volcano: Análisis Vulcanológico
+    setupVolcano() {
+        this.gameData = {
+            pressure: 30,
+            bubbles: [],
+            spawnTimer: 0,
+            timer: 30.0
+        };
+        this.score = 0;
+    },
+    updateVolcano(dt) {
+        const gd = this.gameData;
+        gd.timer -= dt;
+        
+        gd.pressure += dt * 3.5;
+        
+        gd.bubbles.forEach(b => {
+            b.y -= 120 * dt;
+        });
+        
+        gd.bubbles.forEach(b => {
+            if (b.y <= 180) {
+                gd.pressure = Math.min(100, gd.pressure + 15);
+                this.screenShake = 10;
+                if (window.playProceduralSound) playProceduralSound('damage');
+                b.y = -999;
+            }
+        });
+        gd.bubbles = gd.bubbles.filter(b => b.y > 0);
+        
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.bubbles.push({
+                x: 250 + Math.random() * 300,
+                y: 500,
+                r: 15 + Math.random() * 15,
+                id: Date.now() + Math.random()
+            });
+            gd.spawnTimer = 0.6 + Math.random() * 0.6;
+        }
+        
+        if (gd.pressure >= 100) {
+            this.gameOver();
+        } else if (gd.timer <= 0) {
+            this.score = 100;
+            this.victory();
+        }
+    },
+    drawVolcano() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#d50000';
+        ctx.beginPath();
+        ctx.arc(400, 480, 150, 0, Math.PI, true);
+        ctx.fill();
+        
+        ctx.fillRect(360, 200, 80, 280);
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(100, 80, 600, 20);
+        ctx.fillStyle = gd.pressure > 75 ? '#ff1744' : gd.pressure > 45 ? '#ffeb3b' : '#00e5ff';
+        ctx.fillRect(100, 80, 600 * (gd.pressure / 100), 20);
+        
+        gd.bubbles.forEach(b => {
+            ctx.fillStyle = 'rgba(255, 235, 59, 0.6)';
+            ctx.strokeStyle = '#ffd54f';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fill(); ctx.stroke();
+        });
+        
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(100, 520, 200, 55);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('💨 ABRIR VÁLVULA A', 200, 553);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('MONTE FUJI: ALIVIO DE PRESIÓN GEOLÓGICA', 400, 40);
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText('Presión del Magma: ' + Math.round(gd.pressure) + '% / 100%', 400, 130);
+        ctx.fillText('Mantener a salvo: ' + Math.max(0, Math.round(gd.timer)) + 's', 400, 170);
+    },
+    inputVolcanoPress(x, y) {
+        const gd = this.gameData;
+        
+        gd.bubbles.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < b.r + 20) {
+                gd.bubbles.splice(idx, 1);
+                gd.pressure = Math.max(0, gd.pressure - 6);
+                if (window.playProceduralSound) playProceduralSound('collect');
+                
+                for (let i = 0; i < 5; i++) {
+                    this.particles.push({
+                        x: b.x, y: b.y,
+                        vx: (Math.random() - 0.5) * 60, vy: (Math.random() - 0.5) * 60,
+                        size: 2, color: '#ffeb3b', life: 0.5, decay: 0.02
+                    });
+                }
+            }
+        });
+        
+        if (x > 100 && x < 300 && y > 520 && y < 575) {
+            gd.pressure = Math.max(0, gd.pressure - 12);
+            if (window.playProceduralSound) playProceduralSound('success');
+            for (let i = 0; i < 8; i++) {
+                this.particles.push({
+                    x: 400, y: 200,
+                    vx: (Math.random() - 0.5) * 40, vy: -60 - Math.random() * 40,
+                    size: 6, color: 'rgba(255,255,255,0.4)', life: 0.7, decay: 0.02
+                });
+            }
+        }
+    },
+
+    // 26. day_13_triangulation: Triangulación del Fuji
+    setupTriangulation() {
+        this.gameData = {
+            angle1: 15,
+            angle2: 60,
+            angle3: 110,
+            target1: 45,
+            target2: 45,
+            target3: 45,
+            isDraggingAngle: 0
+        };
+        this.score = 0;
+    },
+    updateTriangulation(dt) {
+        const gd = this.gameData;
+        
+        if (this.mouse.isDown && this.mouse.y > 480 && this.mouse.y < 530) {
+            if (this.mouse.x > 80 && this.mouse.x < 280) {
+                gd.angle1 = Math.round(((this.mouse.x - 80) / 200) * 180);
+            } else if (this.mouse.x > 300 && this.mouse.x < 500) {
+                gd.angle2 = Math.round(((this.mouse.x - 300) / 200) * 180);
+            } else if (this.mouse.x > 520 && this.mouse.x < 720) {
+                gd.angle3 = Math.round(((this.mouse.x - 520) / 200) * 180);
+            }
+        }
+        
+        const diff1 = Math.abs(gd.angle1 - gd.target1);
+        const diff2 = Math.abs(gd.angle2 - gd.target2);
+        const diff3 = Math.abs(gd.angle3 - gd.target3);
+        
+        if (diff1 <= 2 && diff2 <= 2 && diff3 <= 2) {
+            this.score = 1;
+            setTimeout(() => this.victory(), 800);
+        }
+    },
+    drawTriangulation() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#0a0d14';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(400, 350, 15, 0, Math.PI * 2); ctx.stroke();
+        
+        const sats = [
+            { x: 150, y: 120, a: gd.angle1, color: '#ff3d00' },
+            { x: 400, y: 80, a: gd.angle2, color: '#ffd600' },
+            { x: 650, y: 120, a: gd.angle3, color: '#2979ff' }
+        ];
+        
+        sats.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.fillRect(s.x - 20, s.y - 10, 40, 20);
+            
+            const targetAngleRad = Math.atan2(350 - s.y, 400 - s.x);
+            const actualAngleRad = targetAngleRad + (s.a - 45) * 0.02;
+            
+            ctx.strokeStyle = s.color + '66';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(s.x, s.y);
+            ctx.lineTo(s.x + Math.cos(actualAngleRad) * 600, s.y + Math.sin(actualAngleRad) * 600);
+            ctx.stroke();
+        });
+        
+        ctx.fillStyle = '#ff3d00';
+        ctx.fillRect(80, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(80 + (gd.angle1/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#ffd600';
+        ctx.fillRect(300, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(300 + (gd.angle2/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#2979ff';
+        ctx.fillRect(520, 500, 200, 10);
+        ctx.beginPath(); ctx.arc(520 + (gd.angle3/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('TRIANGULACIÓN DE MICROONDAS SATELITAL', 400, 45);
+        ctx.font = '16px monospace';
+        ctx.fillText('Ajusta los diales para cruzar los 3 haces en el cráter.', 400, 460);
+    },
+    inputTriangulationPress() {},
+
+    // 27. day_13_oishi: Oishi Park en Flor
+    setupOishi() {
+        this.gameData = {
+            cloudX: 180,
+            cloudVx: 35,
+            butterflyX: 0,
+            butterflyY: 320,
+            butterflyVx: 120,
+            butterflyVy: 0,
+            photoTaken: false
+        };
+        this.score = 0;
+    },
+    updateOishi(dt) {
+        const gd = this.gameData;
+        
+        gd.cloudX += gd.cloudVx * dt;
+        if (gd.cloudX > 850) gd.cloudX = -150;
+        
+        gd.butterflyX += gd.butterflyVx * dt;
+        gd.butterflyY += Math.sin(this.gameTime * 4) * 80 * dt;
+        if (gd.butterflyX > 850) gd.butterflyX = -50;
+    },
+    drawOishi() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+        
+        ctx.fillStyle = '#e3f2fd';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.fillStyle = '#7986cb';
+        ctx.beginPath();
+        ctx.moveTo(150, 400); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(650, 400);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(336, 250); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(464, 250);
+        ctx.fill();
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath();
+        ctx.arc(gd.cloudX, 230, 45, 0, Math.PI*2);
+        ctx.arc(gd.cloudX + 50, 230, 60, 0, Math.PI*2);
+        ctx.arc(gd.cloudX + 100, 230, 45, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 390, 800, 90);
+        
+        ctx.fillStyle = '#7c4dff';
+        for (let x = 0; x < 800; x += 15) {
+            const h = 80 + Math.sin(x * 0.05 + this.gameTime) * 15;
+            ctx.fillRect(x, 600 - h, 12, h);
+        }
+        
+        ctx.font = '35px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🦋', gd.butterflyX, gd.butterflyY);
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(50, 100, 700, 350);
+        
+        ctx.fillStyle = '#ef5350';
+        ctx.fillRect(320, 510, 160, 50);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText('📸 DISPARAR', 400, 541);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Outfit, sans-serif';
+        ctx.fillText('OISHI PARK: ENCUADRE DE LAVANDA Y FUJI', 400, 50);
+    },
+    inputOishiPress(x, y) {
+        const gd = this.gameData;
+        
+        if (x > 320 && x < 480 && y > 510 && y < 560) {
+            const cloudDist = Math.abs(gd.cloudX - 400);
+            const butterflyInFrame = (gd.butterflyX > 100 && gd.butterflyX < 700 && gd.butterflyY > 150 && gd.butterflyY < 400);
+            
+            let rating = 30;
+            if (cloudDist > 180) rating += 35;
+            if (butterflyInFrame) rating += 35;
+            
+            this.score = rating;
+            if (rating >= 80) {
+                if (window.playProceduralSound) playProceduralSound('success');
+                this.victory();
+            } else {
+                this.screenShake = 12;
+                if (window.playProceduralSound) playProceduralSound('error');
+            }
+        }
+    },
+    releaseOishi() {},
+
+    // ==========================================================

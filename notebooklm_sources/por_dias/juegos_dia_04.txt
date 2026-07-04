@@ -1,0 +1,2887 @@
+// MINIJUEGOS DEL DIA 4
+// Métodos extraídos de games.js para NotebookLM
+
+    // 10. ESCÁNER ALIENÍGENA KUROMON (day_4_bestiary)
+    // ==========================================================
+    setupBestiary() {
+        this.gameData = {
+            timeLeft: 60,
+            scanner: { x: 400, y: 300, radius: 55, progress: 0, target: null },
+            creatures: [],
+            bubbles: [],
+            scannedList: []
+        };
+        
+        // Spawn alien creatures
+        const alienNames = ["Tentaculoide-X", "Soplador de Fuego", "Manta-Neon", "Cangrejo Mutante", "Medusa Estelar", "Molusco-Gamma"];
+        const alienColors = ["#39ff14", "#ff007f", "#00ffff", "#ffd700", "#ff00ff", "#7e57c2"];
+        for (let i = 0; i < 6; i++) {
+            this.gameData.creatures.push({
+                id: i,
+                x: 100 + Math.random() * 600,
+                y: 100 + Math.random() * 400,
+                vx: (Math.random() - 0.5) * 120,
+                vy: (Math.random() - 0.5) * 120,
+                radius: 35,
+                type: 'alien',
+                name: alienNames[i],
+                color: alienColors[i],
+                scanned: false,
+                swimAngle: Math.random() * Math.PI * 2,
+                swimSpeed: 1.5 + Math.random() * 1.5
+            });
+        }
+        
+        // Spawn normal fish
+        const normalNames = ["Atún Kuromon", "Pargo Rojo", "Sardina Común", "Fugu Común", "Calamar Blanco"];
+        for (let i = 0; i < 5; i++) {
+            this.gameData.creatures.push({
+                id: i + 10,
+                x: 100 + Math.random() * 600,
+                y: 100 + Math.random() * 400,
+                vx: (Math.random() - 0.5) * 100,
+                vy: (Math.random() - 0.5) * 100,
+                radius: 28,
+                type: 'normal',
+                name: normalNames[i % normalNames.length],
+                color: '#607d8b',
+                scanned: false,
+                swimAngle: Math.random() * Math.PI * 2,
+                swimSpeed: 1.0 + Math.random() * 1.0
+            });
+        }
+        
+        // Bubbles
+        for (let i = 0; i < 20; i++) {
+            this.gameData.bubbles.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                radius: 2 + Math.random() * 5,
+                vy: 20 + Math.random() * 40
+            });
+        }
+    },
+
+    updateBestiary(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timeLeft -= dt;
+        if (gd.timeLeft <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        // Move scanner smoothly towards mouse
+        const sc = gd.scanner;
+        sc.x += (this.mouse.x - sc.x) * 0.15;
+        sc.y += (this.mouse.y - sc.y) * 0.15;
+
+        // Move bubbles
+        for (let b of gd.bubbles) {
+            b.y -= b.vy * dt;
+            if (b.y < -10) {
+                b.y = 610;
+                b.x = Math.random() * 800;
+            }
+        }
+
+        // Move creatures
+        for (let c of gd.creatures) {
+            // Apply organic wavy swim motion
+            c.swimAngle += dt * c.swimSpeed;
+            let currentVx = c.vx + Math.cos(c.swimAngle) * 20;
+            let currentVy = c.vy + Math.sin(c.swimAngle) * 20;
+            
+            c.x += currentVx * dt;
+            c.y += currentVy * dt;
+
+            // Bounce off boundaries
+            if (c.x - c.radius < 0) { c.x = c.radius; c.vx = -c.vx; }
+            if (c.x + c.radius > 800) { c.x = 800 - c.radius; c.vx = -c.vx; }
+            if (c.y - c.radius < 0) { c.y = c.radius; c.vy = -c.vy; }
+            if (c.y + c.radius > 600) { c.y = 600 - c.radius; c.vy = -c.vy; }
+        }
+
+        // Find creature currently being scanned
+        let target = null;
+        let minDist = 999999;
+        
+        for (let c of gd.creatures) {
+            if (c.scanned) continue;
+            let dist = Math.hypot(c.x - sc.x, c.y - sc.y);
+            if (dist < sc.radius + c.radius) {
+                if (dist < minDist) {
+                    minDist = dist;
+                    target = c;
+                }
+            }
+        }
+
+        if (target) {
+            if (sc.target === target) {
+                sc.progress += dt * 80; // ~1.25 seconds to complete
+                // Create scan sparks
+                if (Math.random() < 0.35) {
+                    this.createExplosion(target.x, target.y, target.color, 1, 0.4);
+                }
+                
+                if (sc.progress >= 100) {
+                    sc.progress = 0;
+                    sc.target = null;
+                    target.scanned = true;
+                    
+                    if (target.type === 'alien') {
+                        this.score++;
+                        document.getElementById('minigame-score').innerText = `Registrados: ${this.score}/5`;
+                        if (window.playProceduralSound) window.playProceduralSound('collect');
+                        this.createExplosion(target.x, target.y, '#39ff14', 25, 1.8);
+                        gd.scannedList.push(target.name);
+                        
+                        if (this.score >= this.goal) {
+                            if (window.launchConfetti) window.launchConfetti();
+                            this.win();
+                            return;
+                        }
+                    } else {
+                        // Scan penalty for scanning normal fish!
+                        if (window.playProceduralSound) window.playProceduralSound('error');
+                        this.triggerShake(12);
+                        gd.timeLeft -= 10; // Penalty
+                        this.createExplosion(target.x, target.y, '#ff3333', 20, 1.5);
+                    }
+                }
+            } else {
+                sc.target = target;
+                sc.progress = 0;
+            }
+        } else {
+            sc.target = null;
+            sc.progress = 0;
+        }
+    },
+
+    drawBestiary() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Background water gradient
+        let water = ctx.createLinearGradient(0, 0, 0, 600);
+        water.addColorStop(0, '#001a2d');
+        water.addColorStop(1, '#00070d');
+        ctx.fillStyle = water;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw radar circles / sonar grids in background
+        ctx.strokeStyle = 'rgba(0, 255, 100, 0.05)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(400, 300, 150, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(400, 300, 300, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, 300); ctx.lineTo(800, 300); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 600); ctx.stroke();
+
+        // Sonar beam sweep animation
+        let sweepAngle = this.gameTime * 1.5;
+        ctx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(400, 300);
+        ctx.lineTo(400 + Math.cos(sweepAngle)*500, 300 + Math.sin(sweepAngle)*500);
+        ctx.stroke();
+
+        // Draw bubbles
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        for (let b of gd.bubbles) {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Draw creatures
+        for (let c of gd.creatures) {
+            if (c.scanned && c.type === 'alien') continue; // Hidden once scanned
+
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            
+            // Swim rotation based on speed vector
+            let angle = Math.atan2(c.vy, c.vx);
+            ctx.rotate(angle);
+
+            if (c.type === 'alien') {
+                // Glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = c.color;
+                ctx.fillStyle = c.color;
+                
+                // Draw cute alien jellyfish/octopus shape
+                ctx.beginPath();
+                ctx.arc(0, 0, c.radius - 8, Math.PI, 0); // Head
+                ctx.lineTo(c.radius - 8, c.radius - 12);
+                ctx.quadraticCurveTo(0, c.radius - 2, -(c.radius - 8), c.radius - 12);
+                ctx.closePath();
+                ctx.fill();
+
+                // Tentacles/Legs waving
+                let wave = Math.sin(this.gameTime * 6 + c.id) * 6;
+                ctx.strokeStyle = c.color;
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(-12, 5); ctx.quadraticCurveTo(-18 + wave, 20, -12, 30);
+                ctx.moveTo(0, 5); ctx.quadraticCurveTo(0 + wave, 22, wave, 32);
+                ctx.moveTo(12, 5); ctx.quadraticCurveTo(18 + wave, 20, 12, 30);
+                ctx.stroke();
+
+                // Eyes
+                ctx.fillStyle = '#000000';
+                ctx.beginPath(); ctx.arc(-6, -4, 3, 0, Math.PI*2); ctx.arc(6, -4, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(-5, -5, 1, 0, Math.PI*2); ctx.arc(7, -5, 1, 0, Math.PI*2); ctx.fill();
+            } else {
+                // Normal fish
+                ctx.fillStyle = '#455a64';
+                // Tail
+                ctx.beginPath();
+                ctx.moveTo(-c.radius + 6, 0);
+                ctx.lineTo(-c.radius - 6, -10);
+                ctx.lineTo(-c.radius - 6, 10);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(0, 0, c.radius - 4, c.radius - 12, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                // Eye
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(c.radius - 12, -3, 3, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#000000';
+                ctx.beginPath(); ctx.arc(c.radius - 11, -3, 1.5, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // Draw Scanner Visor
+        const sc = gd.scanner;
+        ctx.save();
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = sc.target ? (sc.target.type === 'alien' ? '#39ff14' : '#ff3333') : '#ffffff';
+        ctx.strokeStyle = sc.target ? (sc.target.type === 'alien' ? '#39ff14' : '#ff3333') : 'rgba(255,255,255,0.7)';
+        ctx.lineWidth = 3;
+        
+        // Main crosshair circle
+        ctx.beginPath();
+        ctx.arc(sc.x, sc.y, sc.radius, 0, Math.PI*2);
+        ctx.stroke();
+
+        // Crosshairs lines
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(sc.x - sc.radius - 8, sc.y); ctx.lineTo(sc.x - sc.radius + 6, sc.y);
+        ctx.moveTo(sc.x + sc.radius - 6, sc.y); ctx.lineTo(sc.x + sc.radius + 8, sc.y);
+        ctx.moveTo(sc.x, sc.y - sc.radius - 8); ctx.lineTo(sc.x, sc.y - sc.radius + 6);
+        ctx.moveTo(sc.x, sc.y + sc.radius - 6); ctx.lineTo(sc.x, sc.y + sc.radius + 8);
+        ctx.stroke();
+
+        // Draw HUD overlay in scanner
+        if (sc.target) {
+            ctx.fillStyle = sc.target.type === 'alien' ? '#39ff14' : '#ff3333';
+            ctx.font = '10px monospace';
+            ctx.fillText(sc.target.type === 'alien' ? "MUTACIÓN DETECTADA" : "PECES COMUNES", sc.x - 45, sc.y - sc.radius - 14);
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(sc.target.name.toUpperCase(), sc.x - 45, sc.y - sc.radius - 4);
+
+            // Circular progress bar
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(sc.x, sc.y, sc.radius - 4, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * (sc.progress/100)));
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.font = '10px monospace';
+            ctx.fillText("BUSCANDO...", sc.x - 30, sc.y - sc.radius - 10);
+        }
+        ctx.restore();
+
+        // Draw general HUD info
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, 800, 45);
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 45); ctx.lineTo(800, 45); ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🎯 Clasificados: ${this.score} / ${this.goal}`, 25, 28);
+        
+        ctx.textAlign = 'right';
+        ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
+        ctx.fillText(`⏱️ Tiempo Restante: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 28);
+        ctx.textAlign = 'left';
+
+        // Draw list of scanned aliens on the side
+        if (gd.scannedList.length > 0) {
+            ctx.fillStyle = 'rgba(10, 25, 20, 0.6)';
+            ctx.fillRect(25, 70, 180, 25 + gd.scannedList.length * 20);
+            ctx.strokeStyle = '#39ff14';
+            ctx.strokeRect(25, 70, 180, 25 + gd.scannedList.length * 20);
+            
+            ctx.fillStyle = '#39ff14';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText("CRÍPTIDOS CATALOGADOS:", 35, 88);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px monospace';
+            gd.scannedList.forEach((name, i) => {
+                ctx.fillText(`✔️ ${name}`, 38, 108 + i * 20);
+            });
+        }
+    },
+
+    inputBestiaryPress(x, y) {
+        // Warp scanner immediately on press
+        const gd = this.gameData;
+        if (gd) {
+            gd.scanner.x = x;
+            gd.scanner.y = y;
+        }
+    },
+
+    // ==========================================================
+    // 11. GARRA GACHAPON LEGENDARIA (day_4_gachapon)
+    // ==========================================================
+    setupGachapon() {
+        this.gameData = {
+            timeLeft: 60,
+            lives: 3,
+            claw: {
+                x: 400,
+                y: 80,
+                state: 'scan', // 'scan', 'extend', 'retract', 'carry', 'deposit'
+                vx: 240, // scan speed
+                length: 0,
+                maxExtend: 410,
+                grab: null,
+                targetX: 400
+            },
+            capsules: [],
+            obstacles: [
+                { x: 280, y: 260, radius: 45, angle: 0, rotSpeed: 2.2 },
+                { x: 520, y: 310, radius: 50, angle: 0, rotSpeed: -1.8 }
+            ],
+            chute: { x: 45, y: 480, w: 110, h: 120 },
+            toysCollected: [],
+            toyAnnounce: "",
+            toyAnnounceTimer: 0
+        };
+
+        // Spawn Gachapon capsules at the bottom
+        const capColors = [
+            ['#f44336', '#ffffff'], // Poke-style
+            ['#ffd700', '#ff8f00'], // Golden
+            ['#9c27b0', '#e91e63'], // Legend purple/pink
+            ['#00bcd4', '#ffffff'], // Cyan/white
+            ['#4caf50', '#ffffff'], // Green/white
+            ['#ff5722', '#3f51b5'], // Fire/water
+            ['#ffeb3b', '#ffffff']  // Yellow/white
+        ];
+        
+        const toyPool = ["Laura Chibi Dorada 🦊", "Gato de la Suerte 🐱", "Mini Castillo Osaka 🏯", "Dotonbori Takoyaki Toy 🧆", "Ciervo Sagrado Nara 🦌", "Shogun Ninja de Juguete 🥷", "Moneda de 500 Yenes Cohete 🪙"];
+        
+        for (let i = 0; i < 7; i++) {
+            this.gameData.capsules.push({
+                id: i,
+                x: 220 + i * 75,
+                y: 510 + (i % 2) * 15,
+                radius: 26,
+                colors: capColors[i % capColors.length],
+                toy: toyPool[i % toyPool.length],
+                vx: 0,
+                vy: 0,
+                angle: Math.random() * Math.PI,
+                ground: 510 + (i % 2) * 15
+            });
+        }
+    },
+
+    updateGachapon(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timeLeft -= dt;
+        if (gd.timeLeft <= 0 || gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.toyAnnounceTimer > 0) {
+            gd.toyAnnounceTimer -= dt;
+        }
+
+        // Animate obstacle gears
+        for (let obs of gd.obstacles) {
+            obs.angle += obs.rotSpeed * dt;
+        }
+
+        // Claw FSM
+        const cl = gd.claw;
+        if (cl.state === 'scan') {
+            cl.x += cl.vx * dt;
+            // Bounce scan horizontal limits
+            if (cl.x < 200) { cl.x = 200; cl.vx = -cl.vx; }
+            if (cl.x > 720) { cl.x = 720; cl.vx = -cl.vx; }
+        }
+        else if (cl.state === 'extend') {
+            cl.length += 320 * dt; // extend speed
+            
+            // Check collisions with gears
+            let tipX = cl.x;
+            let tipY = cl.y + cl.length;
+            
+            for (let obs of gd.obstacles) {
+                let dist = Math.hypot(tipX - obs.x, tipY - obs.y);
+                if (dist < obs.radius + 8) {
+                    // Hits obstacle gear!
+                    if (window.playProceduralSound) window.playProceduralSound('damage');
+                    this.triggerShake(15);
+                    gd.lives--;
+                    cl.state = 'retract';
+                    this.createExplosion(tipX, tipY, '#ff3333', 15, 1.2);
+                    break;
+                }
+            }
+
+            // Check collision with capsules
+            if (cl.state === 'extend') {
+                for (let cap of gd.capsules) {
+                    if (cap.collected) continue;
+                    let dist = Math.hypot(tipX - cap.x, tipY - cap.y);
+                    if (dist < cap.radius + 12) {
+                        // Grab capsule
+                        cl.grab = cap;
+                        cl.state = 'retract';
+                        if (window.playProceduralSound) window.playProceduralSound('collect');
+                        this.createExplosion(tipX, tipY, '#ffd700', 10, 0.8);
+                        break;
+                    }
+                }
+            }
+
+            // Max extension reached
+            if (cl.length >= cl.maxExtend) {
+                cl.state = 'retract';
+            }
+        }
+        else if (cl.state === 'retract') {
+            cl.length -= 240 * dt;
+            if (cl.grab) {
+                cl.grab.x = cl.x;
+                cl.grab.y = cl.y + cl.length;
+            }
+            if (cl.length <= 0) {
+                cl.length = 0;
+                if (cl.grab) {
+                    cl.state = 'carry';
+                } else {
+                    cl.state = 'scan';
+                }
+            }
+        }
+        else if (cl.state === 'carry') {
+            // Carry capsule to exit chute at x=100
+            cl.x -= 200 * dt;
+            if (cl.grab) {
+                cl.grab.x = cl.x;
+                cl.grab.y = cl.y;
+            }
+            if (cl.x <= 100) {
+                cl.x = 100;
+                cl.state = 'deposit';
+            }
+        }
+        else if (cl.state === 'deposit') {
+            // Drop grab
+            if (cl.grab) {
+                const dropped = cl.grab;
+                cl.grab = null;
+                dropped.vy = 80; // gravity speed drop
+                // Keep falling loop
+                dropped.isFalling = true;
+            }
+            // Return claw to center
+            cl.x += 200 * dt;
+            if (cl.x >= 400) {
+                cl.x = 400;
+                cl.state = 'scan';
+            }
+        }
+
+        // Update falling dropped capsules physics
+        for (let cap of gd.capsules) {
+            if (cap.isFalling) {
+                cap.vy += 450 * dt; // Gravity
+                cap.y += cap.vy * dt;
+                
+                // Check prize chute
+                if (cap.y > 480) {
+                    cap.isFalling = false;
+                    cap.vy = 0;
+                    
+                    if (cap.x >= gd.chute.x && cap.x <= gd.chute.x + gd.chute.w) {
+                        // Success exit
+                        cap.collected = true;
+                        gd.toysCollected.push(cap.toy);
+                        gd.toyAnnounce = `🎉 ¡OBTENIDO: ${cap.toy}! 🎉`;
+                        gd.toyAnnounceTimer = 2.5;
+                        
+                        this.score++;
+                        document.getElementById('minigame-score').innerText = `Juguetes: ${this.score}/3`;
+                        
+                        if (window.playProceduralSound) window.playProceduralSound('success');
+                        if (window.launchConfetti) window.launchConfetti();
+                        this.createExplosion(cap.x, cap.y, '#00ff99', 30, 2.0);
+                        
+                        if (this.score >= this.goal) {
+                            this.win();
+                            return;
+                        }
+                    } else {
+                        // Missed chute, falls to bottom floor, bounce back to pile
+                        if (window.playProceduralSound) window.playProceduralSound('error');
+                        cap.x = 220 + Math.random() * 450;
+                        cap.y = cap.ground;
+                    }
+                }
+            }
+        }
+    },
+
+    drawGachapon() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Draw arcade chassis
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        // Glass container background
+        let glassBg = ctx.createLinearGradient(0, 80, 0, 480);
+        glassBg.addColorStop(0, '#021526');
+        glassBg.addColorStop(1, '#032541');
+        ctx.fillStyle = glassBg;
+        ctx.fillRect(150, 80, 600, 400);
+
+        // Grid lines in glass
+        ctx.strokeStyle = 'rgba(2, 136, 209, 0.1)';
+        ctx.lineWidth = 1;
+        for (let x = 150; x < 750; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x, 480); ctx.stroke();
+        }
+        for (let y = 80; y < 480; y += 50) {
+            ctx.beginPath(); ctx.moveTo(150, y); ctx.lineTo(750, y); ctx.stroke();
+        }
+
+        // Draw exit chute on bottom-left
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(gd.chute.x, gd.chute.y, gd.chute.w, gd.chute.h);
+        ctx.strokeStyle = '#0288d1';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(gd.chute.x, gd.chute.y, gd.chute.w, gd.chute.h);
+
+        // Arrow indicator pointing to chute
+        ctx.fillStyle = this.gameTime % 1.0 > 0.5 ? '#00e676' : '#0288d1';
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText("⬇️ EXTRAC", 48, 530);
+
+        // Draw obstacles (gears)
+        for (let obs of gd.obstacles) {
+            ctx.save();
+            ctx.translate(obs.x, obs.y);
+            ctx.rotate(obs.angle);
+            
+            // Draw gear outer spikes
+            ctx.fillStyle = '#64748b';
+            for (let i = 0; i < 8; i++) {
+                ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-10, -obs.radius - 8, 20, 16);
+            }
+            
+            // Draw gear body
+            ctx.beginPath();
+            ctx.arc(0, 0, obs.radius, 0, Math.PI*2);
+            ctx.fillStyle = '#475569';
+            ctx.fill();
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Core
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI*2);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Draw capsules
+        for (let cap of gd.capsules) {
+            if (cap.collected) continue;
+            ctx.save();
+            ctx.translate(cap.x, cap.y);
+            ctx.rotate(cap.angle);
+
+            // Shadow/Glow
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = cap.colors[0];
+
+            // Top half
+            ctx.fillStyle = cap.colors[0];
+            ctx.beginPath();
+            ctx.arc(0, 0, cap.radius, Math.PI, 0);
+            ctx.fill();
+
+            // Bottom half
+            ctx.fillStyle = cap.colors[1];
+            ctx.beginPath();
+            ctx.arc(0, 0, cap.radius, 0, Math.PI);
+            ctx.fill();
+
+            // Divider seam line
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-cap.radius, 0);
+            ctx.lineTo(cap.radius, 0);
+            ctx.stroke();
+
+            // Glare shine highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.beginPath();
+            ctx.arc(-8, -8, 6, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // Draw Claw Crane Mechanism
+        const cl = gd.claw;
+        ctx.save();
+        
+        // Steel cable
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cl.x, cl.y);
+        ctx.lineTo(cl.x, cl.y + cl.length);
+        ctx.stroke();
+
+        // Top carriage
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(cl.x - 30, cl.y - 12, 60, 24);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cl.x - 30, cl.y - 12, 60, 24);
+
+        // Claw tip node
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(cl.x, cl.y + cl.length, 12, 0, Math.PI*2);
+        ctx.fill();
+
+        // 3 metal claws spreading or closing
+        let openAngle = cl.state === 'extend' ? 0.6 : (cl.grab ? 0.2 : 0.4);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 4;
+        
+        for (let i = -1; i <= 1; i++) {
+            if (i === 0) continue;
+            ctx.save();
+            ctx.translate(cl.x, cl.y + cl.length);
+            ctx.rotate(i * openAngle);
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.quadraticCurveTo(i * 18, 16, i * 14, 38);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+        
+        ctx.restore();
+
+        // Glass reflection sheen
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath();
+        ctx.moveTo(150, 80);
+        ctx.lineTo(380, 80);
+        ctx.lineTo(150, 480);
+        ctx.fill();
+
+        // Frame borders
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 15;
+        ctx.strokeRect(150, 80, 600, 400);
+        ctx.strokeStyle = '#0288d1';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(150, 80, 600, 400);
+
+        // Header Panel HUD
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 800, 48);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🔮 Capturados: ${this.score} / ${this.goal}`, 25, 29);
+
+        // Lives indicators (Hearts)
+        let hearts = "";
+        for(let l=0; l<gd.lives; l++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 240, 29);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
+        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 29);
+        ctx.textAlign = 'left';
+
+        // Prize collection text/display
+        if (gd.toyAnnounceTimer > 0) {
+            ctx.fillStyle = 'rgba(0,0,0,0.85)';
+            ctx.fillRect(0, 220, 800, 100);
+            ctx.strokeStyle = '#00ff99';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(0, 220, 800, 100);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.toyAnnounce, 400, 276);
+            ctx.textAlign = 'left';
+        }
+
+        // Display Case of toys on bottom control panel
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(200, 500, 550, 75);
+        ctx.strokeStyle = '#334155';
+        ctx.strokeRect(200, 500, 550, 75);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText("ESTANTERÍA DE PREMIOS:", 215, 520);
+        
+        ctx.font = '12px Quicksand, sans-serif';
+        ctx.fillStyle = '#ffffff';
+        if (gd.toysCollected.length === 0) {
+            ctx.fillStyle = '#475569';
+            ctx.fillText("Estantería vacía... ¡Captura cápsulas para rellenarla!", 220, 548);
+        } else {
+            gd.toysCollected.forEach((toy, idx) => {
+                ctx.fillText(`🏆 ${toy}`, 220 + idx * 170, 550);
+            });
+        }
+    },
+
+    inputGachaponPress(x, y) {
+        const gd = this.gameData;
+        if (gd && gd.claw.state === 'scan') {
+            gd.claw.state = 'extend';
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+    },
+
+    // ==========================================================
+    // 12. CONEXIÓN DE REFRESCOS KAWAII (day_4_vending_roulette)
+    // ==========================================================
+    setupVending() {
+        this.gameData = {
+            timeLeft: 60,
+            gridCols: 7,
+            gridRows: 6,
+            cellSize: 65,
+            gridOffsetX: 180,
+            gridOffsetY: 120,
+            selected: [], // stores {r, c} objects
+            grid: [],
+            bubbles: [],
+            isDragging: false
+        };
+
+        const gd = this.gameData;
+        
+        // Spawn bubbles in background
+        for (let i = 0; i < 15; i++) {
+            gd.bubbles.push({
+                x: Math.random() * 800,
+                y: Math.random() * 600,
+                radius: 2 + Math.random() * 4,
+                vy: 30 + Math.random() * 40
+            });
+        }
+
+        // Fill grid with random types 0 to 4
+        // 0: Matcha 🍵, 1: Naranja 🍊, 2: Uva 🍇, 3: Fresa 🍓, 4: Calpis/Leche 🥛
+        for (let r = 0; r < gd.gridRows; r++) {
+            gd.grid[r] = [];
+            for (let c = 0; c < gd.gridCols; c++) {
+                gd.grid[r][c] = Math.floor(Math.random() * 5);
+            }
+        }
+    },
+
+    updateVending(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        gd.timeLeft -= dt;
+        if (gd.timeLeft <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        // Bubbles rise
+        for (let b of gd.bubbles) {
+            b.y -= b.vy * dt;
+            if (b.y < -10) {
+                b.y = 610;
+                b.x = Math.random() * 800;
+            }
+        }
+
+        // Gravity check for grid (let tiles fall to fill null cells)
+        let gridChanged = false;
+        for (let c = 0; c < gd.gridCols; c++) {
+            // Read column bottom-to-top
+            for (let r = gd.gridRows - 1; r >= 0; r--) {
+                if (gd.grid[r][c] === null) {
+                    // Pull from above
+                    let found = false;
+                    for (let tr = r - 1; tr >= 0; tr--) {
+                        if (gd.grid[tr][c] !== null) {
+                            gd.grid[r][c] = gd.grid[tr][c];
+                            gd.grid[tr][c] = null;
+                            found = true;
+                            gridChanged = true;
+                            break;
+                        }
+                    }
+                    // If no block found above, spawn a new random tile at the top
+                    if (!found) {
+                        gd.grid[r][c] = Math.floor(Math.random() * 5);
+                        gridChanged = true;
+                    }
+                }
+            }
+        }
+
+        // If mouse is down, check dragging selection
+        if (this.mouse.isDown && gd.gridOffsetY) {
+            // Find grid cell coordinates
+            const col = Math.floor((this.mouse.x - gd.gridOffsetX) / gd.cellSize);
+            const row = Math.floor((this.mouse.y - gd.gridOffsetY) / gd.cellSize);
+
+            if (col >= 0 && col < gd.gridCols && row >= 0 && row < gd.gridRows) {
+                const cellVal = gd.grid[row][col];
+                if (cellVal !== null) {
+                    if (gd.selected.length === 0) {
+                        gd.selected.push({ r: row, c: col, val: cellVal });
+                        if (window.playProceduralSound) window.playProceduralSound('click');
+                    } else {
+                        const last = gd.selected[gd.selected.length - 1];
+                        const typeMatch = (cellVal === last.val);
+                        const isAdjacent = Math.abs(row - last.r) <= 1 && Math.abs(col - last.c) <= 1;
+                        
+                        // Prevent connecting the exact same cell twice consecutively
+                        const alreadyInListIdx = gd.selected.findIndex(item => item.r === row && item.c === col);
+                        
+                        if (typeMatch && isAdjacent) {
+                            if (alreadyInListIdx === -1) {
+                                // Add to connection list
+                                gd.selected.push({ r: row, c: col, val: cellVal });
+                                if (window.playProceduralSound) window.playProceduralSound('click');
+                            } else if (alreadyInListIdx === gd.selected.length - 2) {
+                                // Dragged back to previous cell: pop/undo last cell
+                                gd.selected.pop();
+                                if (window.playProceduralSound) window.playProceduralSound('click');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    drawVending() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Vending Machine interior background
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw bubbles
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        for (let b of gd.bubbles) {
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Draw Vending Frame bezel
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(100, 60, 600, 520);
+        ctx.fillStyle = '#0f172a'; // black screen behind grid
+        ctx.fillRect(150, 100, 500, 420);
+        
+        ctx.strokeStyle = '#e65100';
+        ctx.lineWidth = 12;
+        ctx.strokeRect(100, 60, 600, 520);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(150, 100, 500, 420);
+
+        // Draw grid items (Sodas)
+        const emojiMap = ["🍵", "🍊", "🍇", "🍓", "🥛"];
+        const colorMap = ["#2e7d32", "#ef6c00", "#6a1b9a", "#ad1457", "#00838f"];
+        const labelMap = ["Matcha", "Orange", "Grape", "Berry", "Soda"];
+
+        for (let r = 0; r < gd.gridRows; r++) {
+            for (let c = 0; c < gd.gridCols; c++) {
+                const val = gd.grid[r][c];
+                if (val === null) continue;
+
+                let cellX = gd.gridOffsetX + c * gd.cellSize;
+                let cellY = gd.gridOffsetY + r * gd.cellSize;
+
+                // Check if selected
+                const isSel = gd.selected.some(item => item.r === r && item.c === c);
+
+                // Draw can body
+                ctx.save();
+                ctx.translate(cellX + gd.cellSize/2, cellY + gd.cellSize/2);
+                if (isSel) {
+                    ctx.scale(1.1, 1.1);
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = colorMap[val];
+                }
+
+                // Can outline
+                ctx.fillStyle = colorMap[val];
+                ctx.fillRect(-20, -26, 40, 52);
+                
+                // Can rim top/bottom
+                ctx.fillStyle = '#b0bec5';
+                ctx.fillRect(-20, -29, 40, 3);
+                ctx.fillRect(-20, 26, 40, 3);
+                
+                // Emoji label
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '22px Quicksand, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(emojiMap[val], 0, 8);
+
+                // Text label
+                ctx.font = 'bold 8px monospace';
+                ctx.fillText(labelMap[val].toUpperCase(), 0, 20);
+
+                ctx.restore();
+            }
+        }
+
+        // Draw dragging connecting lines
+        if (gd.selected.length > 0) {
+            ctx.save();
+            ctx.strokeStyle = colorMap[gd.selected[0].val];
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Neon glow line
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = colorMap[gd.selected[0].val];
+
+            ctx.beginPath();
+            gd.selected.forEach((sel, idx) => {
+                let x = gd.gridOffsetX + sel.c * gd.cellSize + gd.cellSize/2;
+                let y = gd.gridOffsetY + sel.r * gd.cellSize + gd.cellSize/2;
+                if (idx === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw vending dispenser exit at the bottom
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(250, 530, 300, 40);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(250, 530, 300, 40);
+
+        // Header Panel HUD
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 800, 48);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🥤 Servidos: ${this.score} / ${this.goal}`, 25, 29);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
+        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 29);
+        ctx.textAlign = 'left';
+    },
+
+    inputVendingPress(x, y) {
+        // Drag starts automatically on mousedown. Handled in update loop.
+    },
+
+    releaseVending(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.selected.length >= 3) {
+            // Match success! Clear items
+            for (let sel of gd.selected) {
+                gd.grid[sel.r][sel.c] = null;
+                
+                // Explode particles
+                let cellX = gd.gridOffsetX + sel.c * gd.cellSize + gd.cellSize/2;
+                let cellY = gd.gridOffsetY + sel.r * gd.cellSize + gd.cellSize/2;
+                const colors = ["#4caf50", "#ff9800", "#9c27b0", "#e91e63", "#00bcd4"];
+                this.createExplosion(cellX, cellY, colors[sel.val], 8, 0.7);
+            }
+
+            this.score += gd.selected.length;
+            document.getElementById('minigame-score').innerText = `Servidos: ${this.score}/${this.goal}`;
+            
+            if (window.playProceduralSound) window.playProceduralSound('collect');
+            this.triggerShake(6);
+
+            if (this.score >= this.goal) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
+        }
+        
+        // Clear selection
+        gd.selected = [];
+    },
+
+    // ==========================================================
+    // 13. CARRERA DEL CANGREJO DE DOTONBORI (day_4_crab)
+    // ==========================================================
+    setupCrab() {
+        this.gameData = {
+            player: {
+                x: 120,
+                y: 450,
+                vy: 0,
+                w: 64,
+                h: 45,
+                jumping: false,
+                jumps: 0,
+                health: 3,
+                invuln: 0,
+                animFrame: 0
+            },
+            obstacles: [],
+            coins: [],
+            bgOffset: 0,
+            canalOffset: 0,
+            spawnTimer: 0
+        };
+        
+        this.score = 0; // Metros recorridos
+    },
+
+    updateCrab(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        const p = gd.player;
+
+        // Metros increase based on time
+        this.score += dt * 11;
+        document.getElementById('minigame-score').innerText = `Distancia: ${Math.floor(this.score)}m`;
+
+        if (this.score >= this.goal) {
+            this.win();
+            return;
+        }
+
+        // Invulnerabilidad tick
+        if (p.invuln > 0) p.invuln -= dt;
+
+        // Player physics
+        p.vy += 0.85; // Gravity
+        p.y += p.vy;
+
+        if (p.y > 450) {
+            p.y = 450;
+            p.vy = 0;
+            p.jumping = false;
+            p.jumps = 0;
+        }
+
+        // Frame animations legs
+        p.animFrame += dt * 12;
+
+        // Scrolling backgrounds
+        gd.bgOffset = (gd.bgOffset - dt * 25) % 800;
+        gd.canalOffset = (gd.canalOffset - dt * 90) % 800;
+
+        // Obstacles & coins spawn logic
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.3 + Math.random() * 1.5;
+            
+            if (Math.random() > 0.35) {
+                // Spawn takoyaki obstacle
+                gd.obstacles.push({
+                    x: 850,
+                    y: 465,
+                    radius: 20,
+                    speed: 250 + Math.random() * 150,
+                    angle: 0
+                });
+            } else {
+                // Spawn float coin
+                gd.coins.push({
+                    x: 850,
+                    y: 280 + Math.random() * 130,
+                    w: 24,
+                    h: 24,
+                    collected: false
+                });
+            }
+        }
+
+        // Update obstacles
+        for (let i = gd.obstacles.length - 1; i >= 0; i--) {
+            let obs = gd.obstacles[i];
+            obs.x -= obs.speed * dt;
+            obs.angle -= dt * (obs.speed / 15); // Rotate roll
+
+            // Check collision box-to-circle
+            let dist = Math.hypot(obs.x - (p.x + p.w/2), obs.y - (p.y + p.h/2));
+            if (dist < obs.radius + 20) {
+                // Hit!
+                if (p.invuln <= 0) {
+                    p.health--;
+                    p.invuln = 1.5; // Flashing
+                    if (window.playProceduralSound) window.playProceduralSound('damage');
+                    this.triggerShake(12);
+                    this.createExplosion(obs.x, obs.y, '#ff3333', 15, 1.2);
+                    
+                    if (p.health <= 0) {
+                        this.gameOver();
+                        return;
+                    }
+                }
+            }
+            if (obs.x < -50) gd.obstacles.splice(i, 1);
+        }
+
+        // Update coins
+        for (let i = gd.coins.length - 1; i >= 0; i--) {
+            let cn = gd.coins[i];
+            cn.x -= 200 * dt;
+
+            // Check collect
+            if (!cn.collected && p.x + p.w > cn.x && p.x < cn.x + cn.w && p.y + p.h > cn.y && p.y < cn.y + cn.h) {
+                cn.collected = true;
+                this.score += 25; // Boost meters
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(cn.x + 12, cn.y + 12, '#ffd700', 12, 1.0);
+            }
+            if (cn.x < -50 || cn.collected) gd.coins.splice(i, 1);
+        }
+    },
+
+    drawCrab() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Sky gradient
+        let sky = ctx.createLinearGradient(0, 0, 0, 400);
+        sky.addColorStop(0, '#020208');
+        sky.addColorStop(1, '#0e0b29');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Parallax buildings and Glico Man neon sign
+        ctx.fillStyle = '#08061a';
+        ctx.fillRect(0, 200, 800, 250);
+        
+        ctx.fillStyle = '#130e2e';
+        // Draw some building rects based on scroll
+        for (let i = 0; i < 4; i++) {
+            let bx = (gd.bgOffset + i * 280) % 1120 - 100;
+            ctx.fillRect(bx, 150, 140, 300);
+            ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
+            // Windows
+            ctx.fillRect(bx + 20, 180, 20, 30);
+            ctx.fillRect(bx + 80, 180, 20, 30);
+            ctx.fillRect(bx + 20, 260, 20, 30);
+            ctx.fillRect(bx + 80, 260, 20, 30);
+            ctx.fillStyle = '#130e2e';
+        }
+
+        // Draw Glico Man style neon silhouette in center of backdrop
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00ffcc';
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        // Runner body outline (chibi representation)
+        ctx.arc(400, 230, 20, 0, Math.PI*2); // head
+        ctx.moveTo(400, 250); ctx.lineTo(400, 300); // spine
+        ctx.moveTo(400, 260); ctx.lineTo(370, 220); // left hand V
+        ctx.moveTo(400, 260); ctx.lineTo(430, 220); // right hand V
+        ctx.moveTo(400, 300); ctx.lineTo(380, 340); // left leg
+        ctx.moveTo(400, 300); ctx.lineTo(420, 340); // right leg
+        ctx.stroke();
+        ctx.restore();
+
+        // Giant Kani Doraku Crab hanging sign silhouette (outline)
+        ctx.save();
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ff3333';
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        let kx = 600, ky = 180;
+        ctx.arc(kx, ky, 35, 0, Math.PI*2); // Body
+        ctx.moveTo(kx - 35, ky); ctx.quadraticCurveTo(kx - 65, ky - 30, kx - 55, ky - 50); // Left claw
+        ctx.moveTo(kx + 35, ky); ctx.quadraticCurveTo(kx + 65, ky - 30, kx + 55, ky - 50); // Right claw
+        // Legs
+        ctx.moveTo(kx - 25, ky + 25); ctx.lineTo(kx - 45, ky + 45);
+        ctx.moveTo(kx - 10, ky + 33); ctx.lineTo(kx - 25, ky + 55);
+        ctx.moveTo(kx + 25, ky + 25); ctx.lineTo(kx + 45, ky + 45);
+        ctx.moveTo(kx + 10, ky + 33); ctx.lineTo(kx + 25, ky + 55);
+        ctx.stroke();
+        ctx.restore();
+
+        // Dotonbori Canal Water at bottom
+        ctx.fillStyle = '#022329';
+        ctx.fillRect(0, 495, 800, 105);
+        
+        // Neon reflections in canal water
+        ctx.fillStyle = 'rgba(255,51,51,0.15)';
+        ctx.fillRect(520, 495, 160, 105);
+        ctx.fillStyle = 'rgba(0,255,200,0.12)';
+        ctx.fillRect(320, 495, 160, 105);
+
+        // Ground Platform/Bridge path
+        ctx.fillStyle = '#374151';
+        ctx.fillRect(0, 480, 800, 20);
+        ctx.fillStyle = '#1f2937';
+        ctx.fillRect(0, 490, 800, 5);
+
+        // Coins
+        for (let cn of gd.coins) {
+            ctx.save();
+            ctx.translate(cn.x + 12, cn.y + 12);
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffd700';
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.arc(0, 0, 11, 0, Math.PI*2);
+            ctx.fill();
+            ctx.fillStyle = '#ff8f00';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText("¥", 0, 3);
+            ctx.restore();
+        }
+
+        // Obstacles (Takoyakis)
+        for (let obs of gd.obstacles) {
+            ctx.save();
+            ctx.translate(obs.x, obs.y);
+            ctx.rotate(obs.angle);
+            
+            // Ball body
+            ctx.fillStyle = '#a0522d';
+            ctx.beginPath(); ctx.arc(0, 0, obs.radius, 0, Math.PI*2); ctx.fill();
+
+            // Sauce stripes
+            ctx.strokeStyle = '#4e2409';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-12, -12); ctx.lineTo(12, 12);
+            ctx.moveTo(-6, -15); ctx.lineTo(15, 6);
+            ctx.stroke();
+
+            // Seaweed/Sparks flakes
+            ctx.fillStyle = '#2e7d32';
+            ctx.fillRect(-8, 5, 4, 4);
+            ctx.fillRect(6, -10, 5, 3);
+
+            ctx.restore();
+        }
+
+        // Draw Player Crab
+        const p = gd.player;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+
+        // Invulnerable flashing
+        if (p.invuln > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
+            ctx.globalAlpha = 0.35;
+        }
+
+        // Leg walk animation offsets
+        let walkOffset1 = Math.sin(p.animFrame) * 4;
+        let walkOffset2 = Math.cos(p.animFrame) * 4;
+
+        // Legs
+        ctx.strokeStyle = '#d32f2f';
+        ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        // Left legs
+        ctx.moveTo(10, 35); ctx.lineTo(4 + walkOffset1, 44);
+        ctx.moveTo(18, 35); ctx.lineTo(14 + walkOffset2, 44);
+        // Right legs
+        ctx.moveTo(46, 35); ctx.lineTo(42 + walkOffset2, 44);
+        ctx.moveTo(54, 35); ctx.lineTo(50 + walkOffset1, 44);
+        ctx.stroke();
+
+        // Main Shell body
+        ctx.fillStyle = '#f44336';
+        ctx.beginPath();
+        ctx.ellipse(32, 24, 26, 16, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Eye stalks
+        ctx.strokeStyle = '#f44336';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(20, 12); ctx.lineTo(20, 4);
+        ctx.moveTo(44, 12); ctx.lineTo(44, 4);
+        ctx.stroke();
+
+        // Eyes
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(20, 3, 5, 0, Math.PI*2); ctx.arc(44, 3, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath(); ctx.arc(20, 3, 2, 0, Math.PI*2); ctx.arc(44, 3, 2, 0, Math.PI*2); ctx.fill();
+
+        // Pincers / Claws (opening/closing)
+        let clawOpen = Math.sin(p.animFrame * 0.8) * 8;
+        ctx.save();
+        ctx.translate(6, 16);
+        ctx.rotate(-0.3);
+        ctx.fillStyle = '#d32f2f';
+        ctx.fillRect(-10, -8, 14, 12); // joint
+        ctx.beginPath();
+        ctx.arc(-8, -6 - clawOpen/3, 8, 0, Math.PI*2); // top claw
+        ctx.arc(-8, 2 + clawOpen/3, 8, 0, Math.PI*2); // bottom claw
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(58, 16);
+        ctx.rotate(0.3);
+        ctx.fillStyle = '#d32f2f';
+        ctx.fillRect(-4, -8, 14, 12);
+        ctx.beginPath();
+        ctx.arc(8, -6 - clawOpen/3, 8, 0, Math.PI*2);
+        ctx.arc(8, 2 + clawOpen/3, 8, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.restore();
+
+        // Header Panel HUD
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 800, 48);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🦀 Distancia: ${Math.floor(this.score)}m / ${this.goal}m`, 25, 29);
+
+        // Hearts
+        let heartsHtml = "";
+        for(let l=0; l<p.health; l++) heartsHtml += "❤️ ";
+        ctx.fillText(`Vidas: ${heartsHtml}`, 350, 29);
+    },
+
+    inputCrabPress(x, y) {
+        const gd = this.gameData;
+        if (gd) {
+            const p = gd.player;
+            if (p.jumps < 2) {
+                p.vy = -16.5; // Jump strength
+                p.jumps++;
+                p.jumping = true;
+                if (window.playProceduralSound) window.playProceduralSound('click');
+            }
+        }
+    },
+
+    // ==========================================================
+    // 14. MAESTRO DEL YAKINIKU (day_4_yakiniku)
+    // ==========================================================
+    setupYakiniku() {
+        this.gameData = {
+            lives: 3,
+            slots: [
+                { id: 0, x: 260, y: 200, active: false, meat: null },
+                { id: 1, x: 540, y: 200, active: false, meat: null },
+                { id: 2, x: 260, y: 400, active: false, meat: null },
+                { id: 3, x: 540, y: 400, active: false, meat: null }
+            ],
+            spawnTimer: 1.0,
+            smokeParticles: [],
+            feedbackText: "",
+            feedbackTextTimer: 0,
+            feedbackColor: "#00ff99"
+        };
+        this.score = 0; // Perfect cooked meats served
+    },
+
+    updateYakiniku(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.feedbackTextTimer > 0) {
+            gd.feedbackTextTimer -= dt;
+        }
+
+        // Spawn smoke particles
+        gd.slots.forEach(slot => {
+            if (slot.active && slot.meat) {
+                const mt = slot.meat;
+                if (Math.random() < 0.15) {
+                    gd.smokeParticles.push({
+                        x: slot.x + (Math.random() - 0.5) * 40,
+                        y: slot.y + (Math.random() - 0.5) * 20,
+                        vy: 40 + Math.random() * 60,
+                        size: 6 + Math.random() * 12,
+                        opacity: 0.7,
+                        color: mt.burnProgress > 0 ? '#4a4a4a' : '#e2e8f0' // Darker smoke if burning
+                    });
+                }
+            }
+        });
+
+        // Update smoke particles
+        for (let i = gd.smokeParticles.length - 1; i >= 0; i--) {
+            let sp = gd.smokeParticles[i];
+            sp.y -= sp.vy * dt;
+            sp.opacity -= dt * 0.9;
+            sp.size += dt * 8;
+            if (sp.opacity <= 0) gd.smokeParticles.splice(i, 1);
+        }
+
+        // Spawn raw meat in empty slots
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 2.0 + Math.random() * 1.5;
+            
+            // Find empty slots
+            const emptySlots = gd.slots.filter(s => !s.active);
+            if (emptySlots.length > 0) {
+                const choice = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+                choice.active = true;
+                
+                const types = ['beef', 'shiitake', 'onion'];
+                choice.meat = {
+                    type: types[Math.floor(Math.random() * types.length)],
+                    side: 1, // cooking side 1 or 2
+                    cookProgress: 0,
+                    burnProgress: 0,
+                    side1Done: false,
+                    side2Done: false,
+                    flipProgress: 1.0 // for animation scaling
+                };
+            }
+        }
+
+        // Update active cooking meats
+        gd.slots.forEach(slot => {
+            if (slot.active && slot.meat) {
+                const mt = slot.meat;
+                
+                // Flip animation scaling
+                if (mt.flipProgress < 1.0) {
+                    mt.flipProgress = Math.min(1.0, mt.flipProgress + dt * 5);
+                }
+
+                // Cook progress increase
+                mt.cookProgress += dt * 26; // ~3.5 seconds to grill perfectly
+                
+                if (mt.cookProgress > 100) {
+                    mt.burnProgress += dt * 32; // ~3 seconds to burn completely
+                }
+            }
+        });
+    },
+
+    drawYakiniku() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Wooden table background texture
+        ctx.fillStyle = '#3e2723';
+        ctx.fillRect(0, 0, 800, 600);
+        
+        ctx.strokeStyle = '#2d1b18';
+        ctx.lineWidth = 4;
+        for (let y = 50; y < 600; y += 80) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+
+        // Circular Charcoal Grill Bezel
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = '#000000';
+        ctx.fillStyle = '#212121';
+        ctx.beginPath(); ctx.arc(400, 300, 260, 0, Math.PI*2); ctx.fill();
+
+        // Hot Coals glow inside
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3c00';
+        ctx.fillStyle = '#d50000';
+        ctx.beginPath(); ctx.arc(400, 300, 220, 0, Math.PI*2); ctx.fill();
+
+        // Draw grill grid wire mesh lines
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#424242';
+        ctx.lineWidth = 3;
+        for (let x = 190; x < 610; x += 22) {
+            let dist = Math.abs(x - 400);
+            let chord = Math.sqrt(240*240 - dist*dist);
+            ctx.beginPath();
+            ctx.moveTo(x, 300 - chord);
+            ctx.lineTo(x, 300 + chord);
+            ctx.stroke();
+        }
+        for (let y = 90; y < 510; y += 22) {
+            let dist = Math.abs(y - 300);
+            let chord = Math.sqrt(240*240 - dist*dist);
+            ctx.beginPath();
+            ctx.moveTo(300 - chord, y);
+            ctx.lineTo(300 + chord, y);
+            ctx.stroke();
+        }
+
+        // Draw smoke particles
+        ctx.save();
+        for (let sp of gd.smokeParticles) {
+            ctx.globalAlpha = sp.opacity;
+            ctx.fillStyle = sp.color;
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI*2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // Draw slots with meats
+        gd.slots.forEach(slot => {
+            if (!slot.active) {
+                // Empty slot placement indicator
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(slot.x, slot.y, 40, 0, Math.PI*2);
+                ctx.stroke();
+                return;
+            }
+
+            const mt = slot.meat;
+            ctx.save();
+            ctx.translate(slot.x, slot.y);
+            ctx.scale(mt.flipProgress, 1.0); // Flip scaling animation
+
+            // Meat color mapping based on cook & burn values
+            let color = '#ef5350'; // Raw pink
+            if (mt.cookProgress > 0) {
+                let factor = Math.min(1.0, mt.cookProgress / 100);
+                // Mix from pink (#ef5350) to golden grill brown (#795548)
+                color = this.lerpColor('#ef5350', '#795548', factor);
+            }
+            if (mt.burnProgress > 0) {
+                let factor = Math.min(1.0, mt.burnProgress / 100);
+                // Mix from brown to black carbon (#1a0d00 to #000000)
+                color = this.lerpColor(color, '#121212', factor);
+            }
+
+            // Draw meat shapes
+            if (mt.type === 'beef') {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.moveTo(-45, -20);
+                ctx.bezierCurveTo(-20, -32, 20, -25, 45, -15);
+                ctx.bezierCurveTo(38, 25, -20, 35, -45, 10);
+                ctx.closePath();
+                ctx.fill();
+
+                // Marbling lines / grill lines
+                ctx.strokeStyle = mt.cookProgress > 60 ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(-20, -18); ctx.lineTo(-10, 18);
+                ctx.moveTo(0, -22); ctx.lineTo(10, 22);
+                ctx.moveTo(20, -18); ctx.lineTo(30, 18);
+                ctx.stroke();
+            }
+            else if (mt.type === 'shiitake') {
+                ctx.fillStyle = mt.burnProgress > 20 ? '#1b1b1b' : (mt.cookProgress > 60 ? '#3e2723' : '#a1887f');
+                ctx.beginPath();
+                ctx.arc(0, 0, 32, 0, Math.PI*2);
+                ctx.fill();
+                
+                // Mushroom top cross cuts
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(-15, 0); ctx.lineTo(15, 0);
+                ctx.moveTo(0, -15); ctx.lineTo(0, 15);
+                ctx.stroke();
+            }
+            else if (mt.type === 'onion') {
+                // Onion ring
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 14;
+                ctx.beginPath();
+                ctx.arc(0, 0, 28, 0, Math.PI*2);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#ffeb3b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 24, 0, Math.PI*2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+
+            // Progress Indicators circles on side
+            ctx.save();
+            ctx.translate(slot.x, slot.y);
+
+            let statusColor = '#2196f3'; // blue: raw
+            let text = `LADO ${mt.side}`;
+            if (mt.cookProgress >= 60 && mt.cookProgress <= 100) {
+                statusColor = '#00ff99'; // green: PERFECT
+                text = "¡AL PUNTO!";
+            } else if (mt.cookProgress > 100 && mt.burnProgress < 80) {
+                statusColor = '#ff9800'; // orange: overcooked
+                text = "CUIDADO";
+            } else if (mt.burnProgress >= 80) {
+                statusColor = '#ff3333'; // red: BURNT
+                text = "QUEMADO";
+            }
+
+            // Draw indicator bar ring
+            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI*2); ctx.stroke();
+            
+            ctx.strokeStyle = statusColor;
+            ctx.lineWidth = 4;
+            let barProgress = mt.burnProgress > 0 ? (mt.burnProgress/100) : (mt.cookProgress/100);
+            ctx.beginPath();
+            ctx.arc(0, 0, 48, -Math.PI/2, (-Math.PI/2) + Math.PI*2 * Math.min(1.0, barProgress));
+            ctx.stroke();
+
+            // HUD text on slots
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, 0, 5);
+
+            ctx.restore();
+        });
+
+        // Floating feedback text
+        if (gd.feedbackTextTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 26px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 90 + gd.feedbackTextTimer * 10);
+            ctx.restore();
+        }
+
+        // Header Panel HUD
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 800, 48);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Quicksand, sans-serif';
+        ctx.fillText(`🥩 Platos Perfectos: ${this.score} / ${this.goal}`, 25, 29);
+
+        // Hearts / Lives
+        let heartsHtml = "";
+        for(let l=0; l<gd.lives; l++) heartsHtml += "❤️ ";
+        ctx.fillText(`Vidas: ${heartsHtml}`, 350, 29);
+    },
+
+    inputYakinikuPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        // Find which slot was clicked
+        let clickedSlot = null;
+        for (let s of gd.slots) {
+            if (s.active) {
+                let dist = Math.hypot(x - s.x, y - s.y);
+                if (dist < 50) {
+                    clickedSlot = s;
+                    break;
+                }
+            }
+        }
+
+        if (clickedSlot) {
+            const mt = clickedSlot.meat;
+            if (mt.side === 1) {
+                // Flip meat
+                mt.side = 2;
+                mt.side1Done = (mt.cookProgress >= 60 && mt.cookProgress <= 100 && mt.burnProgress < 80);
+                mt.cookProgress = 0;
+                mt.burnProgress = 0;
+                mt.flipProgress = 0.1; // trigger flip scaling anim
+                
+                if (window.playProceduralSound) window.playProceduralSound('click');
+            } else {
+                // Serve meat!
+                mt.side2Done = (mt.cookProgress >= 60 && mt.cookProgress <= 100 && mt.burnProgress < 80);
+                
+                if (mt.side1Done && mt.side2Done) {
+                    // Perfect serving!
+                    this.score++;
+                    document.getElementById('minigame-score').innerText = `Platos Perfectos: ${this.score}/${this.goal}`;
+                    gd.feedbackText = "✨ ¡PERFECTO! WAGYU EXCELENTE A5 😋 ✨";
+                    gd.feedbackColor = "#00ff99";
+                    gd.feedbackTextTimer = 2.0;
+
+                    if (window.playProceduralSound) window.playProceduralSound('success');
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.createExplosion(clickedSlot.x, clickedSlot.y, '#00ff99', 20, 1.4);
+
+                    if (this.score >= this.goal) {
+                        this.win();
+                    }
+                } else {
+                    // Burned or raw serving!
+                    gd.lives--;
+                    let errType = (mt.burnProgress >= 80) ? "¡QUEMADO! 🔥" : "¡CRUDO! 🥶";
+                    gd.feedbackText = `💥 ${errType} MAL SERVICIO 🤢 💥`;
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTextTimer = 2.0;
+                    
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    this.triggerShake(12);
+                    this.createExplosion(clickedSlot.x, clickedSlot.y, '#ff3333', 20, 1.4);
+                }
+
+                // Empty the slot
+                clickedSlot.active = false;
+                clickedSlot.meat = null;
+            }
+        }
+    },
+
+    // ==========================================================
+    // 15. CORTE DE PRECISIÓN (day_4_knife)
+    // ==========================================================
+    setupKnife() {
+        this.gameData = {
+            lives: 3,
+            chefKnife: { x: 250, y: 150, targetY: 150, state: 'idle' },
+            ingredients: [],
+            spawnTimer: 0.5,
+            cutLineX: 250,
+            feedbackText: "",
+            feedbackTimer: 0,
+            feedbackColor: "#ff5722",
+            score: 0
+        };
+        this.score = 0;
+    },
+
+    updateKnife(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.feedbackTimer > 0) {
+            gd.feedbackTimer -= dt;
+        }
+
+        // Spawn ingredients
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0 + Math.random() * 1.3;
+            const types = ['tuna', 'cucumber', 'shiitake', 'wasabi', 'stone', 'broken_blade'];
+            const choice = types[Math.floor(Math.random() * types.length)];
+            gd.ingredients.push({
+                id: Math.random(),
+                x: 850,
+                y: 470,
+                type: choice,
+                speed: 240 + Math.random() * 90,
+                hit: false,
+                missed: false,
+                splitTimer: 0
+            });
+        }
+
+        // Update ingredients
+        gd.ingredients.forEach(item => {
+            if (!item.hit) {
+                item.x -= item.speed * dt;
+                if (item.x < 130 && !item.missed) {
+                    item.missed = true;
+                }
+            } else {
+                item.splitTimer += dt;
+            }
+        });
+
+        // Remove offscreen
+        gd.ingredients = gd.ingredients.filter(item => item.x > -50 && item.splitTimer < 1.0);
+
+        // Update knife swing
+        const knife = gd.chefKnife;
+        if (knife.state === 'swinging') {
+            knife.y += 1800 * dt;
+            if (knife.y >= 460) {
+                knife.y = 460;
+                knife.state = 'returning';
+
+                // Hit detection on the closest item
+                let closest = null;
+                let minDist = Infinity;
+                gd.ingredients.forEach(item => {
+                    if (!item.hit) {
+                        const dist = Math.abs(item.x - gd.cutLineX);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closest = item;
+                        }
+                    }
+                });
+
+                if (closest && minDist <= 50) {
+                    closest.hit = true;
+                    if (closest.type === 'stone' || closest.type === 'broken_blade') {
+                        gd.lives--;
+                        gd.feedbackText = "💥 ¡HOJA DAÑADA POR OBSTÁCULO! Vidas -1 💥";
+                        gd.feedbackColor = "#ff3333";
+                        gd.feedbackTimer = 1.5;
+                        this.triggerShake(15);
+                        if (window.playProceduralSound) window.playProceduralSound('damage');
+                        this.createExplosion(closest.x, closest.y, '#90a4ae', 20, 1.3);
+                    } else {
+                        // Sliced item
+                        const precision = Math.abs(closest.x - gd.cutLineX);
+                        if (precision <= 18) {
+                            this.score++;
+                            document.getElementById('minigame-score').innerText = `Cortes Perfectos: ${this.score}/${this.goal}`;
+                            gd.feedbackText = "✨ ¡CORTE PERFECTO! +1 ✨";
+                            gd.feedbackColor = "#00ff99";
+                            gd.feedbackTimer = 1.0;
+                            if (window.playProceduralSound) window.playProceduralSound('success');
+                            this.createExplosion(closest.x, closest.y, '#00ff99', 15, 1.1);
+                            if (window.launchConfetti && this.score >= this.goal) window.launchConfetti();
+                            if (this.score >= this.goal) {
+                                setTimeout(() => this.win(), 800);
+                            }
+                        } else {
+                            gd.feedbackText = "⚠️ ¡CORTE IMPRECISO! Sin puntos ⚠️";
+                            gd.feedbackColor = "#ffaa00";
+                            gd.feedbackTimer = 1.0;
+                            if (window.playProceduralSound) window.playProceduralSound('click');
+                            this.createExplosion(closest.x, closest.y, '#ffaa00', 8, 0.9);
+                        }
+                    }
+                }
+            }
+        } else if (knife.state === 'returning') {
+            knife.y -= 1000 * dt;
+            if (knife.y <= 150) {
+                knife.y = 150;
+                knife.state = 'idle';
+            }
+        }
+    },
+
+    drawKnife() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Wooden board / kitchen back
+        ctx.fillStyle = '#efebe9';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Conveyor belt track
+        ctx.fillStyle = '#b0bec5';
+        ctx.fillRect(0, 440, 800, 60);
+        ctx.fillStyle = '#78909c';
+        ctx.fillRect(0, 495, 800, 5);
+
+        // Wooden cutting board shadow zone
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(200, 435, 100, 70);
+        ctx.strokeStyle = '#8d6e63';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(200, 435, 100, 70);
+
+        // Red/dashed cutting line
+        ctx.strokeStyle = '#ff3333';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(gd.cutLineX, 400);
+        ctx.lineTo(gd.cutLineX, 510);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw ingredients
+        gd.ingredients.forEach(item => {
+            const emojis = {
+                tuna: '🐟', cucumber: '🥒', shiitake: '🍄', wasabi: '🥦',
+                stone: '🪨', broken_blade: '🔧'
+            };
+            const emoji = emojis[item.type] || '🍣';
+
+            if (!item.hit) {
+                ctx.save();
+                ctx.translate(item.x, item.y);
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = 'rgba(0,0,0,0.2)';
+                
+                // Plate/wrapper
+                ctx.fillStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#cfd8dc' : '#fff';
+                ctx.strokeStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#78909c' : '#ffd54f';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 24, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Emoji
+                ctx.font = '24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(emoji, 0, 0);
+                ctx.restore();
+            } else {
+                // Draw split falling halves
+                ctx.save();
+                const offset = item.splitTimer * 60;
+                const rot = item.splitTimer * Math.PI;
+
+                // Left Half
+                ctx.save();
+                ctx.translate(item.x - offset, item.y + offset * 0.5);
+                ctx.rotate(-rot);
+                ctx.font = '24px sans-serif';
+                ctx.fillText(emoji, -6, 0);
+                ctx.restore();
+
+                // Right Half
+                ctx.save();
+                ctx.translate(item.x + offset, item.y + offset * 0.5);
+                ctx.rotate(rot);
+                ctx.font = '24px sans-serif';
+                ctx.fillText(emoji, 6, 0);
+                ctx.restore();
+
+                ctx.restore();
+            }
+        });
+
+        // Draw Chef Knife
+        const knife = gd.chefKnife;
+        ctx.save();
+        ctx.translate(knife.x, knife.y);
+
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+
+        // Blade (silver shiny metal)
+        ctx.fillStyle = '#eceff1';
+        ctx.strokeStyle = '#b0bec5';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-6, -110);
+        ctx.lineTo(12, -110);
+        ctx.lineTo(12, -10);
+        ctx.quadraticCurveTo(8, 0, -6, -2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Shiny reflect line
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(3, -105);
+        ctx.lineTo(3, -12);
+        ctx.stroke();
+
+        // Wooden handle
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(-4, -165, 8, 55);
+
+        ctx.restore();
+
+        // HUD & alerts
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, 0, 800, 50);
+
+        ctx.font = 'bold 16px monospace';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(`CORTES: ${this.score}/${this.goal}`, 20, 31);
+
+        ctx.fillStyle = '#ff3333';
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Hoja: ${hearts}`, 550, 31);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 300);
+            ctx.textAlign = 'left';
+        }
+    },
+
+    inputKnifePress(x, y) {
+        const gd = this.gameData;
+        if (gd && gd.chefKnife.state === 'idle') {
+            gd.chefKnife.state = 'swinging';
+            if (window.playProceduralSound) window.playProceduralSound('jump');
+        }
+    },
+
+    // ==========================================================
+    // 16. RETO 500 YENES (day_4_500yen)
+    // ==========================================================
+    setup500Yen() {
+        this.gameData = {
+            lives: 3,
+            totalBudget: 0,
+            cart: { x: 400, y: 520, w: 130, h: 50 },
+            items: [],
+            spawnTimer: 0.5,
+            feedbackText: "",
+            feedbackTimer: 0,
+            feedbackColor: "#00ff99",
+            checkoutBtn: { x: 620, y: 15, w: 160, h: 42 }
+        };
+        this.score = 0;
+    },
+
+    update500Yen(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.feedbackTimer > 0) {
+            gd.feedbackTimer -= dt;
+        }
+
+        // Cart X matches mouse bounded
+        gd.cart.x = Math.max(65, Math.min(735, this.mouse.x));
+
+        // Spawn items
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.7 + Math.random() * 0.7;
+            const pool = [
+                { type: 'onigiri', price: 150, emoji: '🍙' },
+                { type: 'greentea', price: 130, emoji: '🍵' },
+                { type: 'melonpan', price: 160, emoji: '🍞' },
+                { type: 'pocky', price: 180, emoji: '🍫' },
+                { type: 'rotten', price: 0, emoji: '🤢' }
+            ];
+            const choice = pool[Math.floor(Math.random() * pool.length)];
+            gd.items.push({
+                x: 50 + Math.random() * 700,
+                y: -40,
+                type: choice.type,
+                price: choice.price,
+                emoji: choice.emoji,
+                speed: 160 + Math.random() * 100
+            });
+        }
+
+        // Update items
+        gd.items.forEach(item => {
+            item.y += item.speed * dt;
+        });
+
+        // Collisions
+        for (let i = gd.items.length - 1; i >= 0; i--) {
+            const it = gd.items[i];
+            const c = gd.cart;
+
+            if (it.y >= c.y - 25 && it.y <= c.y + 25 && it.x >= c.x - c.w/2 && it.x <= c.x + c.w/2) {
+                // Catch item!
+                gd.items.splice(i, 1);
+
+                if (it.type === 'rotten') {
+                    gd.lives--;
+                    gd.feedbackText = "🤢 ¡PRODUCTO CADUCADO EN MAL ESTADO! Vidas -1 🤮";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.8;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) window.playProceduralSound('damage');
+                    this.createExplosion(it.x, it.y, '#8d6e63', 15, 1.2);
+                } else {
+                    gd.totalBudget += it.price;
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+                    this.createExplosion(it.x, it.y, '#00ff99', 10, 1.0);
+
+                    if (gd.totalBudget > 500) {
+                        gd.lives--;
+                        gd.totalBudget = 0;
+                        gd.feedbackText = "💥 ¡CESTA SOBRECARGADA! MÁXIMO 500¥ SUPERADO 💥";
+                        gd.feedbackColor = "#ff3333";
+                        gd.feedbackTimer = 1.8;
+                        this.triggerShake(15);
+                        if (window.playProceduralSound) window.playProceduralSound('error');
+                    } else {
+                        gd.feedbackText = `+${it.price}¥ (${it.emoji})`;
+                        gd.feedbackColor = "#00ff99";
+                        gd.feedbackTimer = 1.0;
+                    }
+                }
+                continue;
+            }
+
+            if (it.y > 650) {
+                gd.items.splice(i, 1);
+            }
+        }
+    },
+
+    draw500Yen() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Kombini background neon styling
+        ctx.fillStyle = '#0d1117';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw light grids
+        ctx.strokeStyle = 'rgba(0, 255, 150, 0.05)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < 800; x += 50) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+        }
+
+        // Draw convenience store shelves outline in background
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+        ctx.fillRect(20, 80, 200, 400);
+        ctx.fillRect(580, 80, 200, 400);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeRect(20, 80, 200, 400);
+        ctx.strokeRect(580, 80, 200, 400);
+
+        // Draw falling items
+        gd.items.forEach(it => {
+            ctx.save();
+            ctx.translate(it.x, it.y);
+
+            // Item bubble
+            ctx.fillStyle = it.type === 'rotten' ? '#4e342e' : '#1f2937';
+            ctx.strokeStyle = it.type === 'rotten' ? '#ff3333' : '#00ff99';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+            // Emoji
+            ctx.font = '24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(it.emoji, 0, -3);
+
+            // Price tag
+            if (it.type !== 'rotten') {
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 11px monospace';
+                ctx.fillText(`${it.price}¥`, 0, 16);
+            } else {
+                ctx.fillStyle = '#ff3333';
+                ctx.font = 'bold 11px monospace';
+                ctx.fillText(`CADUCADO`, 0, 16);
+            }
+
+            ctx.restore();
+        });
+
+        // Draw Cart/Basket
+        ctx.save();
+        ctx.translate(gd.cart.x, gd.cart.y);
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ff99';
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(-gd.cart.w/2, -15);
+        ctx.lineTo(gd.cart.w/2, -15);
+        ctx.lineTo(gd.cart.w/2 - 10, 20);
+        ctx.lineTo(-gd.cart.w/2 + 10, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Basket handle
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, -15, 30, Math.PI, 0);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // HUD panel at the top
+        ctx.fillStyle = 'rgba(10, 15, 25, 0.85)';
+        ctx.fillRect(0, 0, 800, 75);
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 75); ctx.lineTo(800, 75); ctx.stroke();
+
+        // Stats
+        ctx.font = 'bold 18px monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`PRESUPUESTO: `, 20, 42);
+        
+        let sumColor = '#ffd700';
+        if (gd.totalBudget >= 400 && gd.totalBudget <= 500) sumColor = '#00ff99';
+        ctx.fillStyle = sumColor;
+        ctx.fillText(`${gd.totalBudget} ¥ / 500 ¥`, 160, 42);
+
+        // Hearts
+        ctx.fillStyle = '#ff3333';
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 380, 42);
+
+        // Checkout Button
+        const btn = gd.checkoutBtn;
+        const active = gd.totalBudget >= 400 && gd.totalBudget <= 500;
+        ctx.save();
+        if (active) {
+            ctx.shadowBlur = Math.sin(this.gameTime * 8) * 6 + 8;
+            ctx.shadowColor = '#00ff99';
+            ctx.fillStyle = '#00ff99';
+            ctx.strokeStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = '#374151';
+            ctx.strokeStyle = '#4b5563';
+        }
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = 'bold 14px monospace';
+        ctx.fillStyle = active ? '#0c1117' : '#9ca3af';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("💳 PAGAR (400-500)", btn.x + btn.w/2, btn.y + btn.h/2);
+        ctx.restore();
+
+        // Feedback text
+        if (gd.feedbackTimer > 0) {
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 300);
+            ctx.textAlign = 'left';
+        }
+    },
+
+    input500YenPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+        const btn = gd.checkoutBtn;
+
+        if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
+            if (gd.totalBudget >= 400 && gd.totalBudget <= 500) {
+                this.score = 1;
+                document.getElementById('minigame-score').innerText = `Presupuesto optimizado: 1/1`;
+                if (window.playProceduralSound) window.playProceduralSound('success');
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            } else {
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.feedbackText = "❌ PRESUPUESTO INADECUADO: Reúne al menos 400¥ ❌";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.8;
+                this.triggerShake(6);
+            }
+        }
+    },
+
+    // ==========================================================
+    // 17. INFILTRACIÓN DE DATOS (day_4_isshinji)
+    // ==========================================================
+    setupIsshinji() {
+        this.gameData = {
+            lives: 3,
+            score: 0,
+            player: { gridX: 0, gridY: 5, x: 50, y: 440, targetX: 50, targetY: 440 },
+            exit: { gridX: 7, gridY: 0, x: 750, y: 40 },
+            keys: [
+                { gridX: 1, gridY: 1, collected: false },
+                { gridX: 6, gridY: 4, collected: false },
+                { gridX: 4, gridY: 2, collected: false }
+            ],
+            enemies: [
+                { gridX: 3, gridY: 0, startGridY: 0, endGridY: 4, dir: 1, type: 'col', x: 350, y: 40, speed: 2.0 },
+                { gridX: 5, gridY: 5, startGridY: 1, endGridY: 5, dir: -1, type: 'col', x: 550, y: 440, speed: 2.5 },
+                { gridX: 0, gridY: 3, startGridX: 1, endGridX: 6, dir: 1, type: 'row', x: 150, y: 280, speed: 3.0 }
+            ],
+            feedbackText: "",
+            feedbackTimer: 0,
+            feedbackColor: "#e91e63"
+        };
+        this.score = 0;
+    },
+
+    updateIsshinji(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.feedbackTimer > 0) {
+            gd.feedbackTimer -= dt;
+        }
+
+        // Interpolate player position
+        const p = gd.player;
+        p.x += (p.targetX - p.x) * 12 * dt;
+        p.y += (p.targetY - p.y) * 12 * dt;
+
+        // Update enemies
+        gd.enemies.forEach(e => {
+            if (e.type === 'col') {
+                e.gridY += e.dir * e.speed * dt;
+                if (e.gridY >= e.endGridY) {
+                    e.gridY = e.endGridY;
+                    e.dir = -1;
+                } else if (e.gridY <= e.startGridY) {
+                    e.gridY = e.startGridY;
+                    e.dir = 1;
+                }
+                e.y = e.gridY * 80 + 40;
+                e.x = e.gridX * 100 + 50;
+            } else if (e.type === 'row') {
+                e.gridX += e.dir * e.speed * dt;
+                if (e.gridX >= e.endGridX) {
+                    e.gridX = e.endGridX;
+                    e.dir = -1;
+                } else if (e.gridX <= e.startGridX) {
+                    e.gridX = e.startGridX;
+                    e.dir = 1;
+                }
+                e.x = e.gridX * 100 + 50;
+                e.y = e.gridY * 80 + 40;
+            }
+        });
+
+        // Check player-enemy collisions
+        for (let e of gd.enemies) {
+            const dist = Math.hypot(p.x - e.x, p.y - e.y);
+            if (dist < 32) {
+                // Collided!
+                gd.lives--;
+                p.gridX = 0;
+                p.gridY = 5;
+                p.x = 50;
+                p.y = 440;
+                p.targetX = 50;
+                p.targetY = 440;
+
+                gd.feedbackText = "💥 ¡CORTAFUEGOS ACTIVO! Conexión reiniciada 🚨";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 2.0;
+                this.triggerShake(15);
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+                this.createExplosion(e.x, e.y, '#ff3333', 20, 1.4);
+                break;
+            }
+        }
+
+        // Collect keys
+        gd.keys.forEach(k => {
+            if (!k.collected && p.gridX === k.gridX && p.gridY === k.gridY) {
+                k.collected = true;
+                gd.score++;
+                this.score = gd.score;
+                document.getElementById('minigame-score').innerText = `Claves extraídas: ${this.score}/3`;
+                gd.feedbackText = `🔑 Clave de datos descifrada (${this.score}/3)`;
+                gd.feedbackColor = "#00ff99";
+                gd.feedbackTimer = 1.2;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(p.x, p.y, '#ffd700', 12, 1.1);
+            }
+        });
+
+        // Exit check
+        if (p.gridX === gd.exit.gridX && p.gridY === gd.exit.gridY) {
+            if (gd.score >= 3) {
+                if (window.playProceduralSound) window.playProceduralSound('win');
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
+        }
+    },
+
+    drawIsshinji() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Dark tech grid background
+        ctx.fillStyle = '#06050a';
+        ctx.fillRect(0, 0, 800, 480);
+
+        // Draw grid boundaries
+        ctx.strokeStyle = 'rgba(233, 30, 99, 0.05)';
+        ctx.lineWidth = 1;
+        for (let col = 0; col <= 8; col++) {
+            ctx.beginPath(); ctx.moveTo(col * 100, 0); ctx.lineTo(col * 100, 480); ctx.stroke();
+        }
+        for (let row = 0; row <= 6; row++) {
+            ctx.beginPath(); ctx.moveTo(0, row * 80); ctx.lineTo(800, row * 80); ctx.stroke();
+        }
+
+        // Draw start zone marker
+        ctx.fillStyle = 'rgba(0, 255, 100, 0.03)';
+        ctx.fillRect(0, 400, 100, 80);
+        ctx.strokeStyle = 'rgba(0, 255, 100, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(2, 402, 96, 76);
+
+        // Draw keys
+        gd.keys.forEach(k => {
+            if (!k.collected) {
+                ctx.save();
+                ctx.translate(k.gridX * 100 + 50, k.gridY * 80 + 40);
+                
+                // Outer gold rotating square
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 2;
+                ctx.rotate(this.gameTime * 2);
+                ctx.strokeRect(-16, -16, 32, 32);
+
+                // Center node
+                ctx.fillStyle = '#ffd700';
+                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+
+                // Key emoji
+                ctx.font = '14px sans-serif';
+                ctx.fillText("🔑", -8, 5);
+
+                ctx.restore();
+            }
+        });
+
+        // Draw Exit (Core database)
+        ctx.save();
+        ctx.translate(gd.exit.gridX * 100 + 50, gd.exit.gridY * 80 + 40);
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00ffff';
+
+        ctx.fillStyle = gd.score >= 3 ? '#00ffff' : '#374151';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, 22, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = gd.score >= 3 ? 'bold 16px monospace' : '12px monospace';
+        ctx.fillStyle = gd.score >= 3 ? '#06050a' : '#9ca3af';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(gd.score >= 3 ? "CORE" : "LOCK", 0, 0);
+        ctx.restore();
+
+        // Draw Enemies
+        gd.enemies.forEach(e => {
+            ctx.save();
+            ctx.translate(e.x, e.y);
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ff3333';
+
+            // Security core
+            ctx.fillStyle = '#ff3333';
+            ctx.beginPath();
+            ctx.arc(0, 0, 12, 0, Math.PI*2);
+            ctx.fill();
+
+            // Rotating scanner shield lines
+            ctx.strokeStyle = 'rgba(255, 51, 81, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.rotate(-this.gameTime * 4);
+            ctx.beginPath();
+            ctx.arc(0, 0, 24, 0, Math.PI/2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 0, 24, Math.PI, Math.PI*1.5);
+            ctx.stroke();
+
+            ctx.restore();
+        });
+
+        // Draw Player
+        const p = gd.player;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#00ff99';
+
+        // Cyan/Green probe
+        ctx.fillStyle = '#00ff99';
+        ctx.beginPath();
+        ctx.arc(0, 0, 14, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // Bottom HUD / Terminal dashboard panel
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(0, 480, 800, 120);
+        ctx.strokeStyle = '#e91e63';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 480); ctx.lineTo(800, 480); ctx.stroke();
+
+        ctx.font = 'bold 15px monospace';
+        ctx.fillStyle = '#e91e63';
+        ctx.fillText("TEMPLO ISSHINJI // TERMINAL DE EXTRACCIÓN DE DATOS ANCESTRALES", 20, 515);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '13px monospace';
+        ctx.fillText(`CLAVES DE DATOS EXTRAÍDAS: ${gd.score}/3`, 20, 545);
+        ctx.fillText("PULSA EN LAS CASILLAS ADYACENTES PARA MOVER TU PROBE HACIA LA SALIDA.", 20, 570);
+
+        ctx.fillStyle = '#ff3333';
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Conexión: ${hearts}`, 550, 545);
+
+        // Draw feedback text
+        if (gd.feedbackTimer > 0) {
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 240);
+            ctx.textAlign = 'left';
+        }
+    },
+
+    inputIsshinjiPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+        const p = gd.player;
+
+        // Verify click is within grid zone
+        if (y >= 480) return;
+
+        const gridX = Math.floor(x / 100);
+        const gridY = Math.floor(y / 80);
+
+        // Check adjacency cardinally
+        const diffX = Math.abs(gridX - p.gridX);
+        const diffY = Math.abs(gridY - p.gridY);
+        if (diffX + diffY === 1) {
+            p.gridX = gridX;
+            p.gridY = gridY;
+            p.targetX = gridX * 100 + 50;
+            p.targetY = gridY * 80 + 40;
+
+            if (window.playProceduralSound) window.playProceduralSound('rotate');
+        }
+    },
+
+    // ==========================================================
+    // 18. VISOR TÁCTICO WAGYU HUNTER (day_4_tracker)
+    // ==========================================================
+    setupTracker() {
+        this.gameData = {
+            lives: 3,
+            score: 0,
+            stalls: [],
+            spawnTimer: 0.5,
+            feedbackText: "",
+            feedbackTimer: 0,
+            feedbackColor: "#00ffff",
+            scrollOffset: 0
+        };
+        this.score = 0;
+    },
+
+    updateTracker(dt) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        if (gd.lives <= 0) {
+            this.gameOver();
+            return;
+        }
+
+        if (gd.feedbackTimer > 0) {
+            gd.feedbackTimer -= dt;
+        }
+
+        // Scroll offset
+        gd.scrollOffset += 60 * dt;
+
+        // Spawn stalls
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.9 + Math.random() * 1.3;
+            const types = ['wagyu', 'fish', 'matcha', 'civilian'];
+            const choice = types[Math.floor(Math.random() * types.length)];
+            const labels = {
+                wagyu: '🥩 BROCHETAS WAGYU',
+                fish: '🐙 MARISCO CRUDO',
+                matcha: '🍦 HELADO MATCHA',
+                civilian: '👤 COMPRADOR'
+            };
+            gd.stalls.push({
+                x: 850,
+                y: 120 + Math.random() * 260,
+                type: choice,
+                label: labels[choice],
+                speedX: -(140 + Math.random() * 90),
+                w: 130,
+                h: 90,
+                scanned: false
+            });
+        }
+
+        // Update stalls
+        gd.stalls.forEach(st => {
+            st.x += st.speedX * dt;
+        });
+
+        // Filter out offscreen
+        gd.stalls = gd.stalls.filter(st => st.x > -160);
+    },
+
+    drawTracker() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        // Dark grey metal market background
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw market wood pillars scrolling
+        ctx.fillStyle = '#443d38';
+        ctx.fillRect(0, 80, 800, 20);
+        ctx.fillRect(0, 500, 800, 20);
+
+        ctx.strokeStyle = '#292524';
+        ctx.lineWidth = 4;
+        let xStart = -(Math.floor(gd.scrollOffset) % 150);
+        for (let x = xStart; x < 900; x += 150) {
+            ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x, 520); ctx.stroke();
+        }
+
+        // Draw stalls
+        gd.stalls.forEach(st => {
+            ctx.save();
+            ctx.translate(st.x, st.y);
+
+            // Stall shape base
+            ctx.fillStyle = st.scanned ? 'rgba(40,40,40,0.5)' : '#2e2a24';
+            ctx.strokeStyle = st.scanned ? '#22c55e' : '#78716c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, st.w, st.h, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Red/White banner canopy at top of stall
+            ctx.fillStyle = st.type === 'wagyu' ? '#dc2626' : '#2563eb';
+            ctx.fillRect(3, 3, st.w - 6, 18);
+            ctx.fillStyle = '#ffffff';
+            for (let i = 10; i < st.w; i += 24) {
+                ctx.fillRect(i, 3, 10, 18);
+            }
+
+            // Draw content emoji
+            ctx.font = '28px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let emoji = '🛒';
+            if (st.type === 'wagyu') emoji = '🥩';
+            else if (st.type === 'fish') emoji = '🐙';
+            else if (st.type === 'matcha') emoji = '🍦';
+            else if (st.type === 'civilian') emoji = '👤';
+            ctx.fillText(emoji, st.w/2, st.h/2 + 8);
+
+            // Draw label
+            ctx.fillStyle = '#f5f5f4';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText(st.label, 8, st.h - 10);
+
+            if (st.scanned) {
+                // Large neon tick
+                ctx.strokeStyle = '#22c55e';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(st.w/2 - 12, st.h/2 + 5);
+                ctx.lineTo(st.w/2 - 2, st.h/2 + 15);
+                ctx.lineTo(st.w/2 + 15, st.h/2 - 5);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        });
+
+        // Visor crosshair following mouse
+        ctx.save();
+        ctx.translate(this.mouse.x, this.mouse.y);
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#00f0ff';
+
+        // Outer cyan scanner ring
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 42, 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 4;
+        // Draw crosshair ticks
+        ctx.beginPath(); ctx.moveTo(-50, 0); ctx.lineTo(-30, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 0); ctx.lineTo(50, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -50); ctx.lineTo(0, -30); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, 30); ctx.lineTo(0, 50); ctx.stroke();
+
+        // Center dot
+        ctx.fillStyle = '#ff007f';
+        ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI*2); ctx.fill();
+
+        ctx.restore();
+
+        // HUD panel
+        ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
+        ctx.fillRect(0, 0, 800, 55);
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, 55); ctx.lineTo(800, 55); ctx.stroke();
+
+        ctx.font = 'bold 16px monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(`WAGYU ESCANEADO: `, 20, 34);
+        ctx.fillStyle = '#00ffff';
+        ctx.fillText(`${this.score} / ${this.goal}`, 180, 34);
+
+        ctx.fillStyle = '#ff3333';
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Batería Visor: ${hearts}`, 530, 34);
+
+        // Feedback text
+        if (gd.feedbackTimer > 0) {
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 300);
+            ctx.textAlign = 'left';
+        }
+    },
+
+    inputTrackerPress(x, y) {
+        const gd = this.gameData;
+        if (!gd) return;
+
+        let hitAny = false;
+        // Hit detection on overlapping unscanned stalls
+        for (let i = gd.stalls.length - 1; i >= 0; i--) {
+            const st = gd.stalls[i];
+            if (!st.scanned && x >= st.x && x <= st.x + st.w && y >= st.y && y <= st.y + st.h) {
+                st.scanned = true;
+                hitAny = true;
+
+                if (st.type === 'wagyu') {
+                    this.score++;
+                    document.getElementById('minigame-score').innerText = `Wagyus Escaneados: ${this.score}/${this.goal}`;
+                    gd.feedbackText = "🥩 ¡WAGYU CERTIFICADO A5! Escaneo Guardado 🟢";
+                    gd.feedbackColor = "#00ff99";
+                    gd.feedbackTimer = 1.2;
+                    if (window.playProceduralSound) window.playProceduralSound('success');
+                    this.createExplosion(x, y, '#00ff99', 15, 1.2);
+                    if (window.launchConfetti && this.score >= this.goal) window.launchConfetti();
+                    if (this.score >= this.goal) {
+                        setTimeout(() => this.win(), 800);
+                    }
+                } else if (st.type === 'civilian') {
+                    gd.lives--;
+                    gd.feedbackText = "🚨 ¡INFRACCIÓN! Escaneo de Civil Prohibido ❌";
+                    gd.feedbackColor = "#ff3333";
+                    gd.feedbackTimer = 1.5;
+                    this.triggerShake(12);
+                    if (window.playProceduralSound) window.playProceduralSound('damage');
+                    this.createExplosion(x, y, '#ff3333', 20, 1.4);
+                } else {
+                    gd.lives--;
+                    gd.feedbackText = "⚠️ ¡FALLO DE SEÑAL! El objetivo no es Wagyu ⚠️";
+                    gd.feedbackColor = "#ffaa00";
+                    gd.feedbackTimer = 1.2;
+                    this.triggerShake(8);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    this.createExplosion(x, y, '#ffaa00', 10, 1.0);
+                }
+                break;
+            }
+        }
+
+        if (!hitAny) {
+            if (window.playProceduralSound) window.playProceduralSound('click');
+        }
+    },
+
+    // ==========================================================

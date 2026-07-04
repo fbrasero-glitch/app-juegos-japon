@@ -1,0 +1,471 @@
+// MISIONES DEL DIA 16
+// Extraídas de missions_days_*.js para NotebookLM
+
+const MISSIONS_CONFIG_DAY_16 = {
+    "day_16_cat": {
+        tag: "photo",
+        day: 16,
+        title: "El Gato Oculto",
+        role: "kid9",
+        xp: 15,
+        location: "Kagurazaka",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🐱 Mascotas de Kagurazaka 🐱</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Kagurazaka está lleno de figuras y carteles de gatitos. Encuentra uno gracioso, ponle un nombre japonés divertido y hazle una foto.</p>
+                
+                <input type="text" id="cat-name" placeholder="Ej: Neko-Chan..." style="width:100%; border:2px solid #8d6e63; border-radius:20px; padding:10px 15px; font-family:inherit; font-size:1rem; box-sizing:border-box; margin-bottom:15px; text-align:center;">
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(141,110,99,0.3);">📸 Foto del Gato</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnCam = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            const nameInput = document.getElementById('cat-name');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const name = nameInput.value.trim();
+                if (name.length < 3) {
+                    showAlert('Nombre requerido', 'Dale un nombre gracioso a tu gato antes de subir la foto.');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                btnCam.innerText = '⏳ Guardando Neko...';
+                btnCam.disabled = true;
+                
+                try {
+                    const compressed = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_16_cat', {type:'mixed', data: `Nombre gato: ${name} | Foto ID: ${photoId}`}, role);
+                } catch(err) {
+                    console.error(err);
+                    btnCam.innerText = '📸 Foto del Gato';
+                    btnCam.disabled = false;
+                    showAlert('Error', 'Error al guardar la imagen.');
+                }
+            });
+        }
+    },
+
+    "day_16_skyscraper": {
+        tag: "physical",
+        day: 16,
+        title: "Escalada Urbana",
+        role: "kid9",
+        xp: 15,
+        location: "Tokio",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🏢 Estimador de Rascacielos 🏢</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Mira hacia arriba. Cuenta cuántos pisos crees que tiene el edificio más alto visible a tu alrededor. Multiplicaremos por 3m (altura por planta) para saber su altura.</p>
+                
+                <div style="margin:20px 0; padding:15px; background:#fff; border:2px dashed #81c784; border-radius:10px; display:flex; flex-direction:column; align-items:center;">
+                    <div style="font-size:3rem;" id="elev-emoji">🏢</div>
+                    <div id="floors-disp" style="font-size:2.5rem; font-weight:bold; color:#2e7d32; margin:10px 0;">30 Pisos</div>
+                    <input type="range" id="floors-slider" min="5" max="120" step="1" value="30" style="width:100%; accent-color:#81c784; cursor:pointer;">
+                    <span id="meters-disp" style="font-size:0.95rem; font-weight:bold; color:#ff9800; margin-top:5px;">Altura estimada: 90 metros</span>
+                </div>
+                
+                <button id="btn-skyscraper" class="btn-primary" style="width:100%; background:#81c784; border-color:#81c784; color:#fff; font-weight:bold; border-radius:25px;">🏢 ENVIAR REGISTRO DE ALTURA</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const slider = document.getElementById('floors-slider');
+            const disp = document.getElementById('floors-disp');
+            const meters = document.getElementById('meters-disp');
+            const btn = document.getElementById('btn-skyscraper');
+            const emoji = document.getElementById('elev-emoji');
+            
+            slider.addEventListener('input', (e) => {
+                const floors = parseInt(e.target.value);
+                disp.innerText = floors + ' Pisos';
+                meters.innerText = `Altura estimada: ${floors * 3} metros`;
+                
+                if (floors > 80) emoji.innerText = '🚀🏢';
+                else if (floors > 40) emoji.innerText = '🏙️';
+                else emoji.innerText = '🏢';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btn.addEventListener('click', () => {
+                const floors = parseInt(slider.value);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_16_skyscraper', {type:'number', data: `${floors} pisos (${floors * 3}m)`}, role);
+            });
+        }
+    },
+
+"day_16_colors": {
+        tag: "expert",
+        day: 16,
+        title: "Colores de Shinjuku",
+        role: "kid9",
+        xp: 15,
+        location: "Shinjuku",
+        render: () => `
+        <p class="mission-desc">Observa las luces de neón y elige los 3 colores que más te llamen la atención.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:15px;">
+            ${['Rojo', 'Naranja', 'Amarillo', 'Verde', 'Azul', 'Morado', 'Rosa', 'Blanco', 'Dorado', 'Plata'].map(c => `<button class="c-btn" style="padding:10px; border-radius:10px; border:2px solid #ccc; background:#333; flex-grow:1;">${c}</button>`).join('')}
+        </div>
+        <div id="c-count" style="text-align:center; margin-bottom:10px; font-weight:bold;">Colores elegidos: 0/3</div>
+        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar colores</button>
+    `,
+        attachEvents: () => {
+        let sel = []; const btns = document.querySelectorAll('.c-btn'); const cEl = document.getElementById('c-count'); const btn = document.getElementById('btn');
+        btns.forEach(b => b.addEventListener('click', () => {
+            if(sel.includes(b.innerText)) { sel = sel.filter(x => x !== b.innerText); b.style.borderColor = '#ccc'; b.style.color = 'white'; }
+            else if(sel.length < 3) { sel.push(b.innerText); b.style.borderColor = '#0f0'; b.style.color = '#0f0'; }
+            cEl.innerText = `Colores elegidos: ${sel.length}/3`;
+            if(sel.length === 3) btn.classList.remove('hidden'); else btn.classList.add('hidden');
+        }));
+        btn.addEventListener('click', () => submitMission('day_16_colors', {type:'text', data:sel.join(', ')}));
+    }
+    },
+
+    "day_16_traffic": {
+        tag: "audio",
+        day: 16,
+        title: "Sonido del Semáforo",
+        role: "kid9",
+        xp: 15,
+        location: "Tokio",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius:15px; border:3px solid #ef5350; color:#c62828; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🚦 El Canto del Semáforo Peatonal 🚦</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#b71c1c;">Los semáforos de Tokio emiten sonidos de pájaros para las personas ciegas cuando se pone en verde. Acércate y graba este silbido o canto tan gracioso.</p>
+                
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+                    <div id="signal-light" style="width:70px; height:70px; border-radius:50%; background:#ef5350; border:4px solid #333; display:flex; justify-content:center; align-items:center; font-size:2rem; transition: background 0.3s; animation: pulse 1s infinite;">🛑</div>
+                    <div id="traffic-timer" style="font-size:2.5rem; font-weight:bold; color:#b71c1c;">05.0s</div>
+                </div>
+                
+                <button id="btn-rec-traffic" class="btn-primary" style="width:100%; border-radius:25px; background:#e53935; border-color:#e53935; color:#fff; font-weight:bold;">🎤 INICIAR PRUEBA SÓNICA (5s)</button>
+                <button id="btn-submit-traffic" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-weight:bold; margin-top:10px;">📨 Enviar Audio al Juez</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnRec = document.getElementById('btn-rec-traffic');
+            const btnSubmit = document.getElementById('btn-submit-traffic');
+            const timerEl = document.getElementById('traffic-timer');
+            const light = document.getElementById('signal-light');
+            
+            let recording = false;
+            let stream = null;
+            let audioCtx = null;
+            let timeLeft = 5.0;
+            let interval = null;
+            
+            btnRec.addEventListener('click', async () => {
+                if (recording) return;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                    
+                    recording = true;
+                    timeLeft = 5.0;
+                    timerEl.innerText = '05.0s';
+                    btnRec.disabled = true;
+                    btnRec.innerText = '⏳ Grabando...';
+                    
+                    light.style.background = '#4caf50';
+                    light.innerText = '🚶';
+                    light.style.animation = 'blink 0.5s infinite';
+                    
+                    interval = setInterval(() => {
+                        timeLeft -= 0.1;
+                        if (timeLeft <= 0) {
+                            timeLeft = 0;
+                            clearInterval(interval);
+                            recording = false;
+                            
+                            stream.getTracks().forEach(t => t.stop());
+                            if (audioCtx) audioCtx.close();
+                            
+                            light.style.background = '#888';
+                            light.innerText = '💤';
+                            light.style.animation = 'none';
+                            
+                            timerEl.innerText = '00.0s';
+                            btnRec.innerText = '✨ Canto Semáforo Grabado';
+                            btnSubmit.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                        } else {
+                            timerEl.innerText = `${timeLeft.toFixed(1)}s`;
+                        }
+                    }, 100);
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error', 'Micrófono no disponible.');
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                submitMission('day_16_traffic', {type: 'audio', data: 'Sonido de semáforo peatonal grabado'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                recording = false;
+                clearInterval(interval);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
+        }
+    },
+
+    "day_16_vortex": {
+        tag: "photo",
+        day: 16,
+        title: "Vórtice Temporal",
+        role: "kid14",
+        xp: 20,
+        location: "Kagurazaka",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁMARA TÁCTICA: ANOMALÍA VÓRTICE TEMPORAL</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Captura una composición fotográfica donde convivan en el mismo encuadre un elemento antiguo (templo tradicional, farolillo) y un elemento futurista o rascacielos.</p>
+                
+                <div style="font-size:3rem; text-align:center; margin:15px 0;">⛩️🌀🏢</div>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">📸 REGISTRAR VÓRTICE TEMPORAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                btn.innerText = '⏳ Guardando anomalía temporal...';
+                btn.disabled = true;
+                
+                try {
+                    const compressed = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_16_vortex', {type:'photo', data: photoId}, role);
+                } catch(err) {
+                    console.error(err);
+                    btn.innerText = '📸 REGISTRAR VÓRTICE TEMPORAL';
+                    btn.disabled = false;
+                    showAlert('Error', 'Fallo al procesar la imagen.');
+                }
+            });
+        }
+    },
+
+"day_16_combat": {
+        tag: "sensors",
+        day: 16,
+        title: "Calibración de Androide",
+        role: "kid14",
+        xp: 25,
+        location: "Shinjuku",
+        render: () => `
+        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
+            <p>>>> CALIBRACIÓN DE COMBATE.</p>
+            <p style="color:yellow; font-weight:bold;">⚠️ SUJETA EL MÓVIL CON LAS DOS MANOS.</p>
+            <div id="c-step1" style="margin:10px 0; color:#aaa;">Paso 1: Tajo Lateral (horizontal) ❌</div>
+            <div id="c-step2" style="margin:10px 0; color:#aaa;">Paso 2: Tajo Vertical ❌</div>
+            <button id="btn-start" class="btn-secondary" style="width:100%; margin-top:10px;">Iniciar Calibración</button>
+            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px;">Completado</button>
+        </div>
+    `,
+        attachEvents: () => {
+        let s1 = false; let s2 = false; let active = false;
+        const btnS = document.getElementById('btn-start'); const btn = document.getElementById('btn');
+        const st1 = document.getElementById('c-step1'); const st2 = document.getElementById('c-step2');
+        
+        const handleMotion = (e) => {
+            if(!active) return;
+            const ax = e.acceleration.x || 0; const ay = e.acceleration.y || 0; const az = e.acceleration.z || 0;
+            const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+            if(mag > 12) {
+                if(!s1 && Math.abs(ax) > Math.abs(ay)) { s1 = true; st1.innerText = "Paso 1: Tajo Lateral ✅"; st1.style.color = "#0f0"; }
+                else if(s1 && !s2 && Math.abs(ay) > Math.abs(ax)) { s2 = true; st2.innerText = "Paso 2: Tajo Vertical ✅"; st2.style.color = "#0f0"; }
+            }
+            if(s1 && s2) { active = false; btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('devicemotion', handleMotion); }
+        };
+        
+        btnS.addEventListener('click', () => {
+            active = true; btnS.innerText = "¡Ataca!";
+            if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('devicemotion', handleMotion); });
+            } else { window.addEventListener('devicemotion', handleMotion); }
+        });
+        btn.addEventListener('click', () => submitMission('day_16_combat', {type:'game', data:'Combo ejecutado'}));
+        window._missionCleanup = () => { active=false; window.removeEventListener('devicemotion', handleMotion); };
+    }
+    },
+
+    "day_16_shinjuku": {
+        tag: "physical",
+        day: 16,
+        title: "Supervivencia Shinjuku",
+        role: "kid14",
+        xp: 25,
+        location: "Estación de Shinjuku",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> ESCAPE SHINJUKU: SIMULADOR DE TIEMPO TÁCTICO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Guía a la familia hacia la calle. Inicia el cronómetro al bajar del tren en Shinjuku (la estación más transitada del mundo) y deténlo cuando salgáis al exterior.</p>
+                
+                <div style="text-align:center; margin:15px 0; background:#111; padding:15px; border-radius:8px; border:1px solid #333;">
+                    <div id="shinjuku-chrono" style="font-size:2.8rem; font-weight:bold; color:#ffd700;">00:00.0</div>
+                    <div style="font-size:0.75rem; color:#aaa; margin-top:5px;">SIN GOOGLE MAPS. SIGUE CARTELES AMARILLOS.</div>
+                </div>
+                
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <button id="btn-start" class="btn-secondary" style="flex:1; border-color:#00ff99; color:#00ff99; background:transparent;">INICIAR</button>
+                    <button id="btn-stop" class="btn-secondary hidden" style="flex:1; border-color:#e74c3c; color:#e74c3c; background:transparent;">💥 ¡CALLE ALCANZADA!</button>
+                </div>
+                
+                <button id="btn-submit" class="btn-primary hidden" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 SUBIR REGISTRO DE ESCAPE</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnStart = document.getElementById('btn-start');
+            const btnStop = document.getElementById('btn-stop');
+            const btnSubmit = document.getElementById('btn-submit');
+            const clock = document.getElementById('shinjuku-chrono');
+            
+            let t0 = 0;
+            let timerInt = null;
+            let elapsedStr = '';
+            
+            btnStart.addEventListener('click', () => {
+                t0 = Date.now();
+                btnStart.classList.add('hidden');
+                btnStop.classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                timerInt = setInterval(() => {
+                    const diff = Date.now() - t0;
+                    const min = Math.floor(diff / 60000);
+                    const sec = Math.floor((diff % 60000) / 1000);
+                    const ms = Math.floor((diff % 1000) / 100);
+                    
+                    elapsedStr = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${ms}`;
+                    clock.innerText = elapsedStr;
+                }, 100);
+            });
+            
+            btnStop.addEventListener('click', () => {
+                clearInterval(timerInt);
+                btnStop.classList.add('hidden');
+                btnSubmit.classList.remove('hidden');
+                clock.style.color = '#00ff99';
+                if (window.playProceduralSound) playProceduralSound('success');
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                submitMission('day_16_shinjuku', {type:'text', data: `Tiempo de escape: ${elapsedStr}`}, role);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(timerInt);
+            };
+        }
+    },
+
+    "day_16_density": {
+        tag: "writing",
+        day: 16,
+        title: "Densidad Poblacional",
+        role: "kid14",
+        xp: 15,
+        location: "Tokio",
+        render: () => `
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> MONITOR DE FLUJO: DENSIDAD CRUCE PEATONAL</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">En el cruce de Shibuya o Shinjuku, estima cuántas personas aproximadamente cruzan la calle en un solo semáforo verde peatonal.</p>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="display:block; font-size:0.8rem; color:#00ff99; margin-bottom:5px;">PERSONAS ESTIMADAS POR CICLO VERDE:</label>
+                    <input type="number" id="people-count" placeholder="Ej: 1000" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <button id="btn-density" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 REGISTRAR CENSADO POBLACIONAL</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-density');
+            const input = document.getElementById('people-count');
+            
+            btn.addEventListener('click', () => {
+                const val = parseInt(input.value);
+                if (isNaN(val) || val < 10) {
+                    showAlert('VALOR INCONSISTENTE', 'Indica un volumen de personas realista para un gran cruce peatonal de Tokio.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_16_density', {type:'number', data: val}, role);
+            });
+        }
+    },
+
+    "day_16_tocho": {
+        tag: "photo",
+        day: 16,
+        title: "El Observatorio Gratuito",
+        role: "both",
+        xp: 20,
+        location: "Mirador del Ayuntamiento",
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #1a237e 0%, #311b92 100%); border-radius:15px; border:3px solid #3f51b5; color:#e8eaf6; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌃 Tokio Nocturno desde el Tocho 🌃</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#c5cae9;">Subid al mirador del Edificio del Gobierno Metropolitano de Tokio (Tocho) en Shinjuku. Capturad una foto familiar nocturna con las luces infinitas de la ciudad al fondo.</p>
+                
+                <div style="font-size:4rem; margin:15px 0;">🏙️✨🗼</div>
+                
+                <input type="file" id="p-cam" accept="image/*" capture="environment" style="display:none">
+                <button id="btn-cam" onclick="document.getElementById('p-cam').click()" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#3f51b5; border-color:#3f51b5; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(63,81,181,0.3);">📸 Foto Familiar en el Mirador</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnCam = document.getElementById('btn-cam');
+            const fileInput = document.getElementById('p-cam');
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                btnCam.innerText = '⏳ Guardando Recuerdo Tocho...';
+                btnCam.disabled = true;
+                
+                try {
+                    const compressed = await compressImage(file);
+                    const photoId = 'photo_' + Date.now();
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    
+                    submitMission('day_16_tocho', {type:'photo', data: photoId}, role, true);
+                } catch(err) {
+                    console.error(err);
+                    btnCam.innerText = '📸 Foto Familiar en el Mirador';
+                    btnCam.disabled = false;
+                    showAlert('Error', 'Fallo al guardar la foto.');
+                }
+            });
+        }
+    },
+});
+
+};

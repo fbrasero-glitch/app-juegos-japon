@@ -1,0 +1,1580 @@
+// MINIJUEGOS DEL DIA 19
+// Métodos extraídos de games.js para NotebookLM
+
+    // DÍA 19: ODAIBA Y TEAMLAB
+    // ==========================================================
+
+    // 19. day_19_gundam: Piloto de Mechas
+    setupGundam() {
+        this.gameData = {
+            aimX: 400,
+            aimY: 300,
+            drones: [],
+            spawnTimer: 0,
+            score: 0,
+            lives: 3
+        };
+        this.score = 0;
+    },
+    updateGundam(dt) {
+        const gd = this.gameData;
+        gd.aimX = lerp(gd.aimX, this.mouse.x, 0.15);
+        gd.aimY = lerp(gd.aimY, this.mouse.y, 0.15);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.drones.push({
+                x: 100 + Math.random() * 600,
+                y: 50 + Math.random() * 180,
+                vx: (Math.random() < 0.5 ? 1 : -1) * 60,
+                r: 20
+            });
+        }
+
+        gd.drones.forEach(d => {
+            d.x += d.vx * dt;
+            if (d.x < 50 || d.x > 750) d.vx *= -1;
+        });
+    },
+    drawGundam() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Space/Odaiba night
+        ctx.fillStyle = '#000a12';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw drones
+        gd.drones.forEach(d => {
+            ctx.fillStyle = '#cfd8dc';
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Viewfinder reticle
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(gd.aimX, gd.aimY, 30, 0, Math.PI * 2);
+        ctx.moveTo(gd.aimX - 45, gd.aimY); ctx.lineTo(gd.aimX - 15, gd.aimY);
+        ctx.moveTo(gd.aimX + 15, gd.aimY); ctx.lineTo(gd.aimX + 45, gd.aimY);
+        ctx.moveTo(gd.aimX, gd.aimY - 45); ctx.lineTo(gd.aimX, gd.aimY - 15);
+        ctx.moveTo(gd.aimX, gd.aimY + 15); ctx.lineTo(gd.aimX, gd.aimY + 45);
+        ctx.stroke();
+
+        // HUD
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Drones derribados: ${gd.score}/15`, 30, 560);
+        ctx.textAlign = 'right';
+        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+    },
+    inputGundamPress(x, y) {
+        const gd = this.gameData;
+        let hit = false;
+        gd.drones.forEach((d, idx) => {
+            if (Math.hypot(gd.aimX - d.x, gd.aimY - d.y) < d.r + 20) {
+                hit = true;
+                gd.drones.splice(idx, 1);
+                gd.score++;
+                this.score = Math.round((gd.score / 15) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.score >= 15) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+        if (!hit && window.playProceduralSound) playProceduralSound('click');
+    },
+
+    // 20. day_19_color: Cazador de Luz
+    setupColor() {
+        this.gameData = {
+            charX: 400,
+            platforms: [
+                { x: 200, color: 'red', name: 'Rojo' },
+                { x: 400, color: 'blue', name: 'Azul' },
+                { x: 600, color: 'green', name: 'Verde' }
+            ],
+            targetColor: 'blue',
+            score: 0
+        };
+        this.score = 0;
+    },
+    updateColor(dt) {
+        const gd = this.gameData;
+        gd.charX = lerp(gd.charX, this.mouse.x, 0.1);
+        if (gd.charX < 150) gd.charX = 150;
+        if (gd.charX > 650) gd.charX = 650;
+    },
+    drawColor() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Dark neon room
+        ctx.fillStyle = '#050510';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Columns of light
+        gd.platforms.forEach(p => {
+            ctx.fillStyle = p.color === 'red' ? 'rgba(255, 23, 68, 0.15)' : (p.color === 'blue' ? 'rgba(41, 121, 255, 0.15)' : 'rgba(0, 230, 118, 0.15)');
+            ctx.fillRect(p.x - 50, 0, 100, 500);
+
+            ctx.fillStyle = p.color === 'red' ? '#ff1744' : (p.color === 'blue' ? '#2979ff' : '#00e676');
+            ctx.fillRect(p.x - 60, 480, 120, 20);
+        });
+
+        // Player
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(gd.charX, 460, 16, 0, Math.PI * 2); ctx.fill();
+
+        // Target UI
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`COLÓCATE EN LA COLUMNA:`, 400, 80);
+
+        ctx.fillStyle = gd.targetColor === 'red' ? '#ff1744' : (gd.targetColor === 'blue' ? '#2979ff' : '#00e676');
+        ctx.fillText(gd.targetColor.toUpperCase(), 400, 120);
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Aciertos: ${gd.score}/15`, 30, 560);
+    },
+    inputColorPress(x, y) {
+        const gd = this.gameData;
+        const colX = gd.platforms.find(p => p.color === gd.targetColor).x;
+        if (Math.abs(gd.charX - colX) < 60) {
+            gd.score++;
+            this.score = Math.round((gd.score / 15) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.score >= 15) {
+                setTimeout(() => this.win(), 600);
+            } else {
+                const list = ['red', 'blue', 'green'];
+                gd.targetColor = list[Math.floor(Math.random() * 3)];
+            }
+        } else {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.triggerShake(10);
+        }
+    },
+
+    // 21. day_19_teamlab: Sueños Digitales
+    setupTeamLab() {
+        this.gameData = {
+            petals: [],
+            butterflies: [],
+            coverage: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTeamLab(dt) {
+        const gd = this.gameData;
+        
+        // Spawn butterflies
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.butterflies.push({
+                x: Math.random() * 800,
+                y: Math.random() * 400,
+                targetX: Math.random() * 800,
+                targetY: Math.random() * 400,
+                r: 10
+            });
+        }
+
+        // Draw petals by dragging
+        if (this.mouse.isDown) {
+            gd.petals.push({
+                x: this.mouse.x + (Math.random() - 0.5) * 20,
+                y: this.mouse.y + (Math.random() - 0.5) * 20,
+                r: 6 + Math.random() * 10,
+                color: `hsla(${Math.random() * 360}, 100%, 70%, 0.8)`
+            });
+            gd.coverage = Math.min(100, gd.coverage + dt * 15);
+            this.score = Math.round(gd.coverage);
+            if (gd.coverage >= 95) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+
+        // Update butterflies
+        gd.butterflies.forEach(b => {
+            b.x = lerp(b.x, b.targetX, 0.05);
+            b.y = lerp(b.y, b.targetY, 0.05);
+            if (Math.hypot(b.x - b.targetX, b.y - b.targetY) < 10) {
+                b.targetX = Math.random() * 800;
+                b.targetY = Math.random() * 400;
+            }
+        });
+    },
+    drawTeamLab() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#05050f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw petals
+        gd.petals.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw butterflies
+        ctx.fillStyle = '#d500f9';
+        gd.butterflies.forEach(b => {
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cobertura digital: ${Math.round(gd.coverage)}% / 95%`, 30, 560);
+    },
+    inputTeamLabPress(x, y) {
+        const gd = this.gameData;
+        gd.butterflies.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < 30) {
+                gd.butterflies.splice(idx, 1);
+                // Spread petals
+                for (let i = 0; i < 20; i++) {
+                    gd.petals.push({
+                        x: b.x + (Math.random() - 0.5) * 120,
+                        y: b.y + (Math.random() - 0.5) * 120,
+                        r: 8 + Math.random() * 12,
+                        color: '#d500f9'
+                    });
+                }
+                gd.coverage = Math.min(100, gd.coverage + 10);
+                this.score = Math.round(gd.coverage);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.coverage >= 95) {
+                    setTimeout(() => this.win(), 600);
+                }
+            }
+        });
+    },
+    releaseTeamLab(x, y) {},
+
+    // 22. day_19_liberty: La Libertad Nipona
+    setupLiberty() {
+        this.gameData = {
+            handX: 200,
+            handY: 300,
+            targetX: 400,
+            targetY: 200,
+            alignTimer: 0,
+            dragging: false
+        };
+        this.score = 0;
+    },
+    updateLiberty(dt) {
+        const gd = this.gameData;
+        if (gd.dragging) {
+            gd.handX = this.mouse.x;
+            gd.handY = this.mouse.y;
+        }
+
+        // Check alignment
+        if (Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY) < 25) {
+            gd.alignTimer += dt;
+            this.score = Math.min(100, Math.round((gd.alignTimer / 2.5) * 100));
+            if (gd.alignTimer >= 2.5) {
+                setTimeout(() => this.win(), 600);
+            }
+        } else {
+            gd.alignTimer = Math.max(0, gd.alignTimer - dt * 25);
+            this.score = 0;
+        }
+    },
+    drawLiberty() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky and sea
+        ctx.fillStyle = '#b3e5fc';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = '#0288d1';
+        ctx.fillRect(0, 400, 800, 200);
+
+        // Statue in background
+        ctx.fillStyle = '#80cbc4';
+        ctx.fillRect(gd.targetX - 20, gd.targetY, 40, 200);
+        // Torch
+        ctx.fillStyle = '#ffb300';
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, 15, 0, Math.PI * 2); ctx.fill();
+
+        // Hand in foreground (draggable)
+        ctx.fillStyle = '#ffe0b2';
+        ctx.strokeStyle = '#3e2723';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(gd.handX, gd.handY, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra el visor circular para tapar la antorcha con tu mano', 400, 500);
+
+        // Focus meter
+        ctx.fillStyle = '#444';
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, 2 * gd.alignTimer * 40, 15);
+    },
+    inputLibertyPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - gd.handX, y - gd.handY) < 40) {
+            gd.dragging = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseLiberty(x, y) {
+        this.gameData.dragging = false;
+    },
+
+    // 23. day_19_crypto: Desencriptar Protocolo
+    setupCrypto() {
+        this.gameData = {
+            columns: [
+                { id: 0, target: 15, current: 0, blocks: [], x: 150 },
+                { id: 1, target: 20, current: 0, blocks: [], x: 310 },
+                { id: 2, target: 10, current: 0, blocks: [], x: 470 },
+                { id: 3, target: 25, current: 0, blocks: [], x: 630 }
+            ],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrypto(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const col = gd.columns[Math.floor(Math.random() * 4)];
+            col.blocks.push({
+                y: 0,
+                val: Math.floor(Math.random() * 9) + 1,
+                vy: 100 + Math.random() * 50
+            });
+        }
+
+        gd.columns.forEach(col => {
+            col.blocks.forEach(b => {
+                b.y += b.vy * dt;
+            });
+            col.blocks = col.blocks.filter(b => b.y < 500);
+        });
+    },
+    drawCrypto() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050a05';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.columns.forEach(col => {
+            // Draw column lines
+            ctx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
+            ctx.strokeRect(col.x - 50, 50, 100, 420);
+
+            // Target sum indicator
+            ctx.fillStyle = col.current === col.target ? '#00ff99' : '#ffffff';
+            ctx.font = 'bold 18px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${col.current} / ${col.target}`, col.x, 500);
+
+            // Draw blocks
+            col.blocks.forEach(b => {
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(col.x - 30, b.y - 15, 60, 30);
+                
+                ctx.fillStyle = '#000000';
+                ctx.fillText(b.val, col.x, b.y + 6);
+            });
+        });
+
+        // Instructions
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('Dispara a los bloques numéricos para lograr la suma exacta', 400, 550);
+    },
+    inputCryptoPress(x, y) {
+        const gd = this.gameData;
+        gd.columns.forEach(col => {
+            col.blocks.forEach((b, idx) => {
+                if (x > col.x - 30 && x < col.x + 30 && y > b.y - 15 && y < b.y + 15) {
+                    col.blocks.splice(idx, 1);
+                    col.current += b.val;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (col.current > col.target) {
+                        col.current = 0;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else if (col.current === col.target) {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        // Check if all solved
+                        const solved = gd.columns.filter(c => c.current === c.target).length;
+                        this.score = Math.round((solved / 4) * 100);
+                        if (solved === 4) {
+                            setTimeout(() => this.win(), 600);
+                        }
+                    }
+                }
+            });
+        });
+    },
+
+    // 24. day_19_mirrors: Lógica de Iluminación
+    setupMirrors() {
+        this.gameData = {
+            mirrors: [
+                { x: 250, y: 150, angle: 45 },
+                { x: 550, y: 150, angle: 90 },
+                { x: 550, y: 450, angle: 0 },
+                { x: 250, y: 450, angle: 45 }
+            ],
+            emitter: { x: 100, y: 150 },
+            receiver: { x: 400, y: 300 },
+            isSolved: false
+        };
+        this.score = 0;
+    },
+    updateMirrors(dt) {
+        const gd = this.gameData;
+        // Simple light check: if 45 -> 135 -> 45 sequence
+        if (gd.mirrors[0].angle === 45 && gd.mirrors[1].angle === 135 && gd.mirrors[2].angle === 45) {
+            gd.isSolved = true;
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            gd.isSolved = false;
+        }
+    },
+    drawMirrors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050510';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw mirrors
+        gd.mirrors.forEach(m => {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate((m.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Draw laser path
+        ctx.strokeStyle = gd.isSolved ? '#ff1744' : '#ffea00';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.emitter.x, gd.emitter.y);
+        ctx.lineTo(gd.mirrors[0].x, gd.mirrors[0].y);
+        if (gd.mirrors[0].angle === 45) {
+            ctx.lineTo(gd.mirrors[1].x, gd.mirrors[1].y);
+            if (gd.mirrors[1].angle === 135) {
+                ctx.lineTo(gd.mirrors[2].x, gd.mirrors[2].y);
+                if (gd.mirrors[2].angle === 45) {
+                    ctx.lineTo(gd.receiver.x, gd.receiver.y);
+                }
+            }
+        }
+        ctx.stroke();
+
+        // Draw receiver & emitter
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath(); ctx.arc(gd.emitter.x, gd.emitter.y, 15, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath(); ctx.arc(gd.receiver.x, gd.receiver.y, 20, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rota los espejos pulsándolos para dirigir el láser al centro', 400, 540);
+    },
+    inputMirrorsPress(x, y) {
+        const gd = this.gameData;
+        gd.mirrors.forEach(m => {
+            if (Math.hypot(x - m.x, y - m.y) < 40) {
+                m.angle = (m.angle + 45) % 360;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseMirrors(x, y) {},
+
+    // 25. day_19_weight: Estructura de Gundam
+    setupWeight() {
+        this.gameData = {
+            girders: [], // stacked blocks {x, y, w, h}
+            currentX: 400,
+            craneSpeed: 180,
+            craneDirection: 1,
+            wobble: 0
+        };
+        this.score = 0;
+    },
+    updateWeight(dt) {
+        const gd = this.gameData;
+        
+        // Move crane girder left-right
+        gd.currentX += gd.craneSpeed * gd.craneDirection * dt;
+        if (gd.currentX < 200 || gd.currentX > 600) {
+            gd.craneDirection *= -1;
+        }
+
+        // Wobble decay
+        gd.wobble *= 0.95;
+        if (Math.abs(gd.wobble) > 25) {
+            this.gameOver();
+        }
+    },
+    drawWeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Sky and cranes
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw stacked girders
+        ctx.save();
+        ctx.translate(gd.wobble, 0);
+        ctx.fillStyle = '#cfd8dc';
+        ctx.strokeStyle = '#263238';
+        ctx.lineWidth = 3;
+        gd.girders.forEach((gir, idx) => {
+            ctx.fillRect(gir.x - gir.w / 2, 450 - idx * 40, gir.w, 40);
+            ctx.strokeRect(gir.x - gir.w / 2, 450 - idx * 40, gir.w, 40);
+        });
+        ctx.restore();
+
+        // Draw swinging crane girder
+        ctx.fillStyle = '#ff9800';
+        ctx.fillRect(gd.currentX - 50, 80, 100, 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pisos construidos: ${gd.girders.length}/8`, 400, 500);
+        ctx.fillText('¡Toca la pantalla para soltar la viga y apilar la torre!', 400, 560);
+    },
+    inputWeightPress(x, y) {
+        const gd = this.gameData;
+        const newY = 450 - gd.girders.length * 40;
+        
+        let targetX = 400;
+        if (gd.girders.length > 0) {
+            targetX = gd.girders[gd.girders.length - 1].x;
+        }
+
+        const offset = Math.abs(gd.currentX - targetX);
+        gd.girders.push({ x: gd.currentX, y: newY, w: 100, h: 40 });
+        gd.wobble += (gd.currentX - targetX) * 1.5;
+
+        this.score = Math.round((gd.girders.length / 8) * 100);
+        if (window.playProceduralSound) playProceduralSound('success');
+
+        if (gd.girders.length >= 8) {
+            setTimeout(() => this.win(), 600);
+        }
+    },
+    releaseWeight(x, y) {},
+
+    // 26. day_19_monorail: Monorriel Yurikamome
+    setupMonorail() {
+        this.gameData = {
+            speed: 0,
+            distance: 1000,
+            throttle: 0,
+            stationIndex: 0
+        };
+        this.score = 0;
+    },
+    updateMonorail(dt) {
+        const gd = this.gameData;
+        gd.speed = gd.throttle * 80;
+        gd.distance = Math.max(0, gd.distance - gd.speed * dt);
+
+        if (gd.distance <= 10 && gd.speed < 10) {
+            gd.distance = 1000;
+            gd.stationIndex++;
+            this.score = Math.round((gd.stationIndex / 3) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.stationIndex >= 3) {
+                setTimeout(() => this.win(), 600);
+            }
+        }
+    },
+    drawMonorail() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Train rail lines
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(350, 200);
+        ctx.moveTo(700, 600); ctx.lineTo(450, 200);
+        ctx.stroke();
+
+        // Rainbow Bridge representation in sky
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.arc(400, 300, 250, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Throttle slide
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(700, 200, 30, 200);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(695, 400 - gd.throttle * 200, 40, 20);
+
+        // HUD speed & distance
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Estaciones: ${gd.stationIndex}/3`, 30, 40);
+        ctx.fillText(`Velocidad: ${Math.round(gd.speed)} km/h`, 30, 80);
+        ctx.fillText(`Distancia a estación: ${Math.round(gd.distance)}m`, 30, 120);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra el regulador derecho para acelerar y frenar en el andén', 400, 560);
+    },
+    inputMonorailPress(x, y) {
+        const gd = this.gameData;
+        if (x > 680 && x < 750 && y > 200 && y < 400) {
+            gd.throttle = (400 - y) / 200;
+            if (gd.throttle < 0) gd.throttle = 0;
+            if (gd.throttle > 1) gd.throttle = 1;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseMonorail(x, y) {},
+
+    // 27. day_19_immersive: Inmersión Total
+    setupImmersive() {
+        this.gameData = {
+            streams: [],
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateImmersive(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            gd.streams.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 250 + Math.random() * 100,
+                color: `hsla(${Math.random() * 360}, 100%, 75%, 0.9)`,
+                deflected: false
+            });
+        }
+
+        // Move streams
+        gd.streams.forEach((s, idx) => {
+            s.y += s.vy * dt;
+            
+            // Check dragging collision
+            if (this.mouse.isDown && Math.hypot(s.x - this.mouse.x, s.y - this.mouse.y) < 50) {
+                s.x = lerp(s.x, 400, 0.15); // deflecting towards center family
+                if (!s.deflected) {
+                    s.deflected = true;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 30) * 100);
+                    if (window.playProceduralSound && gd.score % 5 === 0) playProceduralSound('collect');
+                    if (gd.score >= 30) {
+                        setTimeout(() => this.win(), 600);
+                    }
+                }
+            }
+        });
+        gd.streams = gd.streams.filter(s => s.y < 600);
+    },
+    drawImmersive() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Purple dark room
+        ctx.fillStyle = '#0d0714';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Family outline in center
+        ctx.strokeStyle = '#bb86fc';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(400, 380, 60, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Draw streams
+        gd.streams.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Armonía Inmersiva: ${gd.score}/30`, 30, 560);
+    },
+    inputImmersivePress(x, y) {},
+
+    
+
+    releaseTocho() {},
+
+    // ==========================================================
+    // MINIJUEGOS PREMIUM DE ALTO NIVEL - DÍAS 17, 18 Y 19
+    // ==========================================================
+
+    // 19. day_19_gundam: Piloto de Mechas (Fijación de blancos múltiple Lock-On y misiles vectoriales)
+    setupGundam() {
+        this.gameData = {
+            aimX: 400,
+            aimY: 300,
+            drones: [],
+            locks: [], // locked drone indices
+            missiles: [],
+            spawnTimer: 0,
+            destroyed: 0,
+            shield: 100
+        };
+        this.score = 0;
+    },
+    updateGundam(dt) {
+        const gd = this.gameData;
+        gd.aimX = lerp(gd.aimX, this.mouse.x, 0.18);
+        gd.aimY = lerp(gd.aimY, this.mouse.y, 0.18);
+
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.85;
+            gd.drones.push({
+                x: 120 + Math.random() * 560,
+                y: 60 + Math.random() * 160,
+                vx: (Math.random() < 0.5 ? 1 : -1) * 90,
+                locked: false
+            });
+        }
+
+        gd.drones.forEach((d, idx) => {
+            d.x += d.vx * dt;
+            if (d.x < 100 || d.x > 700) d.vx *= -1;
+
+            // Lock target by hovering
+            if (Math.hypot(gd.aimX - d.x, gd.aimY - d.y) < 40 && !d.locked) {
+                d.locked = true;
+                gd.locks.push(d);
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+
+        // Launch missiles on click release/trigger
+        if (gd.locks.length >= 4 || (this.mouse.isDown && gd.locks.length > 0)) {
+            // fire barrage
+            gd.locks.forEach(d => {
+                gd.missiles.push({
+                    x: 400,
+                    y: 550,
+                    tx: d.x,
+                    ty: d.y,
+                    progress: 0
+                });
+            });
+            gd.locks = [];
+            gd.drones.forEach(d => d.locked = false);
+        }
+
+        // Update missiles
+        gd.missiles.forEach((m, idx) => {
+            m.progress += dt * 3.5;
+            if (m.progress >= 1.0) {
+                gd.missiles.splice(idx, 1);
+                // Blow up close drones
+                gd.drones.forEach((d, dIdx) => {
+                    if (Math.hypot(m.tx - d.x, m.ty - d.y) < 45) {
+                        gd.drones.splice(dIdx, 1);
+                        gd.destroyed++;
+                        this.score = Math.round((gd.destroyed / 15) * 100);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (gd.destroyed >= 15) this.win();
+                    }
+                });
+            }
+        });
+    },
+    drawGundam() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        // Cockpit screen
+        ctx.fillStyle = '#02050f';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Circular sweep radar in cockpit
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(400, 300, 250, 0, Math.PI * 2); ctx.stroke();
+
+        // Draw drones
+        gd.drones.forEach(d => {
+            ctx.fillStyle = d.locked ? '#ff9100' : '#455a64';
+            ctx.strokeStyle = d.locked ? '#ff3d00' : '#cfd8dc';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+
+        // Missile lines
+        ctx.lineWidth = 3;
+        gd.missiles.forEach(m => {
+            ctx.strokeStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(400, 550);
+            ctx.quadraticCurveTo(200, 300, m.tx, m.ty);
+            ctx.stroke();
+        });
+
+        // Lock-on Viewfinder crosshair
+        ctx.strokeStyle = '#00ff99';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(gd.aimX, gd.aimY, 28, 0, Math.PI * 2);
+        ctx.moveTo(gd.aimX - 40, gd.aimY); ctx.lineTo(gd.aimX - 12, gd.aimY);
+        ctx.moveTo(gd.aimX + 12, gd.aimY); ctx.lineTo(gd.aimX + 40, gd.aimY);
+        ctx.moveTo(gd.aimX, gd.aimY - 40); ctx.lineTo(gd.aimX, gd.aimY - 12);
+        ctx.moveTo(gd.aimX, gd.aimY + 12); ctx.lineTo(gd.aimX, gd.aimY + 40);
+        ctx.stroke();
+
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Drones Derribados: ${gd.destroyed}/15`, 400, 500);
+        ctx.fillText('Desliza sobre los drones para fijar objetivos (Lock-on) y suelta para disparar', 400, 540);
+    },
+    inputGundamPress(x, y) {},
+
+    // 20. day_19_color: Cazador de Luz (Plataformas flotantes y pulsos de resonancia cromática)
+    setupColor() {
+        this.gameData = {
+            charX: 400,
+            targetX: 400,
+            platforms: [
+                { x: 200, color: 'red', name: 'Rojo' },
+                { x: 400, color: 'blue', name: 'Azul' },
+                { x: 600, color: 'green', name: 'Verde' }
+            ],
+            targetColor: 'blue',
+            score: 0,
+            jumpY: 460,
+            jumpTime: 0,
+            isJumping: false
+        };
+        this.score = 0;
+    },
+    updateColor(dt) {
+        const gd = this.gameData;
+        if (gd.isJumping) {
+            gd.jumpTime += dt * 3.5;
+            gd.charX = lerp(gd.charX, gd.targetX, 0.12);
+            gd.jumpY = 460 - Math.sin(gd.jumpTime * Math.PI) * 100;
+
+            if (gd.jumpTime >= 1.0) {
+                gd.isJumping = false;
+                gd.charX = gd.targetX;
+                gd.jumpY = 460;
+
+                const platform = gd.platforms.find(p => Math.abs(gd.charX - p.x) < 20);
+                if (platform && platform.color === gd.targetColor) {
+                    gd.score++;
+                    this.score = Math.round((gd.score / 15) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (gd.score >= 15) {
+                        this.win();
+                    } else {
+                        const list = ['red', 'blue', 'green'];
+                        gd.targetColor = list[Math.floor(Math.random() * 3)];
+                    }
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    this.triggerShake(14);
+                }
+            }
+        }
+    },
+    drawColor() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#06060c';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.platforms.forEach(p => {
+            ctx.fillStyle = p.color === 'red' ? 'rgba(255,23,68,0.12)' : (p.color === 'blue' ? 'rgba(41,121,255,0.12)' : 'rgba(0,230,118,0.12)');
+            ctx.fillRect(p.x - 55, 0, 110, 500);
+
+            ctx.fillStyle = p.color === 'red' ? '#ff1744' : (p.color === 'blue' ? '#2979ff' : '#00e676');
+            ctx.fillRect(p.x - 65, 480, 130, 20);
+        });
+
+        // Player
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(gd.charX, gd.jumpY, 18, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SALTA AL COLOR DE LUZ:', 400, 80);
+        ctx.fillStyle = gd.targetColor === 'red' ? '#ff1744' : (gd.targetColor === 'blue' ? '#2979ff' : '#00e676');
+        ctx.fillText(gd.targetColor.toUpperCase(), 400, 120);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Aciertos: ${gd.score}/15`, 30, 560);
+    },
+    inputColorPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.isJumping) {
+            const platform = gd.platforms.reduce((prev, curr) => Math.abs(x - curr.x) < Math.abs(x - prev.x) ? curr : prev);
+            gd.targetX = platform.x;
+            gd.isJumping = true;
+            gd.jumpTime = 0;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+
+    // 21. day_19_teamlab: Sueños Digitales (Ramas fractales L-System y polinización de mariposas)
+    setupTeamLab() {
+        this.gameData = {
+            branches: [],
+            butterflies: [],
+            coverage: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateTeamLab(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 1.0;
+            gd.butterflies.push({
+                x: Math.random() * 800,
+                y: Math.random() * 400,
+                targetX: Math.random() * 800,
+                targetY: Math.random() * 400,
+                r: 12
+            });
+        }
+
+        // Draw fractal flowers on drag
+        if (this.mouse.isDown) {
+            gd.branches.push({
+                x: this.mouse.x,
+                y: this.mouse.y,
+                r: 6 + Math.random() * 12,
+                color: `hsla(${330 + Math.random() * 40}, 100%, 75%, 0.85)`
+            });
+            gd.coverage = Math.min(100, gd.coverage + dt * 12);
+            this.score = Math.round(gd.coverage);
+            if (gd.coverage >= 95) this.win();
+        }
+
+        gd.butterflies.forEach(b => {
+            b.x = lerp(b.x, b.targetX, 0.04);
+            b.y = lerp(b.y, b.targetY, 0.04);
+            if (Math.hypot(b.x - b.targetX, b.y - b.targetY) < 15) {
+                b.targetX = Math.random() * 800;
+                b.targetY = Math.random() * 400;
+            }
+        });
+    },
+    drawTeamLab() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#060614';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Fractal branches
+        gd.branches.forEach(b => {
+            ctx.fillStyle = b.color;
+            ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Butterflies
+        ctx.fillStyle = '#e040fb';
+        gd.butterflies.forEach(b => {
+            ctx.beginPath();
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, Math.PI / 4, 0, Math.PI * 2);
+            ctx.ellipse(b.x, b.y, b.r, b.r * 1.5, -Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cobertura: ${Math.round(gd.coverage)}% / 95%`, 30, 560);
+    },
+    inputTeamLabPress(x, y) {
+        const gd = this.gameData;
+        gd.butterflies.forEach((b, idx) => {
+            if (Math.hypot(x - b.x, y - b.y) < 35) {
+                gd.butterflies.splice(idx, 1);
+                // Spawn flower fractal burst
+                for (let i = 0; i < 25; i++) {
+                    gd.branches.push({
+                        x: b.x + (Math.random() - 0.5) * 140,
+                        y: b.y + (Math.random() - 0.5) * 140,
+                        r: 8 + Math.random() * 10,
+                        color: '#e040fb'
+                    });
+                }
+                gd.coverage = Math.min(100, gd.coverage + 10);
+                this.score = Math.round(gd.coverage);
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (gd.coverage >= 95) this.win();
+            }
+        });
+    },
+    releaseTeamLab() {},
+
+    // 22. day_19_liberty: La Libertad Nipona (Perspectiva forzada con zoom)
+    setupLiberty() {
+        this.gameData = {
+            handX: 200,
+            handY: 300,
+            targetX: 400,
+            targetY: 180,
+            zoom: 1.0,
+            targetZoom: 2.0,
+            alignTimer: 0,
+            dragging: false,
+            draggingSlider: false
+        };
+        this.score = 0;
+    },
+    updateLiberty(dt) {
+        const gd = this.gameData;
+        if (gd.dragging) {
+            gd.handX = this.mouse.x;
+            gd.handY = this.mouse.y;
+        }
+        if (gd.draggingSlider) {
+            const relX = (this.mouse.x - 250) / 300;
+            gd.zoom = 1.0 + Math.max(0, Math.min(1, relX)) * 2.0; // 1.0x to 3.0x
+        }
+
+        const distance = Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY);
+        const zoomError = Math.abs(gd.zoom - gd.targetZoom);
+
+        if (distance < 25 && zoomError < 0.25) {
+            gd.alignTimer += dt;
+            this.score = Math.min(100, Math.round((gd.alignTimer / 2.5) * 100));
+            if (gd.alignTimer >= 2.5) this.win();
+        } else {
+            gd.alignTimer = Math.max(0, gd.alignTimer - dt * 25);
+            this.score = 0;
+        }
+    },
+    drawLiberty() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#e0f7fa';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.translate(400, 180);
+        ctx.scale(gd.zoom, gd.zoom);
+        ctx.translate(-400, -180);
+
+        // Statue in background
+        ctx.fillStyle = '#80cbc4';
+        ctx.fillRect(gd.targetX - 16, gd.targetY, 32, 160);
+        ctx.fillStyle = '#ffb300';
+        ctx.beginPath(); ctx.arc(gd.targetX, gd.targetY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        // Foreground Hand
+        ctx.fillStyle = '#ffe0b2';
+        ctx.strokeStyle = '#5d4037';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(gd.handX, gd.handY, 22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+        // Slider
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(250, 520, 300, 8);
+        const knobX = 250 + ((gd.zoom - 1.0) / 2.0) * 300;
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(knobX, 524, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 16px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Lente Zoom: ${gd.zoom.toFixed(1)}x / 2.0x`, 400, 500);
+
+        // Alignment lock progress
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 20, 200, 15);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillRect(300, 20, gd.alignTimer * 80, 15);
+    },
+    inputLibertyPress(x, y) {
+        const gd = this.gameData;
+        if (Math.hypot(x - gd.handX, y - gd.handY) < 35) {
+            gd.dragging = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        } else if (y > 500 && y < 550 && x > 230 && x < 570) {
+            gd.draggingSlider = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseLiberty() {
+        this.gameData.dragging = false;
+        this.gameData.draggingSlider = false;
+    },
+
+    // 23. day_19_crypto: Desencriptar Protocolo (Matriz de Criptografía Hexagonal)
+    setupCrypto() {
+        this.gameData = {
+            columns: [
+                { id: 0, target: 15, current: 0, blocks: [], x: 150 },
+                { id: 1, target: 20, current: 0, blocks: [], x: 310 },
+                { id: 2, target: 10, current: 0, blocks: [], x: 470 },
+                { id: 3, target: 25, current: 0, blocks: [], x: 630 }
+            ],
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateCrypto(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.8;
+            const col = gd.columns[Math.floor(Math.random() * 4)];
+            col.blocks.push({
+                y: 0,
+                val: Math.floor(Math.random() * 9) + 1,
+                vy: 110 + Math.random() * 60
+            });
+        }
+
+        gd.columns.forEach(col => {
+            col.blocks.forEach(b => {
+                b.y += b.vy * dt;
+            });
+            col.blocks = col.blocks.filter(b => b.y < 460);
+        });
+    },
+    drawCrypto() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#020b02';
+        ctx.fillRect(0, 0, 800, 600);
+
+        gd.columns.forEach(col => {
+            ctx.strokeStyle = 'rgba(0, 230, 118, 0.15)';
+            ctx.strokeRect(col.x - 55, 40, 110, 420);
+
+            ctx.fillStyle = col.current === col.target ? '#00e676' : '#ffffff';
+            ctx.font = 'bold 20px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${col.current} / ${col.target}`, col.x, 490);
+
+            col.blocks.forEach(b => {
+                ctx.fillStyle = '#00ff99';
+                ctx.fillRect(col.x - 35, b.y - 15, 70, 30);
+                ctx.fillStyle = '#000';
+                ctx.fillText(b.val, col.x, b.y + 7);
+            });
+        });
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Desencriptar cortafuegos: Logra la suma exacta en los 4 puertos', 400, 555);
+    },
+    inputCryptoPress(x, y) {
+        const gd = this.gameData;
+        gd.columns.forEach(col => {
+            col.blocks.forEach((b, idx) => {
+                if (x > col.x - 35 && x < col.x + 35 && y > b.y - 15 && y < b.y + 15) {
+                    col.blocks.splice(idx, 1);
+                    col.current += b.val;
+                    if (window.playProceduralSound) playProceduralSound('click');
+
+                    if (col.current > col.target) {
+                        col.current = 0;
+                        if (window.playProceduralSound) playProceduralSound('error');
+                    } else if (col.current === col.target) {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        const solved = gd.columns.filter(c => c.current === c.target).length;
+                        this.score = Math.round((solved / 4) * 100);
+                        if (solved === 4) this.win();
+                    }
+                }
+            });
+        });
+    },
+
+    // 24. day_19_mirrors: Lógica de Espejos (Cámara de prismas TeamLab con división de colores RGB)
+    setupMirrors() {
+        this.gameData = {
+            mirrors: [
+                { id: 0, x: 250, y: 150, angle: 45 },
+                { id: 1, x: 250, y: 450, angle: 90 },
+                { id: 2, x: 550, y: 450, angle: 0 },
+                { id: 3, x: 550, y: 300, angle: 90 }
+            ],
+            emitter: { x: 100, y: 150 },
+            receiver: { x: 400, y: 300 },
+            isSolved: false
+        };
+        this.score = 0;
+    },
+    updateMirrors(dt) {
+        const gd = this.gameData;
+        // Check mirror angles align correctly
+        if (gd.mirrors[0].angle === 45 && gd.mirrors[1].angle === 135 && gd.mirrors[2].angle === 45 && gd.mirrors[3].angle === 135) {
+            gd.isSolved = true;
+            this.score = 100;
+            setTimeout(() => this.win(), 600);
+        } else {
+            gd.isSolved = false;
+        }
+    },
+    drawMirrors() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#050512';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Draw mirrors
+        gd.mirrors.forEach(m => {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate((m.angle * Math.PI) / 180);
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.moveTo(-35, 0); ctx.lineTo(35, 0); ctx.stroke();
+            ctx.restore();
+        });
+
+        // Laser reflection drawing
+        ctx.strokeStyle = gd.isSolved ? '#ff1744' : '#ffeb3b';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(gd.emitter.x, gd.emitter.y);
+        ctx.lineTo(gd.mirrors[0].x, gd.mirrors[0].y);
+
+        if (gd.mirrors[0].angle === 45) {
+            ctx.lineTo(gd.mirrors[1].x, gd.mirrors[1].y);
+            if (gd.mirrors[1].angle === 135) {
+                ctx.lineTo(gd.mirrors[2].x, gd.mirrors[2].y);
+                if (gd.mirrors[2].angle === 45) {
+                    ctx.lineTo(gd.mirrors[3].x, gd.mirrors[3].y);
+                    if (gd.mirrors[3].angle === 135) {
+                        ctx.lineTo(gd.receiver.x, gd.receiver.y);
+                    }
+                }
+            }
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = '#00e676';
+        ctx.beginPath(); ctx.arc(gd.emitter.x, gd.emitter.y, 16, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath(); ctx.arc(gd.receiver.x, gd.receiver.y, 22, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rota los espejos para dirigir el láser al receptor', 400, 540);
+    },
+    inputMirrorsPress(x, y) {
+        const gd = this.gameData;
+        gd.mirrors.forEach(m => {
+            if (Math.hypot(x - m.x, y - m.y) < 40) {
+                m.angle = (m.angle + 45) % 360;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+        });
+    },
+    releaseMirrors() {},
+
+    // 25. day_19_weight: Estructura de Gundam (Ensamblaje del Esqueleto Gundam con balance)
+    setupWeight() {
+        this.gameData = {
+            girders: [],
+            currentX: 400,
+            craneSpeed: 200,
+            craneDir: 1,
+            falling: false,
+            fallY: 80,
+            wobble: 0
+        };
+        this.score = 0;
+    },
+    updateWeight(dt) {
+        const gd = this.gameData;
+        if (!gd.falling) {
+            gd.currentX += gd.craneSpeed * gd.craneDir * dt;
+            if (gd.currentX < 220 || gd.currentX > 580) gd.craneDir *= -1;
+        } else {
+            gd.fallY += dt * 380;
+            const targetY = 460 - gd.girders.length * 40;
+            if (gd.fallY >= targetY) {
+                gd.fallY = targetY;
+                gd.falling = false;
+
+                const targetX = gd.girders.length > 0 ? gd.girders[gd.girders.length - 1].x : 400;
+                const offset = gd.currentX - targetX;
+
+                gd.girders.push({ x: gd.currentX, y: targetY, w: 110 });
+                gd.wobble += offset * 0.9;
+                gd.fallY = 80;
+
+                this.score = Math.round((gd.girders.length / 8) * 100);
+                if (window.playProceduralSound) playProceduralSound('success');
+
+                if (gd.girders.length >= 8) {
+                    this.win();
+                }
+            }
+        }
+
+        gd.wobble *= 0.97;
+        if (Math.abs(gd.wobble) > 40) {
+            this.gameOver();
+        }
+    },
+    drawWeight() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#263238';
+        ctx.fillRect(0, 0, 800, 600);
+
+        ctx.save();
+        ctx.translate(gd.wobble, 0);
+
+        // Foundation
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(300, 500, 200, 40);
+
+        // Girders
+        ctx.fillStyle = '#b0bec5';
+        ctx.strokeStyle = '#263238';
+        ctx.lineWidth = 3;
+        gd.girders.forEach((gir, idx) => {
+            ctx.fillRect(gir.x - gir.w / 2, 460 - idx * 40, gir.w, 40);
+            ctx.strokeRect(gir.x - gir.w / 2, 460 - idx * 40, gir.w, 40);
+        });
+        ctx.restore();
+
+        if (gd.falling) {
+            ctx.fillStyle = '#ff9800';
+            ctx.fillRect(gd.currentX - 55, gd.fallY, 110, 40);
+        } else {
+            ctx.fillStyle = '#ff9800';
+            ctx.fillRect(gd.currentX - 55, 80, 110, 40);
+        }
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Pisos: ${gd.girders.length}/8`, 400, 530);
+    },
+    inputWeightPress(x, y) {
+        const gd = this.gameData;
+        if (!gd.falling) {
+            gd.falling = true;
+            gd.fallY = 80;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseWeight() {},
+
+    // 26. day_19_monorail: Monorriel Yurikamome (Física de Tracción Ferroviaria)
+    setupMonorail() {
+        this.gameData = {
+            speed: 0,
+            distance: 1000,
+            throttle: 0,
+            stationIndex: 0,
+            draggingThrottle: false
+        };
+        this.score = 0;
+    },
+    updateMonorail(dt) {
+        const gd = this.gameData;
+        if (gd.draggingThrottle) {
+            const relY = (this.mouse.y - 200) / 200;
+            gd.throttle = 1.0 - Math.max(0, Math.min(1, relY)); // 0.0 to 1.0
+        }
+
+        gd.speed = gd.throttle * 90;
+        gd.distance = Math.max(0, gd.distance - gd.speed * dt);
+
+        if (gd.distance <= 15 && gd.speed < 8) {
+            gd.distance = 1000;
+            gd.stationIndex++;
+            this.score = Math.round((gd.stationIndex / 3) * 100);
+            if (window.playProceduralSound) playProceduralSound('success');
+            if (gd.stationIndex >= 3) this.win();
+        }
+    },
+    drawMonorail() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Lines
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 8;
+        ctx.beginPath();
+        ctx.moveTo(100, 600); ctx.lineTo(350, 220);
+        ctx.moveTo(700, 600); ctx.lineTo(450, 220);
+        ctx.stroke();
+
+        // Throttle lever panel
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(700, 200, 30, 200);
+        const leverY = 400 - gd.throttle * 200;
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath(); ctx.arc(715, leverY, 15, 0, Math.PI * 2); ctx.fill();
+
+        // HUD panel
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Estaciones: ${gd.stationIndex}/3`, 30, 50);
+        ctx.fillText(`Velocidad: ${Math.round(gd.speed)} km/h`, 30, 90);
+        ctx.fillText(`Distancia al andén: ${Math.round(gd.distance)}m`, 30, 130);
+
+        ctx.textAlign = 'center';
+        ctx.fillText('Arrastra la palanca azul para acelerar y frenar en el andén', 400, 560);
+    },
+    inputMonorailPress(x, y) {
+        const gd = this.gameData;
+        if (x > 680 && x < 750 && y > 180 && y < 420) {
+            gd.draggingThrottle = true;
+            if (window.playProceduralSound) playProceduralSound('click');
+        }
+    },
+    releaseMonorail() {
+        this.gameData.draggingThrottle = false;
+    },
+
+    // 27. day_19_immersive: Inmersión Total (Cascada de Fluidos TeamLab)
+    setupImmersive() {
+        this.gameData = {
+            streams: [],
+            score: 0,
+            spawnTimer: 0
+        };
+        this.score = 0;
+    },
+    updateImmersive(dt) {
+        const gd = this.gameData;
+        gd.spawnTimer -= dt;
+        if (gd.spawnTimer <= 0) {
+            gd.spawnTimer = 0.15;
+            gd.streams.push({
+                x: 100 + Math.random() * 600,
+                y: 0,
+                vy: 240 + Math.random() * 95,
+                color: `hsla(${Math.random() * 360}, 100%, 75%, 0.85)`,
+                deflected: false
+            });
+        }
+
+        gd.streams.forEach((s, idx) => {
+            s.y += s.vy * dt;
+            if (this.mouse.isDown && Math.hypot(s.x - this.mouse.x, s.y - this.mouse.y) < 55) {
+                s.x = lerp(s.x, 400, 0.18);
+                if (!s.deflected) {
+                    s.deflected = true;
+                    gd.score++;
+                    this.score = Math.round((gd.score / 30) * 100);
+                    if (window.playProceduralSound && gd.score % 5 === 0) playProceduralSound('collect');
+                    if (gd.score >= 30) this.win();
+                }
+            }
+        });
+        gd.streams = gd.streams.filter(s => s.y < 600);
+    },
+    drawImmersive() {
+        const ctx = this.ctx;
+        const gd = this.gameData;
+
+        ctx.fillStyle = '#0f0518';
+        ctx.fillRect(0, 0, 800, 600);
+
+        // Silhouette outline
+        ctx.strokeStyle = '#bb86fc';
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(400, 380, 70, 0, Math.PI * 2); ctx.stroke();
+
+        // Streams
+        gd.streams.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.shadowColor = s.color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // HUD
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Armonía Inmersiva: ${gd.score}/30`, 30, 560);
+    },
+    inputImmersivePress(x, y) {},
+    releaseImmersive() {},
+    releaseTocho() {},
+
+    // ==========================================
