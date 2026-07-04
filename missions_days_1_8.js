@@ -166,16 +166,16 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Avión",
         render: () => `
-            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 15 segundos.</p>
+            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 60 segundos.</p>
             <div class="level-container">
                 <div class="target-zone"></div>
                 <div class="bubble" id="lvl-bubble"></div>
             </div>
-            <p id="lvl-timer" style="text-align:center; font-size:2rem; font-weight:bold;">15.0s</p>
+            <p id="lvl-timer" style="text-align:center; font-size:2rem; font-weight:bold;">60.0s</p>
             <button id="btn-start" class="btn-primary" style="width:100%">Calibrar y Empezar</button>
         `,
         attachEvents: (role) => {
-            let active = false; let timeLeft = 15; let timerInt;
+            let active = false; let timeLeft = 60; let timerInt;
             const bubble = document.getElementById('lvl-bubble');
             const handleOrient = (e) => {
                 if(!active) return;
@@ -189,18 +189,27 @@ Object.assign(MISSIONS_CONFIG, {
             };
             document.getElementById('btn-start').addEventListener('click', async (e) => {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const p = await DeviceOrientationEvent.requestPermission();
-                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') {
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo activar el sensor de movimiento.');
+                        return;
+                    }
                 }
                 e.target.classList.add('hidden');
-                active = true; timeLeft = 15;
+                active = true; timeLeft = 60;
                 window.addEventListener('deviceorientation', handleOrient);
                 timerInt = setInterval(() => {
                     timeLeft -= 0.1;
                     document.getElementById('lvl-timer').innerText = timeLeft.toFixed(1) + 's';
                     if(timeLeft <= 0) {
                         active = false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient);
-                        submitMission('day_1_balance', {type:'sensors', data:'15s completados'}, role);
+                        submitMission('day_1_balance', {type:'sensors', data:'60s completados'}, role);
                     }
                 }, 100);
             });
@@ -739,13 +748,13 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20;">
                 <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">🦊 El Jardín del Silencio Kitsune 🌸</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El zorrito Kitsune está meditando. No hagas ruido y mantén la calma durante 30 segundos.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El zorrito Kitsune está meditando. No hagas ruido y mantén la calma durante 60 segundos.</p>
                 <div id="kitsune-garden" style="height:150px; background:#fff; border-radius:10px; border:2px solid #81c784; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                     <span id="kitsune-character" style="font-size:4.5rem; transition:transform 0.5s ease; z-index:2;">🦊</span>
                     <span id="kitsune-status-txt" style="font-size:0.8rem; font-weight:bold; color:#2e7d32; margin-top:5px; z-index:2;">(Esperando calma...)</span>
                     <canvas id="sakura-canvas" width="280" height="150" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;"></canvas>
                 </div>
-                <p id="crono-disp" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">30s</p>
+                <p id="crono-disp" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">60s</p>
                 <button id="btn-start-kitsune" class="btn-primary" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">Iniciar Meditación Zen</button>
             </div>
         `,
@@ -757,7 +766,7 @@ Object.assign(MISSIONS_CONFIG, {
             const canvas = document.getElementById('sakura-canvas');
             const ctx = canvas.getContext('2d');
             
-            let timer = 30;
+            let timer = 60;
             let interval = null;
             let animating = false;
             let animFrame = null;
@@ -795,8 +804,8 @@ Object.assign(MISSIONS_CONFIG, {
             
             startBtn.addEventListener('click', () => {
                 startBtn.classList.add('hidden');
-                timer = 30;
-                cronoDisp.innerText = '30s';
+                timer = 60;
+                cronoDisp.innerText = '60s';
                 kitsune.innerText = '🦊';
                 statusTxt.innerText = '¡Shh! Meditando...';
                 
@@ -822,7 +831,7 @@ Object.assign(MISSIONS_CONFIG, {
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_2_posture', {type:'text', data:'Meditación Zen 30 segundos'}, role);
+                            submitMission('day_2_posture', {type:'text', data:'Meditación Zen 60 segundos'}, role);
                         }, 1500);
                     }
                 }, 1000);
@@ -1827,8 +1836,8 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #4caf50; margin-bottom:15px; text-align:center;">
                     <div id="mochi-status" style="font-size:3.5rem; transition: transform 0.1s ease;">⚪</div>
-                    <div id="mochi-score" style="font-weight:bold; font-size:1.3rem; color:#4caf50; margin:5px 0;">Golpes: 0/15</div>
-                    <div id="mochi-timer" style="font-size:1.5rem; font-weight:bold; color:#f44336;">15s</div>
+                    <div id="mochi-score" style="font-weight:bold; font-size:1.3rem; color:#4caf50; margin:5px 0;">Golpes: 0/50</div>
+                    <div id="mochi-timer" style="font-size:1.5rem; font-weight:bold; color:#f44336;">60s</div>
                 </div>
                 
                 <div id="mochi-target" style="font-size:1.2rem; font-weight:bold; color:#1b5e20; margin-bottom:15px; min-height:1.5rem;">Preparados...</div>
@@ -1852,7 +1861,7 @@ Object.assign(MISSIONS_CONFIG, {
             const tm = document.getElementById('mochi-timer');
             const targetEl = document.getElementById('mochi-target');
             
-            let hits = 0; let fails = 0; let time = 15; let active = false; let nextTarget = ''; let interval = null; let isDebounced = false;
+            let hits = 0; let fails = 0; let time = 60; let active = false; let nextTarget = ''; let interval = null; let isDebounced = false;
 
             const updateTarget = () => {
                 nextTarget = nextTarget === 'mazo' ? 'mano' : 'mazo';
@@ -1871,7 +1880,7 @@ Object.assign(MISSIONS_CONFIG, {
                 if(type !== nextTarget) { fail(); return; }
                 isDebounced = true; setTimeout(() => isDebounced = false, 100);
                 
-                hits++; sc.innerText = `Golpes: ${hits}/15`; st.innerText = '✨';
+                hits++; sc.innerText = `Golpes: ${hits}/50`; st.innerText = '✨';
                 st.style.transform = 'scale(1.2)';
                 setTimeout(() => { 
                     if(active) st.innerText = '⚪'; 
@@ -1879,7 +1888,7 @@ Object.assign(MISSIONS_CONFIG, {
                 }, 100);
                 if (window.playProceduralSound) playProceduralSound('click');
                 
-                if(hits >= 15) endGame(true); else updateTarget();
+                if(hits >= 50) endGame(true); else updateTarget();
             };
 
             const endGame = (win) => {
@@ -1897,7 +1906,7 @@ Object.assign(MISSIONS_CONFIG, {
 
             btnS.addEventListener('click', () => {
                 btnS.classList.add('hidden'); btnMazo.disabled = false; btnMano.disabled = false;
-                hits = 0; fails = 0; time = 15; active = true; sc.innerText = `Golpes: 0/15`; st.innerText = '⚪';
+                hits = 0; fails = 0; time = 60; active = true; sc.innerText = `Golpes: 0/50`; st.innerText = '⚪';
                 nextTarget = Math.random() > 0.5 ? 'mazo' : 'mano'; updateTarget();
                 
                 interval = setInterval(() => {
@@ -1926,14 +1935,14 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🧘 Concentración Zen del Buda 🧘</p>
-                <p style="font-size:0.85rem; margin-bottom:15px;">Demuestra el autocontrol de un monje de Todai-ji. Mantén pulsado el loto dorado sin soltarlo ni moverte durante 15 segundos exactos.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">Demuestra el autocontrol de un monje de Todai-ji. Mantén pulsado el loto dorado sin soltarlo ni moverte durante 60 segundos exactos.</p>
                 
                 <div id="monk-sphere" style="width:90px; height:90px; border-radius:50%; background:#ffd700; border:4px solid #8d6e63; margin:20px auto; display:flex; align-items:center; justify-content:center; font-size:3rem; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; box-shadow:0 4px 10px rgba(0,0,0,0.2);">🪷</div>
-                <p id="monk-timer" style="text-align:center; font-size:2.5rem; font-weight:bold; color:#8d6e63; text-shadow:0 1px 3px rgba(0,0,0,0.1); margin:0;">15s</p>
+                <p id="monk-timer" style="text-align:center; font-size:2.5rem; font-weight:bold; color:#8d6e63; text-shadow:0 1px 3px rgba(0,0,0,0.1); margin:0;">60s</p>
             </div>
         `,
         attachEvents: (role) => {
-            let active = false; let timeLeft = 15; let timerInt;
+            let active = false; let timeLeft = 60; let timerInt;
             const sphere = document.getElementById('monk-sphere');
             const timerEl = document.getElementById('monk-timer');
             
@@ -1941,8 +1950,8 @@ Object.assign(MISSIONS_CONFIG, {
                 e.preventDefault();
                 if (active) return;
                 active = true;
-                timeLeft = 15;
-                timerEl.innerText = '15s';
+                timeLeft = 60;
+                timerEl.innerText = '60s';
                 sphere.style.transform = "scale(1.3)";
                 sphere.style.boxShadow = "0 0 20px #ffd700";
                 
@@ -1969,8 +1978,8 @@ Object.assign(MISSIONS_CONFIG, {
             
             const stopMeditation = () => {
                 if(!active) return;
-                active = false; clearInterval(timerInt); timeLeft = 15;
-                timerEl.innerText = '15s';
+                active = false; clearInterval(timerInt); timeLeft = 60;
+                timerEl.innerText = '60s';
                 sphere.style.transform = "scale(1)";
                 sphere.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
                 if (window.playProceduralSound) playProceduralSound('error');
@@ -2122,9 +2131,15 @@ Object.assign(MISSIONS_CONFIG, {
                 if (active) return;
                 
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const p = await DeviceOrientationEvent.requestPermission();
-                    if (p !== 'granted') {
-                        showAlert('Error', 'Permiso denegado.');
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') {
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo activar el sensor de movimiento.');
                         return;
                     }
                 }
@@ -2852,8 +2867,17 @@ Object.assign(MISSIONS_CONFIG, {
             
             btn.addEventListener('click', async (e) => {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const p = await DeviceOrientationEvent.requestPermission();
-                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') {
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo activar el sensor de movimiento.');
+                        return;
+                    }
                 }
                 
                 btn.style.display = 'none';
@@ -3036,8 +3060,17 @@ Object.assign(MISSIONS_CONFIG, {
             
             btn.addEventListener('click', async (e) => {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    const p = await DeviceOrientationEvent.requestPermission();
-                    if(p !== 'granted') return showAlert('Error', 'Permiso denegado.');
+                    try {
+                        const p = await DeviceOrientationEvent.requestPermission();
+                        if (p !== 'granted') {
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo activar el sensor de movimiento.');
+                        return;
+                    }
                 }
                 
                 btn.style.display = 'none';

@@ -254,11 +254,11 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> PROTOCOLO KITSUNE: ESTABILIZACIÓN DE NÚCLEO</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Imita al fénix del tejado del Kinkaku-ji. Ponte a la pata coja y mantén el equilibrio durante 15 segundos sin tambalearte.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Imita al fénix del tejado del Kinkaku-ji. Ponte a la pata coja y mantén el equilibrio durante 60 segundos sin tambalearte.</p>
                 
                 <div style="text-align:center; margin:15px 0; background:#111; padding:15px; border-radius:8px; border:1px solid #222;">
                     <div id="chrono-icon" style="font-size:3rem; margin-bottom:10px; transition: transform 0.3s;">🦅</div>
-                    <div id="chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700;">15.0s</div>
+                    <div id="chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700;">60.0s</div>
                     <div id="chrono-bar-bg" style="width:100%; height:8px; background:#222; border-radius:4px; margin-top:10px; overflow:hidden;">
                         <div id="chrono-bar-fill" style="width:100%; height:100%; background:#ffd700; transition: width 0.1s linear;"></div>
                     </div>
@@ -270,7 +270,7 @@ Object.assign(MISSIONS_CONFIG, {
         `,
         attachEvents: (role) => {
             let active = false;
-            let time = 15.0;
+            let time = 60.0;
             let interval = null;
             const btnStart = document.getElementById('btn-start');
             const btnStop = document.getElementById('btn-stop');
@@ -282,8 +282,8 @@ Object.assign(MISSIONS_CONFIG, {
                 btnStart.classList.add('hidden');
                 btnStop.classList.remove('hidden');
                 active = true;
-                time = 15.0;
-                timerEl.innerText = '15.0s';
+                time = 60.0;
+                timerEl.innerText = '60.0s';
                 fillEl.style.width = '100%';
                 
                 if (window.playProceduralSound) playProceduralSound('click');
@@ -302,12 +302,12 @@ Object.assign(MISSIONS_CONFIG, {
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_9_kid14_ave', {type:'text', data: 'Equilibrio de Ave Dorada superado: 15s'}, role);
+                            submitMission('day_9_kid14_ave', {type:'text', data: 'Equilibrio de Ave Dorada superado: 60s'}, role);
                         }, 1200);
                     } else {
                         timerEl.innerText = time.toFixed(1) + 's';
-                        fillEl.style.width = (time / 15.0 * 100) + '%';
-                        iconEl.style.transform = `scale(${1 + (15 - time)*0.01}) rotate(${(15 - time)*2}deg)`;
+                        fillEl.style.width = (time / 60.0 * 100) + '%';
+                        iconEl.style.transform = `scale(${1 + (60 - time)*0.002}) rotate(${(60 - time)*0.5}deg)`;
                     }
                 }, 100);
             });
@@ -926,14 +926,14 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 25,
         location: "Ryokan",
         render: () => `
-        <p class="mission-desc">Camina 20 segundos con el móvil nivelado como una bandeja de té matcha.</p>
+        <p class="mission-desc">Camina 60 segundos con el móvil nivelado como una bandeja de té matcha.</p>
         <div style="display:flex; justify-content:center; align-items:center; height:150px; background:#d4c4a8; border-radius:20px; overflow:hidden; position:relative; box-shadow:inset 0 0 20px rgba(0,0,0,0.5);">
             <div style="width:100px; height:100px; background:#4a5d23; border-radius:50%; border:4px solid #f0e6d2; display:flex; justify-content:center; align-items:center;">
                 <div id="tea-liquid" style="width:80px; height:80px; background:#8a9a5b; border-radius:50%; transition: transform 0.1s; position:relative;">
-                    <div id="tea-steam" class="hidden" style="position:absolute; top:-20px; left:20px; font-size:2rem; animation:float 2s infinite;">♨️</div>
+                     <div id="tea-steam" class="hidden" style="position:absolute; top:-20px; left:20px; font-size:2rem; animation:float 2s infinite;">♨️</div>
                 </div>
             </div>
-            <div id="tea-timer" style="position: absolute; top: 10px; right: 15px; font-size: 2rem; font-weight: bold; color: #333;">20</div>
+            <div id="tea-timer" style="position: absolute; top: 10px; right: 15px; font-size: 2rem; font-weight: bold; color: #333;">60</div>
         </div>
         <button id="btn-start-tea" class="btn-secondary" style="width:100%; margin-top: 15px;">Empezar a caminar</button>
         <button id="btn-sub-tea" class="btn-primary hidden" style="width:100%; margin-top: 15px;">Enviar al Juez</button>
@@ -945,7 +945,7 @@ Object.assign(MISSIONS_CONFIG, {
         const btnV = document.getElementById('btn-sub-tea');
         const steam = document.getElementById('tea-steam');
         
-        let active = false; let time = 20; let interval = null; let b0 = null, g0 = null;
+        let active = false; let time = 60; let interval = null; let b0 = null, g0 = null;
 
         const handleOrientation = (e) => {
             if(!active) return;
@@ -963,7 +963,7 @@ Object.assign(MISSIONS_CONFIG, {
 
         btnS.addEventListener('click', () => {
             const startSim = () => {
-                active = true; time = 20; b0 = null; g0 = null;
+                active = true; time = 60; b0 = null; g0 = null;
                 drop.style.background = '#8a9a5b'; drop.style.transform = 'translate(0,0)';
                 steam.classList.add('hidden'); timerEl.innerText = time; btnS.classList.add('hidden');
                 window.addEventListener('deviceorientation', handleOrientation);
@@ -2566,11 +2566,11 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border-radius:15px; border:3px solid #4dd0e1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">💨 Reto de Apnea Familiar 💨</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">A 2300 metros hay menos moléculas de oxígeno en el aire. ¡Toda la familia debe aguantar la respiración durante 15 segundos juntos!</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">A 2300 metros hay menos moléculas de oxígeno en el aire. ¡Toda la familia debe aguantar la respiración durante 60 segundos juntos!</p>
                 
                 <div style="text-align:center; margin:15px 0; background:#fff; padding:15px; border-radius:10px; border:2px solid #4dd0e1;">
                     <div style="font-size:3.5rem; animation: pulse 1s infinite;" id="lung-emoji">🫁</div>
-                    <div id="apnea-timer" style="font-size:2.5rem; font-weight:bold; color:#00838f;">15s</div>
+                    <div id="apnea-timer" style="font-size:2.5rem; font-weight:bold; color:#00838f;">60s</div>
                 </div>
                 
                 <button id="btn-apnea" class="btn-primary" style="width:100%; background:#00bcd4; border-color:#00bcd4; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(0,188,212,0.3);">⏱️ EMPEZAR APNEA EN FAMILIA</button>
@@ -2582,15 +2582,15 @@ Object.assign(MISSIONS_CONFIG, {
             const lung = document.getElementById('lung-emoji');
             
             let active = false;
-            let time = 15;
+            let time = 60;
             let interval = null;
             
             btn.addEventListener('click', () => {
                 if (active) return;
                 
                 active = true;
-                time = 15;
-                timerEl.innerText = '15s';
+                time = 60;
+                timerEl.innerText = '60s';
                 btn.disabled = true;
                 btn.innerText = '😤 ¡Aguantad la respiración!';
                 
@@ -2610,7 +2610,7 @@ Object.assign(MISSIONS_CONFIG, {
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_14_oxygen', {type:'game', data: 'Apnea familiar 15s completada'}, role, true);
+                            submitMission('day_14_oxygen', {type:'game', data: 'Apnea familiar 60s completada'}, role, true);
                         }, 1200);
                     }
                 }, 1000);
@@ -2810,15 +2810,15 @@ Object.assign(MISSIONS_CONFIG, {
 "day_15_shogun": {
         tag: "physical", day: 15, title: "El Trono del Shogun", role: "kid9", xp: 15, location: "Takayama",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">👑 Encuentra el lugar con la mejor vista de la aldea y siéntate como si fueras la Shogun que gobierna todo lo que ve. Mantén la postura real durante 10 segundos.</p>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">👑 Encuentra el lugar con la mejor vista de la aldea y siéntate como si fueras la Shogun que gobierna todo lo que ve. Mantén la postura real durante 60 segundos.</p>
         <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a1a2e,#4a148c); border-radius:15px;">
             <p style="font-size:3rem;">👑🏯⚔️</p>
-            <div id="sh-timer" style="font-size:2.5rem; color:#d4af37; font-family:monospace; margin:10px 0;">10</div>
+            <div id="sh-timer" style="font-size:2.5rem; color:#d4af37; font-family:monospace; margin:10px 0;">60</div>
         </div>
         <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">👑 Adoptar Postura Real</button>
         <button id="btn" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar al Juez</button>`,
         attachEvents: () => {
-            let t=10,int=null;
+            let t=60,int=null;
             document.getElementById('btn-start').addEventListener('click',(e)=>{
                 e.target.classList.add('hidden');
                 int=setInterval(()=>{t--;document.getElementById('sh-timer').innerText=t;if(t<=0){clearInterval(int);document.getElementById('btn').classList.remove('hidden');document.getElementById('sh-timer').innerText='👑';}},1000);

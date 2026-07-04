@@ -62,30 +62,22 @@ Object.assign(MISSIONS_CONFIG, {
 "day_17_p2p_receiver": {
         tag: "expert",
         day: 17,
-        title: "Sincronización P2P",
+        title: "Sincronización P2P (Receptor)",
         role: "kid9",
         xp: 25,
         location: "Akihabara",
         render: () => `
-        <p class="mission-desc">Tu hermano ha interceptado un código secreto. Míralo en su pantalla y pulsa los colores en el mismo orden.</p>
-        <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-            <button class="c-sq" data-c="Rojo" style="width:60px; height:60px; background:red; border-radius:10px; border:2px solid transparent;"></button>
-            <button class="c-sq" data-c="Azul" style="width:60px; height:60px; background:blue; border-radius:10px; border:2px solid transparent;"></button>
-            <button class="c-sq" data-c="Verde" style="width:60px; height:60px; background:green; border-radius:10px; border:2px solid transparent;"></button>
-            <button class="c-sq" data-c="Amarillo" style="width:60px; height:60px; background:yellow; border-radius:10px; border:2px solid transparent;"></button>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #ffd700; color:#ffd700; box-shadow:0 4px 15px rgba(255,215,0,0.15); line-height:1.5;">
+            <p>>>> RECEPTORA P2P: PANEL DE CONEXIÓN</p>
+            <p style="color:#aaa; font-size:0.85rem;">Estás conectada en modo receptor con tu hermano Iván.</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:10px;">Iván verá la regla secreta y la secuencia de colores base en su pantalla. Deberá dictarte el orden correcto (Puerto 1 a Puerto 4). Tú tendrás los cables de colores que arrastrar en el juego.</p>
+            <p style="color:#ffffff; font-weight:bold; margin-top:15px;">¡Coordinaros por voz para conectar cada color en su puerto!</p>
+            <button id="btn" class="btn-primary" style="width:100%; margin-top:20px; border-color:#ffd700; color:#ffd700; background:transparent;">🔌 ABRIR PANEL DE CONEXIÓN</button>
         </div>
-        <div id="seq-disp" style="text-align:center; letter-spacing:5px; font-size:2rem; margin-bottom:10px;"></div>
-        <button id="btn" class="btn-primary" style="width:100%">Listo</button>
     `,
         attachEvents: () => {
-        let seq = []; const target = ['Rojo', 'Azul', 'Verde', 'Amarillo'];
-        document.querySelectorAll('.c-sq').forEach(b => b.addEventListener('click', (e) => {
-            seq.push(e.target.dataset.c);
-            document.getElementById('seq-disp').innerText = seq.map(c=>c[0]).join(' - ');
-        }));
         document.getElementById('btn').addEventListener('click', () => {
-            if(JSON.stringify(seq) === JSON.stringify(target)) { launchConfetti(); submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado'}); }
-            else { showAlert('Error', 'Secuencia incorrecta. Vuelve a intentarlo.'); seq=[]; document.getElementById('seq-disp').innerText=""; }
+            submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado'});
         });
     }
     },
@@ -126,7 +118,7 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Skytree",
         render: () => `
         <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> APUNTANDO A LA CIMA. Mantén el móvil hacia arriba.</p>
+            <p>>>> APUNTANDO A LA CIMA (60s). Mantén el móvil hacia arriba.</p>
             <div style="width:100%; height:30px; background:#333; border-radius:5px; margin:20px 0;">
                 <div id="sky-bar" style="height:100%; width:0%; background:#0f0; transition:width 0.1s;"></div>
             </div>
@@ -142,16 +134,29 @@ Object.assign(MISSIONS_CONFIG, {
             if(!active) return;
             // Beta is pitch (-180 to 180). Pointing up is approx beta ~ 90.
             if(e.beta > 75 && e.beta < 105) {
-                if(!int) int = setInterval(()=>{ progress+=10; bar.style.width = progress+'%'; if(progress>=100) { active=false; clearInterval(int); btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('deviceorientation', handleOri); } }, 1000);
+                if(!int) int = setInterval(()=>{ progress += 100 / 60; bar.style.width = Math.min(100, progress)+'%'; if(progress>=100) { active=false; clearInterval(int); btn.classList.remove('hidden'); btnS.classList.add('hidden'); window.removeEventListener('deviceorientation', handleOri); } }, 1000);
             } else { if(int) { clearInterval(int); int=null; } }
         };
         btnS.addEventListener('click', () => {
             active = true; btnS.innerText = "Apuntando...";
             if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission().then(r => { if(r==='granted') window.addEventListener('deviceorientation', handleOri); });
+                DeviceOrientationEvent.requestPermission()
+                    .then(r => {
+                        if(r === 'granted') {
+                            window.addEventListener('deviceorientation', handleOri);
+                        } else {
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            btnS.innerText = "Reintentar sensor";
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo activar el sensor de movimiento.');
+                        btnS.innerText = "Reintentar sensor";
+                    });
             } else { window.addEventListener('deviceorientation', handleOri); }
         });
-        btn.addEventListener('click', () => submitMission('day_17_skytree', {type:'game', data:'10s apuntando a Skytree'}));
+        btn.addEventListener('click', () => submitMission('day_17_skytree', {type:'game', data:'60s apuntando a Skytree'}));
         window._missionCleanup = () => { active=false; clearInterval(int); window.removeEventListener('deviceorientation', handleOri); };
     }
     },
@@ -159,34 +164,39 @@ Object.assign(MISSIONS_CONFIG, {
 "day_17_p2p_sender": {
         tag: "expert",
         day: 17,
-        title: "Sincronización P2P",
+        title: "Sincronización P2P (Emisor)",
         role: "kid14",
         xp: 25,
         location: "Akihabara",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> RESOLVER PARA DESBLOQUEAR CÓDIGO</p>
-            <p>Famicom: 14.800¥. Neo Geo: 58.000¥. ¿Suma total?</p>
-            <input type="number" id="p2p-ans" style="width:100%; margin:10px 0;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%;">Desencriptar</button>
-            <div id="code-area" class="hidden" style="margin-top:15px; text-align:center;">
-                <p>>>> CÓDIGO INTERCEPTADO:</p>
-                <div style="display:flex; justify-content:center; gap:5px;">
-                    <div style="width:30px; height:30px; background:red;"></div>
-                    <div style="width:30px; height:30px; background:blue;"></div>
-                    <div style="width:30px; height:30px; background:green;"></div>
-                    <div style="width:30px; height:30px; background:yellow;"></div>
-                </div>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00e5ff; color:#00e5ff; box-shadow:0 4px 15px rgba(0,229,255,0.15); line-height:1.5;">
+            <p>>>> EMISOR P2P: CENTRALITA DE DATOS</p>
+            <p style="color:#aaa; font-size:0.85rem;">Calcula la suma total del presupuesto retro de Akihabara para desencriptar la señal de la centralita:</p>
+            <p style="font-weight:bold; color:#ffeb3b; text-align:center; margin:10px 0;">Famicom (14.800¥) + Neo Geo (58.000¥) = ?</p>
+            <input type="number" id="p2p-ans" style="width:100%; background:#111; color:#00e5ff; border:1px solid #00e5ff; padding:10px; border-radius:6px; font-family:monospace; font-size:1.2rem; text-align:center; box-sizing:border-box; margin-bottom:15px;" placeholder="Suma total en Yenes...">
+            <button id="btn-calc" class="btn-secondary" style="width:100%; border-color:#00e5ff; color:#00e5ff; background:transparent;">🔓 DESENCRIPTAR CENTRALITA</button>
+            
+            <div id="code-area" class="hidden" style="margin-top:20px; background:#111b24; padding:15px; border-radius:8px; border:1px solid #ffeb3b; text-align:center;">
+                <p style="color:#ffeb3b; font-weight:bold; margin-bottom:5px;">⚡ CENTRALITA DESBLOQUEADA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Actuarás como el descifrador. Deberás ver las reglas en tu panel (izquierda del Canvas) y dictar el orden correcto a Laura (derecha del Canvas) para conectar los cables de red.</p>
+                <button id="btn" class="btn-primary" style="width:100%;">🎮 ABRIR CENTRALITA COOPERATIVA</button>
             </div>
-            <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:15px;">Aceptar Sincronización</button>
         </div>
     `,
         attachEvents: () => {
         document.getElementById('btn-calc').addEventListener('click', () => {
-            if(document.getElementById('p2p-ans').value == 72800) { document.getElementById('code-area').classList.remove('hidden'); document.getElementById('btn').classList.remove('hidden'); document.getElementById('btn-calc').classList.add('hidden'); }
-            else showAlert('Error', 'Cálculo incorrecto.');
+            if(document.getElementById('p2p-ans').value == 72800) { 
+                document.getElementById('code-area').classList.remove('hidden'); 
+                document.getElementById('btn-calc').classList.add('hidden'); 
+                if (window.playProceduralSound) playProceduralSound('success');
+            } else { 
+                if (window.playProceduralSound) playProceduralSound('error');
+                showAlert('Error', 'Suma incorrecta. Vuelve a calcular.'); 
+            }
         });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_p2p_sender', {type:'game', data:'Código enviado a receptora'}));
+        document.getElementById('btn').addEventListener('click', () => {
+            submitMission('day_17_p2p_sender', {type:'game', data:'Código enviado a receptora'});
+        });
     }
     },
 
@@ -1261,58 +1271,23 @@ Object.assign(MISSIONS_CONFIG, {
 "day_20_bento": {
         tag: "expert",
         day: 20,
-        title: "Maestro del Bento",
+        title: "Maestro del Bento (Cooperativo)",
         role: "kid9",
         xp: 25,
         location: "Ueno",
         render: () => `
-        <p class="mission-desc">Arrastra los 4 ingredientes a la caja Bento (usa el dedo suavemente).</p>
-        <div id="b2-box" style="width: 100%; height: 250px; background: #c0392b; border: 5px solid #8e44ad; border-radius: 15px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 5px; padding: 5px; touch-action:none;">
-            <div class="b2-slot" data-acc="arroz" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
-            <div class="b2-slot" data-acc="pescado" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
-            <div class="b2-slot" data-acc="verdura" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
-            <div class="b2-slot" data-acc="postre" style="border: 3px dashed rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center;"></div>
+        <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #ff7b54; color:#ff7b54; box-shadow:0 4px 15px rgba(255,123,84,0.15); line-height:1.5;">
+            <p>>>> PREPARACIÓN DEL BENTO JAPONÉS</p>
+            <p style="color:#aaa; font-size:0.85rem;">Esta es una prueba de coordinación física cooperativa en tiempo real.</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:10px;">Los ingredientes del Bento caerán desde la parte superior. Iván debe controlar las rampas magnéticas izquierdas y Laura las rampas derechas en el Canvas. Rebotad los ingredientes con cuidado para encajarlos en el compartimento correspondiente (🍚, 🐟, 🥒, 🍳).</p>
+            <p style="color:#ffffff; font-weight:bold; margin-top:15px;">¡Sincronizad vuestros movimientos para no arruinar la comida!</p>
+            <button id="btn" class="btn-primary" style="width:100%; margin-top:20px; border-color:#ff7b54; color:#ff7b54; background:transparent;">🍱 ABRIR PREPARADOR DE BENTO</button>
         </div>
-        <div style="display: flex; justify-content: space-around; background: #ecf0f1; padding: 10px; border-radius: 10px; min-height: 80px; position:relative; touch-action:none;">
-            <div class="b2-item" data-type="pescado" style="font-size: 3rem; position:absolute; left:10px; z-index:10;">🐟</div>
-            <div class="b2-item" data-type="arroz" style="font-size: 3rem; position:absolute; left:80px; z-index:10;">🍚</div>
-            <div class="b2-item" data-type="postre" style="font-size: 3rem; position:absolute; left:150px; z-index:10;">🍳</div>
-            <div class="b2-item" data-type="verdura" style="font-size: 3rem; position:absolute; left:220px; z-index:10;">🥒</div>
-        </div>
-        <button id="btn-ok" class="btn-primary hidden" style="width:100%; margin-top: 15px;">¡Itadakimasu!</button>
     `,
         attachEvents: () => {
-        const items = document.querySelectorAll('.b2-item'); const slots = document.querySelectorAll('.b2-slot'); const btn = document.getElementById('btn-ok');
-        let placed = 0; let active = null; let iX=0, iY=0, cX=0, cY=0;
-        const getXY = (e) => e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
-        
-        const move = (e) => { if(!active) return; e.preventDefault(); const {x,y} = getXY(e); active.style.transform = `translate(${cX+x-iX}px, ${cY+y-iY}px) scale(1.2)`; };
-        const end = (e) => {
-            if(!active) return; const {x,y} = getXY(e.changedTouches?e.changedTouches[0]:e); cX += x-iX; cY += y-iY;
-            let rect = active.getBoundingClientRect(); let c = {x:rect.left+rect.width/2, y:rect.top+rect.height/2};
-            let match = false;
-            slots.forEach(s => {
-                let sr = s.getBoundingClientRect();
-                if(c.x>sr.left && c.x<sr.right && c.y>sr.top && c.y<sr.bottom && s.dataset.acc === active.dataset.type && !s.dataset.f) {
-                    match=true; s.dataset.f='1'; s.innerHTML=active.innerHTML; s.style.fontSize='3rem'; s.style.borderColor='#f1c40f'; active.style.display='none'; placed++;
-                    if(placed===4) { btn.classList.remove('hidden'); launchConfetti(); }
-                }
-            });
-            if(!match) { cX=0; cY=0; active.style.transform='translate(0,0) scale(1)'; }
-            active.style.zIndex='10'; active=null;
-            document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', end); document.removeEventListener('touchmove', move); document.removeEventListener('touchend', end);
-        };
-        items.forEach(i => {
-            const start = (e) => {
-                e.preventDefault(); active=i; const {x,y}=getXY(e); iX=x; iY=y;
-                let m = active.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-                if(m) { cX=parseFloat(m[1]); cY=parseFloat(m[2]); } else { cX=0;cY=0; }
-                active.style.zIndex='100';
-                document.addEventListener('mousemove', move, {passive:false}); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, {passive:false}); document.addEventListener('touchend', end);
-            };
-            i.addEventListener('mousedown', start); i.addEventListener('touchstart', start, {passive:false});
+        document.getElementById('btn').addEventListener('click', () => {
+            submitMission('day_20_bento', {type:'game', data:'Bento completado'});
         });
-        btn.addEventListener('click', () => submitMission('day_20_bento', {type:'game', data:'Bento completado'}));
     }
     },
 
@@ -2027,11 +2002,11 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🌸 Meditación Zen Colectiva 🌸</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Frente a la sagrada tumba del Shogun, guardad silencio absoluto en familia durante 30 segundos para conectar con la paz del bosque.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Frente a la sagrada tumba del Shogun, guardad silencio absoluto en familia durante 60 segundos para conectar con la paz del bosque.</p>
                 
                 <div style="display:flex; flex-direction:column; align-items:center; margin:20px 0;">
                     <div id="lotus-pulse" style="font-size:4.5rem; transition: transform 1s ease-in-out; display:inline-block;">🪷</div>
-                    <div id="si-timer" style="font-size:3rem; font-weight:bold; color:#01579b; margin-top:10px; font-family:monospace;">30s</div>
+                    <div id="si-timer" style="font-size:3rem; font-weight:bold; color:#01579b; margin-top:10px; font-family:monospace;">60s</div>
                 </div>
                 
                 <button id="btn-start" class="btn-primary" style="width:100%; border-radius:25px; background:#0288d1; border-color:#0288d1; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🧘 INICIAR MINUTOS DE PAZ</button>
@@ -2044,7 +2019,7 @@ Object.assign(MISSIONS_CONFIG, {
             const timer = document.getElementById('si-timer');
             const lotus = document.getElementById('lotus-pulse');
             
-            let t = 30;
+            let t = 60;
             let int = null;
             
             const startMeditation = () => {
@@ -2072,7 +2047,7 @@ Object.assign(MISSIONS_CONFIG, {
             };
             
             btnStart.addEventListener('click', startMeditation);
-            btnSub.addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio de 30s completado'}, role, true));
+            btnSub.addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio de 60s completado'}, role, true));
             
             window._missionCleanup = () => {
                 clearInterval(int);
@@ -2239,45 +2214,33 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 25,
         location: "Calle",
         render: () => `
-            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
-                <p>>>> INTERCEPTOR DE CLAVES DE TRANSMISIÓN</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Escucha las tres cifras transmitidas en japonés y digita el código numérico correspondiente de 3 dígitos.</p>
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15); line-height:1.5;">
+                <p>>>> INTERCEPTOR DE CLAVES DE TRANSMISIÓN (COOPERATIVO)</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Para habilitar el descifrador de la transmisión del cortafuegos de Ginza, realiza una calibración de audio digitando '123' tras escuchar el dictado de prueba:</p>
                 
                 <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px; display:flex; align-items:center; justify-content:space-around;">
-                    <button id="btn-play" class="btn-secondary" style="border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:10px 15px;">🔊 ESCUCHAR CORTAFUEGOS</button>
+                    <button id="btn-play" class="btn-secondary" style="border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; padding:10px 15px;">🔊 ESCUCHAR CALIBRACIÓN</button>
                     <div style="font-size:1.8rem; letter-spacing:3px; color:#ffd700;" id="code-dots">***</div>
                 </div>
                 
                 <div style="margin-bottom:15px;">
-                    <input type="number" id="n-ans" placeholder="Código de 3 dígitos..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:12px; border-radius:6px; font-family:monospace; font-size:1.5rem; text-align:center; box-sizing:border-box; letter-spacing:5px;">
+                    <input type="number" id="n-ans" placeholder="Ingresa '123'..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:12px; border-radius:6px; font-family:monospace; font-size:1.5rem; text-align:center; box-sizing:border-box; letter-spacing:5px;">
                 </div>
                 
-                <div id="num-attempts" style="color:#ffb300; font-size:0.8rem; margin-bottom:15px; text-align:center;">Intentos restantes: 3</div>
+                <div id="num-attempts" style="color:#ffb300; font-size:0.8rem; margin-bottom:15px; text-align:center;">Prueba de audio: 123 se pronuncia 'ichi-ni-san'.</div>
                 
-                <button id="btn-decrypt" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">⚡ DESCIFRAR CORTAFUEGOS</button>
+                <button id="btn-decrypt" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace; font-weight:bold;">⚡ HABILITAR INTERCEPCIÓN CANVASS</button>
             </div>
         `,
         attachEvents: (role) => {
-            const jpn = {1:'ichi', 2:'ni', 3:'san', 4:'yon', 5:'go', 6:'roku', 7:'nana', 8:'hachi', 9:'kyu'};
-            const n1 = Math.floor(Math.random()*9)+1;
-            const n2 = Math.floor(Math.random()*9)+1;
-            const n3 = Math.floor(Math.random()*9)+1;
-            
-            const targetStr = `${n1}${n2}${n3}`;
-            const sayStr = `${jpn[n1]}... ${jpn[n2]}... ${jpn[n3]}`;
-            let lives = 3;
-            
             const btnPlay = document.getElementById('btn-play');
             const btnDecrypt = document.getElementById('btn-decrypt');
             const input = document.getElementById('n-ans');
-            const attBox = document.getElementById('num-attempts');
             const dots = document.getElementById('code-dots');
             
             btnPlay.addEventListener('click', () => {
-                if (lives <= 0) return;
                 if (window.playProceduralSound) playProceduralSound('click');
-                
-                const u = new SpeechSynthesisUtterance(sayStr);
+                const u = new SpeechSynthesisUtterance("ichi... ni... san");
                 u.lang = 'ja-JP';
                 u.rate = 0.75;
                 window.speechSynthesis.speak(u);
@@ -2290,20 +2253,13 @@ Object.assign(MISSIONS_CONFIG, {
             
             btnDecrypt.addEventListener('click', () => {
                 const val = input.value.trim();
-                if (val === targetStr) {
+                if (val === '123') {
                     if (window.playProceduralSound) playProceduralSound('success');
                     if (window.launchConfetti) launchConfetti();
-                    submitMission('day_22_numbers', {type:'game', data:`Código interceptado: ${targetStr}`}, role);
+                    submitMission('day_22_numbers', {type:'game', data:`Calibrado listo`}, role);
                 } else {
-                    lives--;
                     if (window.playProceduralSound) playProceduralSound('error');
-                    if (lives <= 0) {
-                        attBox.innerText = "SISTEMA CERRADO. Clave de acceso inválida.";
-                        btnDecrypt.disabled = true;
-                    } else {
-                        attBox.innerText = `Intentos restantes: ${lives}`;
-                        showAlert('Error', 'Código incorrecto. Presta atención al dictado.');
-                    }
+                    showAlert('Error', 'Código incorrecto. Escribe 123 para calibrar el audio.');
                 }
             });
         }

@@ -37,6 +37,7 @@ window.MinigamesManager = {
     
     // Touch/Mouse positions
     mouse: { x: 0, y: 0, isDown: false, startX: 0, startY: 0 },
+    touches: [],
     
     // Game-specific configurations and runtime data
     gameData: {},
@@ -69,15 +70,49 @@ window.MinigamesManager = {
         
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            this.onMouseDown(e.touches[0]);
+            this.updateActiveTouches(e);
+            if (this.activeGame !== 'day_18_flow' && this.activeGame !== 'day_19_gundam') {
+                this.onMouseDown(e.touches[0]);
+            } else {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const coords = this.getCanvasCoords(e.changedTouches[i]);
+                    this.handlePress(coords.x, coords.y, e.changedTouches[i].identifier);
+                }
+            }
         }, { passive: false });
+        
         this.canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            this.onMouseMove(e.touches[0]);
+            this.updateActiveTouches(e);
+            if (this.activeGame !== 'day_18_flow' && this.activeGame !== 'day_19_gundam') {
+                this.onMouseMove(e.touches[0]);
+            }
         }, { passive: false });
+        
         this.canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
-            this.onMouseUp(e);
+            if (this.activeGame !== 'day_18_flow' && this.activeGame !== 'day_19_gundam') {
+                this.onMouseUp(e);
+            } else {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const coords = this.getCanvasCoords(e.changedTouches[i]);
+                    this.handleRelease(coords.x, coords.y, e.changedTouches[i].identifier);
+                }
+            }
+            this.updateActiveTouches(e);
+        }, { passive: false });
+        
+        this.canvas.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            if (this.activeGame !== 'day_18_flow' && this.activeGame !== 'day_19_gundam') {
+                this.onMouseUp(e);
+            } else {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const coords = this.getCanvasCoords(e.changedTouches[i]);
+                    this.handleRelease(coords.x, coords.y, e.changedTouches[i].identifier);
+                }
+            }
+            this.updateActiveTouches(e);
         }, { passive: false });
     },
 
@@ -88,11 +123,34 @@ window.MinigamesManager = {
     },
 
     getCanvasCoords(e) {
+        if (!e) return { x: 400, y: 300 };
         const rect = this.canvas.getBoundingClientRect();
         return {
             x: ((e.clientX - rect.left) / rect.width) * 800,
             y: ((e.clientY - rect.top) / rect.height) * 600
         };
+    },
+
+    updateActiveTouches(e) {
+        this.touches = [];
+        if (e && e.touches) {
+            for (let i = 0; i < e.touches.length; i++) {
+                const coords = this.getCanvasCoords(e.touches[i]);
+                this.touches.push({
+                    id: e.touches[i].identifier,
+                    x: coords.x,
+                    y: coords.y,
+                    isDown: true
+                });
+            }
+        } else {
+            this.touches.push({
+                id: 'mouse',
+                x: this.mouse.x,
+                y: this.mouse.y,
+                isDown: this.mouse.isDown
+            });
+        }
     },
 
     onMouseDown(e) {
@@ -102,9 +160,10 @@ window.MinigamesManager = {
         this.mouse.startX = coords.x;
         this.mouse.startY = coords.y;
         this.mouse.isDown = true;
+        this.updateActiveTouches();
         
         if (this.state === 'playing') {
-            this.handlePress(coords.x, coords.y);
+            this.handlePress(coords.x, coords.y, 'mouse');
         }
     },
 
@@ -112,12 +171,14 @@ window.MinigamesManager = {
         const coords = this.getCanvasCoords(e);
         this.mouse.x = coords.x;
         this.mouse.y = coords.y;
+        this.updateActiveTouches();
     },
 
     onMouseUp(e) {
         this.mouse.isDown = false;
+        this.updateActiveTouches();
         if (this.state === 'playing') {
-            this.handleRelease(this.mouse.x, this.mouse.y);
+            this.handleRelease(this.mouse.x, this.mouse.y, 'mouse');
         }
     },
 
@@ -1213,7 +1274,7 @@ window.MinigamesManager = {
     // ==========================================================
     // INPUT ROUTING
     // ==========================================================
-    handlePress(x, y) {
+    handlePress(x, y, id) {
         switch(this.activeGame) {
             case 'day_3_glico':
                 this.inputGlico();
@@ -1482,10 +1543,10 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.inputOmikujiPress(x, y); break;
             case 'day_17_incense': this.inputIncensePress(x, y); break;
             case 'day_17_gashapon': this.inputGashaponPress(x, y); break;
-            case 'day_17_p2p_receiver': this.inputP2PReceiverPress(x, y); break;
+            case 'day_17_p2p_receiver':
             case 'day_17_retro': this.inputRetroPress(x, y); break;
             case 'day_17_skytree': this.inputSkytreePress(x, y); break;
-            case 'day_17_p2p_sender': this.inputP2PSenderPress(x, y); break;
+            case 'day_17_p2p_sender': this.inputP2PSenderPress(x, y, id); break;
             case 'day_17_height': this.inputHeightPress(x, y); break;
             case 'day_17_sumida': this.inputSumidaPress(x, y); break;
 
@@ -1496,12 +1557,12 @@ window.MinigamesManager = {
             case 'day_18_crepe': this.inputCrepePress(x, y); break;
             case 'day_18_radio': this.inputRadioPress(x, y); break;
             case 'day_18_trend': this.inputTrendPress(x, y); break;
-            case 'day_18_flow': this.inputFlow18Press(x, y); break;
+            case 'day_18_flow': this.inputFlow18Press(x, y, id); break;
             case 'day_18_silence': this.inputSilencePress(x, y); break;
             case 'day_18_crossing': this.inputCrossingPress(x, y); break;
 
             // DIA 19
-            case 'day_19_gundam': this.inputGundamPress(x, y); break;
+            case 'day_19_gundam': this.inputGundamPress(x, y, id); break;
             case 'day_19_color': this.inputColorPress(x, y); break;
             case 'day_19_teamlab': this.inputTeamLabPress(x, y); break;
             case 'day_19_liberty': this.inputLibertyPress(x, y); break;
@@ -1512,7 +1573,7 @@ window.MinigamesManager = {
             case 'day_19_immersive': this.inputImmersivePress(x, y); break;
 
             // DIA 20
-            case 'day_20_bento': this.inputBentoPress(x, y); break;
+            case 'day_20_bento': this.inputBentoPress(x, y, id); break;
             case 'day_20_potion': this.inputPotionPress(x, y); break;
             case 'day_20_pond': this.inputPondPress(x, y); break;
             case 'day_20_weight': this.inputWeight20Press(x, y); break;
@@ -1557,7 +1618,7 @@ window.MinigamesManager = {
         }
     },
 
-    handleRelease(x, y) {
+    handleRelease(x, y, id) {
         switch(this.activeGame) {
             case 'day_3_ninja':
                 this.releaseNinja(x, y);
@@ -1632,14 +1693,17 @@ window.MinigamesManager = {
             // DIA 17
             case 'day_17_omikuji': this.releaseOmikuji(x, y); break;
             case 'day_17_gashapon': this.releaseGashapon(x, y); break;
-            case 'day_17_p2p_sender': this.releaseP2PSender(x, y); break;
+            case 'day_17_p2p_receiver':
+            case 'day_17_p2p_sender': this.releaseP2PSender(x, y, id); break;
             case 'day_17_height': this.releaseHeight(x, y); break;
 
             // DIA 18
             case 'day_18_hachiko': this.releaseHachiko(x, y); break;
             case 'day_18_crepe': this.releaseCrepe(x, y); break;
+            case 'day_18_flow': this.releaseFlow18(x, y, id); break;
 
             // DIA 19
+            case 'day_19_gundam': this.releaseGundam(x, y, id); break;
             case 'day_19_teamlab': this.releaseTeamLab(x, y); break;
             case 'day_19_liberty': this.releaseLiberty(x, y); break;
             case 'day_19_mirrors': this.releaseMirrors(x, y); break;
@@ -1647,6 +1711,7 @@ window.MinigamesManager = {
             case 'day_19_monorail': this.releaseMonorail(x, y); break;
 
             // DIA 20
+            case 'day_20_bento': this.releaseBento(x, y, id); break;
             case 'day_20_potion': this.releasePotion(x, y); break;
             case 'day_20_weight': this.releaseWeight20(x, y); break;
             case 'day_20_museum': this.releaseMuseum(x, y); break;
@@ -2038,7 +2103,7 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.setupOmikuji(); break;
             case 'day_17_incense': this.setupIncense(); break;
             case 'day_17_gashapon': this.setupGashapon(); break;
-            case 'day_17_p2p_receiver': this.setupP2PReceiver(); break;
+            case 'day_17_p2p_receiver':
             case 'day_17_retro': this.setupRetro(); break;
             case 'day_17_skytree': this.setupSkytree(); break;
             case 'day_17_p2p_sender': this.setupP2PSender(); break;
@@ -2402,7 +2467,7 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.updateOmikuji(dt); break;
             case 'day_17_incense': this.updateIncense(dt); break;
             case 'day_17_gashapon': this.updateGashapon(dt); break;
-            case 'day_17_p2p_receiver': this.updateP2PReceiver(dt); break;
+            case 'day_17_p2p_receiver':
             case 'day_17_retro': this.updateRetro(dt); break;
             case 'day_17_skytree': this.updateSkytree(dt); break;
             case 'day_17_p2p_sender': this.updateP2PSender(dt); break;
@@ -2780,7 +2845,7 @@ window.MinigamesManager = {
                 case 'day_17_omikuji': this.drawOmikuji(); break;
                 case 'day_17_incense': this.drawIncense(); break;
                 case 'day_17_gashapon': this.drawGashapon(); break;
-                case 'day_17_p2p_receiver': this.drawP2PReceiver(); break;
+                case 'day_17_p2p_receiver':
                 case 'day_17_retro': this.drawRetro(); break;
                 case 'day_17_skytree': this.drawSkytree(); break;
                 case 'day_17_p2p_sender': this.drawP2PSender(); break;
@@ -27513,141 +27578,283 @@ window.MinigamesManager = {
     // 7. day_17_p2p_sender: Sincronización P2P Emisor (Centralita con cables elásticos y chispas)
     setupP2PSender() {
         this.gameData = {
+            round: 0,
+            baseSeq: [],
+            ruleId: 0,
+            decryptedSeq: [],
+            ruleText: '',
             nodes: [
-                { id: 'R', color: 'red', x: 150, y: 180 },
-                { id: 'B', color: 'blue', x: 150, y: 280 },
-                { id: 'G', color: 'green', x: 150, y: 380 },
-                { id: 'Y', color: 'yellow', x: 150, y: 480 }
-            ],
-            relays: [
-                { id: 'N1', x: 400, y: 230, color: null },
-                { id: 'N2', x: 400, y: 430, color: null }
+                { color: 'red', x: 450, y: 200, originalY: 200 },
+                { color: 'blue', x: 450, y: 280, originalY: 280 },
+                { color: 'green', x: 450, y: 360, originalY: 360 },
+                { color: 'yellow', x: 450, y: 440, originalY: 440 }
             ],
             targets: [
-                { id: 'R', color: 'red', x: 650, y: 280 },
-                { id: 'B', color: 'blue', x: 650, y: 180 },
-                { id: 'G', color: 'green', x: 650, y: 480 },
-                { id: 'Y', color: 'yellow', x: 650, y: 380 }
+                { id: 0, name: 'PUERTO 1', x: 700, y: 200, connectedColor: null },
+                { id: 1, name: 'PUERTO 2', x: 700, y: 280, connectedColor: null },
+                { id: 2, name: 'PUERTO 3', x: 700, y: 360, connectedColor: null },
+                { id: 3, name: 'PUERTO 4', x: 700, y: 440, connectedColor: null }
             ],
-            draggingNode: null,
-            connections: {} // sourceColor -> { relayId, targetColor }
+            dragging: {},
+            pulseTimer: 0
         };
         this.score = 0;
+        this.generateP2PRound();
     },
-    updateP2PSender(dt) {},
+    generateP2PRound() {
+        const gd = this.gameData;
+        gd.baseSeq = ['red', 'blue', 'green', 'yellow'].sort(() => Math.random() - 0.5);
+        gd.ruleId = Math.floor(Math.random() * 5);
+        
+        const base = gd.baseSeq;
+        if (gd.ruleId === 0) {
+            gd.ruleText = 'INVERTIR ORDEN DE SECUENCIA';
+            gd.decryptedSeq = [base[3], base[2], base[1], base[0]];
+        } else if (gd.ruleId === 1) {
+            gd.ruleText = 'DESPLAZAR PRIMERO AL FINAL';
+            gd.decryptedSeq = [base[1], base[2], base[3], base[0]];
+        } else if (gd.ruleId === 2) {
+            gd.ruleText = 'INTERCAMBIAR PRIMERO Y ULTIMO';
+            gd.decryptedSeq = [base[3], base[1], base[2], base[0]];
+        } else if (gd.ruleId === 3) {
+            gd.ruleText = 'INTERCAMBIAR SEGUNDO Y TERCERO';
+            gd.decryptedSeq = [base[0], base[2], base[1], base[3]];
+        } else {
+            gd.ruleText = 'DESPLAZAR ULTIMO AL PRINCIPIO';
+            gd.decryptedSeq = [base[3], base[0], base[1], base[2]];
+        }
+        
+        gd.targets.forEach(t => t.connectedColor = null);
+        const yCoords = [200, 280, 360, 440].sort(() => Math.random() - 0.5);
+        gd.nodes.forEach((n, idx) => {
+            n.y = yCoords[idx];
+            n.originalY = yCoords[idx];
+        });
+        gd.dragging = {};
+    },
+    updateP2PSender(dt) {
+        const gd = this.gameData;
+        gd.pulseTimer += dt * 5;
+
+        Object.keys(gd.dragging).forEach(touchId => {
+            const node = gd.dragging[touchId];
+            if (touchId === 'mouse') {
+                node.dragX = this.mouse.x;
+                node.dragY = this.mouse.y;
+            } else {
+                const t = this.touches.find(touch => touch.id == touchId);
+                if (t) {
+                    node.dragX = t.x;
+                    node.dragY = t.y;
+                }
+            }
+        });
+    },
     drawP2PSender() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
-        ctx.fillStyle = '#0a0d14';
+        ctx.fillStyle = '#0a0e14';
         ctx.fillRect(0, 0, 800, 600);
 
-        // Connections pathing
-        ctx.lineWidth = 5;
-        gd.nodes.forEach(n => {
-            const conn = gd.connections[n.color];
-            if (conn) {
-                ctx.strokeStyle = n.color;
-                const relay = gd.relays.find(r => r.id === conn.relayId);
-                const t = gd.targets.find(tg => tg.color === conn.targetColor);
-                
-                // Draw dynamic catenary/spring curve from source to relay
-                ctx.beginPath();
-                ctx.moveTo(n.x, n.y);
-                ctx.quadraticCurveTo((n.x + relay.x)/2, (n.y + relay.y)/2 + 20, relay.x, relay.y);
-                ctx.stroke();
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(380, 0);
+        ctx.lineTo(380, 600);
+        ctx.stroke();
 
-                // From relay to target
-                if (t) {
+        // IVAN'S SIDE
+        ctx.fillStyle = '#00e5ff';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('IVÁN: DESCIFRADOR DE CLAVE', 190, 50);
+
+        ctx.fillStyle = '#111726';
+        ctx.fillRect(30, 80, 320, 110);
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, 80, 320, 110);
+
+        ctx.fillStyle = '#80deea';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('CORTAFUEGOS: REGLA DE TRADUCCIÓN', 190, 105);
+
+        ctx.fillStyle = '#ffeb3b';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(gd.ruleText, 190, 145);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px Outfit, sans-serif';
+        ctx.fillText('SECUENCIA BASE CAPTURADA:', 190, 240);
+
+        gd.baseSeq.forEach((color, idx) => {
+            const cx = 85 + idx * 70;
+            const cy = 290;
+            
+            const pulse = 10 + Math.sin(gd.pulseTimer + idx) * 5;
+            ctx.shadowBlur = pulse;
+            ctx.shadowColor = color;
+
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 14px monospace';
+            ctx.fillText(idx + 1, cx, cy + 5);
+        });
+
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Outfit, sans-serif';
+        ctx.fillText('Aplica la regla a la secuencia 1-4', 190, 420);
+        ctx.fillText('y dicta el orden correcto a Laura.', 190, 440);
+
+        ctx.fillStyle = '#ff9100';
+        ctx.font = 'bold 14px Outfit, sans-serif';
+        ctx.fillText(`Ronda: ${gd.round + 1} / 3`, 190, 520);
+
+        // LAURA'S SIDE
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 18px Outfit, sans-serif';
+        ctx.fillText('LAURA: PANEL DE CONEXIÓN', 590, 50);
+
+        ctx.lineWidth = 4;
+        gd.targets.forEach(t => {
+            if (t.connectedColor) {
+                const node = gd.nodes.find(n => n.color === t.connectedColor);
+                if (node) {
+                    ctx.strokeStyle = t.connectedColor;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = t.connectedColor;
                     ctx.beginPath();
-                    ctx.moveTo(relay.x, relay.y);
-                    ctx.quadraticCurveTo((relay.x + t.x)/2, (relay.y + t.y)/2 + 20, t.x, t.y);
+                    ctx.moveTo(node.x, node.y);
+                    ctx.quadraticCurveTo((node.x + t.x)/2, (node.y + t.y)/2 + 20, t.x, t.y);
                     ctx.stroke();
                 }
             }
         });
+        ctx.shadowBlur = 0;
 
-        // Draw dragging wire with catenary sag
-        if (gd.draggingNode) {
-            ctx.strokeStyle = gd.draggingNode.color;
+        Object.keys(gd.dragging).forEach(touchId => {
+            const node = gd.dragging[touchId];
+            ctx.strokeStyle = node.color;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = node.color;
             ctx.beginPath();
-            ctx.moveTo(gd.draggingNode.x, gd.draggingNode.y);
-            const mx = this.mouse.x;
-            const my = this.mouse.y;
-            ctx.quadraticCurveTo((gd.draggingNode.x + mx)/2, (gd.draggingNode.y + my)/2 + 25, mx, my);
-            ctx.stroke();
-        }
-
-        // Draw relays
-        gd.relays.forEach(r => {
-            ctx.fillStyle = r.color ? r.color : '#37474f';
-            ctx.beginPath(); ctx.arc(r.x, r.y, 25, 0, Math.PI * 2); ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
+            ctx.moveTo(node.x, node.y);
+            ctx.quadraticCurveTo((node.x + node.dragX)/2, (node.y + node.dragY)/2 + 20, node.dragX, node.dragY);
             ctx.stroke();
         });
+        ctx.shadowBlur = 0;
 
-        // Draw emitters
-        gd.nodes.forEach(n => {
-            ctx.fillStyle = n.color;
-            ctx.beginPath(); ctx.arc(n.x, n.y, 18, 0, Math.PI * 2); ctx.fill();
-        });
-
-        // Draw targets
         gd.targets.forEach(t => {
-            ctx.fillStyle = t.color;
-            ctx.fillRect(t.x - 18, t.y - 18, 36, 36);
+            ctx.fillStyle = '#1a2233';
+            ctx.strokeStyle = t.connectedColor ? t.connectedColor : '#455a64';
+            ctx.lineWidth = 3;
+            ctx.fillRect(t.x - 20, t.y - 20, 40, 40);
+            ctx.strokeRect(t.x - 20, t.y - 20, 40, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText(t.name, t.x + 55, t.y + 4);
         });
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Rutea los cables de red pasando por un nodo repetidor intermedio', 400, 80);
+        gd.nodes.forEach(n => {
+            const isConnected = gd.targets.some(t => t.connectedColor === n.color);
+            ctx.fillStyle = n.color;
+            ctx.shadowBlur = isConnected ? 5 : 12;
+            ctx.shadowColor = n.color;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, 16, 0, Math.PI * 2);
+            ctx.stroke();
+        });
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#aaa';
+        ctx.font = '12px Outfit, sans-serif';
+        ctx.fillText('Arrastra cada cable de color al puerto correcto', 590, 520);
+        ctx.fillText('siguiendo las indicaciones de Iván.', 590, 540);
     },
-    inputP2PSenderPress(x, y) {
+    inputP2PSenderPress(x, y, id) {
         const gd = this.gameData;
         gd.nodes.forEach(n => {
-            if (Math.hypot(x - n.x, y - n.y) < 25) {
-                gd.draggingNode = n;
+            if (Math.hypot(x - n.x, y - n.y) < 22) {
+                gd.targets.forEach(t => {
+                    if (t.connectedColor === n.color) t.connectedColor = null;
+                });
+                gd.dragging[id] = n;
+                n.dragX = x;
+                n.dragY = y;
                 if (window.playProceduralSound) playProceduralSound('click');
             }
         });
     },
-    releaseP2PSender(x, y) {
+    releaseP2PSender(x, y, id) {
         const gd = this.gameData;
-        if (gd.draggingNode) {
+        const node = gd.dragging[id];
+        if (node) {
             let hit = false;
-            
-            // Check connection to relay
-            gd.relays.forEach(relay => {
-                if (Math.hypot(x - relay.x, y - relay.y) < 35) {
-                    gd.connections[gd.draggingNode.color] = { relayId: relay.id, targetColor: null };
-                    relay.color = gd.draggingNode.color;
-                    hit = true;
-                    if (window.playProceduralSound) playProceduralSound('click');
+            gd.targets.forEach(t => {
+                if (Math.hypot(x - t.x, y - t.y) < 30) {
+                    if (t.connectedColor === null) {
+                        t.connectedColor = node.color;
+                        hit = true;
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
                 }
             });
 
-            // If already connected to relay, try connecting relay to target
-            if (!hit) {
-                const conn = gd.connections[gd.draggingNode.color];
-                if (conn && conn.relayId) {
+            delete gd.dragging[id];
+
+            const connectedCount = gd.targets.filter(t => t.connectedColor !== null).length;
+            if (connectedCount === 4) {
+                let allCorrect = true;
+                gd.targets.forEach((t, idx) => {
+                    if (t.connectedColor !== gd.decryptedSeq[idx]) {
+                        allCorrect = false;
+                    }
+                });
+
+                if (allCorrect) {
+                    gd.round++;
+                    this.score = Math.round((gd.round / 3) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    
                     gd.targets.forEach(t => {
-                        if (Math.hypot(x - t.x, y - t.y) < 35) {
-                            if (t.color === gd.draggingNode.color) {
-                                conn.targetColor = t.color;
-                                if (window.playProceduralSound) playProceduralSound('success');
-                                const count = Object.values(gd.connections).filter(c => c.targetColor !== null).length;
-                                this.score = Math.round((count / 4) * 100);
-                                if (count === 4) this.win();
-                            } else {
-                                if (window.playProceduralSound) playProceduralSound('error');
-                            }
-                        }
+                        this.createExplosion(t.x, t.y, t.connectedColor, 12, 1);
                     });
+
+                    if (gd.round >= 3) {
+                        this.win();
+                    } else {
+                        setTimeout(() => {
+                            this.generateP2PRound();
+                        }, 800);
+                    }
+                } else {
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    setTimeout(() => {
+                        gd.targets.forEach(t => t.connectedColor = null);
+                    }, 500);
                 }
             }
-            gd.draggingNode = null;
         }
     },
 
@@ -29679,9 +29886,21 @@ window.MinigamesManager = {
         if (gd.spawnTimer <= 0) {
             gd.spawnTimer = 0.8;
             if (Math.random() < 0.65) {
-                gd.pedestrians.push({ x: 120 + Math.random() * 560, y: 0, vy: 70 + Math.random() * 40 });
+                // Spawn a pedestrian (some can be slow!)
+                const vy = 40 + Math.random() * 60;
+                gd.pedestrians.push({
+                    x: 120 + Math.random() * 560,
+                    y: 0,
+                    vy: vy,
+                    initialVy: vy,
+                    isSpedUp: false
+                });
             } else {
-                gd.cars.push({ x: -80, y: 300 + (Math.random() - 0.5) * 50, vx: 180 + Math.random() * 80 });
+                gd.cars.push({
+                    x: -80,
+                    y: 300 + (Math.random() - 0.5) * 50,
+                    vx: 180 + Math.random() * 80
+                });
             }
         }
 
@@ -29697,40 +29916,65 @@ window.MinigamesManager = {
             gd.impatience = Math.max(0, gd.impatience - dt * 15);
         }
 
-        gd.pedestrians.forEach((p, idx) => {
+        // Update pedestrians (filter out completed ones)
+        const activePedestrians = [];
+        gd.pedestrians.forEach(p => {
             if (gd.lightGreen) {
                 p.y += p.vy * dt;
                 if (p.y >= 500) {
-                    gd.pedestrians.splice(idx, 1);
                     gd.pEscaped++;
                     this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
                     if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                } else {
+                    activePedestrians.push(p);
                 }
+            } else {
+                activePedestrians.push(p);
             }
         });
+        gd.pedestrians = activePedestrians;
 
-        gd.cars.forEach((c, idx) => {
+        // Update cars (filter out completed ones)
+        const activeCars = [];
+        gd.cars.forEach(c => {
             if (!gd.lightGreen || c.x < 280 || c.x > 520) {
                 c.x += c.vx * dt;
                 if (c.x >= 850) {
-                    gd.cars.splice(idx, 1);
                     gd.cEscaped++;
                     this.score = Math.round(((gd.pEscaped + gd.cEscaped) / 65) * 100);
                     if (gd.pEscaped >= 50 && gd.cEscaped >= 15) this.win();
+                } else {
+                    activeCars.push(c);
                 }
+            } else {
+                activeCars.push(c);
             }
+        });
+        gd.cars = activeCars;
 
-            // Hit box
-            gd.pedestrians.forEach((p, pIdx) => {
+        // Check collisions safely
+        const hitPedestrians = new Set();
+        gd.cars.forEach(c => {
+            gd.pedestrians.forEach(p => {
                 if (Math.hypot(c.x - p.x, c.y - p.y) < 32) {
-                    gd.pedestrians.splice(pIdx, 1);
-                    gd.lives--;
-                    this.triggerShake(14);
-                    if (window.playProceduralSound) playProceduralSound('damage');
-                    if (gd.lives <= 0) this.gameOver();
+                    hitPedestrians.add(p);
                 }
             });
         });
+
+        if (hitPedestrians.size > 0) {
+            gd.pedestrians = gd.pedestrians.filter(p => {
+                if (hitPedestrians.has(p)) {
+                    gd.lives--;
+                    this.triggerShake(14);
+                    this.createExplosion(p.x, p.y, '#e53935', 15, 1.2);
+                    if (window.playProceduralSound) playProceduralSound('damage');
+                    if (gd.lives <= 0) this.gameOver();
+                    return false;
+                }
+                return true;
+            });
+        }
     },
     drawFlow18() {
         const ctx = this.ctx;
@@ -29745,11 +29989,31 @@ window.MinigamesManager = {
             ctx.fillRect(160 + i * 55, 140, 25, 320);
         }
 
+        // Draw pedestrians
         gd.pedestrians.forEach(p => {
-            ctx.fillStyle = '#81c784';
-            ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+            if (p.isSpedUp) {
+                // Gold / lightning visual glow
+                ctx.fillStyle = '#ffeb3b';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 15, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#f57f17';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.fill();
+                // Draw a small ⚡ text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px monospace';
+                ctx.fillText('⚡', p.x, p.y - 18);
+            } else {
+                ctx.fillStyle = '#81c784';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill();
+                // If it is a very slow pedestrian, show a warning or slow indicator
+                if (p.vy < 60) {
+                    ctx.fillStyle = '#ff8a80';
+                    ctx.font = '10px monospace';
+                    ctx.fillText('🐢', p.x, p.y - 15);
+                }
+            }
         });
 
+        // Draw cars
         gd.cars.forEach(c => {
             ctx.fillStyle = '#e53935';
             ctx.fillRect(c.x - 22, c.y - 12, 44, 24);
@@ -29777,12 +30041,27 @@ window.MinigamesManager = {
         ctx.textAlign = 'right';
         ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
     },
-    inputFlow18Press(x, y) {
+    inputFlow18Press(x, y, id) {
         const gd = this.gameData;
+        // Traffic light button
         if (x > 340 && x < 460 && y > 490 && y < 530) {
             gd.lightGreen = !gd.lightGreen;
             if (window.playProceduralSound) playProceduralSound('click');
+            return;
         }
+
+        // Tap slow pedestrians to speed them up
+        gd.pedestrians.forEach(p => {
+            if (!p.isSpedUp && Math.hypot(p.x - x, p.y - y) < 40) {
+                p.isSpedUp = true;
+                p.vy = 180; // Fast!
+                this.createExplosion(p.x, p.y, '#ffd700', 10, 0.8);
+                if (window.playProceduralSound) playProceduralSound('jump');
+            }
+        });
+    },
+    releaseFlow18(x, y, id) {
+        // Nothing special to release
     },
 
     // 17. day_18_silence: Silencio en la Ciudad (Laberinto acústico con reflexión y absorción)
@@ -30019,78 +30298,160 @@ window.MinigamesManager = {
     // 19. day_19_gundam: Piloto de Mechas (Fijación de blancos múltiple Lock-On y misiles vectoriales)
     setupGundam() {
         this.gameData = {
-            aimX: 400,
-            aimY: 300,
+            aims: {}, // maps touch id to { x, y, lerpX, lerpY, locks: [] }
             drones: [],
-            locks: [], // locked drone indices
             missiles: [],
             spawnTimer: 0,
             destroyed: 0,
-            shield: 100
+            shield: 100,
+            laserPulses: []
         };
         this.score = 0;
     },
     updateGundam(dt) {
         const gd = this.gameData;
-        gd.aimX = lerp(gd.aimX, this.mouse.x, 0.18);
-        gd.aimY = lerp(gd.aimY, this.mouse.y, 0.18);
 
+        // Ensure we always have at least a mouse aim if mouse is used or if no touches exist yet
+        const activeIds = new Set();
+        this.touches.forEach(t => {
+            activeIds.add(t.id);
+            if (!gd.aims[t.id]) {
+                gd.aims[t.id] = { x: t.x, y: t.y, lerpX: t.x, lerpY: t.y, locks: [] };
+            } else {
+                gd.aims[t.id].x = t.x;
+                gd.aims[t.id].y = t.y;
+            }
+        });
+
+        // If no touch, but mouse is down, map it as 'mouse'
+        if (this.mouse.isDown && this.touches.length === 0) {
+            activeIds.add('mouse');
+            if (!gd.aims['mouse']) {
+                gd.aims['mouse'] = { x: this.mouse.x, y: this.mouse.y, lerpX: this.mouse.x, lerpY: this.mouse.y, locks: [] };
+            } else {
+                gd.aims['mouse'].x = this.mouse.x;
+                gd.aims['mouse'].y = this.mouse.y;
+            }
+        }
+
+        // Clean up inactive aims (if they have locks, fire them!)
+        Object.keys(gd.aims).forEach(id => {
+            if (!activeIds.has(id)) {
+                const aim = gd.aims[id];
+                if (aim.locks.length > 0) {
+                    aim.locks.forEach(d => {
+                        gd.missiles.push({
+                            x: aim.lerpX,
+                            y: 550,
+                            tx: d.x,
+                            ty: d.y,
+                            progress: 0
+                        });
+                    });
+                    if (window.playProceduralSound) playProceduralSound('jump');
+                }
+                delete gd.aims[id];
+            }
+        });
+
+        // Lerp reticles
+        Object.keys(gd.aims).forEach(id => {
+            const aim = gd.aims[id];
+            aim.lerpX = lerp(aim.lerpX, aim.x, 0.22);
+            aim.lerpY = lerp(aim.lerpY, aim.y, 0.22);
+        });
+
+        // Spawn drones
         gd.spawnTimer -= dt;
         if (gd.spawnTimer <= 0) {
             gd.spawnTimer = 0.85;
             gd.drones.push({
+                id: Math.random().toString(36).substr(2, 9),
                 x: 120 + Math.random() * 560,
                 y: 60 + Math.random() * 160,
-                vx: (Math.random() < 0.5 ? 1 : -1) * 90,
-                locked: false
+                vx: (Math.random() < 0.5 ? 1 : -1) * (90 + Math.random() * 40),
+                shootTimer: 1.0 + Math.random() * 2.0
             });
         }
 
-        gd.drones.forEach((d, idx) => {
+        // Update drones
+        gd.drones.forEach(d => {
             d.x += d.vx * dt;
             if (d.x < 100 || d.x > 700) d.vx *= -1;
 
-            // Lock target by hovering
-            if (Math.hypot(gd.aimX - d.x, gd.aimY - d.y) < 40 && !d.locked) {
-                d.locked = true;
-                gd.locks.push(d);
-                if (window.playProceduralSound) playProceduralSound('click');
+            // Check if any active aim reticle is hovering this drone to lock it
+            Object.keys(gd.aims).forEach(aimId => {
+                const aim = gd.aims[aimId];
+                // Check if drone is already locked by this reticle
+                const alreadyLocked = aim.locks.some(ld => ld.id === d.id);
+                if (!alreadyLocked && Math.hypot(aim.lerpX - d.x, aim.lerpY - d.y) < 45) {
+                    // Check that the drone isn't already locked by ANY reticle
+                    let lockedElsewhere = false;
+                    Object.values(gd.aims).forEach(otherAim => {
+                        if (otherAim.locks.some(ld => ld.id === d.id)) {
+                            lockedElsewhere = true;
+                        }
+                    });
+                    if (!lockedElsewhere && aim.locks.length < 5) {
+                        aim.locks.push(d);
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                }
+            });
+
+            // Drone shooting at shield
+            d.shootTimer -= dt;
+            if (d.shootTimer <= 0) {
+                d.shootTimer = 2.0 + Math.random() * 2.0;
+                gd.laserPulses.push({
+                    x: d.x,
+                    y: d.y,
+                    vy: 200
+                });
             }
         });
 
-        // Launch missiles on click release/trigger
-        if (gd.locks.length >= 4 || (this.mouse.isDown && gd.locks.length > 0)) {
-            // fire barrage
-            gd.locks.forEach(d => {
-                gd.missiles.push({
-                    x: 400,
-                    y: 550,
-                    tx: d.x,
-                    ty: d.y,
-                    progress: 0
-                });
-            });
-            gd.locks = [];
-            gd.drones.forEach(d => d.locked = false);
-        }
+        // Update laser pulses
+        const activePulses = [];
+        gd.laserPulses.forEach(pulse => {
+            pulse.y += pulse.vy * dt;
+            if (pulse.y > 540) {
+                // Hits Gundam shield!
+                gd.shield = Math.max(0, gd.shield - 8);
+                this.triggerShake(8);
+                if (window.playProceduralSound) playProceduralSound('damage');
+                if (gd.shield <= 0) this.gameOver();
+            } else {
+                activePulses.push(pulse);
+            }
+        });
+        gd.laserPulses = activePulses;
 
         // Update missiles
-        gd.missiles.forEach((m, idx) => {
+        const activeMissiles = [];
+        gd.missiles.forEach(m => {
             m.progress += dt * 3.5;
             if (m.progress >= 1.0) {
-                gd.missiles.splice(idx, 1);
-                // Blow up close drones
-                gd.drones.forEach((d, dIdx) => {
+                // Explode at target coordinates
+                this.createExplosion(m.tx, m.ty, '#00ff99', 15, 1.3);
+                // Check and destroy drones in blast radius
+                const aliveDrones = [];
+                gd.drones.forEach(d => {
                     if (Math.hypot(m.tx - d.x, m.ty - d.y) < 45) {
-                        gd.drones.splice(dIdx, 1);
                         gd.destroyed++;
-                        this.score = Math.round((gd.destroyed / 15) * 100);
+                        this.score = Math.min(100, Math.round((gd.destroyed / 15) * 100));
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (gd.destroyed >= 15) this.win();
+                    } else {
+                        aliveDrones.push(d);
                     }
                 });
+                gd.drones = aliveDrones;
+            } else {
+                activeMissiles.push(m);
             }
         });
+        gd.missiles = activeMissiles;
     },
     drawGundam() {
         const ctx = this.ctx;
@@ -30105,42 +30466,132 @@ window.MinigamesManager = {
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.arc(400, 300, 250, 0, Math.PI * 2); ctx.stroke();
 
-        // Draw drones
-        gd.drones.forEach(d => {
-            ctx.fillStyle = d.locked ? '#ff9100' : '#455a64';
-            ctx.strokeStyle = d.locked ? '#ff3d00' : '#cfd8dc';
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(d.x, d.y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        });
-
-        // Missile lines
-        ctx.lineWidth = 3;
-        gd.missiles.forEach(m => {
-            ctx.strokeStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.moveTo(400, 550);
-            ctx.quadraticCurveTo(200, 300, m.tx, m.ty);
-            ctx.stroke();
-        });
-
-        // Lock-on Viewfinder crosshair
-        ctx.strokeStyle = '#00ff99';
-        ctx.lineWidth = 2.5;
+        // Draw HUD lines (cockpit grids)
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.15)';
         ctx.beginPath();
-        ctx.arc(gd.aimX, gd.aimY, 28, 0, Math.PI * 2);
-        ctx.moveTo(gd.aimX - 40, gd.aimY); ctx.lineTo(gd.aimX - 12, gd.aimY);
-        ctx.moveTo(gd.aimX + 12, gd.aimY); ctx.lineTo(gd.aimX + 40, gd.aimY);
-        ctx.moveTo(gd.aimX, gd.aimY - 40); ctx.lineTo(gd.aimX, gd.aimY - 12);
-        ctx.moveTo(gd.aimX, gd.aimY + 12); ctx.lineTo(gd.aimX, gd.aimY + 40);
+        ctx.moveTo(50, 50); ctx.lineTo(100, 50); ctx.lineTo(100, 100);
+        ctx.moveTo(750, 50); ctx.lineTo(700, 50); ctx.lineTo(700, 100);
+        ctx.moveTo(50, 550); ctx.lineTo(100, 550); ctx.lineTo(100, 500);
+        ctx.moveTo(750, 550); ctx.lineTo(700, 550); ctx.lineTo(700, 500);
         ctx.stroke();
 
+        // Draw drones
+        gd.drones.forEach(d => {
+            // Find if this drone is locked by any reticle
+            let isLocked = false;
+            Object.values(gd.aims).forEach(aim => {
+                if (aim.locks.some(ld => ld.id === d.id)) isLocked = true;
+            });
+
+            ctx.fillStyle = isLocked ? '#ff9100' : '#455a64';
+            ctx.strokeStyle = isLocked ? '#ff3d00' : '#cfd8dc';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(d.x, d.y, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+            // Draw target bracket around locked drone
+            if (isLocked) {
+                ctx.strokeStyle = '#ff3d00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(d.x - 22, d.y - 22, 44, 44);
+                // Lock text
+                ctx.fillStyle = '#ff3d00';
+                ctx.font = '9px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('LOCK ON', d.x, d.y - 26);
+            }
+        });
+
+        // Draw laser pulses
+        gd.laserPulses.forEach(pulse => {
+            ctx.fillStyle = '#ff1744';
+            ctx.fillRect(pulse.x - 2, pulse.y - 10, 4, 20);
+        });
+
+        // Draw missiles (curved trail from cockpit to targets)
+        ctx.lineWidth = 3;
+        gd.missiles.forEach(m => {
+            const startX = m.x;
+            const startY = m.y;
+            ctx.strokeStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            const ctrlX = (startX + m.tx) / 2 + Math.sin(m.progress * Math.PI) * 150;
+            const ctrlY = (startY + m.ty) / 2 - 50;
+            
+            const t = m.progress;
+            const mx = (1-t)*(1-t)*startX + 2*(1-t)*t*ctrlX + t*t*m.tx;
+            const my = (1-t)*(1-t)*startY + 2*(1-t)*t*ctrlY + t*t*m.ty;
+            
+            ctx.moveTo(startX, startY);
+            ctx.quadraticCurveTo(ctrlX, ctrlY, mx, my);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffeb3b';
+            ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Draw active viewfinders (crosshairs) for all fingers
+        Object.keys(gd.aims).forEach(id => {
+            const aim = gd.aims[id];
+            ctx.strokeStyle = '#00ff99';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(aim.lerpX, aim.lerpY, 28, 0, Math.PI * 2);
+            ctx.moveTo(aim.lerpX - 40, aim.lerpY); ctx.lineTo(aim.lerpX - 12, aim.lerpY);
+            ctx.moveTo(aim.lerpX + 12, aim.lerpY); ctx.lineTo(aim.lerpX + 40, aim.lerpY);
+            ctx.moveTo(aim.lerpX, aim.lerpY - 40); ctx.lineTo(aim.lerpX, aim.lerpY - 12);
+            ctx.moveTo(aim.lerpX, aim.lerpY + 12); ctx.lineTo(aim.lerpX, aim.lerpY + 40);
+            ctx.stroke();
+
+            // Draw text locks count
+            ctx.fillStyle = '#00ff99';
+            ctx.font = 'bold 11px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`TARGETS: ${aim.locks.length}`, aim.lerpX, aim.lerpY - 46);
+        });
+
+        // UI Header and Shield health
         ctx.fillStyle = '#00ff99';
         ctx.font = 'bold 20px Outfit, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Drones Derribados: ${gd.destroyed}/15`, 30, 45);
+
+        ctx.textAlign = 'right';
+        ctx.fillText(`Escudo: ${gd.shield}%`, 770, 45);
+        ctx.fillStyle = 'rgba(0, 255, 153, 0.2)';
+        ctx.fillRect(570, 55, 200, 10);
+        ctx.fillStyle = gd.shield > 30 ? '#00ff99' : '#ff1744';
+        ctx.fillRect(570, 55, gd.shield * 2, 10);
+
         ctx.textAlign = 'center';
-        ctx.fillText(`Drones Derribados: ${gd.destroyed}/15`, 400, 500);
-        ctx.fillText('Desliza sobre los drones para fijar objetivos (Lock-on) y suelta para disparar', 400, 540);
+        ctx.font = '14px Outfit, sans-serif';
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText('¡Usa múltiples dedos para fijar varios blancos! Suelta para disparar misiles.', 400, 570);
     },
-    inputGundamPress(x, y) {},
+    inputGundamPress(x, y, id) {
+        const gd = this.gameData;
+        gd.aims[id] = { x: x, y: y, lerpX: x, lerpY: y, locks: [] };
+        if (window.playProceduralSound) playProceduralSound('click');
+    },
+    releaseGundam(x, y, id) {
+        const gd = this.gameData;
+        const aim = gd.aims[id];
+        if (aim) {
+            if (aim.locks.length > 0) {
+                aim.locks.forEach(d => {
+                    gd.missiles.push({
+                        x: aim.lerpX,
+                        y: 550,
+                        tx: d.x,
+                        ty: d.y,
+                        progress: 0
+                    });
+                });
+                if (window.playProceduralSound) playProceduralSound('jump');
+            }
+            delete gd.aims[id];
+        }
+    },
 
     // 20. day_19_color: Cazador de Luz (Plataformas flotantes y pulsos de resonancia cromática)
     setupColor() {
@@ -30838,71 +31289,146 @@ window.MinigamesManager = {
     // ==========================================
 
     // 1. day_20_bento: Maestro del Bento
+    // 1. day_20_bento: Maestro del Bento
     setupBento() {
         this.gameData = {
             dividers: [
-                { x: 300, y: 250, angle: 0, w: 120, h: 12 },
-                { x: 500, y: 250, angle: 90 * Math.PI / 180, w: 120, h: 12 },
-                { x: 400, y: 380, angle: 45 * Math.PI / 180, w: 140, h: 12 }
+                { id: 'iv1', owner: 'ivan', name: 'RAMPA A', x: 220, y: 180, angle: -25 * Math.PI / 180, w: 120, h: 16, color: '#00e5ff' },
+                { id: 'iv2', owner: 'ivan', name: 'RAMPA B', x: 280, y: 340, angle: 30 * Math.PI / 180, w: 120, h: 16, color: '#00e5ff' },
+                { id: 'la1', owner: 'laura', name: 'RAMPA C', x: 580, y: 180, angle: 25 * Math.PI / 180, w: 120, h: 16, color: '#ffd700' },
+                { id: 'la2', owner: 'laura', name: 'RAMPA D', x: 520, y: 340, angle: -30 * Math.PI / 180, w: 120, h: 16, color: '#ffd700' }
+            ],
+            pegs: [
+                { x: 400, y: 110, r: 8 },
+                { x: 340, y: 240, r: 8 },
+                { x: 460, y: 240, r: 8 },
+                { x: 400, y: 290, r: 8 },
+                { x: 400, y: 410, r: 8 }
             ],
             ingredients: [],
             spawnTimer: 0,
             slots: [
-                { x: 180, y: 520, r: 45, type: 'arroz', emoji: '🍚', count: 0 },
-                { x: 320, y: 520, r: 45, type: 'pescado', emoji: '🐟', count: 0 },
-                { x: 480, y: 520, r: 45, type: 'verdura', emoji: '🥒', count: 0 },
-                { x: 620, y: 520, r: 45, type: 'postre', emoji: '🍳', count: 0 }
+                { x: 180, y: 520, r: 42, type: 'arroz', emoji: '🍚', count: 0 },
+                { x: 320, y: 520, r: 42, type: 'pescado', emoji: '🐟', count: 0 },
+                { x: 480, y: 520, r: 42, type: 'verdura', emoji: '🥒', count: 0 },
+                { x: 620, y: 520, r: 42, type: 'postre', emoji: '🍳', count: 0 }
             ],
-            score: 0
+            score: 0,
+            dragging: {}
         };
         this.score = 0;
     },
     updateBento(dt) {
         const gd = this.gameData;
+        
+        Object.keys(gd.dragging).forEach(touchId => {
+            const div = gd.dragging[touchId];
+            let tx = 0, ty = 0;
+            if (touchId === 'mouse') {
+                tx = this.mouse.x;
+                ty = this.mouse.y;
+            } else {
+                const t = this.touches.find(touch => touch.id == touchId);
+                if (t) {
+                    tx = t.x;
+                    ty = t.y;
+                }
+            }
+            if (tx && ty) {
+                div.angle = Math.atan2(ty - div.y, tx - div.x);
+            }
+        });
+
         gd.spawnTimer -= dt;
         if (gd.spawnTimer <= 0) {
-            gd.spawnTimer = 1.2;
+            gd.spawnTimer = 1.6;
             const types = ['arroz', 'pescado', 'verdura', 'postre'];
             const type = types[Math.floor(Math.random() * types.length)];
             const emojis = { arroz: '🍚', pescado: '🐟', verdura: '🥒', postre: '🍳' };
             gd.ingredients.push({
-                x: 200 + Math.random() * 400,
-                y: -20,
-                vy: 120 + Math.random() * 60,
-                vx: 0,
+                x: 320 + Math.random() * 160,
+                y: -10,
+                vx: (Math.random() - 0.5) * 40,
+                vy: 80,
                 type: type,
                 emoji: emojis[type],
-                r: 20
+                r: 16
             });
         }
+
         gd.ingredients.forEach((ing, iIdx) => {
-            ing.y += ing.vy * dt;
+            ing.vy += 220 * dt;
+            ing.vx *= 0.995;
+            ing.vy *= 0.995;
+
             ing.x += ing.vx * dt;
+            ing.y += ing.vy * dt;
+
+            if (ing.x < 115) {
+                ing.x = 115;
+                ing.vx = Math.abs(ing.vx) * 0.7;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+            if (ing.x > 685) {
+                ing.x = 685;
+                ing.vx = -Math.abs(ing.vx) * 0.7;
+                if (window.playProceduralSound) playProceduralSound('click');
+            }
+
+            gd.pegs.forEach(peg => {
+                const dist = Math.hypot(ing.x - peg.x, ing.y - peg.y);
+                const minDist = ing.r + peg.r;
+                if (dist < minDist) {
+                    const nx = (ing.x - peg.x) / dist;
+                    const ny = (ing.y - peg.y) / dist;
+                    const dot = ing.vx * nx + ing.vy * ny;
+                    
+                    ing.vx = (ing.vx - 2 * dot * nx) * 0.65 + (Math.random() - 0.5) * 15;
+                    ing.vy = (ing.vy - 2 * dot * ny) * 0.65;
+                    
+                    ing.x = peg.x + nx * (minDist + 1);
+                    ing.y = peg.y + ny * (minDist + 1);
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+
             gd.dividers.forEach(div => {
-                const dist = Math.hypot(ing.x - div.x, ing.y - div.y);
-                if (dist < 80) {
-                    const localX = (ing.x - div.x) * Math.cos(-div.angle) - (ing.y - div.y) * Math.sin(-div.angle);
-                    const localY = (ing.x - div.x) * Math.sin(-div.angle) + (ing.y - div.y) * Math.cos(-div.angle);
-                    if (Math.abs(localX) < div.w / 2 + 10 && Math.abs(localY) < div.h / 2 + 20) {
-                        const normalX = -Math.sin(div.angle);
-                        const normalY = Math.cos(div.angle);
-                        const dot = ing.vx * normalX + ing.vy * normalY;
-                        ing.vx = (ing.vx - 2 * dot * normalX) * 0.8;
-                        ing.vy = Math.abs(ing.vy - 2 * dot * normalY) * 0.8 + 20;
-                        ing.y += ing.vy * dt;
+                const dx = ing.x - div.x;
+                const dy = ing.y - div.y;
+                const localX = dx * Math.cos(-div.angle) - dy * Math.sin(-div.angle);
+                const localY = dx * Math.sin(-div.angle) + dy * Math.cos(-div.angle);
+                
+                const boundX = div.w / 2 + ing.r;
+                const boundY = div.h / 2 + ing.r;
+                
+                if (Math.abs(localX) < boundX && Math.abs(localY) < boundY) {
+                    const s = localY < 0 ? -1 : 1;
+                    const nx = s * -Math.sin(div.angle);
+                    const ny = s * Math.cos(div.angle);
+                    const dot = ing.vx * nx + ing.vy * ny;
+                    
+                    if (dot < 0) {
+                        ing.vx = (ing.vx - 2 * dot * nx) * 0.7;
+                        ing.vy = (ing.vy - 2 * dot * ny) * 0.7;
+                        
+                        const newLocalY = s * (div.h / 2 + ing.r + 1);
+                        ing.x = div.x + localX * Math.cos(div.angle) - newLocalY * Math.sin(div.angle);
+                        ing.y = div.y + localX * Math.sin(div.angle) + newLocalY * Math.cos(div.angle);
+                        
                         if (window.playProceduralSound) playProceduralSound('click');
                     }
                 }
             });
+
             gd.slots.forEach(slot => {
-                if (Math.hypot(ing.x - slot.x, ing.y - slot.y) < slot.r + 15) {
+                if (Math.hypot(ing.x - slot.x, ing.y - slot.y) < slot.r + 10) {
                     if (ing.type === slot.type) {
                         slot.count++;
                         gd.score++;
-                        this.score = Math.round((gd.score / 4) * 100);
+                        this.score = Math.round((gd.score / 5) * 100);
                         this.createExplosion(ing.x, ing.y, '#ffd700');
                         if (window.playProceduralSound) playProceduralSound('success');
-                        if (gd.score >= 4) {
+                        if (gd.score >= 5) {
                             this.win();
                         }
                     } else {
@@ -30913,56 +31439,125 @@ window.MinigamesManager = {
                 }
             });
         });
+
         gd.ingredients = gd.ingredients.filter(ing => ing.y < 620);
     },
     drawBento() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#111827';
+
+        ctx.fillStyle = '#0f172a';
         ctx.fillRect(0, 0, 800, 600);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(400, 0);
+        ctx.lineTo(400, 480);
+        ctx.stroke();
+
         ctx.strokeStyle = '#c0392b';
-        ctx.lineWidth = 12;
-        ctx.strokeRect(100, 50, 600, 500);
-        gd.slots.forEach(slot => {
-            ctx.fillStyle = 'rgba(255,255,255,0.05)';
-            ctx.strokeStyle = '#8e44ad';
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(slot.x, slot.y, slot.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '36px Arial';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(slot.emoji, slot.x, slot.y - 5);
-            ctx.font = 'bold 14px monospace';
+        ctx.lineWidth = 14;
+        ctx.strokeRect(100, 40, 600, 520);
+
+        gd.pegs.forEach(peg => {
+            ctx.fillStyle = '#475569';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(peg.x, peg.y, peg.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
             ctx.fillStyle = '#00ff99';
-            ctx.fillText(`Lleno: ${slot.count}`, slot.x, slot.y + 25);
+            ctx.beginPath();
+            ctx.arc(peg.x, peg.y, 2, 0, Math.PI * 2);
+            ctx.fill();
         });
+
         gd.dividers.forEach(div => {
             ctx.save();
             ctx.translate(div.x, div.y);
             ctx.rotate(div.angle);
-            ctx.fillStyle = '#f1c40f';
+
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = div.color;
+
+            ctx.fillStyle = div.color;
             ctx.fillRect(-div.w / 2, -div.h / 2, div.w, div.h);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-div.w / 2 + 4, -div.h / 2 + 4, div.w - 8, div.h - 8);
+
             ctx.restore();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(div.x, div.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(div.name, div.x, div.y - 15);
         });
+
         gd.ingredients.forEach(ing => {
             ctx.fillStyle = '#ffffff';
-            ctx.font = '30px Arial';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '28px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
             ctx.fillText(ing.emoji, ing.x, ing.y);
         });
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px monospace';
+
+        gd.slots.forEach(slot => {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.strokeStyle = '#f43f5e';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(slot.x, slot.y, slot.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.font = '32px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(slot.emoji, slot.x, slot.y - 5);
+
+            ctx.font = 'bold 11px monospace';
+            ctx.fillStyle = '#00ff99';
+            ctx.fillText(`CANT: ${slot.count}`, slot.x, slot.y + 24);
+        });
+
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 14px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`Ingredientes correctos: ${gd.score}/4`, 30, 30);
+        ctx.fillText(`BENTO COMPLETADO: ${gd.score} / 5`, 120, 25);
+
+        ctx.fillStyle = '#00e5ff';
+        ctx.font = 'bold 12px Outfit, sans-serif';
+        ctx.fillText('IVÁN (Izquierda): Arrastra rampas celestes', 120, 580);
+
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 12px Outfit, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('LAURA (Derecha): Arrastra rampas amarillas', 680, 580);
     },
-    inputBentoPress(x, y) {
+    inputBentoPress(x, y, id) {
         const gd = this.gameData;
         gd.dividers.forEach(div => {
-            if (Math.hypot(x - div.x, y - div.y) < 60) {
-                div.angle += 45 * Math.PI / 180;
+            if (Math.hypot(x - div.x, y - div.y) < 55) {
+                gd.dragging[id] = div;
                 if (window.playProceduralSound) playProceduralSound('click');
             }
         });
+    },
+    releaseBento(x, y, id) {
+        const gd = this.gameData;
+        if (gd.dragging[id]) {
+            delete gd.dragging[id];
+        }
     },
 
     // 2. day_20_potion: Alquimia Gatuna
@@ -33183,118 +33778,250 @@ window.MinigamesManager = {
 
     // 24. day_22_numbers: Intercepción Numérica
     setupNumbers() {
-        const digits = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
-        const spoken = Math.floor(Math.random() * 99) + 1; // target e.g. 45
+        const daiji = [
+            { num: 1, kanji: '壱', romaji: 'ichi' },
+            { num: 2, kanji: '弐', romaji: 'ni' },
+            { num: 3, kanji: '参', romaji: 'san' },
+            { num: 4, kanji: '肆', romaji: 'yon' },
+            { num: 5, kanji: '伍', romaji: 'go' },
+            { num: 6, kanji: '陸', romaji: 'roku' },
+            { num: 7, kanji: '漆', romaji: 'nana' },
+            { num: 8, kanji: '捌', romaji: 'hachi' },
+            { num: 9, kanji: '玖', romaji: 'kyuu' }
+        ];
+
+        const keypad = [...daiji].sort(() => Math.random() - 0.5);
+
         this.gameData = {
-            spoken: spoken,
-            digits: digits,
+            round: 0,
+            daiji: daiji,
+            keypad: keypad,
+            d1: 1,
+            d2: 2,
+            d3: 3,
             playerAns: [],
-            score: 0
+            shake: 0,
+            pulseTimer: 0
         };
         this.score = 0;
+        this.generateNumbersRound();
     },
-    updateNumbers(dt) {},
+
+    generateNumbersRound() {
+        const gd = this.gameData;
+        gd.d1 = Math.floor(Math.random() * 9) + 1;
+        gd.d2 = Math.floor(Math.random() * 9) + 1;
+        gd.d3 = Math.floor(Math.random() * 9) + 1;
+        gd.playerAns = [];
+        setTimeout(() => {
+            this.speakJapaneseDigits(gd.d1, gd.d2, gd.d3);
+        }, 500);
+    },
+
+    speakJapaneseDigits(d1, d2, d3) {
+        const names = {
+            1: 'ichi', 2: 'ni', 3: 'san', 4: 'yon', 5: 'go',
+            6: 'roku', 7: 'nana', 8: 'hachi', 9: 'kyuu'
+        };
+        const text = `${names[d1]}... ${names[d2]}... ${names[d3]}`;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ja-JP';
+        u.rate = 0.65;
+        window.speechSynthesis.speak(u);
+    },
+
+    updateNumbers(dt) {
+        const gd = this.gameData;
+        gd.pulseTimer += dt * 3;
+    },
+
     drawNumbers() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#0f172a';
+
+        ctx.fillStyle = '#0b0f19';
         ctx.fillRect(0, 0, 800, 600);
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 36px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`DESENCRIPTA EL NÚMERO: ${gd.spoken}`, 400, 100);
+        ctx.strokeStyle = 'rgba(0, 255, 153, 0.15)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(380, 0);
+        ctx.lineTo(380, 600);
+        ctx.stroke();
 
-        // Digit options layout
-        gd.digits.forEach((d, idx) => {
-            const x = 100 + (idx % 5) * 150;
-            const y = 200 + Math.floor(idx / 5) * 100;
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(x - 60, y - 35, 120, 70);
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 22px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('INTERCEPCIÓN NUMÉRICA', 400, 35);
+
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 15px monospace';
+        ctx.fillText(`CÓDIGOS INTERCEPTADOS: ${gd.round} / 3`, 400, 60);
+
+        const spkX = 380;
+        const spkY = 100;
+        const hover = (Math.hypot(this.mouse.x - spkX, this.mouse.y - spkY) < 30);
+        
+        ctx.fillStyle = hover ? '#00e5ff' : '#00ff99';
+        ctx.beginPath();
+        ctx.arc(spkX, spkY, 28, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 22px Arial';
+        ctx.fillText('🔊', spkX, spkY + 8);
+
+        // IVAN'S SIDE
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText('IVÁN: DICCIONARIO DE SEGURIDAD', 190, 110);
+
+        gd.daiji.forEach((item, idx) => {
+            const col = idx % 3;
+            const row = Math.floor(idx / 3);
+            const cx = 50 + col * 110;
+            const cy = 140 + row * 110;
+
+            ctx.fillStyle = '#111827';
             ctx.strokeStyle = '#00ff99';
-            ctx.strokeRect(x - 60, y - 35, 120, 70);
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(cx, cy, 100, 95);
+            ctx.strokeRect(cx, cy, 100, 95);
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 28px Arial';
-            ctx.fillText(d, x, y + 10);
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText(item.kanji, cx + 50, cy + 50);
+
+            ctx.fillStyle = '#a7f3d0';
+            ctx.font = '12px monospace';
+            ctx.fillText(item.romaji, cx + 50, cy + 72);
+
+            ctx.fillStyle = '#fb923c';
+            ctx.font = 'bold 13px monospace';
+            ctx.fillText(item.num, cx + 18, cy + 22);
         });
 
-        // Player answer slot
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(200, 420, 400, 60);
-        ctx.fillStyle = '#ffd700';
-        ctx.font = 'bold 24px Arial';
-        ctx.fillText(gd.playerAns.join(' '), 400, 455);
+        ctx.fillStyle = '#888';
+        ctx.font = '11px Outfit, sans-serif';
+        ctx.fillText('Traduce el audio japonés y describe', 190, 510);
+        ctx.fillText('las formas de los Kanjis a Laura.', 190, 530);
 
-        // Buttons
-        ctx.fillStyle = '#10b981'; ctx.fillRect(250, 510, 120, 45);
-        ctx.fillStyle = '#ef4444'; ctx.fillRect(430, 510, 120, 45);
-        ctx.fillStyle = '#000000';
+        // LAURA'S SIDE
+        ctx.fillStyle = '#00ff99';
         ctx.font = 'bold 16px monospace';
-        ctx.fillText('ENVIAR', 310, 538);
-        ctx.fillText('BORRAR', 490, 538);
+        ctx.fillText('LAURA: CONSOLA DE ENTRADA', 590, 110);
 
-        // HUD
+        gd.keypad.forEach((item, idx) => {
+            const col = idx % 3;
+            const row = Math.floor(idx / 3);
+            const cx = 430 + col * 110;
+            const cy = 140 + row * 110;
+
+            const btnHover = (this.mouse.x > cx && this.mouse.x < cx + 100 && this.mouse.y > cy && this.mouse.y < cy + 95);
+
+            ctx.fillStyle = btnHover ? '#1e293b' : '#111827';
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 1.5;
+            ctx.fillRect(cx, cy, 100, 95);
+            ctx.strokeRect(cx, cy, 100, 95);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText(item.kanji, cx + 50, cy + 60);
+        });
+
+        for (let i = 0; i < 3; i++) {
+            const ax = 485 + i * 75;
+            const ay = 475;
+            ctx.fillStyle = '#1e293b';
+            ctx.strokeStyle = '#00ff99';
+            ctx.lineWidth = 2;
+            ctx.fillRect(ax - 28, ay - 28, 56, 56);
+            ctx.strokeRect(ax - 28, ay - 28, 56, 56);
+
+            const ansChar = gd.playerAns[i];
+            if (ansChar) {
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText(ansChar.kanji, ax, ay + 10);
+            }
+        }
+
+        const bxClear = 430;
+        const bxSend = 650;
+        const byCtrl = 545;
+
+        const clearHover = (this.mouse.x > bxClear - 50 && this.mouse.x < bxClear + 50 && this.mouse.y > byCtrl - 20 && this.mouse.y < byCtrl + 20);
+        ctx.fillStyle = clearHover ? '#b91c1c' : '#7f1d1d';
+        ctx.strokeStyle = '#ef4444';
+        ctx.fillRect(bxClear - 50, byCtrl - 20, 100, 40);
+        ctx.strokeRect(bxClear - 50, byCtrl - 20, 100, 40);
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px monospace';
-        ctx.fillText(`Criptos descifradas: ${gd.score}/3`, 130, 40);
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('BORRAR', bxClear, byCtrl + 5);
+
+        const sendHover = (this.mouse.x > bxSend - 50 && this.mouse.x < bxSend + 50 && this.mouse.y > byCtrl - 20 && this.mouse.y < byCtrl + 20);
+        ctx.fillStyle = sendHover ? '#059669' : '#065f46';
+        ctx.strokeStyle = '#34d399';
+        ctx.fillRect(bxSend - 50, byCtrl - 20, 100, 40);
+        ctx.strokeRect(bxSend - 50, byCtrl - 20, 100, 40);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText('ENVIAR', bxSend, byCtrl + 5);
     },
+
     inputNumbersPress(x, y) {
         const gd = this.gameData;
-        // Options check
-        gd.digits.forEach((d, idx) => {
-            const cx = 100 + (idx % 5) * 150;
-            const cy = 200 + Math.floor(idx / 5) * 100;
-            if (x > cx - 60 && x < cx + 60 && y > cy - 35 && y < cy + 35) {
-                if (gd.playerAns.length < 4) {
-                    gd.playerAns.push(d);
+
+        if (Math.hypot(x - 380, y - 100) < 30) {
+            this.speakJapaneseDigits(gd.d1, gd.d2, gd.d3);
+            if (window.playProceduralSound) playProceduralSound('click');
+            return;
+        }
+
+        gd.keypad.forEach((item, idx) => {
+            const col = idx % 3;
+            const row = Math.floor(idx / 3);
+            const cx = 430 + col * 110;
+            const cy = 140 + row * 110;
+
+            if (x > cx && x < cx + 100 && y > cy && y < cy + 95) {
+                if (gd.playerAns.length < 3) {
+                    gd.playerAns.push(item);
                     if (window.playProceduralSound) playProceduralSound('click');
                 }
             }
         });
 
-        // Clear button
-        if (x > 430 && x < 550 && y > 510 && y < 555) {
+        if (x > 380 && x < 480 && y > 525 && y < 565) {
             gd.playerAns = [];
             if (window.playProceduralSound) playProceduralSound('click');
         }
 
-        // Send check
-        if (x > 250 && x < 370 && y > 510 && y < 555) {
-            // Translate playerAns back to value
-            let val = 0;
-            // Kanji to value map:
-            const kMap = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
-            const arr = gd.playerAns;
-            if (arr.length === 1) {
-                val = kMap[arr[0]] || 0;
-            } else if (arr.length === 2) {
-                if (arr[0] === '十') {
-                    val = 10 + kMap[arr[1]];
-                } else if (arr[1] === '十') {
-                    val = kMap[arr[0]] * 10;
-                }
-            } else if (arr.length === 3) {
-                if (arr[1] === '十') {
-                    val = kMap[arr[0]] * 10 + kMap[arr[2]];
-                }
-            }
+        if (x > 600 && x < 700 && y > 525 && y < 565) {
+            if (gd.playerAns.length === 3) {
+                const codeStr = gd.playerAns.map(item => item.num).join('');
+                const targetStr = `${gd.d1}${gd.d2}${gd.d3}`;
 
-            if (val === gd.spoken) {
-                gd.score++;
-                this.score = Math.round((gd.score / 3) * 100);
-                if (window.playProceduralSound) playProceduralSound('success');
-                this.createExplosion(400, 450, '#00ff99');
-                if (gd.score >= 3) {
-                    this.win();
+                if (codeStr === targetStr) {
+                    gd.round++;
+                    this.score = Math.round((gd.round / 3) * 100);
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    this.createExplosion(560, 475, '#00ff99');
+
+                    if (gd.round >= 3) {
+                        this.win();
+                    } else {
+                        gd.keypad.sort(() => Math.random() - 0.5);
+                        setTimeout(() => {
+                            this.generateNumbersRound();
+                        }, 800);
+                    }
                 } else {
-                    gd.spoken = Math.floor(Math.random() * 99) + 1;
+                    this.triggerShake(15);
+                    if (window.playProceduralSound) playProceduralSound('error');
                     gd.playerAns = [];
                 }
-            } else {
-                if (window.playProceduralSound) playProceduralSound('damage');
-                this.triggerShake(10);
-                gd.playerAns = [];
             }
         }
     },
