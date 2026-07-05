@@ -1622,11 +1622,11 @@ body.theme-ivan #minigame-canvas {
     transform: scale(0.95);
 }
 
-/* Consultas responsivas para pantallas de baja altura o baja anchura (móviles) */
-@media (max-height: 480px), (max-width: 480px) {
+/* Consultas responsivas para pantallas de baja altura o de ancho compacto (móviles) */
+@media (max-height: 600px), (max-width: 480px) {
     #minigame-intro, #minigame-outro {
-        justify-content: flex-start; /* Permite scrolling natural sin recortar cabecera */
-        padding: 15px;
+        justify-content: flex-start !important; /* Permite scrolling natural sin recortar cabecera */
+        padding: 15px !important;
     }
     
     #minigame-intro-emoji, #minigame-outro-emoji {

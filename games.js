@@ -142,7 +142,7 @@ window.MinigamesManager = {
     resizeCanvas() {
         if (!this.canvas) return;
         
-        // Get actual display size of the canvas element (which now spans 100% viewport)
+        // Get actual display size of the canvas element (which has a locked 4:3 ratio via CSS)
         const rect = this.canvas.getBoundingClientRect();
         
         // Use devicePixelRatio to render at high density (Retina, 4K, etc.)
@@ -156,18 +156,16 @@ window.MinigamesManager = {
         this.canvas.width = Math.round(displayWidth * dpr);
         this.canvas.height = Math.round(displayHeight * dpr);
         
-        // Calculate independent X and Y scaling factors to stretch drawings to fill 100% fullscreen
-        const scaleX = (displayWidth * dpr) / 800;
-        const scaleY = (displayHeight * dpr) / 600;
+        // Calculate uniform scaling factor (since canvas element is 4:3, scale X and Y are identical)
+        const scale = (displayWidth * dpr) / 800;
         
         // Store scaling parameters (in CSS pixels) for mapping touch coordinates back to 800x600 space
-        this.canvasScaleX = scaleX / dpr;
-        this.canvasScaleY = scaleY / dpr;
+        this.canvasScale = scale / dpr;
         
-        // Apply independent scaling to fill the entire physical screen
+        // Apply uniform scale to fit all drawings inside the 800x600 canvas space perfectly
         if (this.ctx) {
             this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
-            this.ctx.scale(scaleX, scaleY);
+            this.ctx.scale(scale, scale);
         }
     },
 
@@ -178,12 +176,11 @@ window.MinigamesManager = {
         const rawX = e.clientX - rect.left;
         const rawY = e.clientY - rect.top;
         
-        // Map touch coords using independent X/Y scales, fallback to direct scaling if not yet calculated
-        const scaleX = this.canvasScaleX || (rect.width / 800);
-        const scaleY = this.canvasScaleY || (rect.height / 600);
+        // Map touch coords using uniform scale, fallback to direct scaling if not yet calculated
+        const scale = this.canvasScale || (rect.width / 800);
         
-        const x = rawX / scaleX;
-        const y = rawY / scaleY;
+        const x = rawX / scale;
+        const y = rawY / scale;
         
         // Clamp virtual coordinates to stay within the 800x600 active gameplay boundaries
         return {
