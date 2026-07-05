@@ -156,23 +156,18 @@ window.MinigamesManager = {
         this.canvas.width = Math.round(displayWidth * dpr);
         this.canvas.height = Math.round(displayHeight * dpr);
         
-        // Calculate uniform scaling factor to preserve 4:3 aspect ratio centered on fullscreen
-        const scale = Math.min((displayWidth * dpr) / 800, (displayHeight * dpr) / 600);
+        // Calculate independent X and Y scaling factors to stretch drawings to fill 100% fullscreen
+        const scaleX = (displayWidth * dpr) / 800;
+        const scaleY = (displayHeight * dpr) / 600;
         
-        // Offsets in physical pixels to center the 800x600 space
-        const offsetX = (displayWidth * dpr - 800 * scale) / 2;
-        const offsetY = (displayHeight * dpr - 600 * scale) / 2;
+        // Store scaling parameters (in CSS pixels) for mapping touch coordinates back to 800x600 space
+        this.canvasScaleX = scaleX / dpr;
+        this.canvasScaleY = scaleY / dpr;
         
-        // Store scaling parameters (in CSS pixels) for mapping touch coordinates
-        this.canvasScale = scale / dpr;
-        this.canvasOffsetX = offsetX / dpr;
-        this.canvasOffsetY = offsetY / dpr;
-        
-        // Apply transform to center and scale all standard game draw calls
+        // Apply independent scaling to fill the entire physical screen
         if (this.ctx) {
             this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
-            this.ctx.translate(offsetX, offsetY);
-            this.ctx.scale(scale, scale);
+            this.ctx.scale(scaleX, scaleY);
         }
     },
 
@@ -183,13 +178,12 @@ window.MinigamesManager = {
         const rawX = e.clientX - rect.left;
         const rawY = e.clientY - rect.top;
         
-        // Use stored scaling parameters, fallback to direct scaling if not yet calculated
-        const scale = this.canvasScale || (rect.width / 800);
-        const offsetX = this.canvasOffsetX !== undefined ? this.canvasOffsetX : 0;
-        const offsetY = this.canvasOffsetY !== undefined ? this.canvasOffsetY : 0;
+        // Map touch coords using independent X/Y scales, fallback to direct scaling if not yet calculated
+        const scaleX = this.canvasScaleX || (rect.width / 800);
+        const scaleY = this.canvasScaleY || (rect.height / 600);
         
-        const x = (rawX - offsetX) / scale;
-        const y = (rawY - offsetY) / scale;
+        const x = rawX / scaleX;
+        const y = rawY / scaleY;
         
         // Clamp virtual coordinates to stay within the 800x600 active gameplay boundaries
         return {
