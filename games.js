@@ -142,7 +142,7 @@ window.MinigamesManager = {
     resizeCanvas() {
         if (!this.canvas) return;
         
-        // Get actual display size of the canvas element
+        // Get actual display size of the canvas element (which now spans 100% viewport)
         const rect = this.canvas.getBoundingClientRect();
         
         // Use devicePixelRatio to render at high density (Retina, 4K, etc.)
@@ -156,19 +156,45 @@ window.MinigamesManager = {
         this.canvas.width = Math.round(displayWidth * dpr);
         this.canvas.height = Math.round(displayHeight * dpr);
         
-        // Scale the canvas context so all drawing is mapped from the virtual 800x600 coordinate system
+        // Calculate uniform scaling factor to preserve 4:3 aspect ratio centered on fullscreen
+        const scale = Math.min((displayWidth * dpr) / 800, (displayHeight * dpr) / 600);
+        
+        // Offsets in physical pixels to center the 800x600 space
+        const offsetX = (displayWidth * dpr - 800 * scale) / 2;
+        const offsetY = (displayHeight * dpr - 600 * scale) / 2;
+        
+        // Store scaling parameters (in CSS pixels) for mapping touch coordinates
+        this.canvasScale = scale / dpr;
+        this.canvasOffsetX = offsetX / dpr;
+        this.canvasOffsetY = offsetY / dpr;
+        
+        // Apply transform to center and scale all standard game draw calls
         if (this.ctx) {
             this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
-            this.ctx.scale((displayWidth * dpr) / 800, (displayHeight * dpr) / 600);
+            this.ctx.translate(offsetX, offsetY);
+            this.ctx.scale(scale, scale);
         }
     },
 
     getCanvasCoords(e) {
         if (!e) return { x: 400, y: 300 };
         const rect = this.canvas.getBoundingClientRect();
+        
+        const rawX = e.clientX - rect.left;
+        const rawY = e.clientY - rect.top;
+        
+        // Use stored scaling parameters, fallback to direct scaling if not yet calculated
+        const scale = this.canvasScale || (rect.width / 800);
+        const offsetX = this.canvasOffsetX !== undefined ? this.canvasOffsetX : 0;
+        const offsetY = this.canvasOffsetY !== undefined ? this.canvasOffsetY : 0;
+        
+        const x = (rawX - offsetX) / scale;
+        const y = (rawY - offsetY) / scale;
+        
+        // Clamp virtual coordinates to stay within the 800x600 active gameplay boundaries
         return {
-            x: ((e.clientX - rect.left) / rect.width) * 800,
-            y: ((e.clientY - rect.top) / rect.height) * 600
+            x: Math.max(0, Math.min(800, x)),
+            y: Math.max(0, Math.min(600, y))
         };
     },
 
@@ -2763,6 +2789,14 @@ window.MinigamesManager = {
 
     drawFrame(dt) {
         try {
+            // Clear the entire physical screen including letterbox/pillarbox zones before applying centering transforms
+            if (this.ctx) {
+                this.ctx.save();
+                this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset to screen space
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.restore();
+            }
+
             this.ctx.save();
             
             // Apply Screenshake translate transformations
