@@ -1390,6 +1390,157 @@ body.theme-ivan .update-toast-emoji {
     animation: gamePulse 2s infinite ease-in-out;
 }
 
+/* ==========================================================
+   VISTA COMPLETA DEL MINIJUEGO (FULLSCREEN OVERLAY)
+   ========================================================== */
+
+#view-minigame {
+    background: #050508;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Quicksand', 'Nunito', sans-serif;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+}
+
+/* --- GAME CONTAINER --- */
+#minigame-container {
+    position: relative;
+    background: #050508;
+    overflow: hidden;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    /* Landscape / Desktop default: 4:3 con bordes decorativos */
+    width: 100%;
+    height: 100%;
+    max-width: 133.33vh; /* 4:3 limitado por altura */
+    max-height: 75vw;    /* 4:3 limitado por ancho */
+    aspect-ratio: 4 / 3;
+    margin: auto;
+    border: 3px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+}
+
+/* Canvas: siempre llena el contenedor */
+#minigame-canvas {
+    display: block;
+    touch-action: none;
+    width: 100%;
+    height: 100%;
+}
+
+/* --- HUD TOP (Título + Cerrar) --- */
+.minigame-hud-top {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 12;
+    pointer-events: none;
+}
+
+#minigame-title {
+    margin: 0;
+    color: #ffd700;
+    font-size: 1rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    background: rgba(10, 10, 15, 0.75);
+    padding: 5px 12px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,255,255,0.1);
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+#btn-close-minigame {
+    background: rgba(10, 10, 15, 0.75);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    pointer-events: auto;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+#btn-close-minigame:active {
+    transform: scale(0.9);
+    background: rgba(255, 50, 50, 0.5);
+}
+
+/* --- HUD BOTTOM (Score + Meta) --- */
+.minigame-hud-bottom {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+    pointer-events: none;
+}
+
+#minigame-status {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #ffd700;
+    background: rgba(10, 10, 15, 0.75);
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+}
+
+#minigame-score {
+    text-shadow: 0 0 8px rgba(255,215,0,0.4);
+    font-weight: bold;
+}
+
+#minigame-goal {
+    color: #a0a0b0;
+    font-weight: bold;
+}
+
 /* --- DECORACIONES Y ANIMACIONES DE MINIJUEGOS PREMIUM (FULLSCREEN) --- */
 
 /* Contenedores de decoración lateral */
@@ -1489,7 +1640,7 @@ body.theme-ivan #minigame-canvas {
 }
 
 /* ==========================================================
-   ESTILOS Y DISEÑO RESPONSIVO DE OVERLAYS DE MINIJUEGOS (MOBILE FLEXIBILITY)
+   ESTILOS Y DISEÑO RESPONSIVO DE OVERLAYS DE MINIJUEGOS
    ========================================================== */
 
 #minigame-intro, #minigame-outro {
@@ -1502,13 +1653,13 @@ body.theme-ivan #minigame-canvas {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 25px;
+    padding: 20px;
     text-align: center;
     box-sizing: border-box;
     z-index: 10;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    overflow-y: auto; /* Permite scroll si el contenido se desborda en pantallas pequeñas */
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -1522,20 +1673,20 @@ body.theme-ivan #minigame-canvas {
 
 /* Elementos internos */
 #minigame-intro-emoji {
-    font-size: 3.2rem;
-    margin-bottom: 12px;
+    font-size: 3rem;
+    margin-bottom: 10px;
     filter: drop-shadow(0 0 12px #ff7b54);
     transition: all 0.2s ease;
 }
 
 #minigame-outro-emoji {
-    font-size: 3.5rem;
-    margin-bottom: 12px;
+    font-size: 3.2rem;
+    margin-bottom: 10px;
     transition: all 0.2s ease;
 }
 
 #minigame-intro-title, #minigame-outro-title {
-    margin: 0 0 10px 0;
+    margin: 0 0 8px 0;
     font-weight: 900;
     text-shadow: 0 2px 5px rgba(0,0,0,0.6);
     transition: all 0.2s ease;
@@ -1543,16 +1694,16 @@ body.theme-ivan #minigame-canvas {
 
 #minigame-intro-title {
     color: #ffd700;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
 }
 
 #minigame-outro-title {
     color: #00ff99;
-    font-size: 1.8rem;
+    font-size: 1.6rem;
 }
 
 #minigame-intro-desc, #minigame-outro-desc {
-    line-height: 1.45;
+    line-height: 1.4;
     color: #e2e2ea;
     max-width: 380px;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
@@ -1560,14 +1711,14 @@ body.theme-ivan #minigame-canvas {
 }
 
 #minigame-intro-desc {
-    font-size: 0.95rem;
-    margin-bottom: 20px;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
     white-space: pre-line; /* Mantiene saltos de línea de mejoras/cartera */
 }
 
 #minigame-outro-desc {
-    font-size: 1.05rem;
-    margin-bottom: 20px;
+    font-size: 1rem;
+    margin-bottom: 16px;
 }
 
 /* Estilos de botones de overlays */
@@ -1575,8 +1726,8 @@ body.theme-ivan #minigame-canvas {
     background: linear-gradient(135deg, #ff7b54 0%, #ff5722 100%);
     border: none;
     font-weight: bold;
-    font-size: 1.1rem;
-    padding: 11px 38px;
+    font-size: 1.05rem;
+    padding: 10px 34px;
     border-radius: 50px;
     box-shadow: 0 5px 15px rgba(255,123,84,0.4);
     cursor: pointer;
@@ -1593,9 +1744,9 @@ body.theme-ivan #minigame-canvas {
     border: 2px solid rgba(255,255,255,0.4);
     color: white;
     border-radius: 50px;
-    padding: 10px 24px;
+    padding: 9px 22px;
     font-weight: bold;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -1611,8 +1762,8 @@ body.theme-ivan #minigame-canvas {
     color: #050508;
     font-weight: bold;
     border-radius: 50px;
-    padding: 10px 28px;
-    font-size: 0.95rem;
+    padding: 9px 24px;
+    font-size: 0.9rem;
     box-shadow: 0 5px 15px rgba(0,255,153,0.3);
     cursor: pointer;
     transition: all 0.2s;
@@ -1622,38 +1773,110 @@ body.theme-ivan #minigame-canvas {
     transform: scale(0.95);
 }
 
-/* Consultas responsivas para pantallas de baja altura o de ancho compacto (móviles) */
+/* ==========================================================
+   RESPONSIVE: MÓVIL PORTRAIT
+   En portrait el 4:3 no funciona bien — llenamos todo el ancho
+   y dejamos que el canvas mantenga proporciones con letterbox.
+   ========================================================== */
+
+@media (orientation: portrait) {
+    #minigame-container {
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: auto;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        width: 100%;
+        height: 100%;
+    }
+
+    .minigame-hud-top {
+        top: env(safe-area-inset-top, 6px);
+        left: 6px;
+        right: 6px;
+    }
+
+    #minigame-title {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+    }
+
+    #btn-close-minigame {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+
+    .minigame-hud-bottom {
+        bottom: max(env(safe-area-inset-bottom, 6px), 6px);
+        left: 6px;
+        right: 6px;
+    }
+
+    #minigame-status {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+    }
+}
+
+/* RESPONSIVE: Pantallas pequeñas (compact) */
 @media (max-height: 600px), (max-width: 480px) {
     #minigame-intro, #minigame-outro {
-        justify-content: flex-start !important; /* Permite scrolling natural sin recortar cabecera */
-        padding: 15px !important;
+        padding: 12px;
+        gap: 2px;
     }
-    
+
     #minigame-intro-emoji, #minigame-outro-emoji {
-        font-size: 1.8rem !important;
-        margin-bottom: 6px !important;
+        font-size: 2rem;
+        margin-bottom: 4px;
     }
-    
+
     #minigame-intro-title, #minigame-outro-title {
-        font-size: 1.15rem !important;
-        margin-bottom: 4px !important;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
     }
-    
+
     #minigame-intro-desc, #minigame-outro-desc {
-        font-size: 0.82rem !important;
-        margin-bottom: 12px !important;
-        line-height: 1.3 !important;
-        max-width: 320px !important;
+        font-size: 0.78rem;
+        margin-bottom: 10px;
+        line-height: 1.3;
+        max-width: 300px;
     }
-    
+
     #btn-start-minigame {
-        font-size: 0.95rem !important;
-        padding: 8px 28px !important;
+        font-size: 0.92rem;
+        padding: 8px 26px;
     }
-    
+
     #btn-retry-minigame, #btn-submit-minigame {
-        font-size: 0.88rem !important;
-        padding: 8px 18px !important;
+        font-size: 0.85rem;
+        padding: 7px 16px;
+    }
+}
+
+/* RESPONSIVE: Pantallas muy pequeñas (< 380px ancho o < 500px alto)
+   Aquí los overlays necesitan scroll, centrar en el espacio disponible */
+@media (max-height: 500px) and (orientation: portrait),
+       (max-width: 380px) {
+    #minigame-intro, #minigame-outro {
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+
+    #minigame-intro-emoji, #minigame-outro-emoji {
+        font-size: 1.6rem;
+        margin-bottom: 2px;
+    }
+
+    #minigame-intro-title, #minigame-outro-title {
+        font-size: 0.95rem;
+    }
+
+    #minigame-intro-desc, #minigame-outro-desc {
+        font-size: 0.72rem;
+        line-height: 1.25;
+        max-width: 260px;
     }
 }
 

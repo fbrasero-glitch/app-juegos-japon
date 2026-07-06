@@ -260,7 +260,7 @@
     </nav>
 
     <!-- VISTA DE MINIJUEGO -->
-    <div id="view-minigame" class="view hidden" style="background: #050508; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 5000; overflow: hidden; display: flex; align-items: center; justify-content: center; font-family: 'Quicksand', 'Nunito', sans-serif; box-sizing: border-box; padding: 0 !important; margin: 0 !important; width: 100vw !important; height: 100vh !important;">
+    <div id="view-minigame" class="view hidden">
         
         <!-- Elementos Decorativos de Fondo (Tema) -->
         <div class="decor-sakura s1"></div>
@@ -274,21 +274,21 @@
         <div class="decor-cyber c4"></div>
         
         <!-- Game container -->
-        <div id="minigame-container" style="position: relative; width: 100%; height: 100%; max-width: 133.33vh; max-height: 75vw; aspect-ratio: 4 / 3; background: #050508; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.85); border: 4px solid rgba(255, 255, 255, 0.15); border-radius: 16px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; margin: auto; touch-action: none;">
+        <div id="minigame-container">
             
-            <canvas id="minigame-canvas" width="800" height="600" style="width: 100%; height: 100%; display: block; touch-action: none;"></canvas>
+            <canvas id="minigame-canvas" width="800" height="600"></canvas>
             
             <!-- HUD Header overlay -->
-            <div style="position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 12; pointer-events: none;">
-                <h3 id="minigame-title" style="margin: 0; color: #ffd700; font-size: 1.1rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); background: rgba(10, 10, 15, 0.75); padding: 6px 14px; border-radius: 20px; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); pointer-events: auto; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">🎮 Minijuego</h3>
-                <button id="btn-close-minigame" style="background: rgba(10, 10, 15, 0.75); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); color: white; font-size: 1.2rem; cursor: pointer; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.4);" aria-label="Cerrar">✕</button>
+            <div class="minigame-hud-top">
+                <h3 id="minigame-title">🎮 Minijuego</h3>
+                <button id="btn-close-minigame" aria-label="Cerrar">✕</button>
             </div>
             
             <!-- HUD Score overlay -->
-            <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 5; pointer-events: none;">
-                <div id="minigame-status" style="width: 100%; display: flex; justify-content: space-between; align-items: center; font-family: monospace; font-size: 1rem; color: #ffd700; background: rgba(10, 10, 15, 0.75); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                    <span id="minigame-score" style="text-shadow: 0 0 8px rgba(255,215,0,0.4); font-weight: bold;">Puntos: 0</span>
-                    <span id="minigame-goal" style="color: #a0a0b0; font-weight: bold;">Meta: 300</span>
+            <div class="minigame-hud-bottom">
+                <div id="minigame-status">
+                    <span id="minigame-score">Puntos: 0</span>
+                    <span id="minigame-goal">Meta: 300</span>
                 </div>
             </div>
             

@@ -142,7 +142,7 @@ window.MinigamesManager = {
     resizeCanvas() {
         if (!this.canvas) return;
         
-        // Get actual display size of the canvas element (which has a locked 4:3 ratio via CSS)
+        // Get actual display size of the canvas element
         const rect = this.canvas.getBoundingClientRect();
         
         // Use devicePixelRatio to render at high density (Retina, 4K, etc.)
@@ -152,19 +152,29 @@ window.MinigamesManager = {
         const displayWidth = rect.width > 0 ? rect.width : 800;
         const displayHeight = rect.height > 0 ? rect.height : 600;
         
-        // Set physical size in pixels
+        // Set physical size in pixels to match container
         this.canvas.width = Math.round(displayWidth * dpr);
         this.canvas.height = Math.round(displayHeight * dpr);
         
-        // Calculate uniform scaling factor (since canvas element is 4:3, scale X and Y are identical)
-        const scale = (displayWidth * dpr) / 800;
+        // Calculate uniform scale to fit 800x600 virtual space into the container
+        // This handles ANY aspect ratio: landscape 4:3, portrait 9:16, etc.
+        const scaleX = (displayWidth * dpr) / 800;
+        const scaleY = (displayHeight * dpr) / 600;
+        const scale = Math.min(scaleX, scaleY); // Uniform fit (no stretch)
         
-        // Store scaling parameters (in CSS pixels) for mapping touch coordinates back to 800x600 space
+        // Calculate letterbox/pillarbox offset to center the 800x600 area
+        const offsetX = ((displayWidth * dpr) - (800 * scale)) / 2;
+        const offsetY = ((displayHeight * dpr) - (600 * scale)) / 2;
+        
+        // Store for coordinate mapping (in CSS pixels)
         this.canvasScale = scale / dpr;
+        this.canvasOffsetX = offsetX / dpr;
+        this.canvasOffsetY = offsetY / dpr;
         
-        // Apply uniform scale to fit all drawings inside the 800x600 canvas space perfectly
+        // Apply transform: translate to center, then scale uniformly
         if (this.ctx) {
             this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset
+            this.ctx.translate(offsetX, offsetY);
             this.ctx.scale(scale, scale);
         }
     },
@@ -176,11 +186,13 @@ window.MinigamesManager = {
         const rawX = e.clientX - rect.left;
         const rawY = e.clientY - rect.top;
         
-        // Map touch coords using uniform scale, fallback to direct scaling if not yet calculated
+        // Subtract the letterbox/pillarbox offset, then divide by scale
         const scale = this.canvasScale || (rect.width / 800);
+        const offX = this.canvasOffsetX || 0;
+        const offY = this.canvasOffsetY || 0;
         
-        const x = rawX / scale;
-        const y = rawY / scale;
+        const x = (rawX - offX) / scale;
+        const y = (rawY - offY) / scale;
         
         // Clamp virtual coordinates to stay within the 800x600 active gameplay boundaries
         return {
