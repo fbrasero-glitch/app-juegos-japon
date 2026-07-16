@@ -1444,6 +1444,238 @@ window.MinigamesManager = {
         this.screenShake = amount;
     },
 
+    // ==========================================================
+    // PREMIUM GRAPHIC ENGINE HELPERS (PHASE 1 - SUMIDA LEVEL)
+    // ==========================================================
+    
+    drawAtmosphericBackground(type, time = 0) {
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        ctx.save();
+
+        if (type === 'sunset_dappled') {
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0, '#1a0b2e');
+            grad.addColorStop(0.3, '#4a154b');
+            grad.addColorStop(0.65, '#ff5733');
+            grad.addColorStop(1, '#ffc300');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Sun disk with radial glow
+            const sunGrad = ctx.createRadialGradient(400, 340, 10, 400, 340, 120);
+            sunGrad.addColorStop(0, '#ffffff');
+            sunGrad.addColorStop(0.2, '#ffe066');
+            sunGrad.addColorStop(0.6, 'rgba(255, 87, 51, 0.4)');
+            sunGrad.addColorStop(1, 'rgba(255, 87, 51, 0)');
+            ctx.fillStyle = sunGrad;
+            ctx.beginPath();
+            ctx.arc(400, 340, 120, 0, Math.PI * 2);
+            ctx.fill();
+
+        } else if (type === 'cyber_city') {
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0, '#05021a');
+            grad.addColorStop(0.5, '#0f0838');
+            grad.addColorStop(1, '#1b004b');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Digital grid floor horizon line
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 800; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 400);
+                ctx.lineTo(400 + (i - 400) * 2.5, 600);
+                ctx.stroke();
+            }
+            for (let y = 400; y <= 600; y += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(800, y);
+                ctx.stroke();
+            }
+
+        } else if (type === 'night_temple') {
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0, '#090a1a');
+            grad.addColorStop(0.4, '#121633');
+            grad.addColorStop(1, '#1c224a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Twinkling procedural stars
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 45; i++) {
+                const sx = (i * 137.5) % 800;
+                const sy = (i * 73.1) % 350;
+                const alpha = 0.3 + 0.7 * Math.abs(Math.sin(time * 2 + i));
+                ctx.globalAlpha = alpha;
+                ctx.fillRect(sx, sy, (i % 2 === 0) ? 2 : 1.5, (i % 2 === 0) ? 2 : 1.5);
+            }
+            ctx.globalAlpha = 1.0;
+
+            // Moon with soft radial glow
+            const moonGrad = ctx.createRadialGradient(680, 100, 15, 680, 100, 90);
+            moonGrad.addColorStop(0, 'rgba(255, 255, 220, 1)');
+            moonGrad.addColorStop(0.3, 'rgba(255, 240, 180, 0.5)');
+            moonGrad.addColorStop(1, 'rgba(255, 240, 180, 0)');
+            ctx.fillStyle = moonGrad;
+            ctx.beginPath();
+            ctx.arc(680, 100, 90, 0, Math.PI * 2);
+            ctx.fill();
+
+        } else if (type === 'bamboo_forest') {
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0, '#061712');
+            grad.addColorStop(0.5, '#0e2e24');
+            grad.addColorStop(1, '#154234');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 600);
+
+            // Light rays through canopy
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const rayGrad = ctx.createLinearGradient(200, 0, 400, 600);
+            rayGrad.addColorStop(0, 'rgba(120, 255, 200, 0.12)');
+            rayGrad.addColorStop(1, 'rgba(120, 255, 200, 0)');
+            ctx.fillStyle = rayGrad;
+            ctx.beginPath();
+            ctx.moveTo(150, 0); ctx.lineTo(350, 0); ctx.lineTo(550, 600); ctx.lineTo(300, 600);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+        } else if (type === 'zen_garden') {
+            const grad = ctx.createLinearGradient(0, 0, 0, 600);
+            grad.addColorStop(0, '#2b2927');
+            grad.addColorStop(0.6, '#3d3935');
+            grad.addColorStop(1, '#23211f');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 800, 600);
+        }
+        ctx.restore();
+    },
+
+    drawWaterLayer(y = 400, height = 200, time = 0, options = {}) {
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        ctx.save();
+
+        const baseColor = options.baseColor || '#0a243a';
+        const topColor = options.topColor || '#184b7a';
+
+        // Gradient water body
+        const grad = ctx.createLinearGradient(0, y, 0, y + height);
+        grad.addColorStop(0, topColor);
+        grad.addColorStop(1, baseColor);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, y, 800, height);
+
+        // Sine wave surface line
+        ctx.strokeStyle = options.waveColor || 'rgba(100, 220, 255, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= 800; x += 10) {
+            const waveY = y + Math.sin(x * 0.02 + time * 3) * 4 + Math.cos(x * 0.04 - time * 2) * 2;
+            ctx.lineTo(x, waveY);
+        }
+        ctx.stroke();
+
+        // Water shimmer specular highlights
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        for (let i = 0; i < 12; i++) {
+            const hx = (i * 67 + time * 40) % 760 + 20;
+            const hy = y + 15 + ((i * 31) % (height - 30));
+            const hlen = 15 + Math.sin(time * 4 + i) * 10;
+            ctx.fillRect(hx, hy, Math.max(2, hlen), 1.5);
+        }
+
+        ctx.restore();
+    },
+
+    drawGlowShape(drawCallback, shadowColor = '#00ff99', shadowBlur = 15, isLighter = false) {
+        if (!this.ctx) return;
+        this.ctx.save();
+        this.ctx.shadowColor = shadowColor;
+        this.ctx.shadowBlur = shadowBlur;
+        if (isLighter) {
+            this.ctx.globalCompositeOperation = 'lighter';
+        }
+        drawCallback(this.ctx);
+        this.ctx.restore();
+    },
+
+    drawGlassCard(x, y, w, h, options = {}) {
+        if (!this.ctx) return;
+        const ctx = this.ctx;
+        ctx.save();
+        
+        const radius = options.radius || 12;
+        const fill = options.fill || 'rgba(15, 15, 25, 0.65)';
+        const border = options.borderColor || 'rgba(255, 255, 255, 0.15)';
+        
+        ctx.fillStyle = fill;
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 1.5;
+        
+        if (options.shadow) {
+            ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = options.shadowBlur || 15;
+        }
+        
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(x, y, w, h, radius);
+        } else {
+            ctx.rect(x, y, w, h);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    },
+
+    spawnAmbientParticles(type = 'fireflies', count = 1) {
+        for (let i = 0; i < count; i++) {
+            if (type === 'fireflies') {
+                this.particles.push({
+                    x: Math.random() * 800,
+                    y: 400 + Math.random() * 200,
+                    vx: (Math.random() - 0.5) * 0.8,
+                    vy: -0.3 - Math.random() * 0.7,
+                    size: 1.5 + Math.random() * 2.5,
+                    color: '#ffe066',
+                    life: 1.0,
+                    decay: 0.005 + Math.random() * 0.008
+                });
+            } else if (type === 'sakura') {
+                this.particles.push({
+                    x: Math.random() * 800,
+                    y: -10,
+                    vx: 0.5 + Math.random() * 1.2,
+                    vy: 0.8 + Math.random() * 1.5,
+                    size: 2.5 + Math.random() * 3,
+                    color: '#ffb7c5',
+                    life: 1.0,
+                    decay: 0.003 + Math.random() * 0.005
+                });
+            } else if (type === 'sparks') {
+                this.particles.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * 600,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    size: 1 + Math.random() * 2,
+                    color: '#00ffff',
+                    life: 1.0,
+                    decay: 0.02 + Math.random() * 0.03
+                });
+            }
+        }
+    },
+
     createExplosion(x, y, color, count = 15, sizeScale = 1) {
         for(let i=0; i<count; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -3321,75 +3553,90 @@ window.MinigamesManager = {
         const data = this.gameData;
         const p = data.player;
         
-        let sky = ctx.createLinearGradient(0, 0, 0, 600);
-        sky.addColorStop(0, '#04040a');
-        sky.addColorStop(1, '#0e0b1c');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, 800, 600);
+        // 1. Atmospheric Sunset Background
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
         
-        ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        for(let i=0; i<30; i++) {
-            const sx = (Math.sin(i * 452) * 5000 + data.bgScroll * 0.1) % 800;
-            const sy = (Math.cos(i * 324) * 300) + 150;
-            ctx.fillRect(sx, sy, 1.5, 1.5);
-        }
-        
+        // 2. Parallax Skyline with Glowing Windows & Neon Billboards
         ctx.save();
         ctx.translate(data.bgScroll * 0.15 % 800, 0);
-        ctx.fillStyle = '#110c22';
-        for(let i=0; i<15; i++) {
-            const h = 100 + Math.sin(i * 587) * 80;
-            const w = 60 + Math.sin(i * 324) * 30;
-            ctx.fillRect(i * 120, 500 - h, w, h + 100);
+        for(let i=0; i<16; i++) {
+            const h = 120 + Math.sin(i * 587) * 90;
+            const w = 70 + Math.sin(i * 324) * 35;
+            const bx = i * 110 - 200;
+            const by = 480 - h;
             
-            ctx.fillStyle = i % 2 === 0 ? '#ff1493' : '#00e5ff';
-            ctx.fillRect(i * 120 + w/2 - 2, 500 - h + 10, 4, 30);
-            ctx.fillStyle = '#110c22';
+            ctx.fillStyle = '#0f081c';
+            ctx.fillRect(bx, by, w, h + 100);
+            
+            // Glowing windows
+            for (let wy = by + 10; wy < 460; wy += 22) {
+                for (let wx = bx + 8; wx < bx + w - 12; wx += 16) {
+                    if ((i + Math.floor(wx/10) + Math.floor(wy/10)) % 3 === 0) {
+                        ctx.fillStyle = (i % 2 === 0) ? 'rgba(255, 200, 50, 0.75)' : 'rgba(0, 240, 255, 0.65)';
+                        ctx.shadowColor = ctx.fillStyle;
+                        ctx.shadowBlur = 4;
+                        ctx.fillRect(wx, wy, 8, 12);
+                    }
+                }
+            }
+            // Neon sign strip on rooftops
+            if (i % 3 === 0) {
+                ctx.shadowColor = (i % 2 === 0) ? '#ff007f' : '#00ffcc';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = ctx.shadowColor;
+                ctx.fillRect(bx + 10, by - 8, w - 20, 5);
+            }
         }
         ctx.restore();
+
+        // 3. Water Canal at bottom (Dotonbori River)
+        this.drawWaterLayer(480, 120, this.gameTime, {
+            baseColor: '#070514',
+            topColor: '#2b0a4d',
+            waveColor: 'rgba(255, 120, 200, 0.45)'
+        });
         
-        let canal = ctx.createLinearGradient(0, 480, 0, 600);
-        canal.addColorStop(0, '#0a0a14');
-        canal.addColorStop(1, '#651fff');
-        ctx.fillStyle = canal;
-        ctx.save();
-        ctx.globalAlpha = 0.2;
-        ctx.fillRect(0, 480, 800, 120);
-        ctx.restore();
-        
+        // 4. Platforms (Rooftops) with glowing neon rim
         for (let plat of data.platforms) {
-            ctx.fillStyle = '#1d1a2f';
+            // Platform body gradient
+            let platGrad = ctx.createLinearGradient(plat.x, plat.y, plat.x, plat.y + plat.h);
+            platGrad.addColorStop(0, '#261b40');
+            platGrad.addColorStop(1, '#0e081c');
+            ctx.fillStyle = platGrad;
             ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
             
+            // Neon top ledge glow
             ctx.save();
             ctx.strokeStyle = '#ff7b54';
             ctx.shadowColor = '#ff7b54';
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 16;
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(plat.x, plat.y);
-            ctx.lineTo(plat.x + plat.w, plat.y);
+            ctx.moveTo(plat.x, plat.y + 1);
+            ctx.lineTo(plat.x + plat.w, plat.y + 1);
             ctx.stroke();
             ctx.restore();
             
-            ctx.fillStyle = '#0f0c1a';
-            for (let wx = plat.x + 20; wx < plat.x + plat.w - 20; wx += 40) {
-                for (let wy = plat.y + 30; wy < 600; wy += 50) {
-                    ctx.fillRect(wx, wy, 20, 30);
+            // Sub-roof architecture grid pattern
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            for (let wx = plat.x + 15; wx < plat.x + plat.w - 15; wx += 35) {
+                for (let wy = plat.y + 20; wy < 600; wy += 45) {
+                    ctx.fillRect(wx, wy, 16, 25);
                 }
             }
         }
         
+        // 5. Obstacles with Fire Flame Glow
         for (let obs of data.obstacles) {
             if (obs.hit) continue;
             ctx.save();
             ctx.translate(obs.x + obs.w/2, obs.y + obs.h/2);
             
             ctx.shadowColor = '#ff3333';
-            ctx.shadowBlur = 12;
-            ctx.fillStyle = '#ff3333';
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = 'rgba(255, 51, 51, 0.85)';
+            ctx.strokeStyle = '#ffe5e5';
+            ctx.lineWidth = 2.5;
             
             ctx.beginPath();
             ctx.arc(0, 0, obs.w/2, 0, Math.PI*2);
@@ -3397,11 +3644,14 @@ window.MinigamesManager = {
             ctx.stroke();
             
             ctx.fillStyle = '#ffffff';
-            ctx.font = '16px sans-serif';
-            ctx.fillText('🔥', -8, 5);
+            ctx.font = 'bold 20px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🔥', 0, 1);
             ctx.restore();
         }
         
+        // 6. Collectible Powerups with Gold Aura
         for (let item of data.items) {
             if (item.collected) continue;
             ctx.save();
@@ -3609,27 +3859,12 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const data = this.gameData;
         
-        let bg = ctx.createRadialGradient(400, 300, 50, 400, 300, 500);
-        bg.addColorStop(0, '#1c1b35');
-        bg.addColorStop(1, '#080512');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0,0,800,600);
+        // Atmospheric Night Sky with Stars & Glowing Moon
+        this.drawAtmosphericBackground('night_temple', this.gameTime);
         
-        ctx.save();
-        ctx.shadowColor = '#ffe082';
-        ctx.shadowBlur = 45;
-        ctx.fillStyle = '#ffecb3';
-        ctx.beginPath();
-        ctx.arc(400, 160, 100, 0, Math.PI*2);
-        ctx.fill();
-        ctx.restore();
-        
-        ctx.fillStyle = '#ffb74d';
-        for(let i=0; i<25; i++) {
-            const px = (Math.sin(i * 128) * 4000 + this.gameTime * 40) % 800;
-            const py = (Math.cos(i * 242) * 300 + this.gameTime * 15) % 600;
-            ctx.fillRect(px, py, 2.5, 2.5);
-        }
+        // Ambient Fireflies
+        this.spawnAmbientParticles('fireflies', 0.08);
+        this.drawParticles();
         
         ctx.fillStyle = '#06030c';
         ctx.fillRect(0, 500, 800, 100);
@@ -3933,11 +4168,11 @@ window.MinigamesManager = {
         const grid = this.gameData.grid;
         
         // Deep blue/indigo water gradient background
-        let waterGrad = ctx.createLinearGradient(0, 0, 0, 600);
-        waterGrad.addColorStop(0, '#040d1a');
-        waterGrad.addColorStop(1, '#0b2035');
-        ctx.fillStyle = waterGrad;
-        ctx.fillRect(0, 0, 800, 600);
+        this.drawWaterLayer(0, 600, this.gameTime, {
+            baseColor: '#051221',
+            topColor: '#0d2847',
+            waveColor: 'rgba(0, 240, 255, 0.45)'
+        });
         
         // Draw water ripples
         ctx.save();
@@ -3948,7 +4183,7 @@ window.MinigamesManager = {
             const radius = (this.gameTime * 20 + i * 25) % maxRadius;
             const opacity = 1 - (radius / maxRadius);
             
-            ctx.strokeStyle = `rgba(0, 245, 255, ${opacity * 0.12})`;
+            ctx.strokeStyle = `rgba(0, 245, 255, ${opacity * 0.18})`;
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.arc(rx, ry, radius, 0, Math.PI * 2);
@@ -3962,10 +4197,10 @@ window.MinigamesManager = {
                 ctx.save();
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.angle);
-                ctx.scale(1, 0.6); // Scale to draw an ellipse using standard arc
+                ctx.scale(1, 0.6);
                 ctx.fillStyle = '#ff80ab';
                 ctx.shadowColor = '#ff80ab';
-                ctx.shadowBlur = 3;
+                ctx.shadowBlur = 6;
                 ctx.beginPath();
                 ctx.arc(0, 0, p.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -3974,9 +4209,11 @@ window.MinigamesManager = {
         }
         
         // Draw Header Instructions
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
         ctx.font = 'bold 16px sans-serif';
         ctx.textAlign = 'center';
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 8;
         ctx.fillText('🌸 ROTAR PUENTES: Conecta el Muelle Izquierdo con la Puerta Torii del Castillo 🌸', 400, 40);
 
         // Draw cells and bridge tiles
@@ -3986,12 +4223,12 @@ window.MinigamesManager = {
                 const cx = 100 + col * 120;
                 const cy = 100 + row * 110;
                 
-                // Draw water tile background
-                ctx.fillStyle = 'rgba(10, 25, 40, 0.45)';
-                ctx.fillRect(cx + 4, cy + 4, 112, 102);
-                ctx.strokeStyle = 'rgba(0, 245, 255, 0.05)';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(cx + 4, cy + 4, 112, 102);
+                // Glassmorphic tile container
+                this.drawGlassCard(cx + 4, cy + 4, 112, 102, {
+                    fill: 'rgba(8, 22, 38, 0.65)',
+                    borderColor: 'rgba(0, 240, 255, 0.2)',
+                    radius: 8
+                });
                 
                 if (cell.type === 'E') continue;
                 
@@ -4378,11 +4615,8 @@ window.MinigamesManager = {
         const camY = this.gameData.cameraY;
         const p = this.gameData.player;
         
-        let grad = ctx.createLinearGradient(0, 0, 0, 600);
-        grad.addColorStop(0, '#020205');
-        grad.addColorStop(1, '#0b1626');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0,0,800,600);
+        // Cyber City Night Atmosphere
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
         
         for(let star of this.gameData.stars) {
             const sy = (star.y + camY * 0.4) % 1800; 
@@ -4614,23 +4848,8 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const data = this.gameData;
         
-        ctx.fillStyle = '#06050b';
-        ctx.fillRect(0,0,800,600);
-        
-        ctx.strokeStyle = '#120f26';
-        ctx.lineWidth = 1;
-        for(let col=0; col<=6; col++) {
-            ctx.beginPath();
-            ctx.moveTo(100 + col*100, 80);
-            ctx.lineTo(100 + col*100, 530);
-            ctx.stroke();
-        }
-        for(let row=0; row<=6; row++) {
-            ctx.beginPath();
-            ctx.moveTo(100, 80 + row*75);
-            ctx.lineTo(700, 80 + row*75);
-            ctx.stroke();
-        }
+        // Cyber City Background Atmosphere
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
         
         for (let obs of data.obstacles) {
             const ox = 100 + obs.col * 100;
@@ -5015,18 +5234,8 @@ window.MinigamesManager = {
         const gd = this.gameData;
         if (!gd) return;
 
-        const skyGrad = this.ctx.createLinearGradient(0, 0, 0, 480);
-        skyGrad.addColorStop(0, '#050c18');
-        skyGrad.addColorStop(1, '#152238');
-        this.ctx.fillStyle = skyGrad;
-        this.ctx.fillRect(0, 0, 800, 600);
-
-        this.ctx.fillStyle = "rgba(255,255,255,0.4)";
-        for (let i = 0; i < 20; i++) {
-            let x = (i * 137) % 800;
-            let y = (i * 73) % 250;
-            this.ctx.fillRect(x, y, 1.5, 1.5);
-        }
+        // Sunset Moat Atmosphere
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
 
         this.ctx.fillStyle = "#1e3820";
         this.ctx.fillRect(0, 480, gd.moat.x, 120);
@@ -5329,23 +5538,15 @@ window.MinigamesManager = {
         const gd = this.gameData;
         if (!gd) return;
 
-        this.ctx.fillStyle = '#060309';
-        this.ctx.fillRect(0, 0, 800, 600);
-
-        this.ctx.strokeStyle = 'rgba(255, 0, 127, 0.05)';
-        this.ctx.lineWidth = 1;
-        for (let x = 0; x < 800; x += 40) {
-            this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, 600); this.ctx.stroke();
-        }
-        for (let y = 0; y < 600; y += 40) {
-            this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(800, y); this.ctx.stroke();
-        }
-
-        this.ctx.strokeStyle = '#ff007f';
-        this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(20, 60, 760, 520);
-        this.ctx.fillStyle = 'rgba(255, 0, 127, 0.02)';
-        this.ctx.fillRect(20, 60, 760, 520);
+        // Cyber City Data Grid Atmosphere
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
+        
+        // Main glassmorphic mainframe board
+        this.drawGlassCard(20, 60, 760, 520, {
+            fill: 'rgba(8, 6, 20, 0.75)',
+            borderColor: 'rgba(255, 0, 127, 0.4)',
+            radius: 12
+        });
 
         const timeRatio = gd.timeLeft / 35;
         this.ctx.fillStyle = timeRatio > 0.3 ? '#00f0ff' : '#ff3333';
@@ -5542,8 +5743,10 @@ window.MinigamesManager = {
         const gd = this.gameData;
         if (!gd) return;
 
-        this.ctx.fillStyle = '#06050a';
-        this.ctx.fillRect(0, 0, 800, 600);
+        // Night Temple Atmospheric Background
+        this.drawAtmosphericBackground('night_temple', this.gameTime);
+        this.spawnAmbientParticles('fireflies', 0.05);
+        this.drawParticles();
 
         this.ctx.fillStyle = '#11101a';
         for (let i = 0; i < 3; i++) {
@@ -5727,17 +5930,15 @@ window.MinigamesManager = {
         const gd = this.gameData;
         if (!gd) return;
 
-        this.ctx.fillStyle = '#060e0a';
-        this.ctx.fillRect(0, 0, 800, 600);
-
-        this.ctx.strokeStyle = 'rgba(0, 255, 100, 0.08)';
-        this.ctx.lineWidth = 1;
-        for (let x = 0; x < 800; x += 40) {
-            this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, 400); this.ctx.stroke();
-        }
-        for (let y = 0; y < 400; y += 40) {
-            this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(800, y); this.ctx.stroke();
-        }
+        // Cyber Oscilloscope Atmosphere
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
+        
+        // Control Dashboard Glass Card
+        this.drawGlassCard(40, 420, 720, 150, {
+            fill: 'rgba(5, 18, 12, 0.75)',
+            borderColor: 'rgba(0, 255, 136, 0.3)',
+            radius: 12
+        });
 
         this.ctx.strokeStyle = 'rgba(0, 255, 100, 0.2)';
         this.ctx.lineWidth = 2;
@@ -6005,175 +6206,184 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Background water gradient
-        let water = ctx.createLinearGradient(0, 0, 0, 600);
-        water.addColorStop(0, '#001a2d');
-        water.addColorStop(1, '#00070d');
-        ctx.fillStyle = water;
-        ctx.fillRect(0, 0, 800, 600);
+        // Deep Ocean Atmospheric Background with light caustics & ambient bubbles
+        this.drawAtmosphericBackground('deep_ocean', this.gameTime);
+        this.spawnAmbientParticles('bubbles', 0.08);
+        this.drawParticles();
 
-        // Draw radar circles / sonar grids in background
-        ctx.strokeStyle = 'rgba(0, 255, 100, 0.05)';
+        // Pulsing Sonar Concentric Rings
+        const pulse = (this.gameTime * 40) % 300;
+        ctx.strokeStyle = 'rgba(0, 255, 150, 0.12)';
         ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(400, 300, 150, 0, Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(400, 300, 300, 0, Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, 300); ctx.lineTo(800, 300); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 600); ctx.stroke();
+        ctx.beginPath(); ctx.arc(400, 300, pulse, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(0, 255, 150, 0.06)';
+        ctx.beginPath(); ctx.arc(400, 300, (pulse + 150) % 300, 0, Math.PI * 2); ctx.stroke();
 
-        // Sonar beam sweep animation
-        let sweepAngle = this.gameTime * 1.5;
-        ctx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(400, 300);
-        ctx.lineTo(400 + Math.cos(sweepAngle)*500, 300 + Math.sin(sweepAngle)*500);
-        ctx.stroke();
-
-        // Draw bubbles
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        for (let b of gd.bubbles) {
+        // Sonar Beam Sweep Radar
+        const sweepAngle = this.gameTime * 1.8;
+        const grad = ctx.createConicGradient ? ctx.createConicGradient(sweepAngle, 400, 300) : null;
+        if (grad) {
+            grad.addColorStop(0, 'rgba(0, 255, 136, 0.15)');
+            grad.addColorStop(0.1, 'rgba(0, 255, 136, 0.02)');
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(400, 300, 450, 0, Math.PI * 2); ctx.fill();
+        } else {
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.2)';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
-            ctx.fill();
+            ctx.moveTo(400, 300);
+            ctx.lineTo(400 + Math.cos(sweepAngle) * 500, 300 + Math.sin(sweepAngle) * 500);
+            ctx.stroke();
         }
 
-        // Draw creatures
+        // Draw Creatures with Bioluminescent Glow Shaders
         for (let c of gd.creatures) {
-            if (c.scanned && c.type === 'alien') continue; // Hidden once scanned
+            if (c.scanned && c.type === 'alien') continue;
 
             ctx.save();
             ctx.translate(c.x, c.y);
-            
-            // Swim rotation based on speed vector
             let angle = Math.atan2(c.vy, c.vx);
             ctx.rotate(angle);
 
             if (c.type === 'alien') {
-                // Glow effect
-                ctx.shadowBlur = 15;
+                // Intense alien bioluminescent aura
+                ctx.shadowBlur = 22;
                 ctx.shadowColor = c.color;
-                ctx.fillStyle = c.color;
-                
-                // Draw cute alien jellyfish/octopus shape
+
+                // Jellyfish / Octopus Alien Body Gradient
+                const alienGrad = ctx.createRadialGradient(0, -4, 2, 0, 0, c.radius);
+                alienGrad.addColorStop(0, '#ffffff');
+                alienGrad.addColorStop(0.4, c.color);
+                alienGrad.addColorStop(1, '#052e16');
+                ctx.fillStyle = alienGrad;
+
                 ctx.beginPath();
-                ctx.arc(0, 0, c.radius - 8, Math.PI, 0); // Head
-                ctx.lineTo(c.radius - 8, c.radius - 12);
-                ctx.quadraticCurveTo(0, c.radius - 2, -(c.radius - 8), c.radius - 12);
+                ctx.arc(0, 0, c.radius - 6, Math.PI, 0);
+                ctx.lineTo(c.radius - 6, c.radius - 10);
+                ctx.quadraticCurveTo(0, c.radius, -(c.radius - 6), c.radius - 10);
                 ctx.closePath();
                 ctx.fill();
 
-                // Tentacles/Legs waving
-                let wave = Math.sin(this.gameTime * 6 + c.id) * 6;
+                // Animated waving tentacles with trailing lights
+                const wave = Math.sin(this.gameTime * 7 + c.id) * 8;
                 ctx.strokeStyle = c.color;
-                ctx.lineWidth = 4;
+                ctx.lineWidth = 3.5;
                 ctx.beginPath();
-                ctx.moveTo(-12, 5); ctx.quadraticCurveTo(-18 + wave, 20, -12, 30);
-                ctx.moveTo(0, 5); ctx.quadraticCurveTo(0 + wave, 22, wave, 32);
-                ctx.moveTo(12, 5); ctx.quadraticCurveTo(18 + wave, 20, 12, 30);
+                ctx.moveTo(-10, 4); ctx.quadraticCurveTo(-16 + wave, 18, -10, 28);
+                ctx.moveTo(0, 4); ctx.quadraticCurveTo(wave, 20, wave * 0.5, 30);
+                ctx.moveTo(10, 4); ctx.quadraticCurveTo(16 + wave, 18, 10, 28);
                 ctx.stroke();
 
-                // Eyes
-                ctx.fillStyle = '#000000';
-                ctx.beginPath(); ctx.arc(-6, -4, 3, 0, Math.PI*2); ctx.arc(6, -4, 3, 0, Math.PI*2); ctx.fill();
+                // Bioluminescent light dots on tentacles
                 ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(-5, -5, 1, 0, Math.PI*2); ctx.arc(7, -5, 1, 0, Math.PI*2); ctx.fill();
-            } else {
-                // Normal fish
-                ctx.fillStyle = '#455a64';
-                // Tail
                 ctx.beginPath();
-                ctx.moveTo(-c.radius + 6, 0);
-                ctx.lineTo(-c.radius - 6, -10);
-                ctx.lineTo(-c.radius - 6, 10);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Body
-                ctx.beginPath();
-                ctx.ellipse(0, 0, c.radius - 4, c.radius - 12, 0, 0, Math.PI*2);
+                ctx.arc(-10 + wave * 0.3, 22, 2, 0, Math.PI * 2);
+                ctx.arc(wave * 0.3, 24, 2, 0, Math.PI * 2);
+                ctx.arc(10 + wave * 0.3, 22, 2, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Eye
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath(); ctx.arc(c.radius - 12, -3, 3, 0, Math.PI*2); ctx.fill();
+                // Expressive Glowing Eyes
                 ctx.fillStyle = '#000000';
-                ctx.beginPath(); ctx.arc(c.radius - 11, -3, 1.5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(-6, -4, 3.5, 0, Math.PI * 2); ctx.arc(6, -4, 3.5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(-5, -5, 1.5, 0, Math.PI * 2); ctx.arc(7, -5, 1.5, 0, Math.PI * 2); ctx.fill();
+            } else {
+                // Normal Deep-sea Fish
+                ctx.fillStyle = '#334155';
+                ctx.beginPath();
+                ctx.moveTo(-c.radius + 6, 0);
+                ctx.lineTo(-c.radius - 6, -9);
+                ctx.lineTo(-c.radius - 6, 9);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#475569';
+                ctx.beginPath();
+                ctx.ellipse(0, 0, c.radius - 4, c.radius - 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.beginPath(); ctx.arc(c.radius - 12, -3, 3, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath(); ctx.arc(c.radius - 11, -3, 1.5, 0, Math.PI * 2); ctx.fill();
             }
             ctx.restore();
         }
 
-        // Draw Scanner Visor
+        // Draw Scanner Visor & Holographic Reticle Brackets
         const sc = gd.scanner;
         ctx.save();
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = sc.target ? (sc.target.type === 'alien' ? '#39ff14' : '#ff3333') : '#ffffff';
-        ctx.strokeStyle = sc.target ? (sc.target.type === 'alien' ? '#39ff14' : '#ff3333') : 'rgba(255,255,255,0.7)';
-        ctx.lineWidth = 3;
-        
-        // Main crosshair circle
-        ctx.beginPath();
-        ctx.arc(sc.x, sc.y, sc.radius, 0, Math.PI*2);
-        ctx.stroke();
+        const reticleColor = sc.target ? (sc.target.type === 'alien' ? '#39ff14' : '#ff3333') : '#00f0ff';
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = reticleColor;
+        ctx.strokeStyle = reticleColor;
+        ctx.lineWidth = 2.5;
 
-        // Crosshairs lines
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(sc.x - sc.radius - 8, sc.y); ctx.lineTo(sc.x - sc.radius + 6, sc.y);
-        ctx.moveTo(sc.x + sc.radius - 6, sc.y); ctx.lineTo(sc.x + sc.radius + 8, sc.y);
-        ctx.moveTo(sc.x, sc.y - sc.radius - 8); ctx.lineTo(sc.x, sc.y - sc.radius + 6);
-        ctx.moveTo(sc.x, sc.y + sc.radius - 6); ctx.lineTo(sc.x, sc.y + sc.radius + 8);
-        ctx.stroke();
+        // Target Lock Brackets around scanner
+        const r = sc.radius;
+        const bLen = 14;
+        // Top-left bracket
+        ctx.beginPath(); ctx.moveTo(sc.x - r, sc.y - r + bLen); ctx.lineTo(sc.x - r, sc.y - r); ctx.lineTo(sc.x - r + bLen, sc.y - r); ctx.stroke();
+        // Top-right bracket
+        ctx.beginPath(); ctx.moveTo(sc.x + r - bLen, sc.y - r); ctx.lineTo(sc.x + r, sc.y - r); ctx.lineTo(sc.x + r, sc.y - r + bLen); ctx.stroke();
+        // Bottom-left bracket
+        ctx.beginPath(); ctx.moveTo(sc.x - r, sc.y + r - bLen); ctx.lineTo(sc.x - r, sc.y + r); ctx.lineTo(sc.x - r + bLen, sc.y + r); ctx.stroke();
+        // Bottom-right bracket
+        ctx.beginPath(); ctx.moveTo(sc.x + r - bLen, sc.y + r); ctx.lineTo(sc.x + r, sc.y + r); ctx.lineTo(sc.x + r, sc.y + r - bLen); ctx.stroke();
 
-        // Draw HUD overlay in scanner
+        // Main crosshair circle with rotating dash ring
+        ctx.save();
+        ctx.translate(sc.x, sc.y);
+        ctx.rotate(this.gameTime * 2);
+        ctx.strokeStyle = reticleColor;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath(); ctx.arc(0, 0, r - 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+
+        // HUD overlay text in scanner
         if (sc.target) {
-            ctx.fillStyle = sc.target.type === 'alien' ? '#39ff14' : '#ff3333';
-            ctx.font = '10px monospace';
-            ctx.fillText(sc.target.type === 'alien' ? "MUTACIÓN DETECTADA" : "PECES COMUNES", sc.x - 45, sc.y - sc.radius - 14);
-            ctx.font = 'bold 12px monospace';
-            ctx.fillText(sc.target.name.toUpperCase(), sc.x - 45, sc.y - sc.radius - 4);
+            ctx.fillStyle = reticleColor;
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(sc.target.type === 'alien' ? "⚠️ FIRMA BIOLÓGICA ANÓMALA" : "FAUNA MARINA ESTÁNDAR", sc.x, sc.y - r - 16);
+            ctx.font = 'bold 13px monospace';
+            ctx.fillText(sc.target.name.toUpperCase(), sc.x, sc.y - r - 3);
 
             // Circular progress bar
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 6;
             ctx.beginPath();
-            ctx.arc(sc.x, sc.y, sc.radius - 4, -Math.PI/2, (-Math.PI/2) + (Math.PI * 2 * (sc.progress/100)));
+            ctx.arc(sc.x, sc.y, r - 5, -Math.PI / 2, (-Math.PI / 2) + (Math.PI * 2 * (sc.progress / 100)));
             ctx.stroke();
         } else {
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font = '10px monospace';
-            ctx.fillText("BUSCANDO...", sc.x - 30, sc.y - sc.radius - 10);
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.7)';
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText("🔍 RASTREANDO SONAR ABISAL...", sc.x, sc.y - r - 8);
         }
         ctx.restore();
 
-        // Draw general HUD info
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0, 0, 800, 45);
-        ctx.strokeStyle = '#222';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, 45); ctx.lineTo(800, 45); ctx.stroke();
-
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(2, 12, 24, 0.75)', borderColor: 'rgba(0, 255, 136, 0.4)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🎯 Clasificados: ${this.score} / ${this.goal}`, 25, 28);
-        
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🎯 Criaturas Catalogadas: ${this.score} / ${this.goal}`, 30, 36);
+
         ctx.textAlign = 'right';
         ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
-        ctx.fillText(`⏱️ Tiempo Restante: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 28);
+        ctx.fillText(`⏱️ Tiempo Restante: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 760, 36);
         ctx.textAlign = 'left';
 
-        // Draw list of scanned aliens on the side
+        // Glassmorphic Catalog List Panel on the Left
         if (gd.scannedList.length > 0) {
-            ctx.fillStyle = 'rgba(10, 25, 20, 0.6)';
-            ctx.fillRect(25, 70, 180, 25 + gd.scannedList.length * 20);
-            ctx.strokeStyle = '#39ff14';
-            ctx.strokeRect(25, 70, 180, 25 + gd.scannedList.length * 20);
-            
+            this.drawGlassCard(25, 65, 200, 30 + gd.scannedList.length * 22, { fill: 'rgba(2, 20, 16, 0.8)', borderColor: 'rgba(57, 255, 20, 0.5)', radius: 10 });
             ctx.fillStyle = '#39ff14';
             ctx.font = 'bold 11px monospace';
-            ctx.fillText("CRÍPTIDOS CATALOGADOS:", 35, 88);
+            ctx.fillText("👾 CATÁLOGO KUROMON:", 35, 84);
             ctx.fillStyle = '#ffffff';
             ctx.font = '11px monospace';
             gd.scannedList.forEach((name, i) => {
-                ctx.fillText(`✔️ ${name}`, 38, 108 + i * 20);
+                ctx.fillText(`✔️ ${name}`, 38, 104 + i * 22);
             });
         }
     },
@@ -6401,19 +6611,31 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Draw arcade chassis
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        // Glass container background
-        let glassBg = ctx.createLinearGradient(0, 80, 0, 480);
-        glassBg.addColorStop(0, '#021526');
-        glassBg.addColorStop(1, '#032541');
-        ctx.fillStyle = glassBg;
-        ctx.fillRect(150, 80, 600, 400);
+        // Neon Arcade Atmospheric Backdrop with ambient gold star sparkles
+        this.drawAtmosphericBackground('neon_arcade', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.05);
+        this.drawParticles();
 
-        // Grid lines in glass
-        ctx.strokeStyle = 'rgba(2, 136, 209, 0.1)';
+        // Neon Arcade Machine Top Marquee Header
+        this.drawGlassCard(130, 15, 640, 50, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(255, 0, 127, 0.6)', radius: 12 });
+        ctx.fillStyle = '#ff007f';
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = '#ff007f';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("🎰 LEGENDARY GACHAPON MASTER 🎰", 450, 48);
+        ctx.shadowBlur = 0;
+        ctx.textAlign = 'left';
+
+        // Glass Machine Chamber Container
+        this.drawGlassCard(150, 80, 600, 400, {
+            fill: 'rgba(2, 21, 38, 0.75)',
+            borderColor: 'rgba(2, 136, 209, 0.5)',
+            radius: 16
+        });
+
+        // Glowing Grid Lines inside chamber
+        ctx.strokeStyle = 'rgba(2, 136, 209, 0.12)';
         ctx.lineWidth = 1;
         for (let x = 150; x < 750; x += 50) {
             ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x, 480); ctx.stroke();
@@ -6422,118 +6644,114 @@ window.MinigamesManager = {
             ctx.beginPath(); ctx.moveTo(150, y); ctx.lineTo(750, y); ctx.stroke();
         }
 
-        // Draw exit chute on bottom-left
-        ctx.fillStyle = '#1e293b';
+        // Animated Exit Chute on bottom-left with pulsing neon arrow
+        ctx.fillStyle = '#0f172a';
         ctx.fillRect(gd.chute.x, gd.chute.y, gd.chute.w, gd.chute.h);
-        ctx.strokeStyle = '#0288d1';
+        ctx.strokeStyle = '#00ff99';
         ctx.lineWidth = 4;
         ctx.strokeRect(gd.chute.x, gd.chute.y, gd.chute.w, gd.chute.h);
 
-        // Arrow indicator pointing to chute
-        ctx.fillStyle = this.gameTime % 1.0 > 0.5 ? '#00e676' : '#0288d1';
-        ctx.font = 'bold 20px monospace';
-        ctx.fillText("⬇️ EXTRAC", 48, 530);
+        const arrowGlow = Math.sin(this.gameTime * 8) * 8 + 8;
+        ctx.save();
+        ctx.shadowBlur = arrowGlow;
+        ctx.shadowColor = '#00ff99';
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 16px monospace';
+        ctx.fillText("⬇️ EXTRACCIÓN", 25, 530);
+        ctx.restore();
 
-        // Draw obstacles (gears)
+        // Metallic Gear Obstacles with spinning teeth & red glow
         for (let obs of gd.obstacles) {
             ctx.save();
             ctx.translate(obs.x, obs.y);
             ctx.rotate(obs.angle);
             
-            // Draw gear outer spikes
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#f43f5e';
+
+            // Outer teeth spikes
             ctx.fillStyle = '#64748b';
             for (let i = 0; i < 8; i++) {
                 ctx.rotate(Math.PI / 4);
-                ctx.fillRect(-10, -obs.radius - 8, 20, 16);
+                ctx.fillRect(-8, -obs.radius - 9, 16, 16);
             }
             
-            // Draw gear body
-            ctx.beginPath();
-            ctx.arc(0, 0, obs.radius, 0, Math.PI*2);
-            ctx.fillStyle = '#475569';
-            ctx.fill();
-            ctx.strokeStyle = '#f43f5e';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            // Gear body with metallic rim
+            ctx.beginPath(); ctx.arc(0, 0, obs.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#334155'; ctx.fill();
+            ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3.5; ctx.stroke();
 
-            // Core
-            ctx.beginPath();
-            ctx.arc(0, 0, 12, 0, Math.PI*2);
-            ctx.fillStyle = '#0f172a';
-            ctx.fill();
-            
+            // Metallic core
+            ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#0f172a'; ctx.fill();
             ctx.restore();
         }
 
-        // Draw capsules
+        // Shiny 3D Gachapon Capsules with Internal Toy Silhouettes & Glint Speculars
         for (let cap of gd.capsules) {
             if (cap.collected) continue;
             ctx.save();
             ctx.translate(cap.x, cap.y);
             ctx.rotate(cap.angle);
 
-            // Shadow/Glow
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 12;
             ctx.shadowColor = cap.colors[0];
 
-            // Top half
-            ctx.fillStyle = cap.colors[0];
-            ctx.beginPath();
-            ctx.arc(0, 0, cap.radius, Math.PI, 0);
-            ctx.fill();
+            // Top half gradient dome
+            const topGrad = ctx.createRadialGradient(-4, -6, 2, 0, 0, cap.radius);
+            topGrad.addColorStop(0, '#ffffff');
+            topGrad.addColorStop(0.3, cap.colors[0]);
+            topGrad.addColorStop(1, '#000000');
+            ctx.fillStyle = topGrad;
+            ctx.beginPath(); ctx.arc(0, 0, cap.radius, Math.PI, 0); ctx.fill();
 
-            // Bottom half
-            ctx.fillStyle = cap.colors[1];
-            ctx.beginPath();
-            ctx.arc(0, 0, cap.radius, 0, Math.PI);
-            ctx.fill();
+            // Bottom half gradient dome
+            const botGrad = ctx.createRadialGradient(-4, 6, 2, 0, 0, cap.radius);
+            botGrad.addColorStop(0, '#ffffff');
+            botGrad.addColorStop(0.3, cap.colors[1]);
+            botGrad.addColorStop(1, '#000000');
+            ctx.fillStyle = botGrad;
+            ctx.beginPath(); ctx.arc(0, 0, cap.radius, 0, Math.PI); ctx.fill();
 
             // Divider seam line
-            ctx.strokeStyle = '#000000';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(-cap.radius, 0);
-            ctx.lineTo(cap.radius, 0);
-            ctx.stroke();
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(-cap.radius, 0); ctx.lineTo(cap.radius, 0); ctx.stroke();
 
-            // Glare shine highlight
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.beginPath();
-            ctx.arc(-8, -8, 6, 0, Math.PI*2);
-            ctx.fill();
+            // Specular Glare Highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.beginPath(); ctx.arc(-8, -8, 5, 0, Math.PI * 2); ctx.fill();
 
             ctx.restore();
         }
 
-        // Draw Claw Crane Mechanism
+        // Chrome Claw Crane Mechanism
         const cl = gd.claw;
         ctx.save();
         
-        // Steel cable
-        ctx.strokeStyle = '#94a3b8';
+        // Steel cable with metallic sheen
+        ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(cl.x, cl.y);
-        ctx.lineTo(cl.x, cl.y + cl.length);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cl.x, cl.y); ctx.lineTo(cl.x, cl.y + cl.length); ctx.stroke();
 
-        // Top carriage
+        // Top carriage unit
         ctx.fillStyle = '#0288d1';
-        ctx.fillRect(cl.x - 30, cl.y - 12, 60, 24);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(cl.x - 30, cl.y - 12, 60, 24);
+        ctx.fillRect(cl.x - 32, cl.y - 14, 64, 28);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.strokeRect(cl.x - 32, cl.y - 14, 64, 28);
 
-        // Claw tip node
-        ctx.fillStyle = '#64748b';
-        ctx.beginPath();
-        ctx.arc(cl.x, cl.y + cl.length, 12, 0, Math.PI*2);
-        ctx.fill();
+        // Chrome Claw Center Core Node
+        ctx.fillStyle = '#cbd5e1';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#00f0ff';
+        ctx.beginPath(); ctx.arc(cl.x, cl.y + cl.length, 14, 0, Math.PI * 2); ctx.fill();
 
-        // 3 metal claws spreading or closing
-        let openAngle = cl.state === 'extend' ? 0.6 : (cl.grab ? 0.2 : 0.4);
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 4;
+        // 3 Chrome Claws
+        const openAngle = cl.state === 'extend' ? 0.65 : (cl.grab ? 0.18 : 0.4);
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
         
         for (let i = -1; i <= 1; i++) {
             if (i === 0) continue;
@@ -6543,81 +6761,53 @@ window.MinigamesManager = {
             
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(i * 18, 16, i * 14, 38);
+            ctx.quadraticCurveTo(i * 20, 18, i * 16, 42);
             ctx.stroke();
-            
             ctx.restore();
         }
-        
         ctx.restore();
 
-        // Glass reflection sheen
-        ctx.fillStyle = 'rgba(255,255,255,0.03)';
-        ctx.beginPath();
-        ctx.moveTo(150, 80);
-        ctx.lineTo(380, 80);
-        ctx.lineTo(150, 480);
-        ctx.fill();
-
-        // Frame borders
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = 15;
-        ctx.strokeRect(150, 80, 600, 400);
-        ctx.strokeStyle = '#0288d1';
-        ctx.lineWidth = 6;
-        ctx.strokeRect(150, 80, 600, 400);
-
-        // Header Panel HUD
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, 0, 800, 48);
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(0, 240, 255, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🔮 Capturados: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🔮 Juguetes Capturados: ${this.score} / ${this.goal}`, 30, 36);
 
-        // Lives indicators (Hearts)
         let hearts = "";
-        for(let l=0; l<gd.lives; l++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 240, 29);
+        for (let l = 0; l < gd.lives; l++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 260, 36);
 
         ctx.textAlign = 'right';
         ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
-        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 29);
+        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 760, 36);
         ctx.textAlign = 'left';
 
-        // Prize collection text/display
+        // Announcement banner on prize capture
         if (gd.toyAnnounceTimer > 0) {
-            ctx.fillStyle = 'rgba(0,0,0,0.85)';
-            ctx.fillRect(0, 220, 800, 100);
-            ctx.strokeStyle = '#00ff99';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(0, 220, 800, 100);
-
-            ctx.fillStyle = '#ffffff';
+            this.drawGlassCard(100, 220, 600, 100, { fill: 'rgba(15, 23, 42, 0.95)', borderColor: 'rgba(0, 255, 153, 0.8)', radius: 16 });
+            ctx.fillStyle = '#00ff99';
             ctx.font = 'bold 22px Quicksand, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(gd.toyAnnounce, 400, 276);
+            ctx.shadowBlur = 15; ctx.shadowColor = '#00ff99';
+            ctx.fillText(gd.toyAnnounce, 400, 278);
+            ctx.shadowBlur = 0;
             ctx.textAlign = 'left';
         }
 
-        // Display Case of toys on bottom control panel
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(200, 500, 550, 75);
-        ctx.strokeStyle = '#334155';
-        ctx.strokeRect(200, 500, 550, 75);
-
-        ctx.fillStyle = '#94a3b8';
+        // Glassmorphic Prize Collection Shelf on Bottom Control Bar
+        this.drawGlassCard(200, 495, 570, 85, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(148, 163, 184, 0.4)', radius: 12 });
+        ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 11px monospace';
-        ctx.fillText("ESTANTERÍA DE PREMIOS:", 215, 520);
+        ctx.fillText("🏆 COLECCIÓN DE TOYS EN ESTANTERÍA:", 215, 516);
         
-        ctx.font = '12px Quicksand, sans-serif';
+        ctx.font = 'bold 13px Quicksand, sans-serif';
         ctx.fillStyle = '#ffffff';
         if (gd.toysCollected.length === 0) {
-            ctx.fillStyle = '#475569';
+            ctx.fillStyle = '#64748b';
             ctx.fillText("Estantería vacía... ¡Captura cápsulas para rellenarla!", 220, 548);
         } else {
             gd.toysCollected.forEach((toy, idx) => {
-                ctx.fillText(`🏆 ${toy}`, 220 + idx * 170, 550);
+                ctx.fillText(`🎁 ${toy}`, 220 + idx * 185, 550);
             });
         }
     },
@@ -6756,34 +6946,30 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Vending Machine interior background
-        ctx.fillStyle = '#1e1b4b';
-        ctx.fillRect(0, 0, 800, 600);
+        // Akihabara Neon Arcade Vending Atmosphere & Carbonation Bubbles
+        this.drawAtmosphericBackground('neon_arcade', this.gameTime);
+        this.spawnAmbientParticles('bubbles', 0.06);
+        this.drawParticles();
 
-        // Draw bubbles
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-        for (let b of gd.bubbles) {
-            ctx.beginPath(); ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); ctx.fill();
-        }
+        // Main Vending Machine Housing Glass Frame
+        this.drawGlassCard(120, 50, 560, 530, {
+            fill: 'rgba(15, 23, 42, 0.85)',
+            borderColor: 'rgba(255, 152, 0, 0.6)',
+            radius: 20
+        });
 
-        // Draw Vending Frame bezel
-        ctx.fillStyle = '#ff9800';
-        ctx.fillRect(100, 60, 600, 520);
-        ctx.fillStyle = '#0f172a'; // black screen behind grid
-        ctx.fillRect(150, 100, 500, 420);
-        
-        ctx.strokeStyle = '#e65100';
-        ctx.lineWidth = 12;
-        ctx.strokeRect(100, 60, 600, 520);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(150, 100, 500, 420);
+        // Inner Soda Display Grid Chamber Glass
+        this.drawGlassCard(155, 95, 490, 415, {
+            fill: 'rgba(6, 12, 24, 0.9)',
+            borderColor: 'rgba(0, 240, 255, 0.4)',
+            radius: 12
+        });
 
-        // Draw grid items (Sodas)
         const emojiMap = ["🍵", "🍊", "🍇", "🍓", "🥛"];
-        const colorMap = ["#2e7d32", "#ef6c00", "#6a1b9a", "#ad1457", "#00838f"];
-        const labelMap = ["Matcha", "Orange", "Grape", "Berry", "Soda"];
+        const colorMap = ["#22c55e", "#f97316", "#a855f7", "#ec4899", "#06b6d4"];
+        const labelMap = ["Matcha", "Orange", "Grape", "Berry", "Calpis"];
 
+        // Render Soda Cans with 3D Bevels, Metallic Rim & Glow Highlights
         for (let r = 0; r < gd.gridRows; r++) {
             for (let c = 0; c < gd.gridCols; c++) {
                 const val = gd.grid[r][c];
@@ -6792,82 +6978,98 @@ window.MinigamesManager = {
                 let cellX = gd.gridOffsetX + c * gd.cellSize;
                 let cellY = gd.gridOffsetY + r * gd.cellSize;
 
-                // Check if selected
                 const isSel = gd.selected.some(item => item.r === r && item.c === c);
 
-                // Draw can body
                 ctx.save();
-                ctx.translate(cellX + gd.cellSize/2, cellY + gd.cellSize/2);
+                ctx.translate(cellX + gd.cellSize / 2, cellY + gd.cellSize / 2);
+
                 if (isSel) {
-                    ctx.scale(1.1, 1.1);
-                    ctx.shadowBlur = 12;
+                    const pulseScale = 1.1 + Math.sin(this.gameTime * 12) * 0.05;
+                    ctx.scale(pulseScale, pulseScale);
+                    ctx.shadowBlur = 18;
                     ctx.shadowColor = colorMap[val];
                 }
 
-                // Can outline
-                ctx.fillStyle = colorMap[val];
-                ctx.fillRect(-20, -26, 40, 52);
-                
-                // Can rim top/bottom
-                ctx.fillStyle = '#b0bec5';
-                ctx.fillRect(-20, -29, 40, 3);
-                ctx.fillRect(-20, 26, 40, 3);
-                
-                // Emoji label
+                // Can Gradient Body
+                const canGrad = ctx.createLinearGradient(-20, 0, 20, 0);
+                canGrad.addColorStop(0, '#ffffff');
+                canGrad.addColorStop(0.3, colorMap[val]);
+                canGrad.addColorStop(1, '#0f172a');
+                ctx.fillStyle = canGrad;
+
+                // Rounded Can Body
+                ctx.beginPath();
+                ctx.roundRect(-22, -26, 44, 52, 6);
+                ctx.fill();
+
+                // Metallic Silver Rims (Top & Bottom)
+                ctx.fillStyle = '#cbd5e1';
+                ctx.fillRect(-22, -29, 44, 4);
+                ctx.fillRect(-22, 26, 44, 4);
+
+                // Condensation Glare Highlight Line
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.fillRect(-16, -24, 4, 48);
+
+                // Emoji Label
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '22px Quicksand, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(emojiMap[val], 0, 8);
+                ctx.fillText(emojiMap[val], 0, 7);
 
-                // Text label
+                // Text Label
                 ctx.font = 'bold 8px monospace';
-                ctx.fillText(labelMap[val].toUpperCase(), 0, 20);
+                ctx.fillText(labelMap[val].toUpperCase(), 0, 19);
 
                 ctx.restore();
             }
         }
 
-        // Draw dragging connecting lines
+        // Draw Neon Energy Connecting Line with Sparkles along drag path
         if (gd.selected.length > 0) {
+            const activeColor = colorMap[gd.selected[0].val];
             ctx.save();
-            ctx.strokeStyle = colorMap[gd.selected[0].val];
-            ctx.lineWidth = 6;
+            ctx.strokeStyle = activeColor;
+            ctx.lineWidth = 7;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            
-            // Neon glow line
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = colorMap[gd.selected[0].val];
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = activeColor;
 
             ctx.beginPath();
             gd.selected.forEach((sel, idx) => {
-                let x = gd.gridOffsetX + sel.c * gd.cellSize + gd.cellSize/2;
-                let y = gd.gridOffsetY + sel.r * gd.cellSize + gd.cellSize/2;
+                let x = gd.gridOffsetX + sel.c * gd.cellSize + gd.cellSize / 2;
+                let y = gd.gridOffsetY + sel.r * gd.cellSize + gd.cellSize / 2;
                 if (idx === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             });
             ctx.stroke();
+
+            // Inner core laser beam line
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
             ctx.restore();
         }
 
-        // Draw vending dispenser exit at the bottom
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(250, 530, 300, 40);
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(250, 530, 300, 40);
+        // Vending Dispenser Exit Slot at bottom
+        this.drawGlassCard(240, 520, 320, 45, { fill: 'rgba(2, 6, 23, 0.9)', borderColor: 'rgba(249, 115, 22, 0.5)', radius: 8 });
+        ctx.fillStyle = '#f97316';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText("🥤 DISPENSADOR KAWAII 🥤", 400, 547);
+        ctx.textAlign = 'left';
 
-        // Header Panel HUD
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, 0, 800, 48);
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.8)', borderColor: 'rgba(249, 115, 22, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🥤 Servidos: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🥤 Soda Servida: ${this.score} / ${this.goal}`, 30, 36);
 
         ctx.textAlign = 'right';
         ctx.fillStyle = gd.timeLeft < 15 ? '#ff3333' : '#ffd700';
-        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 775, 29);
+        ctx.fillText(`⏱️ Tiempo: ${Math.max(0, Math.ceil(gd.timeLeft))}s`, 760, 36);
         ctx.textAlign = 'left';
     },
 
@@ -7043,132 +7245,132 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Sky gradient
-        let sky = ctx.createLinearGradient(0, 0, 0, 400);
-        sky.addColorStop(0, '#020208');
-        sky.addColorStop(1, '#0e0b29');
-        ctx.fillStyle = sky;
-        ctx.fillRect(0, 0, 800, 600);
+        // Dotonbori Cyber Neon Night Atmosphere
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
+        this.spawnAmbientParticles('cyber', 0.05);
+        this.drawParticles();
 
-        // Parallax buildings and Glico Man neon sign
+        // Parallax Dotonbori Buildings & Neon Billboards
         ctx.fillStyle = '#08061a';
-        ctx.fillRect(0, 200, 800, 250);
+        ctx.fillRect(0, 180, 800, 270);
         
-        ctx.fillStyle = '#130e2e';
-        // Draw some building rects based on scroll
         for (let i = 0; i < 4; i++) {
             let bx = (gd.bgOffset + i * 280) % 1120 - 100;
-            ctx.fillRect(bx, 150, 140, 300);
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
-            // Windows
-            ctx.fillRect(bx + 20, 180, 20, 30);
-            ctx.fillRect(bx + 80, 180, 20, 30);
-            ctx.fillRect(bx + 20, 260, 20, 30);
-            ctx.fillRect(bx + 80, 260, 20, 30);
             ctx.fillStyle = '#130e2e';
+            ctx.fillRect(bx, 140, 150, 310);
+            
+            // Neon window grids
+            ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 240, 255, 0.2)' : 'rgba(255, 0, 127, 0.2)';
+            for (let wy = 160; wy < 400; wy += 40) {
+                ctx.fillRect(bx + 15, wy, 25, 20);
+                ctx.fillRect(bx + 110, wy, 25, 20);
+            }
         }
 
-        // Draw Glico Man style neon silhouette in center of backdrop
+        // Animated Glico Man Neon Runner Sign in center
         ctx.save();
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 18;
         ctx.shadowColor = '#00ffcc';
         ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        // Runner body outline (chibi representation)
-        ctx.arc(400, 230, 20, 0, Math.PI*2); // head
-        ctx.moveTo(400, 250); ctx.lineTo(400, 300); // spine
-        ctx.moveTo(400, 260); ctx.lineTo(370, 220); // left hand V
-        ctx.moveTo(400, 260); ctx.lineTo(430, 220); // right hand V
-        ctx.moveTo(400, 300); ctx.lineTo(380, 340); // left leg
-        ctx.moveTo(400, 300); ctx.lineTo(420, 340); // right leg
+        ctx.arc(400, 220, 22, 0, Math.PI * 2); // Head
+        ctx.moveTo(400, 242); ctx.lineTo(400, 290); // Spine
+        ctx.moveTo(400, 250); ctx.lineTo(365, 210); // Raised Left Arm V
+        ctx.moveTo(400, 250); ctx.lineTo(435, 210); // Raised Right Arm V
+        ctx.moveTo(400, 290); ctx.lineTo(375, 335); // Left Leg
+        ctx.moveTo(400, 290); ctx.lineTo(425, 335); // Right Leg
         ctx.stroke();
         ctx.restore();
 
-        // Giant Kani Doraku Crab hanging sign silhouette (outline)
+        // Giant Kani Doraku Crab Mechanical Sign (Pulsing Red Neon)
         ctx.save();
-        ctx.shadowBlur = 20;
+        const crabGlow = Math.sin(this.gameTime * 6) * 8 + 18;
+        ctx.shadowBlur = crabGlow;
         ctx.shadowColor = '#ff3333';
         ctx.strokeStyle = '#ff3333';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        let kx = 600, ky = 180;
-        ctx.arc(kx, ky, 35, 0, Math.PI*2); // Body
-        ctx.moveTo(kx - 35, ky); ctx.quadraticCurveTo(kx - 65, ky - 30, kx - 55, ky - 50); // Left claw
-        ctx.moveTo(kx + 35, ky); ctx.quadraticCurveTo(kx + 65, ky - 30, kx + 55, ky - 50); // Right claw
-        // Legs
-        ctx.moveTo(kx - 25, ky + 25); ctx.lineTo(kx - 45, ky + 45);
-        ctx.moveTo(kx - 10, ky + 33); ctx.lineTo(kx - 25, ky + 55);
-        ctx.moveTo(kx + 25, ky + 25); ctx.lineTo(kx + 45, ky + 45);
-        ctx.moveTo(kx + 10, ky + 33); ctx.lineTo(kx + 25, ky + 55);
+        let kx = 620, ky = 180;
+        ctx.arc(kx, ky, 36, 0, Math.PI * 2);
+        ctx.moveTo(kx - 36, ky); ctx.quadraticCurveTo(kx - 68, ky - 32, kx - 58, ky - 52);
+        ctx.moveTo(kx + 36, ky); ctx.quadraticCurveTo(kx + 68, ky - 32, kx + 58, ky - 52);
+        ctx.moveTo(kx - 26, ky + 26); ctx.lineTo(kx - 48, ky + 48);
+        ctx.moveTo(kx - 12, ky + 34); ctx.lineTo(kx - 26, ky + 58);
+        ctx.moveTo(kx + 26, ky + 26); ctx.lineTo(kx + 48, ky + 48);
+        ctx.moveTo(kx + 12, ky + 34); ctx.lineTo(kx + 26, ky + 58);
         ctx.stroke();
         ctx.restore();
 
-        // Dotonbori Canal Water at bottom
-        ctx.fillStyle = '#022329';
-        ctx.fillRect(0, 495, 800, 105);
-        
-        // Neon reflections in canal water
-        ctx.fillStyle = 'rgba(255,51,51,0.15)';
-        ctx.fillRect(520, 495, 160, 105);
-        ctx.fillStyle = 'rgba(0,255,200,0.12)';
-        ctx.fillRect(320, 495, 160, 105);
+        // Dotonbori Canal Water with Dynamic Neon Reflections
+        ctx.fillStyle = '#021820';
+        ctx.fillRect(0, 490, 800, 110);
 
-        // Ground Platform/Bridge path
-        ctx.fillStyle = '#374151';
-        ctx.fillRect(0, 480, 800, 20);
-        ctx.fillStyle = '#1f2937';
-        ctx.fillRect(0, 490, 800, 5);
+        // Water surface neon reflection waves
+        const waveShift = Math.sin(this.gameTime * 4) * 15;
+        ctx.fillStyle = 'rgba(255, 0, 127, 0.18)';
+        ctx.fillRect(500 + waveShift, 490, 180, 110);
+        ctx.fillStyle = 'rgba(0, 255, 204, 0.15)';
+        ctx.fillRect(300 - waveShift, 490, 180, 110);
 
-        // Coins
+        // Ground Bridge Path
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, 475, 800, 20);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 490, 800, 6);
+
+        // Spinning Gold Yen Coins with Glow Trails
         for (let cn of gd.coins) {
             ctx.save();
             ctx.translate(cn.x + 12, cn.y + 12);
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 14;
             ctx.shadowColor = '#ffd700';
             ctx.fillStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.arc(0, 0, 11, 0, Math.PI*2);
-            ctx.fill();
-            ctx.fillStyle = '#ff8f00';
-            ctx.font = 'bold 9px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText("¥", 0, 3);
+            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#b45309';
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText("¥", 0, 1);
             ctx.restore();
         }
 
-        // Obstacles (Takoyakis)
+        // Sizzling Takoyaki Obstacles with Steam Smoke Trails
         for (let obs of gd.obstacles) {
             ctx.save();
             ctx.translate(obs.x, obs.y);
             ctx.rotate(obs.angle);
             
-            // Ball body
-            ctx.fillStyle = '#a0522d';
-            ctx.beginPath(); ctx.arc(0, 0, obs.radius, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ea580c';
 
-            // Sauce stripes
-            ctx.strokeStyle = '#4e2409';
+            // Golden-brown Takoyaki ball
+            const takoGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, obs.radius);
+            takoGrad.addColorStop(0, '#f97316');
+            takoGrad.addColorStop(0.7, '#9a3412');
+            takoGrad.addColorStop(1, '#431407');
+            ctx.fillStyle = takoGrad;
+            ctx.beginPath(); ctx.arc(0, 0, obs.radius, 0, Math.PI * 2); ctx.fill();
+
+            // Dark Brown Tonkatsu Sauce Stripes
+            ctx.strokeStyle = '#270e04';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(-12, -12); ctx.lineTo(12, 12);
             ctx.moveTo(-6, -15); ctx.lineTo(15, 6);
             ctx.stroke();
 
-            // Seaweed/Sparks flakes
-            ctx.fillStyle = '#2e7d32';
+            // Green Aonori Seaweed Flakes
+            ctx.fillStyle = '#22c55e';
             ctx.fillRect(-8, 5, 4, 4);
             ctx.fillRect(6, -10, 5, 3);
-
             ctx.restore();
         }
 
-        // Draw Player Crab
+        // Animated Player Crab with Speed Blur & Eye Motion
         const p = gd.player;
         ctx.save();
         ctx.translate(p.x, p.y);
 
-        // Invulnerable flashing
         if (p.invuln > 0 && Math.floor(this.gameTime * 15) % 2 === 0) {
             ctx.globalAlpha = 0.35;
         }
@@ -7371,91 +7573,88 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Wooden table background texture
-        ctx.fillStyle = '#3e2723';
+        // Izakaya Warm Wood & Grill Ambient Backdrop
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+
+        // Dark Mahogany Wooden Table Surface
+        ctx.fillStyle = '#271510';
         ctx.fillRect(0, 0, 800, 600);
         
-        ctx.strokeStyle = '#2d1b18';
+        ctx.strokeStyle = '#1a0d0a';
         ctx.lineWidth = 4;
-        for (let y = 50; y < 600; y += 80) {
+        for (let y = 60; y < 600; y += 75) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
         }
 
-        // Circular Charcoal Grill Bezel
-        ctx.shadowBlur = 25;
+        // Cast-Iron Charcoal Grill Outer Bezel
+        ctx.save();
+        ctx.shadowBlur = 30;
         ctx.shadowColor = '#000000';
-        ctx.fillStyle = '#212121';
-        ctx.beginPath(); ctx.arc(400, 300, 260, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath(); ctx.arc(400, 300, 260, 0, Math.PI * 2); ctx.fill();
 
-        // Hot Coals glow inside
-        ctx.shadowBlur = 15;
+        // Hot Glowing Charcoal Bed Core (Fiery Red/Orange Pulsing Glow)
+        const coalGlow = Math.sin(this.gameTime * 6) * 10 + 20;
+        ctx.shadowBlur = coalGlow;
         ctx.shadowColor = '#ff3c00';
-        ctx.fillStyle = '#d50000';
-        ctx.beginPath(); ctx.arc(400, 300, 220, 0, Math.PI*2); ctx.fill();
+        const coalGrad = ctx.createRadialGradient(400, 300, 20, 400, 300, 220);
+        coalGrad.addColorStop(0, '#ffedd5');
+        coalGrad.addColorStop(0.3, '#f97316');
+        coalGrad.addColorStop(0.7, '#dc2626');
+        coalGrad.addColorStop(1, '#450a0a');
+        ctx.fillStyle = coalGrad;
+        ctx.beginPath(); ctx.arc(400, 300, 220, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
 
-        // Draw grill grid wire mesh lines
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#424242';
+        // Metallic Wire Mesh Grill Grid Lines
+        ctx.strokeStyle = '#78716c';
         ctx.lineWidth = 3;
         for (let x = 190; x < 610; x += 22) {
             let dist = Math.abs(x - 400);
-            let chord = Math.sqrt(240*240 - dist*dist);
-            ctx.beginPath();
-            ctx.moveTo(x, 300 - chord);
-            ctx.lineTo(x, 300 + chord);
-            ctx.stroke();
+            let chord = Math.sqrt(240 * 240 - dist * dist);
+            ctx.beginPath(); ctx.moveTo(x, 300 - chord); ctx.lineTo(x, 300 + chord); ctx.stroke();
         }
         for (let y = 90; y < 510; y += 22) {
             let dist = Math.abs(y - 300);
-            let chord = Math.sqrt(240*240 - dist*dist);
-            ctx.beginPath();
-            ctx.moveTo(300 - chord, y);
-            ctx.lineTo(300 + chord, y);
-            ctx.stroke();
+            let chord = Math.sqrt(240 * 240 - dist * dist);
+            ctx.beginPath(); ctx.moveTo(300 - chord, y); ctx.lineTo(300 + chord, y); ctx.stroke();
         }
 
-        // Draw smoke particles
+        // Multi-layered Rising Charcoal Smoke Particles
         ctx.save();
         for (let sp of gd.smokeParticles) {
             ctx.globalAlpha = sp.opacity;
             ctx.fillStyle = sp.color;
-            ctx.beginPath();
-            ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2); ctx.fill();
         }
         ctx.restore();
 
-        // Draw slots with meats
+        // Render Grill Slots & Meats
         gd.slots.forEach(slot => {
             if (!slot.active) {
-                // Empty slot placement indicator
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                // Empty slot ring indicator
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
                 ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(slot.x, slot.y, 40, 0, Math.PI*2);
-                ctx.stroke();
+                ctx.beginPath(); ctx.arc(slot.x, slot.y, 42, 0, Math.PI * 2); ctx.stroke();
                 return;
             }
 
             const mt = slot.meat;
             ctx.save();
             ctx.translate(slot.x, slot.y);
-            ctx.scale(mt.flipProgress, 1.0); // Flip scaling animation
+            ctx.scale(mt.flipProgress, 1.0);
 
-            // Meat color mapping based on cook & burn values
-            let color = '#ef5350'; // Raw pink
+            let color = '#f87171'; // Raw Ruby Pink
             if (mt.cookProgress > 0) {
                 let factor = Math.min(1.0, mt.cookProgress / 100);
-                // Mix from pink (#ef5350) to golden grill brown (#795548)
-                color = this.lerpColor('#ef5350', '#795548', factor);
+                color = this.lerpColor('#f87171', '#92400e', factor); // Cooked Brown
             }
             if (mt.burnProgress > 0) {
                 let factor = Math.min(1.0, mt.burnProgress / 100);
-                // Mix from brown to black carbon (#1a0d00 to #000000)
-                color = this.lerpColor(color, '#121212', factor);
+                color = this.lerpColor(color, '#1c1917', factor); // Carbonized Black
             }
 
-            // Draw meat shapes
+            // Draw Meat Types
             if (mt.type === 'beef') {
                 ctx.fillStyle = color;
                 ctx.beginPath();
@@ -7465,108 +7664,86 @@ window.MinigamesManager = {
                 ctx.closePath();
                 ctx.fill();
 
-                // Marbling lines / grill lines
-                ctx.strokeStyle = mt.cookProgress > 60 ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.4)';
+                // Realistic Wagyu Fat Marbling / Sear Lines
+                ctx.strokeStyle = mt.cookProgress > 60 ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.6)';
                 ctx.lineWidth = 3.5;
                 ctx.beginPath();
                 ctx.moveTo(-20, -18); ctx.lineTo(-10, 18);
                 ctx.moveTo(0, -22); ctx.lineTo(10, 22);
                 ctx.moveTo(20, -18); ctx.lineTo(30, 18);
                 ctx.stroke();
-            }
-            else if (mt.type === 'shiitake') {
-                ctx.fillStyle = mt.burnProgress > 20 ? '#1b1b1b' : (mt.cookProgress > 60 ? '#3e2723' : '#a1887f');
-                ctx.beginPath();
-                ctx.arc(0, 0, 32, 0, Math.PI*2);
-                ctx.fill();
+            } else if (mt.type === 'shiitake') {
+                ctx.fillStyle = mt.burnProgress > 20 ? '#1c1917' : (mt.cookProgress > 60 ? '#451a03' : '#a1887f');
+                ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2); ctx.fill();
                 
-                // Mushroom top cross cuts
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4;
                 ctx.beginPath();
                 ctx.moveTo(-15, 0); ctx.lineTo(15, 0);
                 ctx.moveTo(0, -15); ctx.lineTo(0, 15);
                 ctx.stroke();
-            }
-            else if (mt.type === 'onion') {
-                // Onion ring
-                ctx.strokeStyle = color;
-                ctx.lineWidth = 14;
-                ctx.beginPath();
-                ctx.arc(0, 0, 28, 0, Math.PI*2);
-                ctx.stroke();
+            } else if (mt.type === 'onion') {
+                ctx.strokeStyle = color; ctx.lineWidth = 14;
+                ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.stroke();
 
-                ctx.strokeStyle = '#ffeb3b';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, 24, 0, Math.PI*2);
-                ctx.stroke();
+                ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.stroke();
             }
 
             ctx.restore();
 
-            // Progress Indicators circles on side
+            // Status Bar Ring & Progress Indicators
             ctx.save();
             ctx.translate(slot.x, slot.y);
 
-            let statusColor = '#2196f3'; // blue: raw
+            let statusColor = '#38bdf8';
             let text = `LADO ${mt.side}`;
             if (mt.cookProgress >= 60 && mt.cookProgress <= 100) {
-                statusColor = '#00ff99'; // green: PERFECT
+                statusColor = '#00ff99';
                 text = "¡AL PUNTO!";
             } else if (mt.cookProgress > 100 && mt.burnProgress < 80) {
-                statusColor = '#ff9800'; // orange: overcooked
-                text = "CUIDADO";
+                statusColor = '#f97316';
+                text = "¡ALERTA!";
             } else if (mt.burnProgress >= 80) {
-                statusColor = '#ff3333'; // red: BURNT
+                statusColor = '#ef4444';
                 text = "QUEMADO";
             }
 
-            // Draw indicator bar ring
-            ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-            ctx.lineWidth = 6;
-            ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)'; ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI * 2); ctx.stroke();
             
-            ctx.strokeStyle = statusColor;
-            ctx.lineWidth = 4;
-            let barProgress = mt.burnProgress > 0 ? (mt.burnProgress/100) : (mt.cookProgress/100);
+            ctx.strokeStyle = statusColor; ctx.lineWidth = 4;
+            let barProgress = mt.burnProgress > 0 ? (mt.burnProgress / 100) : (mt.cookProgress / 100);
             ctx.beginPath();
-            ctx.arc(0, 0, 48, -Math.PI/2, (-Math.PI/2) + Math.PI*2 * Math.min(1.0, barProgress));
+            ctx.arc(0, 0, 48, -Math.PI / 2, (-Math.PI / 2) + Math.PI * 2 * Math.min(1.0, barProgress));
             ctx.stroke();
 
-            // HUD text on slots
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 9px monospace';
+            ctx.font = 'bold 10px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(text, 0, 5);
-
+            ctx.fillText(text, 0, 4);
             ctx.restore();
         });
 
-        // Floating feedback text
+        // Floating Announcement Text Banner
         if (gd.feedbackTextTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
-            ctx.font = 'bold 26px Quicksand, sans-serif';
+            ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = gd.feedbackColor;
-            ctx.fillText(gd.feedbackText, 400, 90 + gd.feedbackTextTimer * 10);
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 90);
             ctx.restore();
         }
 
-        // Header Panel HUD
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, 0, 800, 48);
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(23, 15, 10, 0.85)', borderColor: 'rgba(249, 115, 22, 0.6)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🥩 Platos Perfectos: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🥩 Platos Wagyu Perfectos: ${this.score} / ${this.goal}`, 30, 36);
 
-        // Hearts / Lives
         let heartsHtml = "";
-        for(let l=0; l<gd.lives; l++) heartsHtml += "❤️ ";
-        ctx.fillText(`Vidas: ${heartsHtml}`, 350, 29);
+        for (let l = 0; l < gd.lives; l++) heartsHtml += "❤️ ";
+        ctx.fillText(`Vidas: ${heartsHtml}`, 380, 36);
     },
 
     inputYakinikuPress(x, y) {
@@ -7769,34 +7946,39 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Wooden board / kitchen back
-        ctx.fillStyle = '#efebe9';
+        // Japanese Kitchen Dojo Sunset Atmosphere & Ambient Sparkles
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
+
+        // Mahogany Kitchen Wall & Counter Base
+        ctx.fillStyle = '#1c1917';
         ctx.fillRect(0, 0, 800, 600);
 
-        // Conveyor belt track
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(0, 440, 800, 60);
-        ctx.fillStyle = '#78909c';
-        ctx.fillRect(0, 495, 800, 5);
+        // Forged Steel Conveyor Belt Track
+        this.drawGlassCard(0, 435, 800, 75, { fill: 'rgba(51, 65, 85, 0.9)', borderColor: 'rgba(148, 163, 184, 0.4)', radius: 0 });
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 495, 800, 6);
 
-        // Wooden cutting board shadow zone
-        ctx.fillStyle = '#d7ccc8';
-        ctx.fillRect(200, 435, 100, 70);
-        ctx.strokeStyle = '#8d6e63';
+        // Cypress Wood Cutting Board Target Area
+        this.drawGlassCard(190, 425, 120, 85, { fill: 'rgba(217, 119, 6, 0.85)', borderColor: 'rgba(251, 191, 36, 0.8)', radius: 10 });
+
+        // Pulsing Neon Laser Cutting Target Line
+        const laserGlow = Math.sin(this.gameTime * 10) * 4 + 10;
+        ctx.save();
+        ctx.shadowBlur = laserGlow;
+        ctx.shadowColor = '#ff0055';
+        ctx.strokeStyle = '#ff0055';
         ctx.lineWidth = 3;
-        ctx.strokeRect(200, 435, 100, 70);
-
-        // Red/dashed cutting line
-        ctx.strokeStyle = '#ff3333';
-        ctx.setLineDash([5, 5]);
-        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
         ctx.beginPath();
-        ctx.moveTo(gd.cutLineX, 400);
-        ctx.lineTo(gd.cutLineX, 510);
+        ctx.moveTo(gd.cutLineX, 390);
+        ctx.lineTo(gd.cutLineX, 515);
         ctx.stroke();
         ctx.setLineDash([]);
+        ctx.restore();
 
-        // Draw ingredients
+        // Render Ingredients on Conveyor
         gd.ingredients.forEach(item => {
             const emojis = {
                 tuna: '🐟', cucumber: '🥒', shiitake: '🍄', wasabi: '🥦',
@@ -7807,105 +7989,100 @@ window.MinigamesManager = {
             if (!item.hit) {
                 ctx.save();
                 ctx.translate(item.x, item.y);
-                ctx.shadowBlur = 4;
-                ctx.shadowColor = 'rgba(0,0,0,0.2)';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = item.type === 'stone' || item.type === 'broken_blade' ? '#ef4444' : '#fbbf24';
                 
-                // Plate/wrapper
-                ctx.fillStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#cfd8dc' : '#fff';
-                ctx.strokeStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#78909c' : '#ffd54f';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(0, 0, 24, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
+                // Wooden / Porcelain Serving Dish
+                ctx.fillStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#475569' : '#f8fafc';
+                ctx.strokeStyle = item.type === 'stone' || item.type === 'broken_blade' ? '#ef4444' : '#f59e0b';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-                // Emoji
-                ctx.font = '24px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.font = '26px sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(emoji, 0, 0);
                 ctx.restore();
             } else {
-                // Draw split falling halves
+                // Sliced Halves Falling Apart with Motion Physics
                 ctx.save();
-                const offset = item.splitTimer * 60;
-                const rot = item.splitTimer * Math.PI;
+                const offset = item.splitTimer * 65;
+                const rot = item.splitTimer * Math.PI * 1.2;
 
                 // Left Half
                 ctx.save();
-                ctx.translate(item.x - offset, item.y + offset * 0.5);
+                ctx.translate(item.x - offset, item.y + offset * 0.6);
                 ctx.rotate(-rot);
-                ctx.font = '24px sans-serif';
+                ctx.font = '26px sans-serif';
                 ctx.fillText(emoji, -6, 0);
                 ctx.restore();
 
                 // Right Half
                 ctx.save();
-                ctx.translate(item.x + offset, item.y + offset * 0.5);
+                ctx.translate(item.x + offset, item.y + offset * 0.6);
                 ctx.rotate(rot);
-                ctx.font = '24px sans-serif';
+                ctx.font = '26px sans-serif';
                 ctx.fillText(emoji, 6, 0);
                 ctx.restore();
-
                 ctx.restore();
             }
         });
 
-        // Draw Chef Knife
+        // Chef Knife / Damascus Hocho Blade
         const knife = gd.chefKnife;
         ctx.save();
         ctx.translate(knife.x, knife.y);
 
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#00f0ff';
 
-        // Blade (silver shiny metal)
-        ctx.fillStyle = '#eceff1';
-        ctx.strokeStyle = '#b0bec5';
+        // Damascus Steel Blade Body
+        const bladeGrad = ctx.createLinearGradient(-6, 0, 14, 0);
+        bladeGrad.addColorStop(0, '#ffffff');
+        bladeGrad.addColorStop(0.5, '#cbd5e1');
+        bladeGrad.addColorStop(1, '#64748b');
+        ctx.fillStyle = bladeGrad;
+        ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(-6, -110);
-        ctx.lineTo(12, -110);
-        ctx.lineTo(12, -10);
+        ctx.moveTo(-6, -115);
+        ctx.lineTo(14, -115);
+        ctx.lineTo(14, -10);
         ctx.quadraticCurveTo(8, 0, -6, -2);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // Shiny reflect line
+        // Blade Edge Specular Reflection Streak
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(3, -105);
-        ctx.lineTo(3, -12);
-        ctx.stroke();
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(4, -110); ctx.lineTo(4, -12); ctx.stroke();
 
-        // Wooden handle
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(-4, -165, 8, 55);
-
+        // Dark Rosewood Handle
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(-5, -170, 10, 55);
         ctx.restore();
 
-        // HUD & alerts
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, 0, 800, 50);
-
-        ctx.font = 'bold 16px monospace';
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(`CORTES: ${this.score}/${this.goal}`, 20, 31);
-
-        ctx.fillStyle = '#ff3333';
-        let hearts = "";
-        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Hoja: ${hearts}`, 550, 31);
-
+        // Floating Feedback Announcement
         if (gd.feedbackTimer > 0) {
-            ctx.font = 'bold 22px sans-serif';
+            ctx.save();
+            ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.fillStyle = gd.feedbackColor;
             ctx.textAlign = 'center';
-            ctx.fillText(gd.feedbackText, 400, 300);
+            ctx.shadowBlur = 12; ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 280);
             ctx.textAlign = 'left';
+            ctx.restore();
         }
+
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(28, 25, 23, 0.85)', borderColor: 'rgba(251, 191, 36, 0.6)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🔪 Cortes de Precision: ${this.score} / ${this.goal}`, 30, 36);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Hoja: ${hearts}`, 560, 36);
     },
 
     inputKnifePress(x, y) {
@@ -8027,139 +8204,131 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Kombini background neon styling
-        ctx.fillStyle = '#0d1117';
-        ctx.fillRect(0, 0, 800, 600);
+        // Japanese Konbini Neon Arcade Backdrop & Gold Sparkles
+        this.drawAtmosphericBackground('neon_arcade', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.05);
+        this.drawParticles();
 
-        // Draw light grids
-        ctx.strokeStyle = 'rgba(0, 255, 150, 0.05)';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < 800; x += 50) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
-        }
+        // Konbini Shelves Glass Background Panels
+        this.drawGlassCard(20, 80, 200, 420, { fill: 'rgba(15, 23, 42, 0.7)', borderColor: 'rgba(0, 255, 150, 0.3)', radius: 12 });
+        this.drawGlassCard(580, 80, 200, 420, { fill: 'rgba(15, 23, 42, 0.7)', borderColor: 'rgba(0, 255, 150, 0.3)', radius: 12 });
 
-        // Draw convenience store shelves outline in background
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-        ctx.fillRect(20, 80, 200, 400);
-        ctx.fillRect(580, 80, 200, 400);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeRect(20, 80, 200, 400);
-        ctx.strokeRect(580, 80, 200, 400);
-
-        // Draw falling items
+        // Falling Items with 3D Radial Gradients & Glowing Tags
         gd.items.forEach(it => {
             ctx.save();
             ctx.translate(it.x, it.y);
 
-            // Item bubble
-            ctx.fillStyle = it.type === 'rotten' ? '#4e342e' : '#1f2937';
-            ctx.strokeStyle = it.type === 'rotten' ? '#ff3333' : '#00ff99';
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = it.type === 'rotten' ? '#ef4444' : '#00ff99';
+
+            // Radial gradient bubble
+            const itemGrad = ctx.createRadialGradient(-4, -6, 2, 0, 0, 28);
+            if (it.type === 'rotten') {
+                itemGrad.addColorStop(0, '#fca5a5');
+                itemGrad.addColorStop(0.5, '#7f1d1d');
+                itemGrad.addColorStop(1, '#18181b');
+            } else {
+                itemGrad.addColorStop(0, '#ffffff');
+                itemGrad.addColorStop(0.4, '#1e293b');
+                itemGrad.addColorStop(1, '#0f172a');
+            }
+            ctx.fillStyle = itemGrad;
+            ctx.strokeStyle = it.type === 'rotten' ? '#ef4444' : '#00ff99';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
             // Emoji
-            ctx.font = '24px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(it.emoji, 0, -3);
+            ctx.font = '26px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(it.emoji, 0, -4);
 
-            // Price tag
+            // Price tag badge
             if (it.type !== 'rotten') {
                 ctx.fillStyle = '#ffd700';
-                ctx.font = 'bold 11px monospace';
-                ctx.fillText(`${it.price}¥`, 0, 16);
+                ctx.font = 'bold 12px monospace';
+                ctx.fillText(`${it.price}¥`, 0, 18);
             } else {
-                ctx.fillStyle = '#ff3333';
-                ctx.font = 'bold 11px monospace';
-                ctx.fillText(`CADUCADO`, 0, 16);
+                ctx.fillStyle = '#ef4444';
+                ctx.font = 'bold 10px monospace';
+                ctx.fillText("CADUCADO", 0, 18);
             }
 
             ctx.restore();
         });
 
-        // Draw Cart/Basket
+        // Shopping Basket with Metallic Mesh & Neon Glow
         ctx.save();
         ctx.translate(gd.cart.x, gd.cart.y);
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 16;
         ctx.shadowColor = '#00ff99';
 
-        ctx.fillStyle = '#1e293b';
+        // Basket container
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
         ctx.strokeStyle = '#00ff99';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
-        ctx.moveTo(-gd.cart.w/2, -15);
-        ctx.lineTo(gd.cart.w/2, -15);
-        ctx.lineTo(gd.cart.w/2 - 10, 20);
-        ctx.lineTo(-gd.cart.w/2 + 10, 20);
+        ctx.moveTo(-gd.cart.w / 2, -15);
+        ctx.lineTo(gd.cart.w / 2, -15);
+        ctx.lineTo(gd.cart.w / 2 - 10, 24);
+        ctx.lineTo(-gd.cart.w / 2 + 10, 24);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
 
-        // Basket handle
+        // Handle
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(0, -15, 30, Math.PI, 0);
-        ctx.stroke();
-
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, -15, 32, Math.PI, 0); ctx.stroke();
         ctx.restore();
 
-        // HUD panel at the top
-        ctx.fillStyle = 'rgba(10, 15, 25, 0.85)';
-        ctx.fillRect(0, 0, 800, 75);
-        ctx.strokeStyle = '#00ff99';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, 75); ctx.lineTo(800, 75); ctx.stroke();
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 60, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 255, 150, 0.5)', radius: 12 });
 
-        // Stats
-        ctx.font = 'bold 18px monospace';
+        ctx.font = 'bold 16px monospace';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(`PRESUPUESTO: `, 20, 42);
+        ctx.fillText("PRESUPUESTO KONBINI:", 30, 36);
         
         let sumColor = '#ffd700';
         if (gd.totalBudget >= 400 && gd.totalBudget <= 500) sumColor = '#00ff99';
         ctx.fillStyle = sumColor;
-        ctx.fillText(`${gd.totalBudget} ¥ / 500 ¥`, 160, 42);
+        ctx.fillText(`${gd.totalBudget} ¥ / 500 ¥`, 240, 36);
 
-        // Hearts
-        ctx.fillStyle = '#ff3333';
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 380, 42);
+        ctx.fillText(`Vidas: ${hearts}`, 420, 36);
 
-        // Checkout Button
+        // Interactive Checkout Button
         const btn = gd.checkoutBtn;
         const active = gd.totalBudget >= 400 && gd.totalBudget <= 500;
         ctx.save();
         if (active) {
-            ctx.shadowBlur = Math.sin(this.gameTime * 8) * 6 + 8;
+            ctx.shadowBlur = Math.sin(this.gameTime * 8) * 8 + 10;
             ctx.shadowColor = '#00ff99';
             ctx.fillStyle = '#00ff99';
             ctx.strokeStyle = '#ffffff';
         } else {
-            ctx.fillStyle = '#374151';
-            ctx.strokeStyle = '#4b5563';
+            ctx.fillStyle = 'rgba(51, 65, 85, 0.6)';
+            ctx.strokeStyle = '#475569';
         }
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 8);
-        ctx.fill();
-        ctx.stroke();
+        ctx.beginPath(); ctx.roundRect(btn.x, btn.y, btn.w, btn.h, 10); ctx.fill(); ctx.stroke();
 
-        ctx.font = 'bold 14px monospace';
-        ctx.fillStyle = active ? '#0c1117' : '#9ca3af';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText("💳 PAGAR (400-500)", btn.x + btn.w/2, btn.y + btn.h/2);
+        ctx.font = 'bold 13px monospace';
+        ctx.fillStyle = active ? '#0f172a' : '#94a3b8';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("💳 PAGAR (400-500)", btn.x + btn.w / 2, btn.y + btn.h / 2);
         ctx.restore();
 
-        // Feedback text
+        // Floating feedback
         if (gd.feedbackTimer > 0) {
-            ctx.font = 'bold 22px sans-serif';
+            ctx.save();
+            ctx.font = 'bold 22px Quicksand, sans-serif';
             ctx.fillStyle = gd.feedbackColor;
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 12; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 300);
             ctx.textAlign = 'left';
+            ctx.restore();
         }
     },
 
@@ -8309,13 +8478,14 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Dark tech grid background
-        ctx.fillStyle = '#06050a';
-        ctx.fillRect(0, 0, 800, 480);
+        // Cyber Mainframe Temple Backdrop & Floating Data Particles
+        this.drawAtmosphericBackground('night_temple', this.gameTime);
+        this.spawnAmbientParticles('cyber', 0.06);
+        this.drawParticles();
 
-        // Draw grid boundaries
-        ctx.strokeStyle = 'rgba(233, 30, 99, 0.05)';
-        ctx.lineWidth = 1;
+        // Glowing Digital Circuit Traces on Grid Floor
+        ctx.strokeStyle = 'rgba(233, 30, 99, 0.12)';
+        ctx.lineWidth = 1.5;
         for (let col = 0; col <= 8; col++) {
             ctx.beginPath(); ctx.moveTo(col * 100, 0); ctx.lineTo(col * 100, 480); ctx.stroke();
         }
@@ -8323,135 +8493,120 @@ window.MinigamesManager = {
             ctx.beginPath(); ctx.moveTo(0, row * 80); ctx.lineTo(800, row * 80); ctx.stroke();
         }
 
-        // Draw start zone marker
-        ctx.fillStyle = 'rgba(0, 255, 100, 0.03)';
-        ctx.fillRect(0, 400, 100, 80);
-        ctx.strokeStyle = 'rgba(0, 255, 100, 0.2)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(2, 402, 96, 76);
+        // Start Zone Marker Glass Highlight
+        this.drawGlassCard(2, 402, 96, 76, { fill: 'rgba(0, 255, 153, 0.08)', borderColor: 'rgba(0, 255, 153, 0.4)', radius: 8 });
 
-        // Draw keys
+        // Rotating Holographic Data Keys with Glowing Runes
         gd.keys.forEach(k => {
             if (!k.collected) {
                 ctx.save();
                 ctx.translate(k.gridX * 100 + 50, k.gridY * 80 + 40);
                 
-                // Outer gold rotating square
+                ctx.shadowBlur = 16;
+                ctx.shadowColor = '#ffd700';
+
+                // Outer rotating diamond rune
                 ctx.strokeStyle = '#ffd700';
-                ctx.lineWidth = 2;
-                ctx.rotate(this.gameTime * 2);
+                ctx.lineWidth = 2.5;
+                ctx.rotate(this.gameTime * 2.5);
                 ctx.strokeRect(-16, -16, 32, 32);
 
-                // Center node
-                ctx.fillStyle = '#ffd700';
-                ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+                // Inner pulsing core
+                ctx.fillStyle = '#fef08a';
+                ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
 
-                // Key emoji
+                // Key Emoji Badge
                 ctx.font = '14px sans-serif';
                 ctx.fillText("🔑", -8, 5);
-
                 ctx.restore();
             }
         });
 
-        // Draw Exit (Core database)
+        // Exit Target (Database Core Energy Vortex)
         ctx.save();
         ctx.translate(gd.exit.gridX * 100 + 50, gd.exit.gridY * 80 + 40);
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ffff';
+        const coreGlow = gd.score >= 3 ? Math.sin(this.gameTime * 8) * 8 + 18 : 6;
+        ctx.shadowBlur = coreGlow;
+        ctx.shadowColor = gd.score >= 3 ? '#00f0ff' : '#475569';
 
-        ctx.fillStyle = gd.score >= 3 ? '#00ffff' : '#374151';
+        ctx.fillStyle = gd.score >= 3 ? '#00f0ff' : '#334155';
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        
-        ctx.beginPath();
-        ctx.arc(0, 0, 22, 0, Math.PI*2);
-        ctx.fill();
-        ctx.stroke();
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
 
-        ctx.font = gd.score >= 3 ? 'bold 16px monospace' : '12px monospace';
-        ctx.fillStyle = gd.score >= 3 ? '#06050a' : '#9ca3af';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.font = gd.score >= 3 ? 'bold 15px monospace' : 'bold 11px monospace';
+        ctx.fillStyle = gd.score >= 3 ? '#06050a' : '#94a3b8';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(gd.score >= 3 ? "CORE" : "LOCK", 0, 0);
         ctx.restore();
 
-        // Draw Enemies
+        // Firewall Sentinel Security Drones with Red Scanner Cones
         gd.enemies.forEach(e => {
             ctx.save();
             ctx.translate(e.x, e.y);
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = '#ff3333';
+            ctx.shadowBlur = 16;
+            ctx.shadowColor = '#ff0055';
 
-            // Security core
-            ctx.fillStyle = '#ff3333';
-            ctx.beginPath();
-            ctx.arc(0, 0, 12, 0, Math.PI*2);
-            ctx.fill();
+            // Red warning laser cone radar
+            ctx.fillStyle = 'rgba(255, 0, 85, 0.15)';
+            ctx.beginPath(); ctx.arc(0, 0, 36, 0, Math.PI * 2); ctx.fill();
 
-            // Rotating scanner shield lines
-            ctx.strokeStyle = 'rgba(255, 51, 81, 0.4)';
+            // Drone core
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+
+            // Rotating Shield Ring
+            ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 2;
             ctx.rotate(-this.gameTime * 4);
-            ctx.beginPath();
-            ctx.arc(0, 0, 24, 0, Math.PI/2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(0, 0, 24, Math.PI, Math.PI*1.5);
-            ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI / 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 22, Math.PI, Math.PI * 1.5); ctx.stroke();
 
             ctx.restore();
         });
 
-        // Draw Player
+        // Player Holographic Cyan Probe
         const p = gd.player;
         ctx.save();
         ctx.translate(p.x, p.y);
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 20;
         ctx.shadowColor = '#00ff99';
 
-        // Cyan/Green probe
         ctx.fillStyle = '#00ff99';
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, Math.PI*2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
 
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 8, 0, Math.PI*2);
-        ctx.stroke();
-
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
 
-        // Bottom HUD / Terminal dashboard panel
-        ctx.fillStyle = '#111827';
-        ctx.fillRect(0, 480, 800, 120);
-        ctx.strokeStyle = '#e91e63';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, 480); ctx.lineTo(800, 480); ctx.stroke();
+        // Glassmorphic Terminal HUD Dashboard Panel
+        this.drawGlassCard(10, 485, 780, 105, { fill: 'rgba(10, 15, 26, 0.9)', borderColor: 'rgba(233, 30, 99, 0.6)', radius: 12 });
 
-        ctx.font = 'bold 15px monospace';
+        ctx.font = 'bold 14px monospace';
         ctx.fillStyle = '#e91e63';
-        ctx.fillText("TEMPLO ISSHINJI // TERMINAL DE EXTRACCIÓN DE DATOS ANCESTRALES", 20, 515);
+        ctx.fillText("⛩️ TEMPLO ISSHINJI // TERMINAL DE EXTRACCIÓN DE DATOS ANCESTRALES", 25, 512);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '13px monospace';
-        ctx.fillText(`CLAVES DE DATOS EXTRAÍDAS: ${gd.score}/3`, 20, 545);
-        ctx.fillText("PULSA EN LAS CASILLAS ADYACENTES PARA MOVER TU PROBE HACIA LA SALIDA.", 20, 570);
+        ctx.font = '12px monospace';
+        ctx.fillText(`🔑 CLAVES DE DATOS EXTRAÍDAS: ${gd.score} / 3`, 25, 540);
+        ctx.fillText("👉 PULSA EN LAS CASILLAS ADYACENTES PARA MOVER TU PROBE HACIA LA SALIDA.", 25, 565);
 
         ctx.fillStyle = '#ff3333';
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Conexión: ${hearts}`, 550, 545);
+        ctx.fillText(`Conexión: ${hearts}`, 560, 540);
 
-        // Draw feedback text
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
-            ctx.font = 'bold 20px sans-serif';
+            ctx.save();
+            ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.fillStyle = gd.feedbackColor;
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 12; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 240);
             ctx.textAlign = 'left';
+            ctx.restore();
         }
     },
 
@@ -8550,126 +8705,117 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Dark grey metal market background
-        ctx.fillStyle = '#1c1917';
-        ctx.fillRect(0, 0, 800, 600);
+        // Kuromon Market Night Cyber Atmosphere & Scanning Particles
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
+        this.spawnAmbientParticles('cyber', 0.05);
+        this.drawParticles();
 
-        // Draw market wood pillars scrolling
-        ctx.fillStyle = '#443d38';
-        ctx.fillRect(0, 80, 800, 20);
-        ctx.fillRect(0, 500, 800, 20);
+        // Wood & Iron Market Frame Beams
+        ctx.fillStyle = '#292524';
+        ctx.fillRect(0, 75, 800, 24);
+        ctx.fillRect(0, 495, 800, 24);
 
-        ctx.strokeStyle = '#292524';
-        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+        ctx.lineWidth = 3;
         let xStart = -(Math.floor(gd.scrollOffset) % 150);
         for (let x = xStart; x < 900; x += 150) {
-            ctx.beginPath(); ctx.moveTo(x, 80); ctx.lineTo(x, 520); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x, 75); ctx.lineTo(x, 520); ctx.stroke();
         }
 
-        // Draw stalls
+        // Render Kuromon Market Stalls with Glassmorphism Cards
         gd.stalls.forEach(st => {
             ctx.save();
             ctx.translate(st.x, st.y);
 
-            // Stall shape base
-            ctx.fillStyle = st.scanned ? 'rgba(40,40,40,0.5)' : '#2e2a24';
-            ctx.strokeStyle = st.scanned ? '#22c55e' : '#78716c';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.roundRect(0, 0, st.w, st.h, 6);
-            ctx.fill();
-            ctx.stroke();
+            this.drawGlassCard(0, 0, st.w, st.h, {
+                fill: st.scanned ? 'rgba(30, 41, 59, 0.6)' : 'rgba(15, 23, 42, 0.85)',
+                borderColor: st.scanned ? '#22c55e' : (st.type === 'wagyu' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(0, 240, 255, 0.4)'),
+                radius: 10
+            });
 
-            // Red/White banner canopy at top of stall
+            // Red/White Noren Banner Canopy
             ctx.fillStyle = st.type === 'wagyu' ? '#dc2626' : '#2563eb';
-            ctx.fillRect(3, 3, st.w - 6, 18);
+            ctx.fillRect(4, 4, st.w - 8, 18);
             ctx.fillStyle = '#ffffff';
             for (let i = 10; i < st.w; i += 24) {
-                ctx.fillRect(i, 3, 10, 18);
+                ctx.fillRect(i, 4, 10, 18);
             }
 
-            // Draw content emoji
+            // Stall Emoji Icon
             ctx.font = '28px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             let emoji = '🛒';
             if (st.type === 'wagyu') emoji = '🥩';
             else if (st.type === 'fish') emoji = '🐙';
             else if (st.type === 'matcha') emoji = '🍦';
             else if (st.type === 'civilian') emoji = '👤';
-            ctx.fillText(emoji, st.w/2, st.h/2 + 8);
+            ctx.fillText(emoji, st.w / 2, st.h / 2 + 6);
 
-            // Draw label
-            ctx.fillStyle = '#f5f5f4';
+            // Label
+            ctx.fillStyle = '#f8fafc';
             ctx.font = 'bold 9px monospace';
             ctx.fillText(st.label, 8, st.h - 10);
 
+            // Scanned Checkmark Seal
             if (st.scanned) {
-                // Large neon tick
                 ctx.strokeStyle = '#22c55e';
                 ctx.lineWidth = 4;
                 ctx.beginPath();
-                ctx.moveTo(st.w/2 - 12, st.h/2 + 5);
-                ctx.lineTo(st.w/2 - 2, st.h/2 + 15);
-                ctx.lineTo(st.w/2 + 15, st.h/2 - 5);
+                ctx.moveTo(st.w / 2 - 12, st.h / 2 + 5);
+                ctx.lineTo(st.w / 2 - 2, st.h / 2 + 15);
+                ctx.lineTo(st.w / 2 + 15, st.h / 2 - 5);
                 ctx.stroke();
             }
-
             ctx.restore();
         });
 
-        // Visor crosshair following mouse
+        // Sci-Fi Tactical Visor Target Reticle following cursor
         ctx.save();
         ctx.translate(this.mouse.x, this.mouse.y);
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 18;
         ctx.shadowColor = '#00f0ff';
 
-        // Outer cyan scanner ring
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+        // Outer rotating HUD ring
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
         ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, 42, 0, Math.PI*2);
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 44, 0, Math.PI * 2); ctx.stroke();
 
         ctx.strokeStyle = '#00f0ff';
         ctx.lineWidth = 4;
-        // Draw crosshair ticks
         ctx.beginPath(); ctx.moveTo(-50, 0); ctx.lineTo(-30, 0); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(30, 0); ctx.lineTo(50, 0); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0, -50); ctx.lineTo(0, -30); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0, 30); ctx.lineTo(0, 50); ctx.stroke();
 
-        // Center dot
+        // Target Lock Center Dot
         ctx.fillStyle = '#ff007f';
-        ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI*2); ctx.fill();
-
+        ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
-        // HUD panel
-        ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
-        ctx.fillRect(0, 0, 800, 55);
-        ctx.strokeStyle = '#00ffff';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(0, 55); ctx.lineTo(800, 55); ctx.stroke();
+        // Glassmorphic Top HUD Dashboard Panel
+        this.drawGlassCard(15, 10, 770, 45, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 240, 255, 0.5)', radius: 10 });
 
-        ctx.font = 'bold 16px monospace';
+        ctx.font = 'bold 15px monospace';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText(`WAGYU ESCANEADO: `, 20, 34);
-        ctx.fillStyle = '#00ffff';
-        ctx.fillText(`${this.score} / ${this.goal}`, 180, 34);
+        ctx.fillText("WAGYU ESCANEADO:", 30, 37);
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillText(`${this.score} / ${this.goal}`, 200, 37);
 
         ctx.fillStyle = '#ff3333';
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Batería Visor: ${hearts}`, 530, 34);
+        ctx.fillText(`Batería Visor: ${hearts}`, 530, 37);
 
-        // Feedback text
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
-            ctx.font = 'bold 22px sans-serif';
+            ctx.save();
+            ctx.font = 'bold 22px Quicksand, sans-serif';
             ctx.fillStyle = gd.feedbackColor;
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 300);
             ctx.textAlign = 'left';
+            ctx.restore();
         }
     },
 
@@ -8808,79 +8954,87 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Background: Traditional Tatami/Wood shop
-        ctx.fillStyle = '#f5f5dc';
-        ctx.fillRect(0, 0, 800, 600);
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(0, 480, 800, 120); // Wooden floor
+        // Nara Sakura Shrine Rhythm Atmosphere & Floating Petals
+        this.drawAtmosphericBackground('sakura_shrine', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.08);
+        this.drawParticles();
 
-        // Draw note lanes
-        ctx.strokeStyle = 'rgba(141, 110, 99, 0.4)';
-        ctx.lineWidth = 6;
+        // Cypress Wood Stage Floor
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(0, 480, 800, 120);
+
+        // Neon Rhythm Highway Track Lines
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.25)';
+        ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(300, 480); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(500, 0); ctx.lineTo(500, 480); ctx.stroke();
 
-        // Target circles
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#4caf50';
-        ctx.strokeStyle = '#4caf50';
+        // Target Rhythm Hit Zones (Pulsing Glow Circles)
+        const hitGlow = Math.sin(this.gameTime * 10) * 4 + 12;
+        ctx.save();
+        ctx.shadowBlur = hitGlow;
+        ctx.shadowColor = '#22c55e';
+        ctx.strokeStyle = '#22c55e';
         ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(300, 500, 32, 0, Math.PI*2); ctx.stroke();
-        ctx.strokeStyle = '#f06292';
-        ctx.shadowColor = '#f06292';
-        ctx.beginPath(); ctx.arc(500, 500, 32, 0, Math.PI*2); ctx.stroke();
-        ctx.shadowBlur = 0;
+        ctx.beginPath(); ctx.arc(300, 500, 34, 0, Math.PI * 2); ctx.stroke();
 
-        // Draw Usu (wood mortar in center)
-        ctx.fillStyle = '#d7ccc8';
+        ctx.shadowColor = '#ec4899';
+        ctx.strokeStyle = '#ec4899';
+        ctx.beginPath(); ctx.arc(500, 500, 34, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+
+        // Traditional Mortar (Usu) with Carved Wood Texture
+        const usuGrad = ctx.createLinearGradient(360, 0, 440, 0);
+        usuGrad.addColorStop(0, '#78350f');
+        usuGrad.addColorStop(0.5, '#d97706');
+        usuGrad.addColorStop(1, '#451a03');
+        ctx.fillStyle = usuGrad;
         ctx.beginPath();
-        ctx.moveTo(370, 480);
-        ctx.lineTo(430, 480);
-        ctx.lineTo(440, 540);
-        ctx.lineTo(360, 540);
+        ctx.moveTo(370, 475);
+        ctx.lineTo(430, 475);
+        ctx.lineTo(442, 545);
+        ctx.lineTo(358, 545);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = '#5d4037';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 3; ctx.stroke();
 
-        // Draw Mochi inside Usu
-        ctx.fillStyle = '#a5d6a7';
+        // Squishy Green Matcha Mochi Dough Inside Usu
+        const mochiPulse = Math.sin(this.gameTime * 8) * 2;
+        ctx.fillStyle = '#4ade80';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#4ade80';
         ctx.beginPath();
-        ctx.ellipse(400, 490, 25, 12, 0, 0, Math.PI*2);
+        ctx.ellipse(400, 488, 26 + mochiPulse, 13, 0, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
 
-        // Characters Chibi: Mallet-pounder (left), Hand-folder (right)
-        // Pounder (Left)
+        // Chibi Characters: Mallet Pounder (Left), Hand Folder (Right)
         ctx.save();
         ctx.translate(330, 460);
-        ctx.fillStyle = '#1976d2'; // Blue tunic
-        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI*2); ctx.fill(); // Head
-        ctx.fillRect(-15, -22, 30, 40); // Body
-        ctx.fillStyle = '#ffe0b2'; // Skin
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-15, -22, 30, 40);
+        ctx.fillStyle = '#ffedd5';
         ctx.fillRect(-10, -5, 20, 10);
-        // Mallet drawing
-        ctx.strokeStyle = '#5d4037';
+        ctx.strokeStyle = '#78350f';
         ctx.lineWidth = 4;
         if (gd.charMallet.state === 'down') {
-            ctx.beginPath(); ctx.moveTo(-5, -10); ctx.lineTo(65, 30); ctx.stroke(); // Handle
-            ctx.fillStyle = '#8d6e63';
+            ctx.beginPath(); ctx.moveTo(-5, -10); ctx.lineTo(65, 30); ctx.stroke();
+            ctx.fillStyle = '#b45309';
             ctx.fillRect(60, 20, 15, 22);
         } else {
-            ctx.beginPath(); ctx.moveTo(-5, -20); ctx.lineTo(15, -70); ctx.stroke(); // Handle
-            ctx.fillStyle = '#8d6e63';
+            ctx.beginPath(); ctx.moveTo(-5, -20); ctx.lineTo(15, -70); ctx.stroke();
+            ctx.fillStyle = '#b45309';
             ctx.fillRect(5, -75, 22, 15);
         }
         ctx.restore();
 
-        // Folder (Right)
         ctx.save();
         ctx.translate(470, 470);
-        ctx.fillStyle = '#e53935'; // Red tunic
-        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI*2); ctx.fill(); // Head
-        ctx.fillRect(-15, -22, 30, 35); // Body
-        // Hands
-        ctx.fillStyle = '#ffe0b2';
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath(); ctx.arc(0, -40, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-15, -22, 30, 35);
+        ctx.fillStyle = '#ffedd5';
         if (gd.charHand.state === 'in') {
             ctx.fillRect(-45, -12, 30, 10);
         } else {
@@ -8888,85 +9042,77 @@ window.MinigamesManager = {
         }
         ctx.restore();
 
-        // Draw notes
+        // Falling Rhythm Notes with Glowing Trails
         gd.notes.forEach(note => {
             ctx.save();
-            ctx.shadowBlur = 12;
+            ctx.shadowBlur = 16;
             if (note.type === 'mallet') {
-                ctx.fillStyle = '#4caf50';
-                ctx.strokeStyle = '#388e3c';
-                ctx.shadowColor = '#4caf50';
-                ctx.beginPath();
-                ctx.arc(300, note.y, 22, 0, Math.PI*2);
-                ctx.fill();
-                ctx.stroke();
+                ctx.fillStyle = '#22c55e';
+                ctx.strokeStyle = '#ffffff';
+                ctx.shadowColor = '#22c55e';
+                ctx.beginPath(); ctx.arc(300, note.y, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '16px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText("🔨", 300, note.y + 6);
+                ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText("🔨", 300, note.y + 1);
             } else {
-                ctx.fillStyle = '#f06292';
-                ctx.strokeStyle = '#c2185b';
-                ctx.shadowColor = '#f06292';
-                ctx.beginPath();
-                ctx.arc(500, note.y, 22, 0, Math.PI*2);
-                ctx.fill();
-                ctx.stroke();
+                ctx.fillStyle = '#ec4899';
+                ctx.strokeStyle = '#ffffff';
+                ctx.shadowColor = '#ec4899';
+                ctx.beginPath(); ctx.arc(500, note.y, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '16px serif';
-                ctx.textAlign = 'center';
-                ctx.fillText("🤚", 500, note.y + 6);
+                ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText("🤚", 500, note.y + 1);
             }
             ctx.restore();
         });
 
-        // Draw buttons at bottom
-        // Left (Mallet) Button
+        // Interactive Glassmorphic Control Buttons
         ctx.save();
         ctx.translate(gd.btnLeft.x, gd.btnLeft.y);
-        ctx.fillStyle = gd.btnLeft.timer > 0 ? '#1b5e20' : '#4caf50';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, gd.btnLeft.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.shadowBlur = gd.btnLeft.timer > 0 ? 20 : 10;
+        ctx.shadowColor = '#22c55e';
+        this.drawGlassCard(-gd.btnLeft.r, -gd.btnLeft.r, gd.btnLeft.r * 2, gd.btnLeft.r * 2, {
+            fill: gd.btnLeft.timer > 0 ? 'rgba(34, 197, 94, 0.9)' : 'rgba(22, 101, 52, 0.8)',
+            borderColor: '#ffffff',
+            radius: gd.btnLeft.r
+        });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText("🔨", 0, 8);
+        ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("🔨", 0, 1);
         ctx.restore();
 
-        // Right (Hand) Button
         ctx.save();
         ctx.translate(gd.btnRight.x, gd.btnRight.y);
-        ctx.fillStyle = gd.btnRight.timer > 0 ? '#880e4f' : '#f06292';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, gd.btnRight.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.shadowBlur = gd.btnRight.timer > 0 ? 20 : 10;
+        ctx.shadowColor = '#ec4899';
+        this.drawGlassCard(-gd.btnRight.r, -gd.btnRight.r, gd.btnRight.r * 2, gd.btnRight.r * 2, {
+            fill: gd.btnRight.timer > 0 ? 'rgba(236, 72, 153, 0.9)' : 'rgba(157, 23, 77, 0.8)',
+            borderColor: '#ffffff',
+            radius: gd.btnRight.r
+        });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 24px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText("🤚", 0, 8);
+        ctx.font = 'bold 26px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("🤚", 0, 1);
         ctx.restore();
 
-        // HUD Header
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(236, 72, 153, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🍡 Amasados: ${this.score} / ${this.goal}`, 25, 29);
-        ctx.fillText(`Multiplicador: x${gd.multiplier} (Streak: ${gd.streak})`, 240, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🍡 Amasados Mochi: ${this.score} / ${this.goal}`, 30, 36);
+        ctx.fillText(`Multiplicador: x${gd.multiplier} (Racha: ${gd.streak})`, 250, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 600, 36);
 
-        // Feedback Floating Text
+        // Floating Rhythmic Feedback Text
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 36px Quicksand, sans-serif';
             ctx.textAlign = 'center';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = gd.feedbackColor;
+            ctx.shadowBlur = 18; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 220);
             ctx.restore();
         }
@@ -9155,125 +9301,122 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        const grad = ctx.createLinearGradient(0, 0, 0, 400);
-        grad.addColorStop(0, '#ff7043');
-        grad.addColorStop(1, '#ffeb3b');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 400);
+        // Nara Park Sunset Atmosphere & Floating Cherry Blossoms
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.06);
+        this.drawParticles();
 
-        ctx.fillStyle = '#4caf50'; // Grass
+        // Lush Emerald Grass Grounds
+        const grassGrad = ctx.createLinearGradient(0, 400, 0, 600);
+        grassGrad.addColorStop(0, '#15803d');
+        grassGrad.addColorStop(1, '#166534');
+        ctx.fillStyle = grassGrad;
         ctx.fillRect(0, 400, 800, 200);
 
-        // Draw Zen Stone Pagoda
-        ctx.fillStyle = '#78909c';
-        ctx.fillRect(680, 260, 40, 140);
-        ctx.fillRect(660, 290, 80, 15);
-        ctx.fillRect(650, 340, 100, 15);
+        // Zen Stone Pagoda Lantern in Background
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(680, 250, 40, 150);
+        ctx.fillRect(660, 280, 80, 16);
+        ctx.fillRect(650, 335, 100, 16);
 
-        // Draw Target area circle
+        // Pulsing Neon Target Landing Zone
+        const targetGlow = Math.sin(this.gameTime * 8) * 6 + 14;
         ctx.save();
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#00e5ff';
-        ctx.strokeStyle = '#00e5ff';
+        ctx.shadowBlur = targetGlow;
+        ctx.shadowColor = '#06b6d4';
+        ctx.strokeStyle = '#06b6d4';
         ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.arc(200, 490, 30, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(200, 490, 32, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
 
-        // Draw flowing poses
+        // Flowing Pose Nodes Falling
         gd.poses.forEach(p => {
             ctx.save();
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = '#e91e63';
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ec4899';
             ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(p.x, p.y, 20, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#e91e63';
-            ctx.font = '22px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.beginPath(); ctx.arc(p.x, p.y, 22, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#db2777';
+            ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             const icon = p.type === 0 ? "🤸‍♀️" : (p.type === 1 ? "🧘‍♀️" : "🙆‍♀️");
-            ctx.fillText(icon, p.x, p.y + 7);
+            ctx.fillText(icon, p.x, p.y + 1);
             ctx.restore();
         });
 
-        // Draw Chibi Laura
+        // Chibi Laura Acrobat
         ctx.save();
         ctx.translate(200, gd.chibi.y);
         ctx.rotate(gd.chibi.angle);
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ec4899';
         
-        ctx.fillStyle = '#e91e63'; // Pink suit
+        ctx.fillStyle = '#ec4899';
         if (gd.chibi.animState === 'split') {
             ctx.fillRect(-8, -40, 16, 25);
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffe0b2';
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffedd5';
             ctx.fillRect(-35, -25, 70, 7);
         } else if (gd.chibi.animState === 'flip') {
-            ctx.beginPath(); ctx.arc(0, -10, 15, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, -10, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI * 2); ctx.fill();
         } else {
             ctx.fillRect(-8, -35, 16, 25);
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -48, 14, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffe0b2';
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -48, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffedd5';
             ctx.fillRect(-6, -10, 5, 20);
             ctx.fillRect(1, -10, 5, 20);
         }
         ctx.restore();
 
-        // Draw Deer Jury members
+        // Deer Jury Members with Scoreboard Cards
         gd.jury.forEach(j => {
             ctx.fillStyle = '#8d6e63';
-            ctx.font = '36px serif';
+            ctx.font = '38px serif';
             ctx.fillText("🦌", j.x, 220);
 
             if (j.show) {
                 ctx.save();
-                ctx.fillStyle = '#ffffff';
-                ctx.strokeStyle = '#ffd700';
-                ctx.lineWidth = 2.5;
-                ctx.fillRect(j.x - 20, 120, 70, 30);
-                ctx.strokeRect(j.x - 20, 120, 70, 30);
-                ctx.fillStyle = '#0a0a0a';
-                ctx.font = 'bold 14px monospace';
-                ctx.fillText(j.text, j.x - 15, 140);
+                this.drawGlassCard(j.x - 22, 115, 75, 34, { fill: 'rgba(255, 255, 255, 0.95)', borderColor: '#fbbf24', radius: 8 });
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 15px monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(j.text, j.x + 15, 132);
                 ctx.restore();
             }
         });
 
-        // Draw buttons at the bottom
+        // Interactive Control Buttons
         const buttonX = [250, 400, 550];
         const emojis = ["🤸‍♀️", "🧘‍♀️", "🙆‍♀️"];
         const labels = ["VOLTERETA (A)", "EQUILIBRIO (S)", "ESTIRAR (D)"];
         for (let i = 0; i < 3; i++) {
-            ctx.fillStyle = '#eceff1';
-            ctx.strokeStyle = '#e91e63';
-            ctx.lineWidth = 3;
-            ctx.fillRect(buttonX[i] - 60, 520, 120, 48);
-            ctx.strokeRect(buttonX[i] - 60, 520, 120, 48);
-            ctx.fillStyle = '#0a0a0a';
-            ctx.font = '22px sans-serif';
+            this.drawGlassCard(buttonX[i] - 60, 520, 120, 48, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#ec4899', radius: 10 });
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '22px sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(emojis[i], buttonX[i] - 12, 545);
-            ctx.font = '9px monospace';
-            ctx.fillText(labels[i], buttonX[i] - 40, 562);
+            ctx.font = '9px monospace'; ctx.fillStyle = '#cbd5e1';
+            ctx.fillText(labels[i], buttonX[i], 560);
         }
 
-        // HUD Header
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(236, 72, 153, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🤸‍♀️ Poses Perfectas: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🤸‍♀️ Poses Perfectas: ${this.score} / ${this.goal}`, 30, 36);
+
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 620, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
-        // Feedback
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 28px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 280);
             ctx.restore();
         }
@@ -9470,113 +9613,123 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#006064';
-        ctx.fillRect(0, 0, 800, 600);
+        // Zen Temple Night Lake & Floating Sakura Petals
+        this.drawAtmosphericBackground('night_temple', this.gameTime);
+        this.drawWaterLayer(300, 300, this.gameTime, { color: '#0f172a', alpha: 0.7 });
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
+        // Water Ripples
         ctx.lineWidth = 1.5;
         gd.ripples.forEach(rp => {
-            ctx.strokeStyle = `rgba(128, 222, 234, ${rp.alpha})`;
-            ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = `rgba(56, 189, 248, ${rp.alpha})`;
+            ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2); ctx.stroke();
         });
 
+        // Floating Sakura Petals
         gd.petals.forEach(pt => {
             ctx.save();
             ctx.translate(pt.x, pt.y);
             ctx.rotate(pt.angle);
-            ctx.fillStyle = '#ff80ab';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI*2);
-            ctx.fill();
+            ctx.fillStyle = '#f472b6';
+            ctx.beginPath(); ctx.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
         });
 
-        // Draw central lotus pad
+        // Central Sacred Lotus Pad Floating on Water
         ctx.save();
         ctx.translate(400, 380);
         ctx.rotate(gd.monkAngle * 0.4);
-        ctx.fillStyle = '#2e7d32';
-        ctx.beginPath(); ctx.arc(0, 0, 75, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#1b5e20';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = '#22c55e';
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath(); ctx.arc(0, 0, 78, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#86efac';
+        ctx.lineWidth = 3; ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         for (let i = 0; i < 8; i++) {
-            ctx.beginPath();
-            ctx.moveTo(0,0);
-            ctx.lineTo(Math.cos(i * Math.PI/4) * 75, Math.sin(i * Math.PI/4) * 75);
+            ctx.beginPath(); ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(i * Math.PI / 4) * 78, Math.sin(i * Math.PI / 4) * 78);
             ctx.stroke();
         }
         ctx.restore();
 
-        // Draw Chibi Monk
+        // Saffron Monk in Meditation
         ctx.save();
         ctx.translate(400, 370);
         ctx.rotate(gd.monkAngle);
+        ctx.shadowBlur = 12; ctx.shadowColor = '#f59e0b';
 
-        ctx.fillStyle = '#ff6f00'; // Saffron
+        // Robes
+        ctx.fillStyle = '#d97706';
         ctx.beginPath();
         ctx.moveTo(-30, 0);
         ctx.quadraticCurveTo(0, -60, 30, 0);
         ctx.closePath();
         ctx.fill();
 
-        ctx.fillStyle = '#ffd54f';
+        // Belt
+        ctx.fillStyle = '#fbbf24';
         ctx.fillRect(-15, -15, 30, 6);
 
-        ctx.fillStyle = '#ffe0b2';
-        ctx.beginPath(); ctx.arc(0, -60, 18, 0, Math.PI*2); ctx.fill();
+        // Head
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath(); ctx.arc(0, -60, 18, 0, Math.PI * 2); ctx.fill();
 
-        ctx.strokeStyle = '#5d4037';
+        // Eyes Closed in Deep Zen
+        ctx.strokeStyle = '#451a03';
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(-7, -60, 3, 0, Math.PI, true); ctx.stroke();
         ctx.beginPath(); ctx.arc(7, -60, 3, 0, Math.PI, true); ctx.stroke();
 
         if (Math.abs(gd.monkAngle) > 0.28) {
-            ctx.fillStyle = '#00b0ff';
+            ctx.fillStyle = '#38bdf8';
             ctx.font = '16px serif';
             ctx.fillText("💧", gd.monkAngle > 0 ? 15 : -28, -75);
         }
         ctx.restore();
 
-        // Draw Balance Indicator
+        // Glassmorphic Zen Balance Indicator Gauge Bar
         ctx.save();
-        ctx.translate(400, 90);
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(-120, -10, 240, 20);
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(-120, -10, 240, 20);
-        ctx.strokeStyle = '#00ff99';
-        ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 10); ctx.stroke();
+        ctx.translate(400, 95);
+        this.drawGlassCard(-130, -14, 260, 28, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.6)', radius: 10 });
+        
+        ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, -14); ctx.lineTo(0, 14); ctx.stroke();
 
+        // Balance Indicator Needle Pointer
         let cursorX = (gd.monkAngle / 0.65) * 120;
-        ctx.fillStyle = Math.abs(gd.monkAngle) > 0.28 ? '#ff3333' : '#ffd700';
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = Math.abs(gd.monkAngle) > 0.28 ? '#ef4444' : '#fbbf24';
+        ctx.fillStyle = Math.abs(gd.monkAngle) > 0.28 ? '#ef4444' : '#fbbf24';
         ctx.beginPath();
-        ctx.moveTo(cursorX - 8, -15);
-        ctx.lineTo(cursorX + 8, -15);
-        ctx.lineTo(cursorX, 0);
+        ctx.moveTo(cursorX - 8, -18);
+        ctx.lineTo(cursorX + 8, -18);
+        ctx.lineTo(cursorX, 2);
         ctx.closePath();
         ctx.fill();
         ctx.restore();
 
-        // HUD Header
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🧘‍♂️ Meditación Zen: ¡Sobrevive!`, 25, 29);
-        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText("🧘‍♂️ Meditación Zen: ¡Mantén el Equilibrio!", 30, 36);
+        ctx.fillText(`Tiempo: ${this.score}s`, 380, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
-        // Feedback
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(gd.feedbackText, 400, 180);
+            ctx.shadowBlur = 12; ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 175);
             ctx.restore();
         }
     },
@@ -9757,13 +9910,19 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#66bb6a';
-        ctx.fillRect(0, 0, 800, 600);
+        // Nara Park Sunset Atmosphere & Floating Cherry Blossoms
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.06);
+        this.drawParticles();
 
-        ctx.fillStyle = '#81d4fa';
-        ctx.fillRect(0, 0, 800, 260);
+        // Rolling Emerald Hills of Nara Park
+        const hillsGrad = ctx.createLinearGradient(0, 240, 0, 600);
+        hillsGrad.addColorStop(0, '#15803d');
+        hillsGrad.addColorStop(1, '#166534');
+        ctx.fillStyle = hillsGrad;
+        ctx.fillRect(0, 260, 800, 340);
 
-        ctx.fillStyle = '#4db6ac';
+        ctx.fillStyle = '#16a34a';
         ctx.beginPath();
         ctx.moveTo(0, 260);
         ctx.lineTo(200, 180);
@@ -9773,84 +9932,75 @@ window.MinigamesManager = {
         ctx.closePath();
         ctx.fill();
 
-        // Draw Basket
-        ctx.fillStyle = '#d7ccc8';
-        ctx.fillRect(360, 530, 80, 70);
-        ctx.fillStyle = '#8d6e63';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(360, 530, 80, 70);
-        ctx.fillStyle = '#a1887f';
+        // Shika-senbei Cookie Basket Stand
+        this.drawGlassCard(350, 520, 100, 75, { fill: 'rgba(217, 119, 6, 0.9)', borderColor: 'rgba(251, 191, 36, 0.8)', radius: 12 });
+        ctx.fillStyle = '#d97706';
         for (let i = 0; i < 4; i++) {
-            ctx.beginPath(); ctx.arc(380 + i * 12, 545, 10, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(370 + i * 14, 538, 10, 0, Math.PI * 2); ctx.fill();
         }
 
-        // Draw deers
+        // Animated Nara Deers
         gd.deers.forEach(d => {
             ctx.save();
             ctx.translate(d.x, d.y);
             
-            ctx.fillStyle = '#a1887f';
+            ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.fillStyle = '#b45309';
             ctx.fillRect(0, -30, d.w, 30);
             
+            // White spots
             ctx.fillStyle = '#ffffff';
-            ctx.beginPath(); ctx.arc(15, -15, 3, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(30, -20, 3, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(45, -12, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(15, -15, 3.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(30, -20, 3.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(45, -12, 3.5, 0, Math.PI * 2); ctx.fill();
 
-            ctx.strokeStyle = '#8d6e63';
+            // Legs
+            ctx.strokeStyle = '#78350f';
             ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(10, 20); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(22, 0); ctx.lineTo(22, 20); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(38, 0); ctx.lineTo(38, 20); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(50, 0); ctx.lineTo(50, 20); ctx.stroke();
 
-            ctx.fillStyle = '#a1887f';
+            // Head & Antlers
+            ctx.fillStyle = '#b45309';
             if (d.vx < 0) {
                 ctx.fillRect(0, -50, 16, 25);
-                ctx.beginPath();
-                ctx.moveTo(-15, -55); ctx.lineTo(10, -55); ctx.lineTo(5, -38);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#5d4037';
-                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(-15, -55); ctx.lineTo(10, -55); ctx.lineTo(5, -38); ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = '#451a03'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(8, -52); ctx.lineTo(14, -68); ctx.lineTo(18, -62); ctx.stroke();
             } else {
                 ctx.fillRect(d.w - 16, -50, 16, 25);
-                ctx.beginPath();
-                ctx.moveTo(d.w - 10, -55); ctx.lineTo(d.w + 15, -55); ctx.lineTo(d.w - 5, -38);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#5d4037';
-                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(d.w - 10, -55); ctx.lineTo(d.w + 15, -55); ctx.lineTo(d.w - 5, -38); ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = '#451a03'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(d.w - 8, -52); ctx.lineTo(d.w - 14, -68); ctx.lineTo(d.w - 18, -62); ctx.stroke();
             }
 
+            // Emotion status
             if (d.state === 'eat') {
-                ctx.fillStyle = '#ff4081';
-                ctx.font = '16px sans-serif';
-                ctx.fillText("❤️", d.w/2 - 8, -75);
+                ctx.fillStyle = '#ec4899'; ctx.font = '18px sans-serif';
+                ctx.fillText("❤️", d.w / 2 - 8, -75);
             } else if (d.hunger === 2) {
-                ctx.fillStyle = '#ffaa00';
-                ctx.font = '15px sans-serif';
-                ctx.fillText("🤤", d.w/2 - 8, -72);
+                ctx.fillStyle = '#f59e0b'; ctx.font = '16px sans-serif';
+                ctx.fillText("🤤", d.w / 2 - 8, -72);
             } else if (d.hunger === 1) {
-                ctx.fillStyle = '#2196f3';
-                ctx.font = '15px sans-serif';
-                ctx.fillText("🤤", d.w/2 - 8, -72);
+                ctx.fillStyle = '#38bdf8'; ctx.font = '16px sans-serif';
+                ctx.fillText("🤤", d.w / 2 - 8, -72);
             }
             ctx.restore();
         });
 
-        // Draw enemies
+        // Predatory Crows
         gd.enemies.forEach(e => {
             ctx.save();
             ctx.translate(e.x, e.y);
-            ctx.fillStyle = '#37474f';
-            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(10, -4, 6, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffd54f';
-            ctx.beginPath(); ctx.moveTo(14, -7); ctx.lineTo(24, -4); ctx.lineTo(14, -1); ctx.closePath(); ctx.fill();
-            ctx.fillStyle = '#263238';
+            ctx.shadowBlur = 8; ctx.shadowColor = '#0f172a';
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(10, -4, 6.5, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath(); ctx.moveTo(14, -7); ctx.lineTo(25, -4); ctx.lineTo(14, -1); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#0f172a';
             ctx.beginPath();
             ctx.moveTo(-10, 0);
             ctx.lineTo(0, Math.sin(gd.timer * 12) > 0 ? -18 : 12);
@@ -9860,38 +10010,36 @@ window.MinigamesManager = {
             ctx.restore();
         });
 
-        // Draw cookies
+        // Flying Shika-senbei Cookies
         gd.cookies.forEach(c => {
             ctx.save();
             ctx.translate(c.x, c.y);
-            ctx.fillStyle = '#a1887f';
-            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#5d4037';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#3e2723';
-            ctx.fillRect(-6, -4, 3, 3);
-            ctx.fillRect(4, -2, 3, 3);
-            ctx.fillRect(-2, 4, 3, 3);
+            ctx.shadowBlur = 10; ctx.shadowColor = '#fbbf24';
+            ctx.fillStyle = '#d97706';
+            ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#78350f'; ctx.lineWidth = 2.5; ctx.stroke();
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(-6, -4, 3, 3); ctx.fillRect(4, -2, 3, 3); ctx.fillRect(-2, 4, 3, 3);
             ctx.restore();
         });
 
-        // HUD Header
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🌾 Ciervos Alimentados: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🌾 Ciervos Alimentados: ${this.score} / ${this.goal}`, 30, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 600, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 150);
             ctx.restore();
         }
@@ -10061,18 +10209,16 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#0d0d1a';
-        ctx.fillRect(0, 0, 800, 600);
+        // Cosmic Deep Sky Atmosphere & Golden Starlight Particles
+        this.drawAtmosphericBackground('deep_sky', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.08);
+        this.drawParticles();
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        for (let i = 0; i < 30; i++) {
-            const sx = (i * 37) % 800;
-            const sy = (i * 73) % 600;
-            ctx.fillRect(sx, sy, 2, 2);
-        }
-
+        // Constellation Path Blueprint Guide Line with Neon Glow
         ctx.save();
-        ctx.strokeStyle = 'rgba(2, 136, 209, 0.15)';
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = '#00f0ff';
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
         ctx.lineWidth = 14;
         ctx.beginPath();
         gd.checkpoints.forEach((cp, idx) => {
@@ -10081,35 +10227,41 @@ window.MinigamesManager = {
         });
         ctx.stroke();
 
-        ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)';
-        ctx.lineWidth = 4;
-        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 3.5;
+        ctx.setLineDash([6, 6]);
         ctx.stroke();
         ctx.restore();
 
-        // Draw checkpoints
+        // Celestial Star Checkpoint Nodes
         gd.checkpoints.forEach((cp, idx) => {
-            ctx.fillStyle = cp.hit ? '#00e676' : '#ffd700';
+            ctx.save();
+            ctx.shadowBlur = cp.hit ? 16 : 8;
+            ctx.shadowColor = cp.hit ? '#00ff99' : '#fbbf24';
+            ctx.fillStyle = cp.hit ? '#00ff99' : '#fbbf24';
             ctx.beginPath();
-            ctx.arc(cp.x, cp.y, cp.hit ? 6 : 4, 0, Math.PI*2);
+            ctx.arc(cp.x, cp.y, cp.hit ? 8 : 5, 0, Math.PI * 2);
             ctx.fill();
 
             if (idx === 0) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 11px monospace';
-                ctx.fillText("INICIO ⛳", cp.x - 25, cp.y - 12);
+                ctx.fillText("INICIO ⛳", cp.x - 25, cp.y - 14);
             }
+            ctx.restore();
         });
 
-        // Draw trail
+        // Glowing Ribbon Trail
         ctx.save();
         for (let i = 1; i < gd.trail.length; i++) {
             const p1 = gd.trail[i - 1];
             const p2 = gd.trail[i];
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = p2.color;
             ctx.strokeStyle = p2.color;
-            ctx.lineWidth = 14 * p2.life;
+            ctx.lineWidth = 16 * p2.life;
             ctx.lineCap = 'round';
-            ctx.globalAlpha = p2.life * 0.8;
+            ctx.globalAlpha = p2.life * 0.9;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
@@ -10117,24 +10269,25 @@ window.MinigamesManager = {
         }
         ctx.restore();
 
-        // Accuracy meter HUD
+        // Glassmorphic Top HUD Panel
         let accuracy = gd.totalTracedPoints > 0 ? Math.round((gd.accuracyPoints / gd.totalTracedPoints) * 100) : 100;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 240, 255, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🪄 Constelaciones: ${this.score} / ${this.goal}`, 25, 29);
-        ctx.fillText(`Precisión: ${accuracy}%`, 300, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🪄 Constelaciones: ${this.score} / ${this.goal}`, 30, 36);
+        ctx.fillText(`Precisión: ${accuracy}%`, 310, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 600, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 160);
             ctx.restore();
         }
@@ -10300,10 +10453,13 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#0a0b10';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tokyo Cyber Stock Exchange & Digital Grid Particles
+        this.drawAtmosphericBackground('cyber_city', this.gameTime);
+        this.spawnAmbientParticles('cyber', 0.05);
+        this.drawParticles();
 
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
+        // Financial Grid Sub-tracers
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.08)';
         ctx.lineWidth = 1;
         for (let x = 0; x < 800; x += 40) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
@@ -10312,32 +10468,48 @@ window.MinigamesManager = {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
         }
 
+        // Main Candlestick Chart Display Container
         const chartW = 460;
         const chartH = 260;
         const chartX = 40;
         const chartY = 120;
 
-        ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
-        ctx.fillRect(chartX, chartY, chartW, chartH);
-        ctx.strokeStyle = '#00f0ff';
-        ctx.lineWidth = 2.5;
-        ctx.strokeRect(chartX, chartY, chartW, chartH);
+        this.drawGlassCard(chartX, chartY, chartW, chartH, { fill: 'rgba(10, 15, 30, 0.9)', borderColor: '#00f0ff', radius: 12 });
 
         const selAst = gd.assets[gd.selectedAsset];
         
+        // Neon Price Chart Graph with Area Gradient Fill
         if (selAst.history.length > 1) {
             ctx.save();
             const maxVal = selAst.maxBounds[1];
             const minVal = selAst.maxBounds[0];
             const range = maxVal - minVal;
 
+            const stepX = chartW / 19;
+
+            // Area Gradient
+            const fillGrad = ctx.createLinearGradient(0, chartY, 0, chartY + chartH);
+            fillGrad.addColorStop(0, 'rgba(57, 255, 20, 0.35)');
+            fillGrad.addColorStop(1, 'rgba(57, 255, 20, 0.0)');
+
+            ctx.beginPath();
+            selAst.history.forEach((val, idx) => {
+                const px = chartX + idx * stepX;
+                const py = chartY + chartH - ((val - minVal) / range) * chartH;
+                if (idx === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            ctx.lineTo(chartX + (selAst.history.length - 1) * stepX, chartY + chartH);
+            ctx.lineTo(chartX, chartY + chartH);
+            ctx.closePath();
+            ctx.fillStyle = fillGrad;
+            ctx.fill();
+
+            // Line Trace
             ctx.strokeStyle = '#39ff14';
             ctx.lineWidth = 3.5;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#39ff14';
+            ctx.shadowBlur = 12; ctx.shadowColor = '#39ff14';
             ctx.beginPath();
-
-            const stepX = chartW / 19;
             selAst.history.forEach((val, idx) => {
                 const px = chartX + idx * stepX;
                 const py = chartY + chartH - ((val - minVal) / range) * chartH;
@@ -10348,6 +10520,7 @@ window.MinigamesManager = {
             ctx.restore();
         }
 
+        // Asset Cards (Right Sidebar)
         const cardX = 540;
         const cardW = 220;
         const cardH = 85;
@@ -10357,76 +10530,66 @@ window.MinigamesManager = {
             const cy = cardYStart + idx * (cardH + 12);
             const isSelected = gd.selectedAsset === idx;
 
-            ctx.fillStyle = isSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(30, 30, 45, 0.6)';
-            ctx.strokeStyle = isSelected ? '#00f0ff' : '#455a64';
-            ctx.lineWidth = isSelected ? 3.0 : 1.5;
-            ctx.fillRect(cardX, cy, cardW, cardH);
-            ctx.strokeRect(cardX, cy, cardW, cardH);
+            this.drawGlassCard(cardX, cy, cardW, cardH, {
+                fill: isSelected ? 'rgba(0, 240, 255, 0.2)' : 'rgba(30, 41, 59, 0.6)',
+                borderColor: isSelected ? '#00f0ff' : 'rgba(100, 116, 139, 0.4)',
+                radius: 10
+            });
 
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 12px sans-serif';
             ctx.fillText(`${ast.emoji} Recuerdo ${idx + 1}`, cardX + 15, cy + 25);
-            ctx.font = '10px monospace';
+            ctx.font = '10px monospace'; ctx.fillStyle = '#cbd5e1';
             ctx.fillText(ast.name.slice(0, 24), cardX + 15, cy + 42);
 
             ctx.font = 'bold 14px monospace';
             ctx.fillStyle = '#39ff14';
             ctx.fillText(`P: ${ast.price}¥`, cardX + 15, cy + 65);
 
-            ctx.fillStyle = '#ffb74d';
+            ctx.fillStyle = '#fbbf24';
             ctx.fillText(`Tengo: ${ast.qty}`, cardX + 130, cy + 65);
         });
 
+        // Floating Financial P&L Text
         gd.floatingTexts.forEach(ft => {
             ctx.save();
             ctx.fillStyle = ft.color;
             ctx.font = 'bold 22px monospace';
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = ft.color;
+            ctx.shadowBlur = 10; ctx.shadowColor = ft.color;
             ctx.fillText(ft.text, ft.x, ft.y);
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(40, 400, 720, 40);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(40, 400, 720, 40);
-        ctx.fillStyle = '#ffd700';
+        // News Ticker Marquee Bar
+        this.drawGlassCard(40, 400, 720, 42, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: '#fbbf24', radius: 8 });
+        ctx.fillStyle = '#fbbf24';
         ctx.font = 'bold 12px monospace';
-        ctx.fillText(`NOTICIAS: ${gd.newsText}`, 55, 424);
+        ctx.fillText(`📰 NOTICIAS: ${gd.newsText}`, 55, 426);
 
+        // Buy & Sell Interactive Glassmorphic Action Buttons
         const btnBuyX = 100;
         const btnSellX = 280;
         const btnW = 140;
         const btnH = 50;
         const btnY = 475;
 
-        ctx.fillStyle = '#2e7d32';
-        ctx.fillRect(btnBuyX, btnY, btnW, btnH);
-        ctx.strokeStyle = '#39ff14';
-        ctx.lineWidth = 2.5;
-        ctx.strokeRect(btnBuyX, btnY, btnW, btnH);
+        this.drawGlassCard(btnBuyX, btnY, btnW, btnH, { fill: 'rgba(34, 197, 94, 0.85)', borderColor: '#ffffff', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px sans-serif';
-        ctx.fillText("COMPRAR (BUY)", btnBuyX + 14, btnY + 31);
+        ctx.font = 'bold 15px sans-serif';
+        ctx.fillText("COMPRAR (BUY)", btnBuyX + 12, btnY + 31);
 
-        ctx.fillStyle = '#c62828';
-        ctx.fillRect(btnSellX, btnY, btnW, btnH);
-        ctx.strokeStyle = '#ff3333';
-        ctx.lineWidth = 2.5;
-        ctx.strokeRect(btnSellX, btnY, btnW, btnH);
+        this.drawGlassCard(btnSellX, btnY, btnW, btnH, { fill: 'rgba(239, 68, 68, 0.85)', borderColor: '#ffffff', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.fillText("VENDER (SELL)", btnSellX + 16, btnY + 31);
+        ctx.fillText("VENDER (SELL)", btnSellX + 14, btnY + 31);
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(57, 255, 20, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`📊 Especulador de Recuerdos: ${gd.balance}¥ / ${this.goal}¥`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`📊 Especulador de Recuerdos: ${gd.balance}¥ / ${this.goal}¥`, 30, 36);
         
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(`Cierre de Mercado en: ${Math.max(0, Math.ceil(gd.marketTimer))}s`, 500, 29);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Cierre de Mercado: ${Math.max(0, Math.ceil(gd.marketTimer))}s`, 520, 36);
     },
 
     inputInvestorPress(x, y) {
@@ -10534,18 +10697,20 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#f7f1e3';
-        ctx.fillRect(0, 0, 800, 600);
+        // Washi Paper & Sakura Shrine Atmosphere
+        this.drawAtmosphericBackground('sakura_shrine', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.strokeStyle = 'rgba(139, 125, 107, 0.15)';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(30, 30, 740, 540);
+        // Traditional Washi Paper Mat Frame
+        this.drawGlassCard(25, 25, 750, 550, { fill: 'rgba(254, 243, 199, 0.85)', borderColor: '#b45309', radius: 16 });
 
         const currentKanji = gd.kanjis[gd.currentKanjiIdx];
 
+        // Gold Calligraphy Guide Trace Line
         if (currentKanji) {
             ctx.save();
-            ctx.strokeStyle = 'rgba(255, 171, 0, 0.25)';
+            ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
             ctx.lineWidth = 26;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
@@ -10562,19 +10727,21 @@ window.MinigamesManager = {
             ctx.restore();
 
             if (currentStroke && currentStroke.length > 0) {
-                ctx.fillStyle = '#ff6f00';
-                ctx.font = 'bold 16px sans-serif';
+                ctx.fillStyle = '#b45309';
+                ctx.font = 'bold 15px sans-serif';
                 const start = currentStroke[0];
-                ctx.fillText(`T${gd.currentStrokeIdx + 1} 🎯`, start.x - 28, start.y - 12);
+                ctx.fillText(`Trazo ${gd.currentStrokeIdx + 1} 🎯`, start.x - 28, start.y - 14);
             }
         }
 
+        // Sumi-e Black Ink Drawn Strokes
         ctx.save();
-        ctx.strokeStyle = '#212121';
+        ctx.strokeStyle = '#0f172a';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         gd.drawnStrokes.forEach(stroke => {
             ctx.lineWidth = 14;
+            ctx.shadowBlur = 4; ctx.shadowColor = '#0f172a';
             ctx.beginPath();
             stroke.points.forEach((pt, idx) => {
                 if (idx === 0) ctx.moveTo(pt.x, pt.y);
@@ -10584,14 +10751,15 @@ window.MinigamesManager = {
         });
         ctx.restore();
 
+        // Active Brush Stroke Trail
         if (gd.drawing && gd.userBrushTrail.length > 1) {
             ctx.save();
-            ctx.strokeStyle = 'rgba(33, 33, 33, 0.85)';
+            ctx.strokeStyle = 'rgba(15, 23, 42, 0.9)';
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.beginPath();
             gd.userBrushTrail.forEach((pt, idx) => {
-                ctx.lineWidth = 15 - Math.min(8, idx * 0.15);
+                ctx.lineWidth = 16 - Math.min(8, idx * 0.15);
                 if (idx === 0) ctx.moveTo(pt.x, pt.y);
                 else ctx.lineTo(pt.x, pt.y);
             });
@@ -10599,36 +10767,35 @@ window.MinigamesManager = {
             ctx.restore();
         }
 
+        // Red Hanko Master Seal Stamp
         if (gd.hankoStamped) {
             ctx.save();
-            ctx.fillStyle = 'rgba(198, 40, 40, 0.9)';
-            ctx.strokeStyle = '#c62828';
-            ctx.lineWidth = 3;
-            ctx.fillRect(660, 460, 60, 60);
-            ctx.strokeRect(660, 460, 60, 60);
+            this.drawGlassCard(660, 460, 64, 64, { fill: 'rgba(220, 38, 38, 0.95)', borderColor: '#ffffff', radius: 8 });
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 22px serif';
-            ctx.fillText("書", 678, 497);
+            ctx.font = 'bold 24px serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText("書", 692, 492);
             ctx.restore();
         }
 
-        // HUD Header
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(217, 119, 6, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🖌️ Caligrafía Shodo: ${currentKanji ? currentKanji.name : ""}`, 25, 29);
-        ctx.fillText(`Kanjis: ${this.score} / ${this.goal}`, 380, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🖌️ Caligrafía Shodo: ${currentKanji ? currentKanji.name : ""}`, 30, 36);
+        ctx.fillText(`Kanjis Completados: ${this.score} / ${this.goal}`, 380, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 520);
             ctx.restore();
         }
@@ -10849,84 +11016,110 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#cfd8dc';
-        ctx.fillRect(0, 0, 800, 600);
+        // Kyoto Pagoda Construction Site & Sunset Atmosphere
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.fillStyle = '#8d6e63';
+        // Stone Foundation Base
+        ctx.fillStyle = '#334155';
         ctx.fillRect(0, 520, 800, 80);
 
+        // Crane Cable Suspension Line
         if (gd.state === 'playing') {
-            ctx.strokeStyle = '#37474f';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.7)';
+            ctx.lineWidth = 3.5;
             ctx.beginPath();
             ctx.moveTo(400, 0);
             ctx.lineTo(gd.currentBlock.x, gd.currentBlock.y);
             ctx.stroke();
         }
 
+        // Stacked Traditional Pagoda Levels
         gd.levels.forEach((lvl, idx) => {
             ctx.save();
             ctx.translate(lvl.x + (gd.state === 'earthquake' ? gd.shakeX : 0), lvl.y);
             
-            ctx.fillStyle = '#8d6e63';
-            ctx.fillRect(-lvl.w/2, 0, lvl.w, lvl.h);
+            ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.4)';
+            
+            // Wooden Beam Structure
+            const woodGrad = ctx.createLinearGradient(-lvl.w / 2, 0, lvl.w / 2, 0);
+            woodGrad.addColorStop(0, '#78350f');
+            woodGrad.addColorStop(0.5, '#b45309');
+            woodGrad.addColorStop(1, '#451a03');
+            ctx.fillStyle = woodGrad;
+            ctx.fillRect(-lvl.w / 2, 0, lvl.w, lvl.h);
 
-            ctx.fillStyle = '#c62828';
-            ctx.fillRect(-lvl.w/2 + 10, 0, 15, lvl.h);
-            ctx.fillRect(lvl.w/2 - 25, 0, 15, lvl.h);
+            // Vermilion Shrine Pillars
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(-lvl.w / 2 + 10, 0, 15, lvl.h);
+            ctx.fillRect(lvl.w / 2 - 25, 0, 15, lvl.h);
 
-            ctx.fillStyle = '#ffd54f';
+            // Golden Curved Eaves Roof
+            ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
-            ctx.moveTo(-lvl.w/2 - 12, 0);
-            ctx.lineTo(lvl.w/2 + 12, 0);
-            ctx.lineTo(lvl.w/2 - 2, -10);
-            ctx.lineTo(-lvl.w/2 + 2, -10);
+            ctx.moveTo(-lvl.w / 2 - 14, 0);
+            ctx.lineTo(lvl.w / 2 + 14, 0);
+            ctx.lineTo(lvl.w / 2 - 2, -12);
+            ctx.lineTo(-lvl.w / 2 + 2, -12);
             ctx.closePath();
             ctx.fill();
 
             ctx.restore();
         });
 
+        // Dropping Block
         if (gd.state === 'playing' || gd.state === 'dropping') {
             ctx.save();
             ctx.translate(gd.currentBlock.x, gd.currentBlock.y);
-            ctx.fillStyle = '#8d6e63';
-            ctx.fillRect(-gd.currentBlock.w/2, 0, gd.currentBlock.w, gd.currentBlock.h);
-            ctx.fillStyle = '#c62828';
-            ctx.fillRect(-gd.currentBlock.w/2 + 10, 0, 15, gd.currentBlock.h);
-            ctx.fillRect(gd.currentBlock.w/2 - 25, 0, 15, gd.currentBlock.h);
-            ctx.fillStyle = '#ffd54f';
+            ctx.shadowBlur = 12; ctx.shadowColor = '#fbbf24';
+            
+            const woodGrad = ctx.createLinearGradient(-gd.currentBlock.w / 2, 0, gd.currentBlock.w / 2, 0);
+            woodGrad.addColorStop(0, '#78350f');
+            woodGrad.addColorStop(0.5, '#b45309');
+            woodGrad.addColorStop(1, '#451a03');
+            ctx.fillStyle = woodGrad;
+            ctx.fillRect(-gd.currentBlock.w / 2, 0, gd.currentBlock.w, gd.currentBlock.h);
+
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(-gd.currentBlock.w / 2 + 10, 0, 15, gd.currentBlock.h);
+            ctx.fillRect(gd.currentBlock.w / 2 - 25, 0, 15, gd.currentBlock.h);
+
+            ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
-            ctx.moveTo(-gd.currentBlock.w/2 - 12, 0);
-            ctx.lineTo(gd.currentBlock.w/2 + 12, 0);
-            ctx.lineTo(gd.currentBlock.w/2 - 2, -10);
-            ctx.lineTo(-gd.currentBlock.w/2 + 2, -10);
+            ctx.moveTo(-gd.currentBlock.w / 2 - 14, 0);
+            ctx.lineTo(gd.currentBlock.w / 2 + 14, 0);
+            ctx.lineTo(gd.currentBlock.w / 2 - 2, -12);
+            ctx.lineTo(-gd.currentBlock.w / 2 + 2, -12);
             ctx.closePath();
             ctx.fill();
             ctx.restore();
         }
 
+        // Earthquake Hazard Simulation Overlay
         if (gd.state === 'earthquake') {
-            ctx.fillStyle = 'rgba(255, 51, 51, 0.15)';
-            ctx.fillRect(0,0,800,600);
-            ctx.fillStyle = '#ff3333';
-            ctx.font = 'bold 26px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText("⚠️ ¡PRUEBA DE SISMO GRADO 7! ⚠️", 400, 220);
-            ctx.font = '14px monospace';
-            ctx.fillText("¡Resistiendo oscilación estructural!", 400, 250);
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+            ctx.fillRect(0, 0, 800, 600);
+            
+            this.drawGlassCard(150, 200, 500, 80, { fill: 'rgba(15, 23, 42, 0.95)', borderColor: '#ef4444', radius: 14 });
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 24px Quicksand, sans-serif'; ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = '#ef4444';
+            ctx.fillText("⚠️ ¡PRUEBA DE SISMO GRADO 7! ⚠️", 400, 235);
+            ctx.font = '13px monospace'; ctx.fillStyle = '#f87171';
+            ctx.fillText("¡Resistiendo oscilación estructural en la Pagoda!", 400, 260);
             ctx.textAlign = 'left';
         }
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🏗️ Secciones Apiladas: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🏗️ Secciones Apiladas: ${this.score} / ${this.goal}`, 30, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
     },
 
     inputEngineerPress(x, y) {
@@ -11013,15 +11206,25 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#263238';
+        // Todai-ji Temple Sacred Interior & Golden Starlight Dust
+        this.drawAtmosphericBackground('deep_sky', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.06);
+        this.drawParticles();
+
+        // Giant Wooden Pillars & Center Hole Passage
+        const pillarGrad = ctx.createLinearGradient(0, 0, 800, 0);
+        pillarGrad.addColorStop(0, '#451a03');
+        pillarGrad.addColorStop(0.4, '#78350f');
+        pillarGrad.addColorStop(0.45, '#1e293b');
+        pillarGrad.addColorStop(0.55, '#1e293b');
+        pillarGrad.addColorStop(0.6, '#78350f');
+        pillarGrad.addColorStop(1, '#451a03');
+        ctx.fillStyle = pillarGrad;
         ctx.fillRect(0, 0, 800, 600);
 
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(0, 0, 340, 600);
-        ctx.fillRect(460, 0, 340, 600);
-
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 6;
+        // Pillar Wood Grains Lines
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.15)';
+        ctx.lineWidth = 4;
         for (let x = 60; x < 340; x += 80) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
         }
@@ -11029,74 +11232,76 @@ window.MinigamesManager = {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
         }
 
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(340, 0, 120, 600);
+        // Sacred Center Pillar Hole Passage Channel
+        this.drawGlassCard(340, 0, 120, 600, { fill: 'rgba(15, 23, 42, 0.75)', borderColor: '#fbbf24', radius: 0 });
 
+        // Crawling Character Inside Pillar Hole
         ctx.save();
         ctx.translate(400, 340);
+        ctx.shadowBlur = 10; ctx.shadowColor = '#00f0ff';
         if (gd.stunnedTimer > 0) {
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -10, 16, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffd54f';
-            ctx.font = '14px sans-serif';
-            ctx.fillText("💫", -10, -32);
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -10, 16, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText("💫", 0, -32);
         } else {
-            ctx.fillStyle = '#1976d2';
+            ctx.fillStyle = '#0284c7';
             ctx.fillRect(-15, -15, 30, 40);
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -25, 14, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -25, 14, 0, Math.PI * 2); ctx.fill();
             
-            ctx.font = '16px sans-serif';
+            ctx.font = '16px sans-serif'; ctx.textAlign = 'center';
             const face = gd.progress > 0.7 ? "😤" : (gd.progress > 0.4 ? "😫" : "😅");
-            ctx.fillText(face, -10, -45);
+            ctx.fillText(face, 0, -45);
         }
         ctx.restore();
 
+        // Falling Debris Blocks
         gd.debris.forEach(deb => {
-            ctx.fillStyle = '#78909c';
-            ctx.fillRect(deb.x - deb.size/2, deb.y - deb.size/2, deb.size, deb.size);
-            ctx.strokeStyle = '#37474f';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(deb.x - deb.size/2, deb.y - deb.size/2, deb.size, deb.size);
+            ctx.save();
+            ctx.shadowBlur = 8; ctx.shadowColor = '#0f172a';
+            ctx.fillStyle = '#64748b';
+            ctx.fillRect(deb.x - deb.size / 2, deb.y - deb.size / 2, deb.size, deb.size);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2.5;
+            ctx.strokeRect(deb.x - deb.size / 2, deb.y - deb.size / 2, deb.size, deb.size);
+            ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(300, 80, 20, 440);
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(300, 80, 20, 440);
+        // Vertical Progress Pillar Bar
+        this.drawGlassCard(295, 75, 26, 450, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#00ff99', radius: 13 });
+        const fillH = gd.progress * 440;
         ctx.fillStyle = '#00ff99';
-        ctx.fillRect(300, 80 + 440 - (gd.progress * 440), 20, gd.progress * 440);
+        ctx.fillRect(298, 80 + 440 - fillH, 20, fillH);
 
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(80, 500, 140, 50);
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(80, 500, 140, 50);
-        ctx.fillStyle = '#212121';
-        ctx.font = 'bold 16px monospace';
-        ctx.fillText("IZQUIERDA (A)", 95, 532);
-
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(580, 500, 140, 50);
-        ctx.strokeStyle = '#ffffff';
-        ctx.strokeRect(580, 500, 140, 50);
-        ctx.fillStyle = '#212121';
-        ctx.fillText("DERECHA (D)", 600, 532);
-
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Interactive Tap Controls
+        this.drawGlassCard(80, 500, 140, 50, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#00f0ff', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🪵 Pilar Sagrado Todai-ji: Pilar ${gd.pillarIndex} / 3`, 25, 29);
+        ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("IZQUIERDA (A)", 150, 525);
+
+        this.drawGlassCard(580, 500, 140, 50, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#00f0ff', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("DERECHA (D)", 650, 525);
+
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪵 Pilar Sagrado Todai-ji: Pilar ${gd.pillarIndex} / 3`, 30, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 24px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 180);
             ctx.restore();
         }
@@ -11374,10 +11579,13 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#1e1c18';
-        ctx.fillRect(0, 0, 800, 600);
+        // Dark Tatami Chamber Atmosphere & Secret Gold Dust
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.05);
+        this.drawParticles();
 
-        ctx.strokeStyle = 'rgba(100,80,40,0.18)';
+        // Shoji Screen Lattice Panels
+        ctx.strokeStyle = 'rgba(217, 119, 6, 0.2)';
         ctx.lineWidth = 4;
         ctx.strokeRect(50, 50, 700, 500);
         ctx.beginPath();
@@ -11387,34 +11595,44 @@ window.MinigamesManager = {
         const mx = this.mouse.x;
         const my = this.mouse.y;
 
+        // Smooth Flashlight Dark Mask Clip
         ctx.save();
         ctx.beginPath();
-        ctx.arc(mx, my, 110, 0, Math.PI*2);
+        ctx.arc(mx, my, 125, 0, Math.PI * 2);
         ctx.rect(800, 0, -800, 600);
         ctx.clip();
-        ctx.fillStyle = 'rgba(0,0,0,0.96)';
-        ctx.fillRect(0,0,800,600);
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.96)';
+        ctx.fillRect(0, 0, 800, 600);
         ctx.restore();
 
+        // Flashlight Light Ring Halo
+        const flashGrad = ctx.createRadialGradient(mx, my, 10, mx, my, 130);
+        flashGrad.addColorStop(0, 'rgba(254, 240, 138, 0.3)');
+        flashGrad.addColorStop(0.8, 'rgba(254, 240, 138, 0.05)');
+        flashGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = flashGrad;
+        ctx.beginPath(); ctx.arc(mx, my, 130, 0, Math.PI * 2); ctx.fill();
+
+        // Tokugawa Crest Seals
         gd.seals.forEach(s => {
             const dist = Math.hypot(mx - s.x, my - s.y);
-            const inRange = dist < 120;
+            const inRange = dist < 130;
             
             if (inRange || s.found) {
                 ctx.save();
                 ctx.translate(s.x, s.y);
                 ctx.scale(s.scale, s.scale);
                 
-                ctx.shadowBlur = s.found ? 20 : 10;
-                ctx.shadowColor = '#ffd700';
-                ctx.fillStyle = '#ffd700';
-                ctx.strokeStyle = '#b59300';
+                ctx.shadowBlur = s.found ? 24 : 12;
+                ctx.shadowColor = '#fbbf24';
+                ctx.fillStyle = '#fbbf24';
+                ctx.strokeStyle = '#b45309';
                 ctx.lineWidth = 2.5;
-                ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 for (let a = 0; a < 3; a++) {
-                    const angle = a * Math.PI * 2/3 - Math.PI/2;
+                    const angle = a * Math.PI * 2 / 3 - Math.PI / 2;
                     ctx.beginPath();
-                    ctx.ellipse(Math.cos(angle)*14, Math.sin(angle)*14, 10, 6, angle, 0, Math.PI*2);
+                    ctx.ellipse(Math.cos(angle) * 14, Math.sin(angle) * 14, 10, 6, angle, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.stroke();
                 }
@@ -11422,12 +11640,13 @@ window.MinigamesManager = {
             }
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🔍 Sello del Shogun: ${this.score} / ${this.goal}`, 25, 29);
-        ctx.fillText(`Tiempo: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🔍 Sello del Shogun: ${this.score} / ${this.goal}`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Tiempo Restante: ${Math.max(0, Math.ceil(gd.timer))}s`, 560, 36);
     },
 
     inputSealPress(x, y) {
@@ -11509,37 +11728,45 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#b2dfdb';
-        ctx.fillRect(0, 0, 800, 600);
+        // Imperial Zen Pine Garden Atmosphere & Misty Fog
+        this.drawAtmosphericBackground('misty_forest', this.gameTime);
+        this.spawnAmbientParticles('fog_mist', 0.04);
+        this.drawParticles();
 
-        ctx.fillStyle = '#004d40';
+        // Garden Moss Ground Base
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
         ctx.fillRect(0, 420, 800, 180);
 
+        // Target Pine Tree Cloud Silhouette Spot
         ctx.save();
         ctx.translate(400, 240);
-        ctx.fillStyle = 'rgba(0, 77, 64, 0.4)';
-        ctx.strokeStyle = '#00796b';
-        ctx.lineWidth = 5;
+        ctx.shadowBlur = 15; ctx.shadowColor = '#10b981';
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 4;
         
         ctx.beginPath();
-        ctx.arc(0, -60, 45, 0, Math.PI*2);
-        ctx.arc(-25, 0, 65, 0, Math.PI*2);
+        ctx.arc(0, -60, 45, 0, Math.PI * 2);
+        ctx.arc(-25, 0, 65, 0, Math.PI * 2);
         ctx.fillRect(-15, 60, 12, 100);
         ctx.fillRect(15, 60, 12, 100);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
 
+        // Draggable Animal Pine Shapes
         gd.animals.forEach((an, idx) => {
             const isSelected = gd.selectedIdx === idx;
             ctx.save();
             ctx.translate(an.x, an.y);
             ctx.rotate(an.rot);
             
-            ctx.fillStyle = isSelected ? '#ff4081' : '#ffffff';
-            ctx.strokeStyle = '#00796b';
+            ctx.shadowBlur = isSelected ? 20 : 8;
+            ctx.shadowColor = isSelected ? '#ec4899' : '#10b981';
+            ctx.fillStyle = isSelected ? '#ec4899' : '#ffffff';
+            ctx.strokeStyle = '#059669';
             ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             
             ctx.font = '36px sans-serif';
             ctx.textAlign = 'center';
@@ -11547,28 +11774,31 @@ window.MinigamesManager = {
             ctx.restore();
         });
 
+        // Rotate Action Glassmorphic Button
         if (gd.selectedIdx !== -1) {
-            ctx.fillStyle = '#004d40';
-            ctx.font = 'bold 13px monospace';
-            ctx.fillText("Usa los botones [ROTAR] para ajustar el ángulo.", 40, 480);
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 13px Quicksand, sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText("Usa el botón para ajustar el ángulo de alineación.", 40, 480);
             
-            ctx.fillStyle = '#ff7043';
-            ctx.fillRect(660, 450, 100, 40);
+            this.drawGlassCard(660, 450, 110, 42, { fill: 'rgba(236, 72, 153, 0.9)', borderColor: '#ffffff', radius: 10 });
             ctx.fillStyle = '#ffffff';
-            ctx.fillText("🔄 ROTAR", 680, 474);
+            ctx.font = 'bold 14px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText("🔄 ROTAR", 715, 471);
         }
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(16, 185, 129, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🌲 Jardín de Nubes: Encaja el animal que representa el pino`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌲 Jardín de Nubes: Encaja el animal que representa el pino`, 30, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 100);
             ctx.restore();
         }
@@ -11661,63 +11891,66 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(0, 0, 800, 600);
+        // Wooden Nightingale Floor Corridor & Ambient Starlight
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#3e2723';
+        // Wooden Floor Planks
+        ctx.strokeStyle = 'rgba(120, 53, 15, 0.4)';
         ctx.lineWidth = 4;
         for (let x = 200; x < 700; x += 100) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
         }
 
-        ctx.fillStyle = 'rgba(0, 230, 118, 0.2)';
-        ctx.fillRect(250, 450, 300, 45);
-        ctx.strokeStyle = '#00e676';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(250, 450, 300, 45);
+        // Green Timing Target Zone (Silent Step Bar)
+        this.drawGlassCard(250, 445, 300, 55, { fill: 'rgba(34, 197, 94, 0.25)', borderColor: '#22c55e', radius: 12 });
+        ctx.fillStyle = '#4ade80';
+        ctx.font = 'bold 12px Quicksand, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("ZONA DE PASO SILENCIOSO", 400, 477);
 
+        // Falling Ninja Footprints (Tabi Shoes)
         gd.steps.forEach(st => {
             ctx.save();
             ctx.translate(st.x, st.y);
-            ctx.fillStyle = '#ffb74d';
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = '#ffb74d';
+            ctx.fillStyle = '#fbbf24';
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#fbbf24';
             
             ctx.beginPath();
-            ctx.ellipse(0, 0, 14, 20, 0.05, 0, Math.PI*2);
+            ctx.ellipse(0, 0, 14, 20, 0.05, 0, Math.PI * 2);
             ctx.fill();
-            ctx.beginPath(); ctx.arc(-10, -22, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(-3, -24, 4.5, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(4, -23, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(10, -20, 3, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(-10, -22, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(-3, -24, 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(4, -23, 4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(10, -20, 3, 0, Math.PI * 2); ctx.fill();
 
             ctx.restore();
         });
 
-        ctx.fillStyle = '#4caf50';
-        ctx.fillRect(320, 520, 160, 55);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(320, 520, 160, 55);
+        // Glassmorphic Interactive Step Button
+        this.drawGlassCard(320, 520, 160, 55, { fill: 'rgba(34, 197, 94, 0.9)', borderColor: '#ffffff', radius: 12 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.fillText("🥷 PISAR (SPACE)", 332, 554);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("🥷 PISAR (ESPACIO)", 400, 547);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(34, 197, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`👣 Pasos de Ninja: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(`👣 Pasos de Ninja: ${this.score} / ${this.goal}`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 22px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 200);
             ctx.restore();
         }
@@ -12015,53 +12248,64 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#efebe9';
-        ctx.fillRect(0, 0, 800, 600);
+        // Shoji Sunset Chamber & Gold Dust Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = 'rgba(141, 110, 99, 0.15)';
-        ctx.lineWidth = 5;
-        ctx.strokeRect(40, 40, 720, 520);
+        // Imperial Decree Scroll Panel
+        this.drawGlassCard(40, 55, 720, 520, { fill: 'rgba(15, 23, 42, 0.7)', borderColor: 'rgba(251, 191, 36, 0.4)', radius: 16 });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.06)';
-        ctx.fillRect(60, 60, 680, 50);
-        ctx.fillStyle = '#0a0a0a';
-        ctx.font = 'bold 15px monospace';
-        ctx.fillText(`DECRETO: Queda ${gd.sentence.join(" + ")}`, 80, 92);
+        // Decree Active Sentence Header Bar
+        this.drawGlassCard(60, 65, 680, 50, { fill: 'rgba(30, 41, 59, 0.9)', borderColor: '#fbbf24', radius: 10 });
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`DECRETO IMPERIAL: Queda ${gd.sentence.join(" + ")}`, 80, 96);
 
+        // Falling Words
         gd.words.forEach(w => {
             ctx.save();
-            ctx.fillStyle = w.forbidden ? '#c62828' : '#1565c0';
-            ctx.fillRect(w.x - 65, w.y - 16, 130, 32);
-            ctx.strokeStyle = '#ffffff';
-            ctx.strokeRect(w.x - 65, w.y - 16, 130, 32);
+            ctx.translate(w.x, w.y);
+            ctx.shadowBlur = 12; ctx.shadowColor = w.forbidden ? '#ef4444' : '#38bdf8';
+            
+            this.drawGlassCard(-65, -16, 130, 32, { 
+                fill: w.forbidden ? 'rgba(239, 68, 68, 0.9)' : 'rgba(14, 165, 233, 0.9)', 
+                borderColor: '#ffffff', 
+                radius: 8 
+            });
             
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 12px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(w.text, w.x, w.y + 5);
+            ctx.font = 'bold 12px Quicksand, monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(w.text, 0, 0);
             ctx.restore();
         });
 
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(gd.basketX - 55, 520, 110, 25);
-        ctx.fillStyle = '#ffd54f';
-        ctx.fillRect(gd.basketX - 60, 510, 120, 10);
+        // Basket / Seal Collector Pad
+        ctx.save();
+        ctx.shadowBlur = 15; ctx.shadowColor = '#fbbf24';
+        this.drawGlassCard(gd.basketX - 55, 520, 110, 25, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 8 });
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(gd.basketX - 60, 510, 120, 8);
+        ctx.restore();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`📜 Edicto Imperial: Captura las palabras`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(`📜 Edicto Imperial: Captura las palabras correctas`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 200);
             ctx.restore();
         }
@@ -12111,38 +12355,41 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#d7ccc8';
-        ctx.fillRect(0, 0, 800, 600);
+        // Historic Kyoto Alleyway Atmosphere & Falling Cherry Blossoms
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(0, 450, 800, 150);
-        ctx.fillStyle = '#5d4037';
+        // Wooden Machiya Townhouses & Cobblestone Street Base
+        this.drawWaterLayer(450, 150, this.gameTime, { color: '#451a03', alpha: 0.8 });
+        
+        ctx.fillStyle = '#78350f';
         ctx.fillRect(600, 200, 120, 250);
 
+        // Modern Anomaly Items to Clean Up
         gd.items.forEach(it => {
             if (!it.removed) {
                 ctx.save();
                 ctx.translate(it.x, it.y);
-                ctx.fillStyle = '#e53935';
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.fillRect(-35, -20, 70, 40);
-                ctx.strokeRect(-35, -20, 70, 40);
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444';
+                
+                this.drawGlassCard(-38, -22, 76, 44, { fill: 'rgba(239, 68, 68, 0.9)', borderColor: '#ffffff', radius: 8 });
                 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '10px monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(it.type, 0, 5);
+                ctx.font = 'bold 11px Quicksand, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(it.type, 0, 0);
                 ctx.restore();
             }
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(244, 63, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`📸 Sannenzaka 1600: Limpia los elementos modernos`, 25, 29);
-        ctx.fillText(`Tiempo: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.fillText(`📸 Sannenzaka 1600: Limpia los elementos modernos`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Tiempo: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 36);
     },
 
     inputTimeTravelPress(x, y) {
@@ -12199,47 +12446,57 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#eceff1';
-        ctx.fillRect(0, 0, 800, 600);
+        // Cyber Taiko Tempo Atmosphere & Neon Grid
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#b0bec5';
+        // Pulsating Concentric Target Circles
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
         ctx.lineWidth = 3;
         for (let r = 80; r < 360; r += 60) {
-            ctx.beginPath(); ctx.arc(400, 300, r, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(400, 300, r, 0, Math.PI * 2); ctx.stroke();
         }
 
+        // Animated Rhythm Core Wave
         ctx.save();
         ctx.translate(400, 300);
         ctx.scale(gd.pulseScale, gd.pulseScale);
-        ctx.strokeStyle = 'rgba(0, 150, 136, 0.4)';
+        ctx.shadowBlur = 20; ctx.shadowColor = '#06b6d4';
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.8)';
         ctx.lineWidth = 8;
-        ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI * 2); ctx.stroke();
         ctx.restore();
 
+        // Runner Character Orbiting
         ctx.save();
-        const angle = gd.steps * (Math.PI * 2 / 100) - Math.PI/2;
+        const angle = gd.steps * (Math.PI * 2 / 100) - Math.PI / 2;
         const cx = 400 + Math.cos(angle) * 180;
         const cy = 300 + Math.sin(angle) * 180;
         ctx.translate(cx, cy);
+        ctx.shadowBlur = 15; ctx.shadowColor = '#ec4899';
 
-        ctx.fillStyle = '#1976d2';
+        ctx.fillStyle = '#ec4899';
         ctx.fillRect(-10, -25, 20, 26);
-        ctx.fillStyle = '#ffe0b2';
-        ctx.beginPath(); ctx.arc(0, -32, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath(); ctx.arc(0, -32, 10, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`⏱️ Paso Imperial: Sincroniza al ritmo`, 25, 29);
-        ctx.fillText(`Pasos: ${gd.steps} / 100`, 360, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⏱️ Paso Imperial: Sincroniza al ritmo`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Pasos: ${gd.steps} / 100`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 140);
             ctx.restore();
         }
@@ -12311,51 +12568,55 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#455a64';
-        ctx.fillRect(0, 0, 800, 600);
+        // Imperial Palace Photo Studio Atmosphere
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
 
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(100, 100, 600, 350);
+        // Photo Frame Container
+        this.drawGlassCard(100, 100, 600, 360, { fill: 'rgba(15, 23, 42, 0.75)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 16 });
 
         const memberX = [200, 330, 470, 600];
-        const colors = ['#e91e63', '#1976d2', '#ff9800', '#9c27b0'];
+        const colors = ['#ec4899', '#3b82f6', '#f97316', '#a855f7'];
         const labels = ["LAURA 🦊", "IVÁN 🐉", "MAMÁ 👩", "PAPÁ 👨"];
 
         gd.poses.forEach((pose, idx) => {
             ctx.save();
             ctx.translate(memberX[idx], 360);
             
+            ctx.shadowBlur = 12; ctx.shadowColor = colors[idx];
             ctx.fillStyle = colors[idx];
             if (pose === 0) {
                 ctx.fillRect(-15, -40, 30, 45);
-                ctx.fillStyle = '#ffe0b2';
+                ctx.fillStyle = '#ffedd5';
                 ctx.fillRect(-28, -35, 12, 10);
                 ctx.fillRect(16, -35, 12, 10);
             } else if (pose === 1) {
                 ctx.fillRect(-12, -45, 24, 50);
-                ctx.fillStyle = '#5d4037';
+                ctx.fillStyle = '#78350f';
                 ctx.fillRect(-16, -30, 32, 12);
             } else {
                 ctx.fillRect(-12, -40, 24, 45);
-                ctx.fillStyle = '#ffe0b2';
+                ctx.fillStyle = '#ffedd5';
                 ctx.fillRect(14, -45, 10, 20);
             }
 
-            ctx.fillStyle = '#ffe0b2';
-            ctx.beginPath(); ctx.arc(0, -60, 16, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffedd5';
+            ctx.beginPath(); ctx.arc(0, -60, 16, 0, Math.PI * 2); ctx.fill();
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 11px monospace';
-            ctx.fillText(labels[idx], -25, 30);
+            ctx.font = 'bold 12px Quicksand, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(labels[idx], 0, 32);
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`📸 Retrato de Familia: Sincroniza poses`, 25, 29);
-        ctx.fillText(`Foto en: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`📸 Retrato de Familia Imperial: Alinea las poses (Pose 1)`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Foto en: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 36);
 
         if (gd.feedbackTimer > 0) {
             ctx.save();
@@ -12438,59 +12699,68 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#efebe9';
-        ctx.fillRect(0, 0, 800, 600);
+        // Gion Geisha District Sunset & Cherry Blossom Petals
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.fillStyle = '#8d6e63';
+        // Pagoda Silhouette & Distant Street Lanterns
+        ctx.fillStyle = 'rgba(120, 53, 15, 0.4)';
         ctx.fillRect(620, 120, 80, 240);
-        ctx.fillStyle = '#3e2723';
+        ctx.fillStyle = 'rgba(67, 20, 7, 0.6)';
         ctx.fillRect(600, 360, 120, 150);
 
+        // Walking Visitors
         gd.visitors.forEach(v => {
             if (v.active) {
                 ctx.save();
                 ctx.translate(v.x, 380);
                 
                 if (v.style === 'kimono') {
-                    ctx.fillStyle = '#f06292';
+                    ctx.shadowBlur = 12; ctx.shadowColor = '#ec4899';
+                    ctx.fillStyle = '#ec4899';
                     ctx.fillRect(-15, -40, 30, 45);
-                    ctx.fillStyle = '#ffe0b2';
-                    ctx.beginPath(); ctx.arc(0, -50, 12, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = '#ffeb3b';
+                    ctx.fillStyle = '#ffedd5';
+                    ctx.beginPath(); ctx.arc(0, -50, 12, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#facc15';
                     ctx.fillRect(-16, -26, 32, 8);
                 } else {
-                    ctx.fillStyle = '#1e88e5';
+                    ctx.shadowBlur = 10; ctx.shadowColor = '#3b82f6';
+                    ctx.fillStyle = '#3b82f6';
                     ctx.fillRect(-10, -20, 20, 25);
-                    ctx.fillStyle = '#e53935';
+                    ctx.fillStyle = '#ef4444';
                     ctx.fillRect(-10, -40, 20, 20);
-                    ctx.fillStyle = '#ffe0b2';
-                    ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#ffedd5';
+                    ctx.beginPath(); ctx.arc(0, -48, 10, 0, Math.PI * 2); ctx.fill();
                 }
                 ctx.restore();
             }
         });
 
-        ctx.strokeStyle = 'rgba(255, 64, 129, 0.4)';
+        // Camera Viewfinder Frame Target Box
+        this.drawGlassCard(300, 240, 200, 200, { fill: 'rgba(255, 255, 255, 0.05)', borderColor: '#ec4899', radius: 12 });
+        ctx.strokeStyle = '#f43f5e';
         ctx.lineWidth = 3;
-        ctx.strokeRect(300, 240, 200, 200);
         ctx.beginPath(); ctx.moveTo(400, 220); ctx.lineTo(400, 260); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(400, 380); ctx.lineTo(400, 420); ctx.stroke();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(244, 63, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`👘 Cazadora de Kimonos: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👘 Cazadora de Kimonos: ${this.score} / ${this.goal}`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 180);
             ctx.restore();
         }
@@ -12619,24 +12889,30 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, 0, 800, 600);
+        // Dark Wood Artisan Workshop Table & Gold Particles
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.05);
+        this.drawParticles();
 
+        // Porcelain Plate Base with Subtle Shadow
+        ctx.save();
+        ctx.shadowBlur = 30; ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.fillStyle = '#faf8f5';
-        ctx.beginPath(); ctx.arc(400, 300, 180, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#d7ccc8';
+        ctx.beginPath(); ctx.arc(400, 300, 180, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 10;
         ctx.stroke();
+        ctx.restore();
 
+        // Cracks and Liquid Gold Fill
         ctx.save();
-        ctx.strokeStyle = '#5d4037';
-        ctx.lineWidth = 4;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         gd.cracks.forEach((cr, idx) => {
             const isCompleted = idx < gd.currentCrackIdx;
-            ctx.strokeStyle = isCompleted ? '#ffd700' : 'rgba(93, 64, 55, 0.45)';
-            ctx.lineWidth = isCompleted ? 7 : 3;
+            ctx.strokeStyle = isCompleted ? '#fbbf24' : 'rgba(71, 85, 105, 0.45)';
+            ctx.lineWidth = isCompleted ? 8 : 3;
+            if (isCompleted) { ctx.shadowBlur = 12; ctx.shadowColor = '#fbbf24'; }
             
             ctx.beginPath();
             cr.forEach((pt, pidx) => {
@@ -12647,10 +12923,12 @@ window.MinigamesManager = {
         });
         ctx.restore();
 
+        // Active Player Gold Trace Trail
         if (gd.drawing && gd.trail.length > 1) {
             ctx.save();
-            ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#fbbf24';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#fbbf24';
+            ctx.lineWidth = 9;
             ctx.lineCap = 'round';
             ctx.beginPath();
             gd.trail.forEach((pt, pidx) => {
@@ -12661,21 +12939,23 @@ window.MinigamesManager = {
             ctx.restore();
         }
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🏺 Restauración Kintsugi: ${this.score} / ${this.goal}`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏺 Restauración Kintsugi: ${this.score} / ${this.goal}`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 130);
             ctx.restore();
         }
@@ -12802,26 +13082,22 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#ffecb3';
-        ctx.fillRect(0, 0, 800, 600);
-
-        ctx.strokeStyle = '#bcaaa4';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(40, 40, 720, 520);
+        // Zen Tea Room Atmosphere & Gold Ambient Dust
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
 
         ctx.save();
         ctx.translate(400, 360);
         ctx.rotate(gd.trayAngle);
         
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(-160, -10, 320, 20);
-        ctx.strokeStyle = '#5d4037';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(-160, -10, 320, 20);
+        // Lacquered Wood Balance Tray
+        this.drawGlassCard(-160, -10, 320, 20, { fill: 'rgba(120, 53, 15, 0.9)', borderColor: '#fbbf24', radius: 8 });
 
         ctx.save();
         ctx.translate(gd.cupX, -30);
         
+        // Ceramic Matcha Teacup
         ctx.fillStyle = '#faf8f5';
         ctx.beginPath();
         ctx.moveTo(-18, -15);
@@ -12830,37 +13106,41 @@ window.MinigamesManager = {
         ctx.lineTo(-12, 20);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = '#d7ccc8';
+        ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        ctx.fillStyle = '#4caf50';
+        // Matcha Green Liquid Surface
+        ctx.fillStyle = '#22c55e';
         ctx.beginPath();
-        ctx.ellipse(0, -10, 14, 5, 0, 0, Math.PI*2);
+        ctx.ellipse(0, -10, 14, 5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        ctx.font = '11px sans-serif';
-        ctx.fillText("♨️", -7, -26);
+        // Rising Steam Emoji
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("♨️", 0, -24);
 
         ctx.restore();
         ctx.restore();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(250, 480, 300, 15);
-        ctx.fillStyle = Math.abs(gd.cupX) > 100 ? '#ff3333' : '#00e676';
-        ctx.fillRect(400 + (gd.cupX / 155) * 150 - 6, 475, 12, 25);
+        // Glassmorphic Balance Meter Bar
+        this.drawGlassCard(250, 480, 300, 16, { fill: 'rgba(15, 23, 42, 0.6)', borderColor: 'rgba(34, 197, 94, 0.4)', radius: 8 });
+        ctx.fillStyle = Math.abs(gd.cupX) > 100 ? '#ef4444' : '#22c55e';
+        ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle;
+        ctx.fillRect(400 + (gd.cupX / 155) * 150 - 6, 475, 12, 26);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(34, 197, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🍵 Té para el Shogun: Equilibre la bandeja`, 25, 29);
-        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍵 Té para el Shogun: Equilibre la bandeja`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Tiempo: ${this.score}s`, 360, 36);
 
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
     },
 
     inputTeaPress(x, y) {
@@ -12905,51 +13185,54 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#263238';
-        ctx.fillRect(0, 0, 800, 600);
+        // Torii Gate Shrine Sunset & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(320, 0, 160, 600);
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 8;
-        ctx.strokeRect(320, 0, 160, 600);
+        // Dark Cedar Wood Guardian Pillar Base
+        this.drawGlassCard(320, 30, 160, 540, { fill: 'rgba(67, 20, 7, 0.85)', borderColor: '#fbbf24', radius: 16 });
 
+        // Pulsating Active Hug Ring
         ctx.save();
         ctx.translate(400, 300);
-        ctx.strokeStyle = gd.pressing ? '#ffeb3b' : 'rgba(255,255,255,0.4)';
-        ctx.lineWidth = 5;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#ffeb3b';
+        ctx.strokeStyle = gd.pressing ? '#facc15' : 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 6;
+        ctx.shadowBlur = 18; ctx.shadowColor = '#facc15';
         ctx.beginPath();
-        ctx.arc(0, 0, gd.ringRadius, 0, Math.PI*2);
+        ctx.arc(0, 0, gd.ringRadius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
 
+        // Target Alignment Zone Ring
         ctx.save();
         ctx.translate(400, 300);
-        ctx.strokeStyle = '#00ff99';
+        ctx.strokeStyle = '#4ade80';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#4ade80';
         ctx.lineWidth = 3.5;
         ctx.setLineDash([8, 8]);
         ctx.beginPath();
-        ctx.arc(0, 0, gd.targetRadius, 0, Math.PI*2);
+        ctx.arc(0, 0, gd.targetRadius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🤗 El Guardián de Piedra: Abraza el pilar`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🤗 El Guardián de Piedra: Abraza el pilar`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 140);
             ctx.restore();
         }
@@ -13072,47 +13355,52 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(0, 0, 800, 600);
+        // Kiyomizu Stage Atmosphere & Falling Cherry Blossoms
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.fillStyle = '#ff7043';
-        ctx.fillRect(0, 480, 800, 120);
+        // Wooden Platform Base & Side Pillars
+        this.drawGlassCard(40, 480, 720, 100, { fill: 'rgba(120, 53, 15, 0.85)', borderColor: '#ef4444', radius: 12 });
 
-        ctx.strokeStyle = '#c62828';
+        ctx.strokeStyle = '#dc2626';
         ctx.lineWidth = 14;
         ctx.beginPath();
-        ctx.moveTo(150, 480); ctx.lineTo(150, 600);
-        ctx.moveTo(650, 480); ctx.lineTo(650, 600);
+        ctx.moveTo(150, 480); ctx.lineTo(150, 580);
+        ctx.moveTo(650, 480); ctx.lineTo(650, 580);
         ctx.stroke();
 
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(gd.columnX - 35, 420, 70, 70);
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(gd.columnX - 35, 420, 70, 70);
+        // Movable Central Pillar Support Pad
+        this.drawGlassCard(gd.columnX - 35, 420, 70, 70, { fill: 'rgba(180, 83, 9, 0.95)', borderColor: '#fbbf24', radius: 10 });
 
+        // Falling Structural Weight Orbs
         gd.weights.forEach(wt => {
-            ctx.fillStyle = '#37474f';
-            ctx.strokeStyle = '#ff3d00';
+            ctx.save();
+            ctx.shadowBlur = 15; ctx.shadowColor = '#38bdf8';
+            ctx.fillStyle = '#0284c7';
+            ctx.strokeStyle = '#e0f2fe';
             ctx.lineWidth = 3.5;
-            ctx.beginPath(); ctx.arc(wt.x, wt.y, wt.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(wt.x, wt.y, wt.r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🏗️ Cálculo de Cargas: Soporte la terraza`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏗️ Cálculo de Cargas: Soporte la terraza`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 150);
             ctx.restore();
         }
@@ -13183,68 +13471,70 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#311b92';
-        ctx.fillRect(0, 0, 800, 600);
+        // Cyber Magic Hex Array Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#4a148c';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(50, 50, 700, 420);
+        // Hex Shield Arena Bounds
+        this.drawGlassCard(50, 50, 700, 420, { fill: 'rgba(15, 23, 42, 0.75)', borderColor: 'rgba(168, 85, 247, 0.5)', radius: 16 });
 
+        // Player Center Exorcist Avatar
         ctx.save();
         ctx.translate(400, 350);
-        ctx.fillStyle = '#ffe0b2';
-        ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#1976d2';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#a855f7';
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath(); ctx.arc(0, -25, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#a855f7';
         ctx.fillRect(-12, -12, 24, 30);
         ctx.restore();
 
+        // Falling Curse Waves
         gd.waves.forEach(w => {
             ctx.save();
             ctx.translate(w.x, w.y);
             
-            let color = '#d32f2f';
+            let color = '#ef4444';
             let icon = '🔥';
-            if (w.type === 'spirit') { color = '#311b92'; icon = '👻'; }
-            if (w.type === 'poison') { color = '#388e3c'; icon = '🤢'; }
+            if (w.type === 'spirit') { color = '#a855f7'; icon = '👻'; }
+            if (w.type === 'poison') { color = '#22c55e'; icon = '🤢'; }
 
+            ctx.shadowBlur = 15; ctx.shadowColor = color;
             ctx.fillStyle = color;
-            ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = '#ffffff';
-            ctx.font = '16px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(icon, 0, 6);
+            ctx.font = '16px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(icon, 0, 0);
             ctx.restore();
         });
 
+        // Inventory Spell Buttons
         gd.inventory.forEach(item => {
             ctx.save();
             ctx.translate(item.x, item.y);
-            ctx.fillStyle = '#eceff1';
-            ctx.strokeStyle = '#5e35b1';
-            ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-            
-            ctx.font = '34px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(item.emoji, 0, 11);
+            this.drawGlassCard(-item.r, -item.r, item.r * 2, item.r * 2, { fill: 'rgba(30, 41, 59, 0.9)', borderColor: '#a855f7', radius: item.r });
+            ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(item.emoji, 0, 0);
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(168, 85, 247, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🧪 Supervivencia al Maleficio: Repele hechizos`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🧪 Supervivencia al Maleficio: Repele hechizos`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 140);
             ctx.restore();
         }
@@ -13354,39 +13644,39 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#ffcc80';
-        ctx.fillRect(0, 0, 800, 600);
+        // Shoji Sunset Chamber & Ambient Gold Dust Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#c62828';
-        ctx.lineWidth = 12;
-        ctx.strokeRect(200, 50, 400, 500);
+        // Pagoda Inner Structural Wall Border
+        this.drawGlassCard(200, 50, 400, 500, { fill: 'rgba(15, 23, 42, 0.7)', borderColor: '#ef4444', radius: 16 });
 
-        ctx.strokeStyle = 'rgba(255, 61, 0, 0.45)';
+        // Seismic Shockwave Vector Indicator Line
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.65)';
         ctx.lineWidth = 14;
         ctx.beginPath();
         ctx.moveTo(400, 300);
         ctx.lineTo(400 - gd.quakeWave, 300);
         ctx.stroke();
 
+        // Shinbashira Wooden Center Log Pillar
         ctx.save();
         ctx.translate(400 + gd.shinX, 300);
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(-22, -220, 44, 440);
-        ctx.strokeStyle = '#5d4037';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(-22, -220, 44, 440);
+        this.drawGlassCard(-22, -220, 44, 440, { fill: 'rgba(120, 53, 15, 0.95)', borderColor: '#fbbf24', radius: 10 });
         ctx.restore();
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(244, 63, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🌋 Yasaka Pagoda: Amortigüe el Sismo`, 25, 29);
-        ctx.fillText(`Tiempo: ${this.score}s`, 360, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌋 Yasaka Pagoda: Amortigüe el Sismo`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Tiempo: ${this.score}s`, 360, 36);
 
         let hearts = "";
         for (let i = 0; i < Math.ceil(gd.lives); i++) hearts += "❤️ ";
-        ctx.fillText(`Estructura: ${hearts}`, 600, 29);
+        ctx.fillText(`Estructura: ${hearts}`, 620, 36);
     },
 
     inputAntiQuakePress(x, y) {
@@ -13466,45 +13756,52 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#cfd8dc';
-        ctx.fillRect(0, 0, 800, 600);
+        // Fushimi Inari Torii Shrine Stairs Atmosphere
+        this.drawAtmosphericBackground('sunset_dappled', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#90a4ae';
+        // Stone Staircase Riser Lines
+        ctx.strokeStyle = 'rgba(203, 213, 225, 0.4)';
         ctx.lineWidth = 6;
         for (let y = 150; y < 600; y += 45) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y + 100); ctx.stroke();
         }
 
-        ctx.fillStyle = '#78909c';
-        ctx.fillRect(0, 480, 800, 120);
+        // Stone Floor Base
+        this.drawGlassCard(0, 480, 800, 120, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: '#ef4444', radius: 0 });
 
+        // Runner Character Avatar
         ctx.save();
         ctx.translate(200, gd.y);
-        ctx.fillStyle = '#1976d2';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#3b82f6';
+        ctx.fillStyle = '#3b82f6';
         ctx.fillRect(-12, -30, 24, 30);
-        ctx.fillStyle = '#ffe0b2';
-        ctx.beginPath(); ctx.arc(0, -40, 12, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffedd5';
+        ctx.beginPath(); ctx.arc(0, -40, 12, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
+        // Lantern & Tourist Obstacles
         gd.obstacles.forEach(obs => {
             ctx.save();
             ctx.translate(obs.x, 480);
-            ctx.fillStyle = '#ffd54f';
+            ctx.shadowBlur = 12; ctx.shadowColor = '#f97316';
+            ctx.fillStyle = '#f59e0b';
             ctx.fillRect(-10, -50, 20, 50);
-            ctx.fillStyle = '#ff7043';
-            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath(); ctx.arc(0, -50, 14, 0, Math.PI * 2); ctx.fill();
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🪜 Conquista las Escaleras: Sube 100 escalones`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪜 Conquista las Escaleras: Sube 100 escalones`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
     },
 
     inputStairsPress(x, y) {
@@ -13596,30 +13893,35 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#1a237e';
-        ctx.fillRect(0, 0, 800, 600);
+        // Gion Evening Street Chochin Lanterns Atmosphere
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.05);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#0a0a0a';
+        // Overhead Black Lacquered Suspension Wire
+        ctx.strokeStyle = '#0f172a';
         ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(50, 220); ctx.lineTo(750, 220); ctx.stroke();
 
+        // Chochin Lanterns Array
         gd.lanterns.forEach((lan, idx) => {
             const isActive = gd.activeIdx === idx;
             ctx.save();
             ctx.translate(lan.x, lan.y);
 
-            ctx.strokeStyle = '#000000';
+            ctx.strokeStyle = '#0f172a';
             ctx.beginPath(); ctx.moveTo(0, -80); ctx.lineTo(0, -40); ctx.stroke();
 
             if (isActive) {
-                const glowGrad = ctx.createRadialGradient(0,0,10, 0,0,70);
-                glowGrad.addColorStop(0, '#ffeb3b');
-                glowGrad.addColorStop(1, 'rgba(255,235,59,0.0)');
+                ctx.shadowBlur = 30; ctx.shadowColor = '#facc15';
+                const glowGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, 75);
+                glowGrad.addColorStop(0, 'rgba(250, 204, 21, 0.8)');
+                glowGrad.addColorStop(1, 'rgba(250, 204, 21, 0.0)');
                 ctx.fillStyle = glowGrad;
-                ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, 75, 0, Math.PI * 2); ctx.fill();
             }
 
-            ctx.fillStyle = isActive ? '#ffeb3b' : lan.color;
+            ctx.fillStyle = isActive ? '#facc15' : lan.color;
             ctx.beginPath();
             ctx.moveTo(-25, -40);
             ctx.lineTo(25, -40);
@@ -13629,28 +13931,30 @@ window.MinigamesManager = {
             ctx.fill();
             ctx.stroke();
 
-            ctx.fillStyle = '#212121';
+            ctx.fillStyle = '#0f172a';
             ctx.fillRect(-18, -48, 36, 8);
             ctx.fillRect(-22, 20, 44, 8);
 
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(244, 63, 94, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🏮 Código Geisha: Memoriza la melodía`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏮 Código Geisha: Memoriza la melodía`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Vidas: ${hearts}`, 600, 29);
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
             ctx.save();
             ctx.fillStyle = gd.feedbackColor;
             ctx.font = 'bold 20px Quicksand, sans-serif';
             ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
             ctx.fillText(gd.feedbackText, 400, 140);
             ctx.restore();
         }
@@ -13793,10 +14097,13 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#efebe9';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tenryu-ji Zen Garden Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = 'rgba(141, 110, 99, 0.08)';
+        // Raked Sand Rills Pattern
+        ctx.strokeStyle = 'rgba(120, 53, 15, 0.12)';
         ctx.lineWidth = 2;
         for (let x = 0; x < 800; x += 15) {
             ctx.beginPath();
@@ -13805,40 +14112,41 @@ window.MinigamesManager = {
             ctx.stroke();
         }
 
-        ctx.fillStyle = '#e0dcd5';
-        ctx.strokeStyle = '#d7ccc8';
-        ctx.lineWidth = 3;
+        // Raked Grid Texture Cells
+        ctx.fillStyle = 'rgba(254, 243, 199, 0.45)';
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
+        ctx.lineWidth = 2;
         for (let r = 0; r < gd.rows; r++) {
             for (let c = 0; c < gd.cols; c++) {
                 if (gd.grid[r][c]) {
                     const x = c * gd.cellW;
                     const y = r * gd.cellH;
                     ctx.fillRect(x, y, gd.cellW, gd.cellH);
-                    
                     ctx.beginPath();
-                    ctx.arc(x + gd.cellW/2, y + gd.cellH/2, gd.cellW/3, 0, Math.PI*2);
+                    ctx.arc(x + gd.cellW / 2, y + gd.cellH / 2, gd.cellW / 3, 0, Math.PI * 2);
                     ctx.stroke();
                 }
             }
         }
 
+        // Polished Zen Rocks
         gd.rocks.forEach(rock => {
             ctx.save();
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 18; ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
             ctx.fillStyle = rock.color;
             ctx.beginPath();
-            ctx.arc(rock.x, rock.y, rock.r, 0, Math.PI*2);
+            ctx.arc(rock.x, rock.y, rock.r, 0, Math.PI * 2);
             ctx.fill();
             
-            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.beginPath();
-            ctx.arc(rock.x - rock.r*0.2, rock.y - rock.r*0.2, rock.r*0.6, 0, Math.PI*2);
+            ctx.arc(rock.x - rock.r * 0.2, rock.y - rock.r * 0.2, rock.r * 0.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         });
 
-        ctx.fillStyle = '#ff8a80';
+        // Maple Leaf Accents
+        ctx.fillStyle = '#f43f5e';
         gd.leaves.forEach(leaf => {
             ctx.save();
             ctx.translate(leaf.x, leaf.y);
@@ -13849,13 +14157,14 @@ window.MinigamesManager = {
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.7)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🎋 Rastrillo Zen: Cubre la arena de Tenryu-ji`, 25, 29);
-        ctx.fillText(`Progreso: ${this.score}%`, 380, 29);
-        ctx.fillText(`Meta: ${this.goal}%`, 650, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🎋 Rastrillo Zen: Cubre la arena de Tenryu-ji`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Progreso: ${this.score}%`, 400, 36);
+        ctx.fillText(`Meta: ${this.goal}%`, 640, 36);
     },
 
     inputRakePress(x, y) {
@@ -13961,29 +14270,18 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#050a05';
-        ctx.fillRect(0, 0, 800, 600);
+        // Cyber Grid Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
 
-        ctx.strokeStyle = '#002200';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < 800; x += 40) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 400); ctx.stroke();
-        }
-        for (let y = 0; y < 400; y += 40) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
-        }
-
-        ctx.strokeStyle = 'rgba(0, 255, 0, 0.2)';
+        // Center Scope Line
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.2)';
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 200);
-        ctx.lineTo(800, 200);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, 200); ctx.lineTo(800, 200); ctx.stroke();
 
+        // Target Frequency Wave Vector Path (Red)
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 30, 30, 0.6)';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#ff3333';
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#ef4444';
         ctx.lineWidth = 3;
         ctx.beginPath();
         const speedOffset = gd.time * 5;
@@ -13995,10 +14293,10 @@ window.MinigamesManager = {
         ctx.stroke();
         ctx.restore();
 
+        // Player Wave Vector Path (Green)
         ctx.save();
-        ctx.strokeStyle = gd.syncStatus ? 'rgba(0, 255, 153, 0.95)' : 'rgba(50, 255, 50, 0.85)';
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = gd.syncStatus ? '#00ff99' : '#00e676';
+        ctx.strokeStyle = gd.syncStatus ? 'rgba(74, 222, 128, 0.95)' : 'rgba(34, 197, 94, 0.85)';
+        ctx.shadowBlur = 15; ctx.shadowColor = gd.syncStatus ? '#4ade80' : '#22c55e';
         ctx.lineWidth = 4;
         ctx.beginPath();
         for (let x = 0; x < 800; x++) {
@@ -14009,18 +14307,15 @@ window.MinigamesManager = {
         ctx.stroke();
         ctx.restore();
 
-        ctx.fillStyle = '#081208';
-        ctx.fillRect(0, 400, 800, 200);
-        ctx.strokeStyle = '#005500';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(800, 400); ctx.stroke();
+        // Glassmorphic Control Panel Tray
+        this.drawGlassCard(0, 400, 800, 200, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(74, 222, 128, 0.4)', radius: 0 });
 
         const drawSlider = (y, label, val, minV, maxV, color) => {
-            ctx.fillStyle = '#00e676';
-            ctx.font = 'bold 12px monospace';
+            ctx.fillStyle = '#4ade80';
+            ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left';
             ctx.fillText(label, 60, y + 5);
 
-            ctx.fillStyle = '#113311';
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
             ctx.fillRect(200, y - 4, 400, 8);
             
             const pct = (val - minV) / (maxV - minV);
@@ -14028,15 +14323,14 @@ window.MinigamesManager = {
             ctx.fillRect(200, y - 4, pct * 400, 8);
 
             ctx.fillStyle = '#ffffff';
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = color;
+            ctx.shadowBlur = 8; ctx.shadowColor = color;
             ctx.beginPath();
-            ctx.arc(200 + pct * 400, y, 12, 0, Math.PI*2);
+            ctx.arc(200 + pct * 400, y, 12, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
         };
 
-        drawSlider(440, "AMPLITUDE", gd.amp, 10, 150, '#ffeb3b');
+        drawSlider(440, "AMPLITUDE", gd.amp, 10, 150, '#facc15');
         drawSlider(495, "FREQUENCY", gd.freq, 0.01, 0.12, '#00e676');
         drawSlider(550, "PHASE SHIFT", gd.phase, 0, Math.PI * 2, '#29b6f6');
 
@@ -14053,15 +14347,15 @@ window.MinigamesManager = {
         }
         ctx.textAlign = 'left';
 
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`⚡ Frecuencias de Arashiyama: Nivel ${gd.level}/3`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⚡ Frecuencias de Arashiyama: Nivel ${gd.level}/3`, 30, 36);
         
         let hearts = "";
         for (let i = 0; i < 3; i++) hearts += "❤️ ";
-        ctx.fillText(`Canal: ${hearts}`, 600, 29);
+        ctx.fillText(`Canal: ${hearts}`, 620, 36);
     },
 
     inputWaveSyncPress(x, y) {
@@ -14170,13 +14464,18 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
+        // Kinkaku-ji Sunset Sky & Dappled Atmosphere
         const skyGrad = ctx.createLinearGradient(0, 0, 0, 300);
-        skyGrad.addColorStop(0, '#80deea');
-        skyGrad.addColorStop(1, '#e0f7fa');
+        skyGrad.addColorStop(0, '#0f172a');
+        skyGrad.addColorStop(0.5, '#7c2d12');
+        skyGrad.addColorStop(1, '#ea580c');
         ctx.fillStyle = skyGrad;
         ctx.fillRect(0, 0, 800, 300);
 
-        ctx.fillStyle = '#4db6ac';
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
+
+        ctx.fillStyle = '#1e293b';
         ctx.beginPath();
         ctx.moveTo(0, 300);
         ctx.lineTo(150, 180);
@@ -14191,23 +14490,24 @@ window.MinigamesManager = {
             ctx.translate(cx, cy);
             if (isReflection) {
                 ctx.scale(1, -1);
-                ctx.globalAlpha = 0.65;
+                ctx.globalAlpha = 0.7;
             }
 
-            ctx.fillStyle = '#3e2723';
+            ctx.shadowBlur = 20; ctx.shadowColor = '#fbbf24';
+            ctx.fillStyle = '#451a03';
             ctx.fillRect(-60 * scale, -10 * scale, 120 * scale, 10 * scale);
 
-            ctx.fillStyle = '#ffd700';
+            ctx.fillStyle = '#fbbf24';
             ctx.fillRect(-50 * scale, -40 * scale, 100 * scale, 30 * scale);
-            ctx.fillStyle = '#5d4037';
+            ctx.fillStyle = '#78350f';
             ctx.fillRect(-52 * scale, -44 * scale, 104 * scale, 4 * scale);
 
-            ctx.fillStyle = '#ffd700';
+            ctx.fillStyle = '#f59e0b';
             ctx.fillRect(-40 * scale, -75 * scale, 80 * scale, 31 * scale);
-            ctx.fillStyle = '#3e2723';
+            ctx.fillStyle = '#451a03';
             ctx.fillRect(-30 * scale, -70 * scale, 12 * scale, 25 * scale);
             ctx.fillRect(18 * scale, -70 * scale, 12 * scale, 25 * scale);
-            ctx.fillStyle = '#d4af37';
+            ctx.fillStyle = '#d97706';
             ctx.beginPath();
             ctx.moveTo(-48 * scale, -75 * scale);
             ctx.lineTo(48 * scale, -75 * scale);
@@ -14216,7 +14516,7 @@ window.MinigamesManager = {
             ctx.closePath();
             ctx.fill();
 
-            ctx.fillStyle = '#ffd700';
+            ctx.fillStyle = '#fbbf24';
             ctx.fillRect(-25 * scale, -110 * scale, 50 * scale, 35 * scale);
             ctx.beginPath();
             ctx.moveTo(-32 * scale, -110 * scale);
@@ -14226,10 +14526,10 @@ window.MinigamesManager = {
             ctx.closePath();
             ctx.fill();
 
-            ctx.fillStyle = '#ffd700';
+            ctx.fillStyle = '#fef08a';
             ctx.fillRect(-3 * scale, -135 * scale, 6 * scale, 25 * scale);
             ctx.beginPath();
-            ctx.arc(0, -135 * scale, 8 * scale, 0, Math.PI*2);
+            ctx.arc(0, -135 * scale, 8 * scale, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
@@ -14237,9 +14537,10 @@ window.MinigamesManager = {
 
         drawPagoda(400, 300, 1.6, false);
 
+        // Mirror Pond Reflection Base
         const pondGrad = ctx.createLinearGradient(0, 300, 0, 600);
-        pondGrad.addColorStop(0, '#003366');
-        pondGrad.addColorStop(1, '#001122');
+        pondGrad.addColorStop(0, '#0f172a');
+        pondGrad.addColorStop(1, '#0284c7');
         ctx.fillStyle = pondGrad;
         ctx.fillRect(0, 300, 800, 300);
 
@@ -14248,52 +14549,44 @@ window.MinigamesManager = {
         drawPagoda(400 + ripple, 300, 1.6, true);
         ctx.restore();
 
+        // Algae Cover Overlay Blocks
         for (let r = 0; r < gd.rows; r++) {
             for (let c = 0; c < gd.cols; c++) {
                 if (!gd.grid[r][c]) {
                     const x = c * gd.cellW;
                     const y = 300 + r * gd.cellH;
                     
-                    ctx.fillStyle = 'rgba(74, 85, 76, 0.92)';
+                    ctx.fillStyle = 'rgba(20, 83, 45, 0.92)';
                     ctx.fillRect(x, y, gd.cellW, gd.cellH);
                     
-                    ctx.fillStyle = 'rgba(40, 50, 42, 0.4)';
+                    ctx.fillStyle = 'rgba(6, 78, 59, 0.4)';
                     ctx.beginPath();
-                    ctx.arc(x + gd.cellW/2, y + gd.cellH/2, gd.cellW*0.6, 0, Math.PI*2);
+                    ctx.arc(x + gd.cellW / 2, y + gd.cellH / 2, gd.cellW * 0.6, 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
         }
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 1;
-        for (let y = 320; y < 600; y += 30) {
-            const shift = Math.sin(y + gd.clearedCount*0.05) * 15;
-            ctx.beginPath();
-            ctx.moveTo(40 + shift, y);
-            ctx.lineTo(760 + shift, y);
-            ctx.stroke();
-        }
-
+        // Sparkling Gold Magic Dust
         gd.sparkles.forEach(s => {
             ctx.save();
             ctx.globalAlpha = s.alpha;
-            ctx.fillStyle = '#ffd700';
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#ffea00';
+            ctx.fillStyle = '#fbbf24';
+            ctx.shadowBlur = 12; ctx.shadowColor = '#fbbf24';
             ctx.beginPath();
-            ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+            ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         });
 
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`⛩️ Reflejo de Oro: Limpia las algas del templo`, 25, 29);
-        ctx.fillText(`Limpio: ${this.score}%`, 380, 29);
-        ctx.fillText(`Meta: ${this.goal}%`, 650, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⛩️ Reflejo de Oro: Limpia las algas del templo`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Limpio: ${this.score}%`, 400, 36);
+        ctx.fillText(`Meta: ${this.goal}%`, 640, 36);
     },
 
     inputScratchPress(x, y) {
@@ -14372,23 +14665,24 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#0a050f';
-        ctx.fillRect(0, 0, 800, 600);
+        // Fushimi Inari Sunset Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.04);
+        this.drawParticles();
 
-        ctx.fillStyle = '#ff3d00';
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = '#ff3d00';
-        
-        ctx.fillRect(gd.gridX + gd.tileSize + 20, gd.gridY + gd.tileSize*3 + 10, 60, 20);
-        ctx.fillStyle = gd.energyFlow ? '#ffd700' : '#888';
-        ctx.shadowColor = gd.energyFlow ? '#ffd700' : 'transparent';
-        ctx.font = '24px sans-serif';
-        ctx.fillText("⛩️", gd.gridX + gd.tileSize + 35, gd.gridY + gd.tileSize*3 + 40);
+        // Target Shrine Base Connector
+        this.drawGlassCard(gd.gridX + gd.tileSize + 20, gd.gridY + gd.tileSize * 3 + 10, 60, 20, { fill: '#ef4444', borderColor: '#fbbf24', radius: 6 });
+        ctx.fillStyle = gd.energyFlow ? '#fbbf24' : '#94a3b8';
+        ctx.shadowBlur = gd.energyFlow ? 15 : 0; ctx.shadowColor = '#fbbf24';
+        ctx.font = '24px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("⛩️", gd.gridX + gd.tileSize + 50, gd.gridY + gd.tileSize * 3 + 40);
 
-        ctx.strokeStyle = gd.energyFlow ? '#ffd700' : '#ff3d00';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(gd.gridX - 10, gd.gridY - 10, gd.tileSize*3 + 20, gd.tileSize*3 + 20);
+        // Grid Outer Boundary Frame
+        ctx.strokeStyle = gd.energyFlow ? '#fbbf24' : '#ef4444';
+        ctx.lineWidth = 4; ctx.shadowBlur = 10; ctx.shadowColor = gd.energyFlow ? '#fbbf24' : '#ef4444';
+        ctx.strokeRect(gd.gridX - 10, gd.gridY - 10, gd.tileSize * 3 + 20, gd.tileSize * 3 + 20);
 
+        // Tile Grid Conduits
         gd.tiles.forEach((t, i) => {
             const row = Math.floor(i / 3);
             const col = i % 3;
@@ -14396,57 +14690,51 @@ window.MinigamesManager = {
             const y = gd.gridY + row * gd.tileSize;
 
             ctx.save();
-            ctx.translate(x + gd.tileSize/2, y + gd.tileSize/2);
+            ctx.translate(x + gd.tileSize / 2, y + gd.tileSize / 2);
             ctx.rotate(t.angle * Math.PI / 180);
 
-            ctx.fillStyle = '#1e1b26';
-            ctx.fillRect(-gd.tileSize/2 + 2, -gd.tileSize/2 + 2, gd.tileSize - 4, gd.tileSize - 4);
-            
-            ctx.strokeStyle = '#322d3e';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(-gd.tileSize/2 + 6, -gd.tileSize/2 + 6, gd.tileSize - 12, gd.tileSize - 12);
+            this.drawGlassCard(-gd.tileSize / 2 + 2, -gd.tileSize / 2 + 2, gd.tileSize - 4, gd.tileSize - 4, { fill: 'rgba(30, 41, 59, 0.9)', borderColor: 'rgba(239, 68, 68, 0.4)', radius: 8 });
 
-            ctx.strokeStyle = gd.energyFlow ? '#ff7b54' : '#5c382d';
-            ctx.shadowBlur = gd.energyFlow ? 10 : 0;
-            ctx.shadowColor = '#ff7b54';
+            ctx.strokeStyle = gd.energyFlow ? '#fb7185' : '#7f1d1d';
+            ctx.shadowBlur = gd.energyFlow ? 12 : 0; ctx.shadowColor = '#fb7185';
             ctx.lineWidth = 12;
             ctx.lineCap = 'round';
 
             if (t.type === 0) {
                 ctx.beginPath();
-                ctx.moveTo(0, -gd.tileSize/2);
-                ctx.lineTo(0, gd.tileSize/2);
+                ctx.moveTo(0, -gd.tileSize / 2);
+                ctx.lineTo(0, gd.tileSize / 2);
                 ctx.stroke();
             } else {
                 ctx.beginPath();
-                ctx.arc(gd.tileSize/2, gd.tileSize/2, gd.tileSize/2, Math.PI, Math.PI * 1.5);
+                ctx.arc(gd.tileSize / 2, gd.tileSize / 2, gd.tileSize / 2, Math.PI, Math.PI * 1.5);
                 ctx.stroke();
             }
 
-            ctx.fillStyle = '#ff3d00';
-            ctx.font = '12px sans-serif';
-            ctx.fillText("⛩️", -6, 4);
+            ctx.fillStyle = '#ef4444';
+            ctx.font = '12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText("⛩️", 0, 0);
 
             ctx.restore();
         });
 
-        ctx.fillStyle = '#ffd700';
-        ctx.shadowBlur = gd.energyFlow ? 20 : 0;
-        ctx.shadowColor = '#ffd700';
-        ctx.font = '36px sans-serif';
-        ctx.fillText("🔮", gd.gridX + gd.tileSize + 30, gd.gridY - 30);
+        // Top Power Orb Indicator
+        ctx.fillStyle = '#fbbf24';
+        ctx.shadowBlur = gd.energyFlow ? 22 : 0; ctx.shadowColor = '#fbbf24';
+        ctx.font = '36px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("🔮", gd.gridX + gd.tileSize + 50, gd.gridY - 20);
 
-        ctx.fillStyle = gd.energyFlow ? '#00ff99' : '#ffd700';
-        ctx.font = 'bold 16px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(gd.energyFlow ? ">>> ENLACE TRASPASADO CON EXITO <<<" : ">>> ALINEE LAS PUERTAS TORII <<<", 400, 520);
-        ctx.textAlign = 'left';
+        // Status Announcement Banner
+        this.drawGlassCard(120, 505, 560, 38, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: gd.energyFlow ? '#4ade80' : '#fbbf24', radius: 10 });
+        ctx.fillStyle = gd.energyFlow ? '#4ade80' : '#fbbf24';
+        ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(gd.energyFlow ? ">>> ENLACE TRASPASADO CON EXITO <<<" : ">>> ALINEE LAS PUERTAS TORII <<<", 400, 529);
 
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`⛩️ Laberinto de Torii: Fushimi Inari`, 25, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⛩️ Laberinto de Torii: Fushimi Inari`, 30, 36);
     },
 
     inputToriiPress(x, y) {
@@ -14515,90 +14803,82 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#bcaaa4';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tatami Dining Atmosphere & Falling Blossoms
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#a1887f';
-        ctx.lineWidth = 4;
-        for (let y = 100; y < 600; y += 120) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
-        }
+        // Red Lacquer Bento Box Frame
+        this.drawGlassCard(180, 80, 440, 340, { fill: 'rgba(185, 28, 28, 0.9)', borderColor: '#fbbf24', radius: 16 });
 
-        ctx.fillStyle = '#c62828';
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = 'rgba(0,0,0,0.4)';
-        ctx.fillRect(180, 80, 440, 340);
-        
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(180, 80, 440, 340);
-        ctx.shadowBlur = 0;
-
+        // Compartment Divider Grid Lines
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
+        ctx.lineWidth = 6;
         ctx.beginPath();
         ctx.moveTo(400, 80); ctx.lineTo(400, 420);
         ctx.moveTo(180, 250); ctx.lineTo(620, 250);
         ctx.stroke();
 
+        // Compartment Target Slots
         gd.slots.forEach(slot => {
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.lineWidth = 2;
             ctx.setLineDash([4, 4]);
-            ctx.strokeRect(slot.x - slot.w/2, slot.y - slot.h/2, slot.w, slot.h);
+            ctx.strokeRect(slot.x - slot.w / 2, slot.y - slot.h / 2, slot.w, slot.h);
             ctx.setLineDash([]);
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.font = '12px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(slot.label, slot.x, slot.y + slot.h/2 - 10);
-            ctx.textAlign = 'left';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px Quicksand, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(slot.label, slot.x, slot.y + 40);
         });
 
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(100, 450, 600, 110);
-        ctx.strokeStyle = '#5d4037';
-        ctx.lineWidth = 5;
-        ctx.strokeRect(100, 450, 600, 110);
+        // Ingredient Bottom Tray
+        this.drawGlassCard(100, 450, 600, 110, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#fbbf24', radius: 14 });
 
+        // Unplaced Draggable Items
         gd.items.forEach((item, idx) => {
             if (item.placed) return;
 
             ctx.save();
             ctx.font = gd.draggedIdx === idx ? '55px sans-serif' : '45px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             
-            ctx.shadowBlur = gd.draggedIdx === idx ? 12 : 3;
-            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = gd.draggedIdx === idx ? 16 : 4;
+            ctx.shadowColor = '#fbbf24';
             ctx.fillText(item.emoji, item.x, item.y);
             ctx.restore();
         });
 
+        // Placed Bento Items
         gd.slots.forEach(slot => {
             const item = gd.items.find(it => it.id === slot.id);
             if (item && item.placed) {
                 ctx.save();
                 ctx.font = '55px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
                 ctx.fillText(item.emoji, slot.x, slot.y);
                 ctx.restore();
             }
         });
 
+        // Feedback Announcement
         if (gd.feedbackTimer > 0) {
+            ctx.save();
             ctx.fillStyle = gd.feedbackColor;
-            ctx.font = 'bold 20px Quicksand, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(gd.feedbackText, 400, 50);
-            ctx.textAlign = 'left';
+            ctx.font = 'bold 20px Quicksand, sans-serif'; ctx.textAlign = 'center';
+            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
+            ctx.fillText(gd.feedbackText, 400, 65);
+            ctx.restore();
         }
 
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, 800, 48);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🍱 El Maestro del Bento: Mercado Nishiki`, 25, 29);
-        ctx.fillText(`Completado: ${this.score}/4`, 600, 29);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍱 El Maestro del Bento: Mercado Nishiki`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Completado: ${this.score}/4`, 620, 36);
     },
 
     inputBentoPress(x, y) {
@@ -14745,58 +15025,42 @@ window.MinigamesManager = {
         if (!gd) return;
         const ctx = this.ctx;
 
-        ctx.fillStyle = '#020b12';
-        ctx.fillRect(0, 0, 800, 600);
+        // Cyber Grid Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
 
-        ctx.strokeStyle = '#032338';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < 800; x += 50) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
-        }
-        for (let y = 0; y < 600; y += 50) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
-        }
-
-        ctx.strokeStyle = '#00e5ff';
+        // Terminal Cyber Frame Boundary
+        ctx.strokeStyle = 'rgba(0, 229, 255, 0.6)';
         ctx.lineWidth = 3;
         ctx.strokeRect(20, 55, 760, 335);
 
+        // Floating Encrypted Node Bubbles
         gd.letters.forEach(l => {
             ctx.save();
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 12; ctx.shadowColor = '#00e5ff';
             
-            ctx.fillStyle = 'rgba(0, 229, 255, 0.15)';
+            ctx.fillStyle = 'rgba(0, 229, 255, 0.2)';
             ctx.strokeStyle = '#00e5ff';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(l.x, l.y, l.r, 0, Math.PI*2);
+            ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
 
             ctx.fillStyle = '#ffffff';
             ctx.font = 'bold 20px monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(l.char, l.x, l.y);
             ctx.restore();
         });
 
-        ctx.fillStyle = '#011526';
-        ctx.fillRect(0, 400, 800, 200);
-        ctx.strokeStyle = '#00e5ff';
-        ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(0, 400); ctx.lineTo(800, 400); ctx.stroke();
+        // Bottom Cyber Terminal Tray
+        this.drawGlassCard(0, 400, 800, 200, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(0, 229, 255, 0.4)', radius: 0 });
 
-        ctx.fillStyle = '#052945';
-        ctx.fillRect(100, 450, 600, 70);
-        ctx.strokeStyle = '#00e5ff';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(100, 450, 600, 70);
+        // Password Input Terminal Display Box
+        this.drawGlassCard(100, 450, 600, 70, { fill: 'rgba(30, 41, 59, 0.95)', borderColor: '#00e5ff', radius: 12 });
 
         ctx.font = 'bold 24px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
         for (let i = 0; i < gd.target.length; i++) {
             const x = 150 + i * 46;
@@ -14804,15 +15068,16 @@ window.MinigamesManager = {
             const targetChar = gd.target[i];
 
             if (i < gd.typed.length) {
-                ctx.fillStyle = '#00ff99';
+                ctx.fillStyle = '#4ade80';
                 ctx.fillText(targetChar, x, y);
             } else {
-                ctx.fillStyle = '#ff1744';
+                ctx.fillStyle = '#ef4444';
                 ctx.fillText("_", x, y);
             }
         }
         ctx.textAlign = 'left';
 
+        // Sparkle Debris
         gd.sparkles.forEach(s => {
             ctx.save();
             ctx.globalAlpha = s.alpha;
@@ -14821,19 +15086,17 @@ window.MinigamesManager = {
             ctx.restore();
         });
 
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 229, 255, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🔒 Terminal Hack: Descifra Kyoto Hotel Firewall`, 30, 36);
+        
         let hearts = "";
         for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`Escudos: ${hearts}`, 520, 29);
-        ctx.fillText(`Tiempo: ${Math.ceil(gd.timer)}s`, 680, 29);
-
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(0, 0, 800, 48);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Quicksand, sans-serif';
-        ctx.fillText(`🔒 Terminal Hack: Descifra Kyoto Hotel Firewall`, 25, 29);
-        ctx.fillText(`Descifrado: ${gd.typed.length}/11`, 380, 29);
+        ctx.fillText(`Escudos: ${hearts}`, 480, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Tiempo: ${Math.ceil(gd.timer)}s`, 670, 36);
     },
 
     inputCryptoPress(x, y) {
@@ -14954,15 +15217,19 @@ window.MinigamesManager = {
     drawPose() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#efebe9';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Sunset Temple Shoji Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = 'rgba(141, 110, 99, 0.4)';
+        // Target Pose Silhouette (Stone Shadow)
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.3)';
         ctx.beginPath();
         ctx.arc(gd.targetPose[0].x, gd.targetPose[0].y, 35, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.strokeStyle = 'rgba(141, 110, 99, 0.4)';
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
         ctx.lineWidth = 16;
         ctx.lineCap = 'round';
         ctx.beginPath();
@@ -14978,12 +15245,13 @@ window.MinigamesManager = {
         ctx.lineTo(gd.targetPose[4].x, gd.targetPose[4].y);
         ctx.stroke();
         
-        ctx.fillStyle = '#8d6e63';
+        // Player Controlled Mannequin Limbs
+        ctx.fillStyle = '#475569';
         ctx.beginPath();
         ctx.arc(gd.joints[0].x, gd.joints[0].y, 30, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.strokeStyle = '#5d4037';
+        ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 10;
         ctx.beginPath();
         ctx.moveTo(400, 250);
@@ -14998,22 +15266,26 @@ window.MinigamesManager = {
         ctx.lineTo(gd.joints[4].x, gd.joints[4].y);
         ctx.stroke();
         
+        // Interactive Joint Nodes
         gd.joints.forEach(j => {
-            ctx.fillStyle = '#ffd700';
-            ctx.strokeStyle = '#fff';
+            ctx.fillStyle = '#fbbf24';
+            ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 3;
+            ctx.shadowBlur = 10; ctx.shadowColor = '#fbbf24';
             ctx.beginPath();
             ctx.arc(j.x, j.y, 14, 0, Math.PI * 2);
             ctx.fill();
             ctx.stroke();
+            ctx.shadowBlur = 0;
         });
         
-        ctx.fillStyle = '#4e342e';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText("Imita la postura de la estatua Rakan de piedra", 400, 50);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText(`Coincidencia actual: ${this.score}% / 90%`, 400, 80);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🧘 Postura Rakan: Imita la estatua de piedra`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Coincidencia: ${this.score}% / 90%`, 550, 36);
     },
     inputPosePress(x, y) {
         const gd = this.gameData;
@@ -15094,34 +15366,37 @@ window.MinigamesManager = {
     drawWind() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        let grad = ctx.createLinearGradient(0, 0, 0, 600);
-        grad.addColorStop(0, '#e0f2f1');
-        grad.addColorStop(1, '#b2dfdb');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Falling Petals
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
+        // Floating Leaves
         gd.leaves.forEach(l => {
             ctx.save();
             ctx.translate(l.x, l.y);
             ctx.rotate(l.angle);
-            ctx.fillStyle = '#81c784';
-            ctx.strokeStyle = '#2e7d32';
+            ctx.fillStyle = '#4ade80';
+            ctx.strokeStyle = '#15803d';
             ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 8; ctx.shadowColor = '#4ade80';
             ctx.beginPath();
             ctx.moveTo(-l.size, 0);
-            ctx.quadraticCurveTo(0, -l.size/3, l.size, 0);
-            ctx.quadraticCurveTo(0, l.size/3, -l.size, 0);
+            ctx.quadraticCurveTo(0, -l.size / 3, l.size, 0);
+            ctx.quadraticCurveTo(0, l.size / 3, -l.size, 0);
             ctx.fill();
             ctx.stroke();
             ctx.restore();
         });
         
-        ctx.fillStyle = '#004d40';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Hojas sopladas fuera: ${gd.totalCleared} / 25`, 400, 60);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText("Arrastra para soplar viento y limpiar el bosque", 400, 90);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍃 Susurro del Viento: Sopla y limpia las hojas`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Hojas sopladas: ${gd.totalCleared} / 25`, 550, 36);
     },
 
     // ==========================================================
@@ -15152,31 +15427,39 @@ window.MinigamesManager = {
     drawBambooClock() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#1b5e20';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.strokeStyle = gd.glow > 0 ? '#ffd700' : '#81c784';
+        // Target Rhythm Ring
+        ctx.strokeStyle = gd.glow > 0 ? '#fbbf24' : '#4ade80';
         ctx.lineWidth = 6;
+        ctx.shadowBlur = 15; ctx.shadowColor = gd.glow > 0 ? '#fbbf24' : '#4ade80';
         ctx.beginPath();
         ctx.arc(400, 400, gd.targetSize, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#4caf50';
+        // Growing Bamboo Shoot
+        ctx.fillStyle = '#22c55e';
         ctx.fillRect(380, 600 - gd.currentHeight, 40, gd.currentHeight);
         
-        ctx.fillStyle = '#2e7d32';
+        ctx.fillStyle = '#15803d';
         let nodeY = 600 - gd.currentHeight;
         while (nodeY < 600) {
             ctx.fillRect(375, nodeY, 50, 8);
             nodeY += 100;
         }
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Nudos sincronizados: ${gd.nodesTouched} / 10`, 400, 80);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText("Toca la pantalla cuando un nudo pase por el círculo objetivo", 400, 110);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🎋 Reloj de Bambú: Toca cuando alcance el anillo`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Nudos: ${gd.nodesTouched} / 10`, 580, 36);
     },
     inputBambooClockPress(x, y) {
         const gd = this.gameData;
@@ -15250,22 +15533,26 @@ window.MinigamesManager = {
     drawGiants() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        let grad = ctx.createRadialGradient(400, 300, 50, 400, 300, 550);
-        grad.addColorStop(0, '#e0f7fa');
-        grad.addColorStop(1, '#006064');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Gold Dust
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        gd.bamboos.forEach((b, idx) => {
-            ctx.fillStyle = '#4caf50';
+        // Bamboo Giant Columns
+        gd.bamboos.forEach((b) => {
+            ctx.fillStyle = '#22c55e';
             ctx.fillRect(b.x - 20, 600 - b.curH, 40, b.curH);
-            ctx.fillStyle = '#1b5e20';
+            ctx.fillStyle = '#15803d';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#22c55e';
             ctx.beginPath();
             ctx.arc(b.x, 600 - b.curH, 35, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
         });
         
-        ctx.strokeStyle = gd.successTime > 0 ? '#ffd700' : 'rgba(255, 255, 255, 0.4)';
+        // Camera Focal Viewfinder Box & Line
+        ctx.strokeStyle = gd.successTime > 0 ? '#fbbf24' : 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 3;
         ctx.setLineDash([10, 5]);
         ctx.beginPath();
@@ -15274,16 +15561,15 @@ window.MinigamesManager = {
         ctx.stroke();
         ctx.setLineDash([]);
         
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 8;
-        ctx.strokeRect(100, gd.camY - 50, 600, 100);
+        this.drawGlassCard(100, gd.camY - 50, 600, 100, { fill: 'rgba(15, 23, 42, 0.3)', borderColor: gd.successTime > 0 ? '#fbbf24' : '#ffffff', radius: 12 });
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText("Arrastra para subir/bajar la cámara y enfocar las copas juntas", 400, 50);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText(`Tiempo enfocado: ${Math.round((gd.successTime / 2) * 100)}%`, 400, 80);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🔭 Perspectiva de Gigantes: Enfoca las copas`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Enfocado: ${Math.round((gd.successTime / 2) * 100)}%`, 580, 36);
     },
 
     // ==========================================================
@@ -15348,37 +15634,48 @@ window.MinigamesManager = {
     drawMonk() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Tatami Meditation Room & Floating Cherry Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        gd.bowls.forEach((b, idx) => {
+        // Singing Bowls
+        gd.bowls.forEach((b) => {
             ctx.save();
-            ctx.shadowBlur = b.active > 0 ? 30 : 5;
+            ctx.shadowBlur = b.active > 0 ? 35 : 10;
             ctx.shadowColor = b.color;
             let grad = ctx.createRadialGradient(b.x, b.y, 5, b.x, b.y, b.r);
-            grad.addColorStop(0, '#ffe082');
-            grad.addColorStop(0.8, '#ffb300');
-            grad.addColorStop(1, '#8d6e63');
+            grad.addColorStop(0, '#fef08a');
+            grad.addColorStop(0.8, '#f59e0b');
+            grad.addColorStop(1, '#78350f');
             ctx.fillStyle = b.active > 0 ? '#ffffff' : grad;
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.r, 0, Math.PI, false);
             ctx.lineTo(b.x - b.r, b.y);
             ctx.fill();
             
-            ctx.strokeStyle = '#ff8f00';
+            ctx.strokeStyle = '#d97706';
             ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.ellipse(b.x, b.y, b.r, b.r/5, 0, 0, Math.PI * 2);
+            ctx.ellipse(b.x, b.y, b.r, b.r / 5, 0, 0, Math.PI * 2);
             ctx.stroke();
             ctx.restore();
         });
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Ronda: ${gd.round} / 4`, 400, 80);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText(gd.state === 'demo' ? "Escucha la melodía del monje..." : "¡Tu turno! Repite la melodía tocando los cuencos", 400, 115);
+        // Status Instruction Card
+        this.drawGlassCard(160, 480, 480, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#fbbf24', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(gd.state === 'demo' ? "🎵 Escucha la melodía del monje..." : "✨ ¡Tu turno! Repite la melodía tocando los cuencos", 400, 506);
+        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🔔 El Mensaje del Monje: Melodía Zazen`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Ronda: ${gd.round} / 4`, 620, 36);
     },
     inputMonkPress(x, y) {
         const gd = this.gameData;
@@ -15464,42 +15761,54 @@ window.MinigamesManager = {
     drawBosque() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#8b5a2b';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Falling Petals
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.strokeStyle = '#a0522d';
+        // Track Lane Dividers
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(320, 0); ctx.lineTo(320, 600);
         ctx.moveTo(480, 0); ctx.lineTo(480, 600);
         ctx.stroke();
         
-        ctx.fillStyle = '#2e7d32';
+        // Outer Dense Bamboo Side-Walls
+        ctx.fillStyle = 'rgba(21, 128, 61, 0.7)';
         ctx.fillRect(0, 0, 180, 600);
         ctx.fillRect(620, 0, 180, 600);
         
+        // Obstacles (Rocks / Logs)
         gd.obstacles.forEach(obs => {
-            ctx.fillStyle = obs.type === 'rock' ? '#78909c' : '#8d6e63';
+            ctx.fillStyle = obs.type === 'rock' ? '#64748b' : '#78350f';
+            ctx.shadowBlur = 10; ctx.shadowColor = obs.type === 'rock' ? '#94a3b8' : '#b45309';
             ctx.beginPath();
             const ox = gd.laneX[obs.lane];
             ctx.arc(ox, obs.y, 20, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
         });
         
-        ctx.fillStyle = '#0d47a1';
+        // Glowing Runner Avatar
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#38bdf8';
         ctx.beginPath();
         ctx.arc(gd.playerX, 500, 22, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#ff1744';
+        ctx.fillStyle = '#ef4444';
         ctx.fillRect(gd.playerX - 35, 495, 15, 6);
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Distancia: ${this.score}m / 250m`, 400, 50);
-        ctx.font = '14px Outfit, sans-serif';
-        ctx.fillText("Pulsa izquierda/derecha de la pantalla para cambiar de carril", 400, 80);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏃 El Bosque de 2.7km: Toca izquierda / derecha para esquivar`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Distancia: ${this.score}m / 250m`, 580, 36);
     },
     inputBosquePress(x, y) {
         const gd = this.gameData;
@@ -15548,33 +15857,43 @@ window.MinigamesManager = {
     drawArashiyamaGame() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#0f2027';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Particles
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
         ctx.lineWidth = 2;
         for (let i = 0; i < gd.bambooSegments.length; i++) {
             const by = 480 - i * 40;
-            ctx.fillStyle = '#81c784';
-            ctx.strokeStyle = '#1b5e20';
+            ctx.fillStyle = '#4ade80';
+            ctx.strokeStyle = '#15803d';
+            ctx.shadowBlur = 8; ctx.shadowColor = '#4ade80';
             ctx.fillRect(370, by, 60, 38);
             ctx.strokeRect(370, by, 60, 38);
+            ctx.shadowBlur = 0;
             
             if (gd.branches[i] !== null) {
-                ctx.fillStyle = '#2e7d32';
+                ctx.fillStyle = '#166534';
                 ctx.fillRect(gd.branches[i] === 0 ? 250 : 430, by + 10, 120, 15);
             }
         }
         
         const px = gd.playerSide === 0 ? 300 : 500;
-        ctx.fillStyle = '#e57373';
+        ctx.fillStyle = '#ef4444';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#ef4444';
         ctx.beginPath();
         ctx.arc(px, 500, 20, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Segmentos cortados: ${gd.choppedCount} / 30`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪓 Guardián del Bambú: Toca izquierda / derecha para cortar`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Cortados: ${gd.choppedCount} / 30`, 580, 36);
     },
     inputArashiyamaGamePress(x, y) {
         const gd = this.gameData;
@@ -15654,33 +15973,42 @@ window.MinigamesManager = {
     drawFamSquad() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#33691e';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Bamboo Forest Atmosphere & Ambient Petals
+        this.drawAtmosphericBackground('bamboo_forest', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
+        // Squad Family Members
         gd.members.forEach((m, idx) => {
             const mx = 200 + idx * 130;
-            ctx.fillStyle = m.hidden ? '#757575' : '#ffd54f';
+            ctx.fillStyle = m.hidden ? '#64748b' : '#fbbf24';
+            ctx.shadowBlur = m.hidden ? 0 : 12; ctx.shadowColor = '#fbbf24';
             ctx.beginPath();
-            ctx.arc(mx, m.hidden ? 420 : 350, m.hidden ? 18 : 28, 0, Math.PI * 2);
+            ctx.arc(mx, m.hidden ? 430 : 350, m.hidden ? 18 : 28, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
             
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px Outfit, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(m.name, mx, 460);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 14px Quicksand, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(m.name, mx, 465);
         });
         
+        // Sliding Giant Bamboo Obstacle Trunks
         gd.bamboos.forEach(b => {
-            ctx.fillStyle = '#81c784';
+            ctx.fillStyle = '#22c55e';
+            ctx.shadowBlur = 10; ctx.shadowColor = '#22c55e';
             ctx.fillRect(b.x - 20, 0, 40, 600);
+            ctx.shadowBlur = 0;
         });
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Camuflajes exitosos: ${gd.successCount} / 5`, 400, 70);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText("¡Toca la pantalla para ordenar agacharse/esconderse!", 400, 100);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👥 Escuadrón Bambú: Toca para agachar al equipo`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Camuflajes: ${gd.successCount} / 5`, 580, 36);
     },
     inputFamSquadPress(x, y) {
         const gd = this.gameData;
@@ -15766,23 +16094,25 @@ window.MinigamesManager = {
     drawZorros() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        let grad = ctx.createLinearGradient(0, 0, 0, 600);
-        grad.addColorStop(0, '#e64a19');
-        grad.addColorStop(1, '#ffcc80');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Fushimi Inari Torii Sunset & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#78909c';
+        // Torii Red Platform Ledges
         gd.platforms.forEach(p => {
-            ctx.fillRect(p.x - p.w/2, p.y, p.w, 15);
+            this.drawGlassCard(p.x - p.w / 2, p.y, p.w, 15, { fill: 'rgba(225, 29, 72, 0.9)', borderColor: '#fbbf24', radius: 4 });
         });
         
+        // Glowing Kitsune Spirit Avatar
         ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#ffffff';
         ctx.beginPath();
         ctx.arc(gd.fox.x, gd.fox.y, gd.fox.r, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.fillStyle = '#ff9800';
+        ctx.fillStyle = '#f97316';
         ctx.beginPath();
         ctx.moveTo(gd.fox.x - 12, gd.fox.y - 12);
         ctx.lineTo(gd.fox.x - 4, gd.fox.y - 25);
@@ -15794,13 +16124,15 @@ window.MinigamesManager = {
         ctx.lineTo(gd.fox.x + 4, gd.fox.y - 25);
         ctx.lineTo(gd.fox.x + 2, gd.fox.y - 12);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Altura escalada: ${this.score}m / 150m`, 400, 60);
-        ctx.font = '14px Outfit, sans-serif';
-        ctx.fillText("Pulsa izquierda/derecha para dirigir al Kitsune", 400, 90);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(249, 115, 22, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🦊 Escalada Kitsune: Toca izquierda / derecha para dirigir`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Altura: ${this.score}m / 150m`, 580, 36);
     },
 
     // ==========================================================
@@ -15840,44 +16172,52 @@ window.MinigamesManager = {
     drawAltar() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#2d1500';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Shrine Atmosphere & Falling Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
+        // Shrine Altar Pedestals
         gd.altars.forEach(a => {
-            ctx.fillStyle = a.lit ? a.color : '#424242';
-            ctx.fillRect(a.x - a.w/2, a.y, a.w, 40);
+            this.drawGlassCard(a.x - a.w / 2, a.y, a.w, 40, { fill: a.lit ? a.color : 'rgba(30, 41, 59, 0.8)', borderColor: a.lit ? '#fbbf24' : '#475569', radius: 8 });
             
             if (a.lit) {
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = a.color;
+                ctx.save();
+                ctx.shadowBlur = 25; ctx.shadowColor = a.color;
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.arc(a.x, a.y - 15, 12, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0;
+                ctx.restore();
             }
             
-            ctx.fillStyle = '#fff';
-            ctx.font = '12px Outfit, sans-serif';
-            ctx.textAlign = 'center';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 13px Quicksand, sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(a.name, a.x, a.y + 60);
         });
         
+        // Draggable Offering Items
         gd.items.forEach(item => {
-            ctx.fillStyle = '#ffab40';
+            ctx.save();
+            ctx.shadowBlur = 12; ctx.shadowColor = '#fbbf24';
+            ctx.fillStyle = '#fbbf24';
             ctx.beginPath();
             ctx.arc(item.x, item.y, item.r, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#000';
-            ctx.font = '24px Outfit, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(item.icon, item.x, item.y + 8);
+            ctx.restore();
+
+            ctx.font = '24px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(item.icon, item.x, item.y);
         });
         
-        ctx.fillStyle = '#ffd180';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText("Ofrendas Sagradas: Ilumina los 3 Altares", 400, 80);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⛩️ Ofrendas Sagradas: Arrastra cada objeto a su altar`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Altares: ${this.score} / 3`, 620, 36);
     },
     inputAltarPress(x, y) {
         const gd = this.gameData;
@@ -15947,47 +16287,34 @@ window.MinigamesManager = {
     drawGravity() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#212121';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Sunset Atmosphere & Ambient Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = gd.glow > 0 ? '#00e676' : 'rgba(255, 87, 34, 0.3)';
-        ctx.fillRect(200, gd.targetY - gd.targetH/2, 400, gd.targetH);
-        ctx.strokeStyle = '#ff5722';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(200, gd.targetY - gd.targetH/2, 400, gd.targetH);
+        // Target Catch Zone
+        this.drawGlassCard(200, gd.targetY - gd.targetH / 2, 400, gd.targetH, {
+            fill: gd.glow > 0 ? 'rgba(74, 222, 128, 0.4)' : 'rgba(249, 115, 22, 0.4)',
+            borderColor: gd.glow > 0 ? '#4ade80' : '#f97316',
+            radius: 8
+        });
         
-        ctx.fillStyle = '#78909c';
+        // Dropping Gravity Stone
+        ctx.fillStyle = '#cbd5e1';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#cbd5e1';
         ctx.beginPath();
         ctx.arc(400, gd.stoneY, 25, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Impactos exitosos: ${gd.hits} / 3`, 400, 60);
-        ctx.font = '14px Outfit, sans-serif';
-        ctx.fillText("Pulsa para soltar la piedra, y pulsa de nuevo al cruzar la zona naranja", 400, 95);
-    },
-    inputGravityPress(x, y) {
-        const gd = this.gameData;
-        if (!gd.falling) {
-            gd.falling = true;
-            if (window.playProceduralSound) playProceduralSound('click');
-        } else {
-            const dist = Math.abs(gd.stoneY - gd.targetY);
-            if (dist <= gd.targetH/2) {
-                gd.hits++;
-                this.score = gd.hits;
-                gd.glow = 1.0;
-                if (window.playProceduralSound) playProceduralSound('success');
-            } else {
-                if (window.playProceduralSound) playProceduralSound('error');
-                this.screenShake = 10;
-            }
-            gd.stoneY = 100;
-            gd.vy = 0;
-            gd.falling = false;
-        }
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(249, 115, 22, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪨 Piedra Gravedad: Toca para soltar y frenar en la zona`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Impactos: ${gd.hits} / 3`, 620, 36);
     },
 
     // ==========================================================
@@ -16029,29 +16356,35 @@ window.MinigamesManager = {
     drawAngulo() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#1a237e';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Cyber Grid & Laser Reflective Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
         
-        ctx.fillStyle = '#ff1744';
+        // Emitter Node
+        ctx.fillStyle = '#ef4444';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444';
         ctx.fillRect(gd.emitter.x - 20, gd.emitter.y - 15, 30, 30);
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = gd.alignedTime > 0 ? '#00e676' : '#9e9e9e';
+        // Receptor Node
+        ctx.fillStyle = gd.alignedTime > 0 ? '#4ade80' : '#64748b';
+        ctx.shadowBlur = gd.alignedTime > 0 ? 20 : 0; ctx.shadowColor = '#4ade80';
         ctx.beginPath();
         ctx.arc(gd.receptor.x, gd.receptor.y, 25, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
+        // Rotating Mirror
         ctx.save();
         ctx.translate(400, 300);
         ctx.rotate(gd.mirrorAngle * Math.PI / 180);
-        ctx.fillStyle = '#e0f7fa';
-        ctx.strokeStyle = '#00bcd4';
-        ctx.lineWidth = 4;
-        ctx.fillRect(-60, -10, 120, 20);
-        ctx.strokeRect(-60, -10, 120, 20);
+        this.drawGlassCard(-60, -10, 120, 20, { fill: 'rgba(56, 189, 248, 0.4)', borderColor: '#38bdf8', radius: 4 });
         ctx.restore();
         
-        ctx.strokeStyle = '#ff1744';
-        ctx.lineWidth = 5;
+        // Laser Beam
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 4;
+        ctx.shadowBlur = 12; ctx.shadowColor = '#ef4444';
         ctx.beginPath();
         ctx.moveTo(gd.emitter.x, gd.emitter.y);
         ctx.lineTo(400, 300);
@@ -16060,15 +16393,16 @@ window.MinigamesManager = {
         const ry = 300 + Math.sin(2 * angleRad) * 400;
         ctx.lineTo(rx, ry);
         ctx.stroke();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText("Guía el haz láser al receptor", 400, 50);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText(`Conexión: ${Math.round((gd.alignedTime / 2) * 100)}%`, 400, 85);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`📐 Ángulo Imposible: Rota el espejo para guiar el láser`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Conexión: ${Math.round((gd.alignedTime / 2) * 100)}%`, 580, 36);
     },
-    inputAnguloPress(x, y) {},
 
     // ==========================================================
     // day_9_kid14_ave: La Postura del Ave Dorada
@@ -16109,25 +16443,34 @@ window.MinigamesManager = {
     drawAve() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#263238';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Sunset Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#cfd8dc';
-        ctx.fillRect(150, 480, 500, 20);
+        // Balance Gauge Base Bar
+        this.drawGlassCard(150, 480, 500, 20, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 10 });
         
-        ctx.fillStyle = '#66bb6a';
+        // Target Safe Balance Zone
+        ctx.fillStyle = 'rgba(74, 222, 128, 0.4)';
         ctx.fillRect(150 + 500 * 0.35, 480, 500 * 0.3, 20);
         
-        ctx.fillStyle = '#ffb300';
+        // Indicator Pin
+        ctx.fillStyle = '#fbbf24';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#fbbf24';
         ctx.beginPath();
-        ctx.arc(150 + 500 * gd.balance, 490, 16, 0, Math.PI * 2);
+        ctx.arc(150 + 500 * gd.balance, 490, 14, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
+        // Tilting Golden Phoenix Avatar
         ctx.save();
         ctx.translate(400, 300);
         const angle = (gd.balance - 0.5) * 50 * Math.PI / 180;
         ctx.rotate(angle);
-        ctx.fillStyle = '#ffd700';
+        ctx.fillStyle = '#fbbf24';
+        ctx.shadowBlur = 20; ctx.shadowColor = '#fbbf24';
         ctx.beginPath();
         ctx.moveTo(0, 50);
         ctx.lineTo(-40, 20);
@@ -16141,12 +16484,13 @@ window.MinigamesManager = {
         ctx.fill();
         ctx.restore();
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Equilibrio mantenido: ${Math.floor(gd.successTime)}s / 10s`, 400, 80);
-        ctx.font = '15px Outfit, sans-serif';
-        ctx.fillText("Pulsa en los extremos de la pantalla para compensar el peso", 400, 115);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🦅 Ave Dorada: Toca a los lados para equilibrar`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Tiempo: ${Math.floor(gd.successTime)}s / 10s`, 580, 36);
     },
     inputAvePress(x, y) {
         const gd = this.gameData;
@@ -16214,30 +16558,37 @@ window.MinigamesManager = {
     drawTunnel() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Cyber Grid & Infinite Tunnel Background
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
         
+        // Scaling Portal Gates
         gd.gates.forEach(g => {
             ctx.save();
             ctx.translate(400 + (g.targetX - 400) * (g.scale / 5), 300);
             ctx.scale(g.scale, g.scale);
-            ctx.strokeStyle = g.type === 'green' ? '#00e676' : '#ff1744';
+            ctx.strokeStyle = g.type === 'green' ? '#4ade80' : '#ef4444';
             ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 10; ctx.shadowColor = g.type === 'green' ? '#4ade80' : '#ef4444';
             ctx.strokeRect(-25, -20, 50, 40);
             ctx.restore();
         });
         
-        ctx.fillStyle = '#00b0ff';
+        // Player Glowing Orb
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#38bdf8';
         ctx.beginPath();
         ctx.arc(gd.playerX, 480, 16, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Portales alineados: ${gd.gatesPassed} / 15`, 400, 65);
-        ctx.font = '14px Outfit, sans-serif';
-        ctx.fillText("Mueve tu cursor horizontalmente para cruzar los arcos verdes y esquivar los rojos", 400, 95);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌀 Túnel Infinito: Cruza portales verdes y esquiva rojos`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Portales: ${gd.gatesPassed} / 15`, 580, 36);
     },
     inputTunnelPress(x, y) {},
 
@@ -16303,35 +16654,50 @@ window.MinigamesManager = {
     drawFamPortal() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#1a0633';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Sunset Torii Atmosphere & Ambient Gold Particles
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.strokeStyle = '#ff3d00';
+        // Torii Gate Portal Arch
+        ctx.strokeStyle = '#e11d48';
         ctx.lineWidth = 12;
+        ctx.shadowBlur = 15; ctx.shadowColor = '#e11d48';
         ctx.strokeRect(300, 200, 200, 250);
+        ctx.shadowBlur = 0;
         
         if (gd.round > 1) {
-            ctx.fillStyle = 'rgba(156, 39, 176, 0.4)';
+            ctx.fillStyle = 'rgba(168, 85, 247, 0.4)';
+            ctx.shadowBlur = 25; ctx.shadowColor = '#a855f7';
             ctx.beginPath();
             ctx.arc(400, 320, 60, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
         }
         
-        gd.buttons.forEach((b, idx) => {
+        // Elemental Buttons
+        gd.buttons.forEach((b) => {
+            ctx.save();
             ctx.fillStyle = b.active > 0 ? '#ffffff' : b.color;
+            ctx.shadowBlur = b.active > 0 ? 25 : 10; ctx.shadowColor = b.color;
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 12px Outfit, sans-serif';
-            ctx.textAlign = 'center';
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px Quicksand, sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(b.name, b.x, b.y + 55);
         });
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Desbloqueo de Portal: Ronda ${gd.round} / 3`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(225, 29, 72, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🚪 Puerta a Otro Mundo: Repite la secuencia elemental`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Ronda: ${gd.round} / 3`, 620, 36);
     },
     inputFamPortalPress(x, y) {
         const gd = this.gameData;
@@ -16370,7 +16736,7 @@ window.MinigamesManager = {
             foodItems: [],
             scoreCount: 0,
             spawnTimer: 0,
-            fallSpeed: 240 // Default falling speed
+            fallSpeed: 240
         };
         this.score = 0;
     },
@@ -16419,22 +16785,29 @@ window.MinigamesManager = {
     drawNishiki() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#ffecb3';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Lantern Street Atmosphere & Warm Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
+        // Falling Street Food Items
         gd.foodItems.forEach(item => {
-            ctx.font = '32px Outfit, sans-serif';
-            ctx.textAlign = 'center';
+            ctx.font = '32px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(item.icon, item.x, item.y);
         });
         
-        ctx.fillStyle = '#795548';
-        ctx.fillRect(gd.basketX - 50, 500, 100, 30);
+        // Wooden Market Basket
+        this.drawGlassCard(gd.basketX - 50, 500, 100, 30, { fill: 'rgba(217, 119, 6, 0.9)', borderColor: '#fbbf24', radius: 8 });
         
-        ctx.fillStyle = '#5d4037';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Ingredientes recolectados: ${gd.scoreCount} / 15`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍡 Mercado Nishiki: Mueve la cesta para atrapar la comida`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Ingredientes: ${gd.scoreCount} / 15`, 580, 36);
     },
     inputNishikiPress(x, y) {},
 
@@ -16518,28 +16891,41 @@ window.MinigamesManager = {
     drawDragon() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#880e4f';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Lantern Street Atmosphere & Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 10;
-        ctx.strokeRect(20, 20, 760, 560);
+        // Golden Boundary Frame
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 6;
+        ctx.shadowBlur = 10; ctx.shadowColor = '#fbbf24';
+        ctx.strokeRect(20, 60, 760, 520);
+        ctx.shadowBlur = 0;
         
-        ctx.font = '30px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('🏮', gd.lantern.x, gd.lantern.y + 8);
+        // Target Lantern
+        ctx.font = '30px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🏮', gd.lantern.x, gd.lantern.y);
         
+        // Dragon Body Segments
         gd.dragon.forEach((seg, idx) => {
-            ctx.fillStyle = idx === 0 ? '#ffea00' : '#d500f9';
+            ctx.fillStyle = idx === 0 ? '#f59e0b' : '#c084fc';
+            ctx.shadowBlur = 10; ctx.shadowColor = idx === 0 ? '#f59e0b' : '#c084fc';
             ctx.beginPath();
             ctx.arc(seg.x, seg.y, 10, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
         });
         
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Largo del Dragón: ${gd.lengthEarned} / 10`, 400, 65);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(245, 158, 11, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🐉 Dragón del Mercado: Dirige al dragón hacia los farolillos`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Dragón: ${gd.lengthEarned} / 10`, 580, 36);
     },
     inputDragonPress(x, y) {},
 
@@ -16599,26 +16985,30 @@ window.MinigamesManager = {
     drawRainbow() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#fce4ec';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Shoji Sunset Atmosphere & Floating Petals
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
+        // Color Plates
         gd.plates.forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.ellipse(p.x, p.y, 60, 20, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#880e4f';
-            ctx.font = 'bold 12px Outfit, sans-serif';
-            ctx.textAlign = 'center';
+            this.drawGlassCard(p.x - 60, p.y - 15, 120, 30, { fill: p.color, borderColor: '#ffffff', radius: 15 });
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 13px Quicksand, sans-serif'; ctx.textAlign = 'center';
             ctx.fillText(p.name, p.x, p.y + 35);
         });
         
+        // Falling Dango Skewer Treats
         gd.snacks.forEach(s => {
             ctx.fillStyle = s.color;
+            ctx.shadowBlur = 10; ctx.shadowColor = s.color;
             ctx.beginPath();
             ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#8d6e63';
+            ctx.shadowBlur = 0;
+            
+            ctx.strokeStyle = '#b45309';
             ctx.lineWidth = 3;
             ctx.beginPath();
             ctx.moveTo(s.x, s.y - s.r);
@@ -16626,10 +17016,13 @@ window.MinigamesManager = {
             ctx.stroke();
         });
         
-        ctx.fillStyle = '#880e4f';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Snacks clasificados: ${gd.scoreCount} / 12`, 400, 60);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍡 Snack Arcoíris: Arrastra cada dulce a su plato del mismo color`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Clasificados: ${gd.scoreCount} / 12`, 580, 36);
     },
     inputRainbowPress(x, y) {
         const gd = this.gameData;
@@ -16699,35 +17092,46 @@ window.MinigamesManager = {
     drawMatcha() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#e8f5e9';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Tatami Tea House Atmosphere & Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#8d6e63';
+        // Ceramic Chawan Tea Bowl Base
+        ctx.fillStyle = '#78350f';
         ctx.beginPath();
         ctx.arc(400, 350, 150, 0, Math.PI);
         ctx.fill();
         
-        ctx.fillStyle = '#4caf50';
+        // Matcha Tea Liquid
+        ctx.fillStyle = '#166534';
         ctx.beginPath();
         ctx.arc(400, 350, 140, 0, Math.PI);
         ctx.fill();
         
+        // Froth Layer
         if (gd.froth > 10) {
-            ctx.fillStyle = '#a5d6a7';
+            ctx.fillStyle = '#4ade80';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#4ade80';
             ctx.beginPath();
-            ctx.arc(400, 350, 140 * (gd.froth/100), 0, Math.PI);
+            ctx.arc(400, 350, 140 * (gd.froth / 100), 0, Math.PI);
             ctx.fill();
+            ctx.shadowBlur = 0;
         }
         
-        ctx.fillStyle = '#424242';
-        ctx.fillRect(200, 520, 400, 20);
-        ctx.fillStyle = '#4caf50';
-        ctx.fillRect(200, 520, 400 * (gd.froth/100), 20);
+        // Froth Meter Bar
+        this.drawGlassCard(200, 520, 400, 20, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 10 });
+        ctx.fillStyle = '#4ade80';
+        ctx.fillRect(200, 520, 400 * (gd.froth / 100), 20);
         
-        ctx.fillStyle = '#1b5e20';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Espuma Matcha: ${Math.round(gd.froth)}% / 100%`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍵 Ceremonia del Matcha: Mueve el bambú rápido de lado a lado`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Espuma: ${Math.round(gd.froth)}% / 100%`, 580, 36);
     },
     inputMatchaPress(x, y) {
         this.gameData.lastX = x;
@@ -16791,26 +17195,36 @@ window.MinigamesManager = {
     drawMilla() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#ffe0b2';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Shoji Sunset Atmosphere & Embers
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#bcaaa4';
+        // Track Path Ground
+        ctx.fillStyle = 'rgba(120, 53, 15, 0.8)';
         ctx.fillRect(0, 480, 800, 120);
         
-        ctx.fillStyle = '#311b92';
+        // Samurai Runner Avatar
+        ctx.fillStyle = '#6366f1';
+        ctx.shadowBlur = 15; ctx.shadowColor = '#6366f1';
         ctx.beginPath();
         ctx.arc(200, gd.playerY, 20, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
+        // Hurdle Barrels
         gd.obstacles.forEach(o => {
-            ctx.fillStyle = '#8d6e63';
-            ctx.fillRect(o.x - 15, 435, 30, 45);
+            this.drawGlassCard(o.x - 15, 435, 30, 45, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 4 });
         });
         
-        ctx.fillStyle = '#4e342e';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Distancia: ${this.score}m / 300m`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(99, 102, 241, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏃 Milla del Samurái: Toca para saltar los barriles`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Distancia: ${this.score}m / 300m`, 580, 36);
     },
     inputMillaPress(x, y) {
         const gd = this.gameData;
@@ -16868,23 +17282,29 @@ window.MinigamesManager = {
     drawTako() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#cfd8dc';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Lantern Street Atmosphere & Warm Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
+        // Grill Holes
         gd.moles.forEach(m => {
-            ctx.fillStyle = '#90a4ae';
-            ctx.fillRect(m.x - 50, m.y - 10, 100, 60);
+            this.drawGlassCard(m.x - 50, m.y - 10, 100, 60, { fill: 'rgba(30, 41, 59, 0.9)', borderColor: '#475569', radius: 10 });
             if (m.active) {
-                ctx.font = '38px Outfit, sans-serif';
-                ctx.textAlign = 'center';
+                ctx.font = '38px sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(m.icon, m.x, m.y - 20);
             }
         });
         
-        ctx.fillStyle = '#263238';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Pulpos ensartados: ${gd.hitCount} / 15`, 400, 70);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🐙 Comida Bizarra: Toca a los pulpos antes de que se escondan`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Ensartados: ${gd.hitCount} / 15`, 580, 36);
     },
     inputTakoPress(x, y) {
         const gd = this.gameData;
@@ -16934,37 +17354,45 @@ window.MinigamesManager = {
     drawSayonara() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        ctx.fillStyle = '#ffe8e8';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Sakura Night Atmosphere & Ambient Blossoms
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
+        // Memory Card Grid
         gd.cards.forEach((card, idx) => {
             const col = idx % 4;
             const row = Math.floor(idx / 4);
             const cx = 160 + col * 140;
             const cy = 160 + row * 130;
             
-            ctx.fillStyle = (card.flipped || card.matched) ? '#ffffff' : '#f06292';
-            ctx.strokeStyle = '#c2185b';
-            ctx.lineWidth = 3;
-            ctx.fillRect(cx - 50, cy - 50, 100, 100);
-            ctx.strokeRect(cx - 50, cy - 50, 100, 100);
+            const isOpen = card.flipped || card.matched;
+            this.drawGlassCard(cx - 50, cy - 50, 100, 100, {
+                fill: isOpen ? 'rgba(255, 255, 255, 0.95)' : 'rgba(244, 63, 94, 0.85)',
+                borderColor: isOpen ? '#fbbf24' : '#f43f5e',
+                radius: 12
+            });
             
-            if (card.flipped || card.matched) {
-                ctx.font = '36px Outfit, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(card.icon, cx, cy + 12);
+            if (isOpen) {
+                ctx.font = '36px sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(card.icon, cx, cy);
             } else {
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 20px Outfit, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('🌸', cx, cy + 8);
+                ctx.font = '24px sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('🌸', cx, cy);
             }
         });
         
-        ctx.fillStyle = '#880e4f';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`Parejas encontradas: ${gd.pairsFound} / 6`, 400, 75);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(244, 63, 94, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌸 Sayonara Kioto: Encuentra todas las parejas de recuerdos`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Parejas: ${gd.pairsFound} / 6`, 620, 36);
     },
     inputSayonaraPress(x, y) {
         const gd = this.gameData;
@@ -17077,13 +17505,19 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
         
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tatami / Onsen Bath Atmosphere & Steam
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#e0f7fa';
+        // Onsen Bath Tub Water
+        ctx.fillStyle = '#e0f2fe';
+        ctx.shadowBlur = 20; ctx.shadowColor = '#38bdf8';
         ctx.fillRect(100, 150, 600, 300);
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#ffe0b2';
+        // Bather Silhouette / Towel
+        ctx.fillStyle = '#ffedd5';
         ctx.beginPath();
         ctx.arc(400, 250, 50, 0, Math.PI * 2);
         ctx.fill();
@@ -17092,67 +17526,56 @@ window.MinigamesManager = {
         ctx.fillRect(370, 190, 60, 20);
         
         if (gd.scrub < 100) {
-            ctx.fillStyle = 'rgba(121, 85, 72, ' + (1 - gd.scrub/100) + ')';
+            ctx.fillStyle = 'rgba(120, 53, 15, ' + (1 - gd.scrub / 100) + ')';
             ctx.beginPath();
-            ctx.arc(380, 240, 8, 0, Math.PI*2);
-            ctx.arc(420, 260, 6, 0, Math.PI*2);
-            ctx.arc(395, 270, 10, 0, Math.PI*2);
+            ctx.arc(380, 240, 8, 0, Math.PI * 2);
+            ctx.arc(420, 260, 6, 0, Math.PI * 2);
+            ctx.arc(395, 270, 10, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        ctx.fillStyle = 'rgba(79, 195, 247, 0.4)';
+        // Water Overlay
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
         ctx.fillRect(100, 280, 600, 170);
         
-        if (Math.random() < 0.15) {
-            this.particles.push({
-                x: 150 + Math.random() * 500, y: 280,
-                vx: (Math.random() - 0.5) * 20, vy: -30 - Math.random() * 20,
-                size: 8 + Math.random() * 12, color: 'rgba(255,255,255,0.2)', life: 0.8, decay: 0.015
-            });
-        }
+        // Temperature Gauge Gauge Track
+        this.drawGlassCard(200, 50, 400, 20, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 10 });
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(200, 50, 400, 20);
-        
-        ctx.fillStyle = '#00ff99';
-        const xGreenStart = 200 + 400 * (40 - 10)/50;
+        // Safe Target Range (41°C)
+        const xGreenStart = 200 + 400 * (40 - 10) / 50;
         const xGreenWidth = 400 * (2 / 50);
+        ctx.fillStyle = '#4ade80';
         ctx.fillRect(xGreenStart, 50, xGreenWidth, 20);
         
-        const xInd = 200 + 400 * (gd.temp - 10)/50;
-        ctx.fillStyle = '#ff1744';
+        // Current Temp Pin
+        const xInd = 200 + 400 * (gd.temp - 10) / 50;
+        ctx.fillStyle = '#ef4444';
         ctx.fillRect(xInd - 3, 45, 6, 30);
         
-        ctx.fillStyle = '#ffebee';
-        ctx.fillRect(150, 500, 200, 10);
-        ctx.fillStyle = '#ff1744';
+        // Valves Sliders
+        this.drawGlassCard(150, 500, 200, 10, { fill: 'rgba(239, 68, 68, 0.3)', borderColor: '#ef4444', radius: 5 });
+        ctx.fillStyle = '#ef4444';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#ef4444';
         ctx.beginPath();
         ctx.arc(150 + gd.hotValve * 200, 505, 15, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#e3f2fd';
-        ctx.fillRect(450, 500, 200, 10);
-        ctx.fillStyle = '#2979ff';
+        this.drawGlassCard(450, 500, 200, 10, { fill: 'rgba(56, 189, 248, 0.3)', borderColor: '#38bdf8', radius: 5 });
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#38bdf8';
         ctx.beginPath();
         ctx.arc(450 + gd.coldValve * 200, 505, 15, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 18px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Temp: ' + gd.temp.toFixed(1) + '°C', 400, 35);
-        ctx.fillText('♨️ Válvula Caliente', 250, 545);
-        ctx.fillText('❄️ Válvula Fría', 550, 545);
-        
-        if (gd.scrub < 100) {
-            ctx.fillText('¡Frota la pantalla para lavar a Laura! ' + Math.round(gd.scrub) + '%', 400, 120);
-        } else if (Math.abs(gd.temp - gd.targetTemp) > 1.0) {
-            ctx.fillStyle = '#ffeb3b';
-            ctx.fillText('¡Limpia! Ahora regula a 41°C usando las válvulas.', 400, 120);
-        } else {
-            ctx.fillStyle = '#00ff99';
-            ctx.fillText('¡Temperatura Perfecta! Mantén: ' + gd.timer.toFixed(1) + 's', 400, 120);
-        }
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`♨️ Código Onsen: ${gd.scrub < 100 ? 'Frota la pantalla para lavar (' + Math.round(gd.scrub) + '%)' : 'Regula a 41.0°C con las válvulas'}`, 30, 36);
+        ctx.fillStyle = Math.abs(gd.temp - 41) <= 1 ? '#4ade80' : '#38bdf8';
+        ctx.fillText(`Temp: ${gd.temp.toFixed(1)}°C`, 640, 36);
     },
     inputOnsenPress(x, y) {
         const gd = this.gameData;
@@ -17223,46 +17646,35 @@ window.MinigamesManager = {
     drawTea() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Tatami Atmosphere & Steam
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#f5f2eb';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(50, 50, 300, 400);
-        ctx.strokeRect(450, 50, 300, 400);
-        
-        if (Math.abs(gd.wind) > 0.5 && Math.random() < 0.1) {
-            this.particles.push({
-                x: gd.wind > 0 ? -20 : 820, y: 150 + Math.random() * 150,
-                vx: gd.wind * 80, vy: (Math.random() - 0.5) * 10,
-                size: 2, color: 'rgba(138,154,91,0.3)', life: 1.0, decay: 0.02
-            });
-        }
-        
+        // Wooden Tray
         ctx.save();
         ctx.translate(gd.trayX, 420);
         ctx.rotate(gd.trayAngle);
         
-        ctx.fillStyle = '#b71c1c';
-        ctx.fillRect(-140, -10, 280, 20);
-        ctx.fillStyle = '#880e4f';
-        ctx.fillRect(-140, -12, 10, 24);
-        ctx.fillRect(130, -12, 10, 24);
+        this.drawGlassCard(-140, -10, 280, 20, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 4 });
         ctx.restore();
         
+        // Chawan Tea Bowl
         ctx.save();
         const bx = gd.trayX + (gd.bowlX - gd.trayX) * Math.cos(gd.trayAngle);
         const by = 420 + (gd.bowlX - gd.trayX) * Math.sin(gd.trayAngle);
         ctx.translate(bx, by);
         ctx.rotate(gd.trayAngle);
         
-        ctx.fillStyle = '#33691e';
+        ctx.fillStyle = '#166534';
+        ctx.shadowBlur = 10; ctx.shadowColor = '#166534';
         ctx.beginPath();
         ctx.arc(0, -25, 35, 0, Math.PI, false);
         ctx.fill();
+        ctx.shadowBlur = 0;
         
-        ctx.fillStyle = '#8a9a5b';
+        ctx.fillStyle = '#4ade80';
         ctx.beginPath();
         const sloshAngle = -gd.bowlVx * 0.1;
         ctx.rotate(sloshAngle);
@@ -17270,20 +17682,13 @@ window.MinigamesManager = {
         ctx.fill();
         ctx.restore();
         
-        ctx.fillStyle = '#3e2723';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Distancia Ryokan: ' + Math.round(gd.distance) + ' / 100m', 400, 60);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '💚 ';
-        ctx.fillText(heartStr, 400, 100);
-        
-        if (Math.abs(gd.wind) > 1) {
-            ctx.fillStyle = '#d84315';
-            ctx.font = 'bold 20px Outfit, sans-serif';
-            ctx.fillText('💨 Viento Alpino: ' + (gd.wind > 0 ? '➡️' : '⬅️'), 400, 140);
-        }
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍵 Té Intacto: Equilibra el cuenco de Matcha (${'💚 '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillText(`Progreso: ${this.score}%`, 640, 36);
     },
     inputTeaPress(x, y) {},
 
@@ -17332,37 +17737,39 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
         
-        ctx.fillStyle = '#0d1117';
-        ctx.fillRect(0, 0, 800, 600);
+        // Lantern Street Atmosphere & Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#37474f';
+        // Lantern Pillars
+        ctx.fillStyle = '#334155';
         ctx.fillRect(150, 100, 10, 400);
         ctx.fillRect(630, 100, 10, 400);
         
-        ctx.fillStyle = '#d84315';
-        ctx.fillRect(135, 120, 40, 50);
-        ctx.fillRect(615, 120, 40, 50);
-        ctx.font = '20px sans-serif';
-        ctx.fillText('🏮', 155, 150);
-        ctx.fillText('🏮', 635, 150);
+        ctx.font = '24px sans-serif';
+        ctx.fillText('🏮', 142, 130);
+        ctx.fillText('🏮', 622, 130);
         
-        ctx.fillStyle = '#263238';
+        // Walkway Ground
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
         ctx.fillRect(0, 340, 800, 260);
         
+        // Guests
         gd.guests.sort((a, b) => a.y - b.y);
         gd.guests.forEach(g => {
             ctx.font = '55px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(g.emoji, g.x, g.y);
         });
         
-        ctx.fillStyle = '#ffd700';
-        ctx.font = 'bold 24px Outfit, sans-serif';
-        ctx.fillText('Huéspedes en Yukata cazados: ' + gd.scoreCount + ' / 10', 400, 50);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 95);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👘 Cazadora de Yukatas: Toca a las personas en yukata (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Cazados: ${gd.scoreCount} / 10`, 620, 36);
     },
     inputYukataPress(x, y) {
         const gd = this.gameData;
@@ -17425,13 +17832,16 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
         
-        ctx.fillStyle = '#5d4037';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tatami House Atmosphere & Cherry Blossom Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(200, 100, 400, 400);
+        // Floor Board Area
+        this.drawGlassCard(200, 100, 400, 400, { fill: 'rgba(120, 53, 15, 0.8)', borderColor: '#b45309', radius: 12 });
         
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        // Grid Lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.lineWidth = 2;
         for (let c = 0; c <= 4; c++) {
             ctx.beginPath();
@@ -17453,7 +17863,7 @@ window.MinigamesManager = {
         sortedMats.forEach(m => {
             ctx.save();
             ctx.fillStyle = m.color;
-            ctx.strokeStyle = '#33691e';
+            ctx.strokeStyle = '#15803d';
             ctx.lineWidth = 3;
             
             const px = m.x;
@@ -17461,10 +17871,14 @@ window.MinigamesManager = {
             const pw = m.w * 100;
             const ph = m.h * 100;
             
+            if (m === gd.draggingMat) {
+                ctx.shadowBlur = 15; ctx.shadowColor = '#fbbf24';
+            }
+            
             ctx.fillRect(px, py, pw, ph);
             ctx.strokeRect(px, py, pw, ph);
             
-            ctx.fillStyle = '#1b5e20';
+            ctx.fillStyle = '#166534';
             if (m.w >= m.h) {
                 ctx.fillRect(px, py, pw, 6);
                 ctx.fillRect(px, py + ph - 6, pw, 6);
@@ -17475,12 +17889,13 @@ window.MinigamesManager = {
             ctx.restore();
         });
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Distribuye los tatamis para cubrir la habitación!', 400, 45);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca un tatami fuera de la cuadrícula para rotarlo.', 400, 75);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌾 Textura del Tatami: Coloca las alfombras para cubrir la sala`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Puntos: ${this.score} / 8`, 640, 36);
     },
     inputTatamiPress(x, y) {
         const gd = this.gameData;
@@ -17616,23 +18031,19 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
         
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tatami Tea House Atmosphere & Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.strokeStyle = '#d7ccc8';
-        ctx.lineWidth = 3;
+        // Plates Backdrop Base
         for (let i = 0; i < 5; i++) {
             const px = 100 + i * 150;
             const py = 250;
-            ctx.fillStyle = 'rgba(255,255,255,0.05)';
-            ctx.beginPath();
-            ctx.arc(px, py, 50, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
+            this.drawGlassCard(px - 50, py - 50, 100, 100, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#fbbf24', radius: 12 });
             
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.font = 'bold 20px monospace';
-            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = 'bold 20px Quicksand, monospace'; ctx.textAlign = 'center';
             ctx.fillText(i + 1, px, py + 8);
         }
         
@@ -17641,12 +18052,17 @@ window.MinigamesManager = {
                 const px = 100 + idx * 150;
                 const py = 250;
                 ctx.font = '50px sans-serif';
-                ctx.fillText(item.icon, px, py + 18);
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(item.icon, px, py);
             });
             
-            ctx.fillStyle = '#ffb74d';
-            ctx.font = 'bold 24px Outfit, sans-serif';
-            ctx.fillText('¡MEMORIZA EL ORDEN PROTOCOLARIO! ' + gd.timer.toFixed(1) + 's', 400, 100);
+            // Glassmorphic Top HUD Panel
+            this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText(`🍱 Catador de Kaiseki: ¡MEMORIZA EL ORDEN!`, 30, 36);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillText(`Tiempo: ${gd.timer.toFixed(1)}s`, 640, 36);
         } else {
             gd.current.forEach((itemIdx, plateIdx) => {
                 if (itemIdx !== null) {
@@ -17655,29 +18071,34 @@ window.MinigamesManager = {
                     const item = gd.items.find(x => x.id === itemIdx);
                     if (item && item !== gd.draggingItem) {
                         ctx.font = '50px sans-serif';
-                        ctx.fillText(item.icon, px, py + 18);
+                        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                        ctx.fillText(item.icon, px, py);
                     }
                 }
             });
             
             gd.items.forEach(item => {
                 if (item.placed === -1 && item !== gd.draggingItem) {
-                    ctx.fillStyle = '#4e342e';
-                    ctx.fillRect(item.x - 50, item.y - 40, 100, 80);
+                    this.drawGlassCard(item.x - 50, item.y - 40, 100, 80, { fill: 'rgba(120, 53, 15, 0.9)', borderColor: '#fbbf24', radius: 8 });
                     ctx.font = '40px sans-serif';
-                    ctx.fillText(item.icon, item.x, item.y + 15);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(item.icon, item.x, item.y);
                 }
             });
             
             if (gd.draggingItem) {
                 ctx.font = '60px sans-serif';
-                ctx.fillText(gd.draggingItem.icon, gd.draggingItem.x, gd.draggingItem.y + 20);
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(gd.draggingItem.icon, gd.draggingItem.x, gd.draggingItem.y);
             }
             
+            // Glassmorphic Top HUD Panel
+            this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 22px Outfit, sans-serif';
-            ctx.fillText('Ordena los platos en los platos protocolarios del Kaiseki.', 400, 100);
-            ctx.fillText('Servicios logrados: ' + gd.correctServings + ' / 3', 400, 50);
+            ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText(`🍱 Catador de Kaiseki: Arrastra los platos en el orden memorizado`, 30, 36);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillText(`Servicios: ${gd.correctServings} / 3`, 620, 36);
         }
     },
     inputKaisekiPress(x, y) {
@@ -17779,9 +18200,9 @@ window.MinigamesManager = {
     drawSpring() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        
-        ctx.fillStyle = '#0a0e14';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Cyber Grid Thermal Radar Background
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
         
         const ox = 220;
         const oy = 120;
@@ -17793,52 +18214,36 @@ window.MinigamesManager = {
                 const cy = oy + r * cs;
                 const cellVal = gd.grid[r][c];
                 
-                if (cellVal === -1) {
-                    ctx.fillStyle = '#1c2833';
-                } else if (cellVal === 0) {
-                    ctx.fillStyle = '#ff1744';
-                } else if (cellVal === 1) {
-                    ctx.fillStyle = '#ff9100';
-                } else if (cellVal === 2) {
-                    ctx.fillStyle = '#ffea00';
-                } else {
-                    ctx.fillStyle = '#00e5ff';
-                }
+                let fillCol = 'rgba(30, 41, 59, 0.8)';
+                let borderCol = '#38bdf8';
                 
-                ctx.strokeStyle = '#00ff99';
-                ctx.lineWidth = 2;
-                ctx.fillRect(cx, cy, cs, cs);
-                ctx.strokeRect(cx, cy, cs, cs);
+                if (cellVal === 0) fillCol = 'rgba(239, 68, 68, 0.6)';
+                else if (cellVal === 1) fillCol = 'rgba(249, 115, 22, 0.6)';
+                else if (cellVal === 2) fillCol = 'rgba(234, 179, 8, 0.6)';
+                else if (cellVal > 2) fillCol = 'rgba(56, 189, 248, 0.4)';
+                
+                this.drawGlassCard(cx, cy, cs, cs, { fill: fillCol, borderColor: borderCol, radius: 4 });
                 
                 if (cellVal === 0) {
                     ctx.font = '28px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('♨️', cx + cs/2, cy + cs/2 + 9);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText('♨️', cx + cs / 2, cy + cs / 2);
                 } else if (cellVal > 0) {
-                    ctx.fillStyle = '#1c2833';
-                    ctx.font = 'bold 20px monospace';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(cellVal, cx + cs/2, cy + cs/2 + 7);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 20px Quicksand, monospace';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(cellVal, cx + cs / 2, cy + cs / 2);
                 }
             }
         }
         
-        ctx.fillStyle = 'rgba(0,255,153,0.05)';
-        for (let i = 0; i < 600; i += 6) {
-            ctx.fillRect(0, i, 800, 2);
-        }
-        
-        ctx.fillStyle = '#00ff99';
-        ctx.font = 'bold 24px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('RASTREADOR TÉRMICO OKUHIDA', 400, 50);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = '18px monospace';
-        ctx.fillText('Manantiales localizados: ' + gd.found + ' / 3', 400, 90);
-        ctx.fillText('Sondas Geotérmicas restantes: ' + gd.probes, 400, 515);
-        ctx.font = 'italic 15px monospace';
-        ctx.fillStyle = '#aaa';
-        ctx.fillText('Sonar: Rojo = Manantial, Naranja = 1 casilla, Amarillo = 2 casillas', 400, 550);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`📡 Rastreador Térmico: Haz clic para usar sondas (${gd.probes} restantes)`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Manantiales: ${gd.found} / 3`, 620, 36);
     },
     inputSpringPress(x, y) {
         const gd = this.gameData;
@@ -17959,18 +18364,15 @@ window.MinigamesManager = {
     drawArchitecture() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        
-        ctx.fillStyle = '#263238';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Shoji Sunset Atmosphere & Steam
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
         
         const ox = 160;
         const oy = 160;
         const cs = 120;
-        
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(80, 205, 80, 30);
-        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
-        ctx.fillRect(80, 215, 80, 10);
         
         for (let r = 0; r < 3; r++) {
             for (let c = 0; c < 4; c++) {
@@ -17978,61 +18380,39 @@ window.MinigamesManager = {
                 const cx = ox + c * cs;
                 const cy = oy + r * cs;
                 
-                ctx.fillStyle = '#37474f';
-                ctx.strokeStyle = '#455a64';
-                ctx.fillRect(cx, cy, cs, cs);
-                ctx.strokeRect(cx, cy, cs, cs);
+                this.drawGlassCard(cx, cy, cs, cs, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: '#475569', radius: 8 });
                 
                 ctx.save();
-                ctx.translate(cx + cs/2, cy + cs/2);
+                ctx.translate(cx + cs / 2, cy + cs / 2);
                 ctx.rotate(cell.angle * Math.PI / 180);
                 
-                ctx.strokeStyle = '#4caf50';
-                ctx.lineWidth = 26;
+                ctx.strokeStyle = cell.water ? '#38bdf8' : '#64748b';
+                ctx.lineWidth = 18;
                 ctx.lineCap = 'round';
+                if (cell.water) { ctx.shadowBlur = 15; ctx.shadowColor = '#38bdf8'; }
                 
                 if (cell.type === 'I') {
                     ctx.beginPath();
-                    ctx.moveTo(-cs/2, 0);
-                    ctx.lineTo(cs/2, 0);
+                    ctx.moveTo(-cs / 2, 0);
+                    ctx.lineTo(cs / 2, 0);
                     ctx.stroke();
                 } else if (cell.type === 'L') {
                     ctx.beginPath();
-                    ctx.moveTo(0, cs/2);
-                    ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
+                    ctx.moveTo(0, cs / 2);
+                    ctx.arc(cs / 2, cs / 2, cs / 2, Math.PI, Math.PI * 1.5, false);
                     ctx.stroke();
-                }
-                
-                if (cell.water) {
-                    ctx.strokeStyle = '#00e5ff';
-                    ctx.lineWidth = 10;
-                    if (cell.type === 'I') {
-                        ctx.beginPath();
-                        ctx.moveTo(-cs/2, 0);
-                        ctx.lineTo(cs/2, 0);
-                        ctx.stroke();
-                    } else if (cell.type === 'L') {
-                        ctx.beginPath();
-                        ctx.moveTo(0, cs/2);
-                        ctx.arc(cs/2, cs/2, cs/2, Math.PI, Math.PI * 1.5, false);
-                        ctx.stroke();
-                    }
                 }
                 ctx.restore();
             }
         }
         
-        ctx.fillStyle = '#b0bec5';
-        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 45, 80, 30);
-        ctx.fillStyle = gd.completed ? '#00e5ff' : '#263238';
-        ctx.fillRect(ox + 4 * cs, oy + 2 * cs + 55, 80, 10);
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Construye el acueducto rotando los bambús!', 400, 60);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca las celdas para rotar los tubos 90 grados.', 400, 100);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🚰 Arquitectura Termal: Toca las tuberías para conectar el agua`, 30, 36);
+        ctx.fillStyle = gd.completed ? '#4ade80' : '#38bdf8';
+        ctx.fillText(gd.completed ? '¡Conectado!' : 'Buscando ruta', 620, 36);
     },
     inputArchitecturePress(x, y) {
         const gd = this.gameData;
@@ -18110,53 +18490,50 @@ window.MinigamesManager = {
     drawEconomy() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Lantern Street Atmosphere & Warm Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#ffecb3';
-        ctx.fillRect(0, 0, 800, 600);
+        // Inn Reception Counter
+        this.drawGlassCard(50, 150, 700, 320, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: '#475569', radius: 16 });
         
-        ctx.fillStyle = '#d7ccc8';
-        ctx.fillRect(50, 150, 700, 320);
-        
+        // Customers
         gd.customers.forEach(c => {
-            ctx.fillStyle = '#a5d6a7';
-            ctx.beginPath();
-            ctx.ellipse(c.x, c.y + 40, 50, 20, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
             ctx.font = '45px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText('🧍', c.x, c.y + 20);
             
-            ctx.fillStyle = '#e0e0e0';
+            // Patience Bar
+            ctx.fillStyle = '#334155';
             ctx.fillRect(c.x - 40, c.y - 45, 80, 8);
-            ctx.fillStyle = c.patience > 0.4 ? '#4caf50' : '#f44336';
+            ctx.fillStyle = c.patience > 0.4 ? '#4ade80' : '#ef4444';
             ctx.fillRect(c.x - 40, c.y - 45, 80 * c.patience, 8);
             
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(c.x + 30, c.y - 30, 80, 35);
-            ctx.strokeRect(c.x + 30, c.y - 30, 80, 35);
-            ctx.font = '15px sans-serif';
-            ctx.fillStyle = '#000000';
-            ctx.fillText('♨️ 150¥', c.x + 70, c.y - 7);
+            // Price Tag
+            this.drawGlassCard(c.x + 30, c.y - 30, 80, 35, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: '#fbbf24', radius: 6 });
+            ctx.fillStyle = '#fbbf24';
+            ctx.font = 'bold 13px Quicksand, sans-serif';
+            ctx.fillText('♨️ 150¥', c.x + 70, c.y - 12);
         });
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(150, 500, 200, 60);
+        // Coal Buy Button
+        this.drawGlassCard(150, 500, 200, 60, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Outfit, sans-serif';
-        ctx.fillText('Comprar Carbón (+20)', 250, 526);
-        ctx.font = '13px Outfit, sans-serif';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Comprar Carbón (+20kg)', 250, 526);
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '13px Quicksand, sans-serif';
         ctx.fillText('Coste: 50¥', 250, 546);
         
-        ctx.fillStyle = '#0d1117';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('Yenes Ganados: ' + gd.money + ' / 1000¥', 250, 60);
-        ctx.fillText('Carbón: ' + gd.coal + ' kg', 550, 60);
-        ctx.fillText('Tiempo: ' + Math.round(gd.timer) + 's', 300, 110);
-        
-        let total = gd.servedCount + gd.lostCount;
-        let satisfaction = total > 0 ? Math.round((gd.servedCount / total) * 100) : 100;
-        ctx.fillText('Satisfacción: ' + satisfaction + '%', 550, 110);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`💴 Economía Alpina: Atiende clientes y gestiona carbón (${gd.coal}kg)`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Yenes: ${gd.money} / 1000¥`, 620, 36);
     },
     inputEconomyPress(x, y) {
         const gd = this.gameData;
@@ -18237,49 +18614,51 @@ window.MinigamesManager = {
     drawGeta() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Shoji Sunset Atmosphere & Embers
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#b2ebf2';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#a1887f';
+        // Wooden Path Track
+        ctx.fillStyle = 'rgba(120, 53, 15, 0.8)';
         ctx.fillRect(200, 0, 400, 600);
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(250, 40, 300, 15);
-        ctx.fillStyle = '#00ff99';
+        // Balance Bar Track
+        this.drawGlassCard(250, 40, 300, 15, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 8 });
+        ctx.fillStyle = '#4ade80';
         ctx.fillRect(370, 40, 60, 15);
         
-        ctx.fillStyle = '#ff1744';
+        // Balance Needle
+        ctx.fillStyle = '#ef4444';
         ctx.fillRect(250 + gd.balance * 300 - 3, 30, 6, 35);
         
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.fillRect(280, 120, 100, 380);
-        ctx.fillRect(420, 120, 100, 380);
-        
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(280, 440); ctx.lineTo(380, 440); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(420, 440); ctx.lineTo(520, 440); ctx.stroke();
-        
+        // Falling Footsteps
         gd.steps.forEach(s => {
             if (!s.hit) {
                 ctx.font = '35px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(s.side === 'left' ? '👣' : '👣', s.side === 'left' ? 330 : 470, s.y);
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('👣', s.side === 'left' ? 330 : 470, s.y);
             }
         });
         
-        ctx.fillStyle = '#d7ccc8';
-        ctx.fillRect(150, 510, 200, 70);
-        ctx.fillRect(450, 510, 200, 70);
+        // Geta Clog Buttons
+        this.drawGlassCard(150, 510, 200, 70, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 12 });
+        this.drawGlassCard(450, 510, 200, 70, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 12 });
         
-        ctx.fillStyle = '#4e342e';
-        ctx.font = 'bold 20px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('👡 IZQUIERDO', 250, 550);
-        ctx.fillText('👡 DERECHO', 550, 550);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Quicksand, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('👡 IZQUIERDO', 250, 545);
+        ctx.fillText('👡 DERECHO', 550, 545);
         
-        ctx.fillText('Pasos en Geta: ' + gd.count + ' / ' + gd.goal, 400, 100);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👡 Equilibrio en Geta: Toca el pie correspondiente al bajar`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Pasos: ${gd.count} / ${gd.goal}`, 620, 36);
     },
     inputGetaPress(x, y) {
         const gd = this.gameData;
@@ -18375,69 +18754,56 @@ window.MinigamesManager = {
     drawSilence() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Sakura Night Atmosphere & Steam/Fog
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#111b15';
-        ctx.fillRect(0, 0, 800, 600);
+        // Soundwave Monitor Frame
+        this.drawGlassCard(200, 55, 400, 60, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: gd.soundLevel > 40 ? '#ef4444' : '#38bdf8', radius: 10 });
         
-        ctx.fillStyle = '#0a0a0f';
-        ctx.fillRect(200, 30, 400, 80);
-        
-        ctx.strokeStyle = gd.soundLevel > 40 ? '#ff1744' : '#00e5ff';
+        ctx.strokeStyle = gd.soundLevel > 40 ? '#ef4444' : '#38bdf8';
         ctx.lineWidth = 3;
         ctx.beginPath();
         for (let i = 0; i < 400; i += 10) {
-            const h = (Math.sin(i * 0.05 + this.gameTime * 5) * gd.soundLevel * 0.4);
-            ctx.moveTo(200 + i, 70 - h);
-            ctx.lineTo(200 + i, 70 + h);
+            const h = (Math.sin(i * 0.05 + this.gameTime * 5) * gd.soundLevel * 0.3);
+            ctx.moveTo(200 + i, 85 - h);
+            ctx.lineTo(200 + i, 85 + h);
         }
         ctx.stroke();
         
-        ctx.strokeStyle = 'rgba(255,23,68,0.4)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(200, 50); ctx.lineTo(600, 50); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(200, 90); ctx.lineTo(600, 90); ctx.stroke();
-        
-        ctx.fillStyle = '#3e2723';
+        // Ground Path
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
         ctx.fillRect(0, 380, 800, 220);
         
+        // Player Avatar
         const playerPx = 100 + (gd.distance % 50) * 10;
-        ctx.fillStyle = '#ffe0b2';
+        ctx.fillStyle = '#6366f1';
+        ctx.shadowBlur = 12; ctx.shadowColor = '#6366f1';
         ctx.beginPath();
-        ctx.arc(playerPx, 350, 20, 0, Math.PI*2);
+        ctx.arc(playerPx, 350, 20, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#ffd54f';
-        ctx.beginPath();
-        ctx.arc(playerPx + 15, 355, 6, 0, Math.PI*2);
-        ctx.fill();
+        ctx.shadowBlur = 0;
         
+        // Next Kami Shrine / Shrine Guardian
         const nextKamiDist = Math.ceil(gd.distance / 50) * 50;
         const kamiPx = 100 + ((nextKamiDist - gd.distance) * 10) + (playerPx - (gd.distance % 50) * 10);
         if (kamiPx < 850) {
-            ctx.font = '60px sans-serif';
+            ctx.font = '50px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             const isNear = Math.abs(gd.distance - nextKamiDist) < 8;
             const waken = isNear && gd.soundLevel > 22;
-            ctx.fillText(waken ? '😱' : '😴', kamiPx, 300);
-            ctx.font = '22px sans-serif';
-            ctx.fillText('⛩️', kamiPx, 360);
+            ctx.fillText(waken ? '😱' : '😴', kamiPx, 320);
         }
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: gd.soundLevel > 40 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Camino Sigiloso: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 140);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 180);
-        
-        ctx.font = 'bold 18px Outfit, sans-serif';
-        if (gd.soundLevel > 40) {
-            ctx.fillStyle = '#ff1744';
-            ctx.fillText('🚨 ¡RUIDO ALTO! ¡Sueltas para detenerte!', 400, 480);
-        } else {
-            ctx.fillStyle = '#00ff99';
-            ctx.fillText('Mantén presionado para caminar sigilosamente.', 400, 480);
-        }
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🤫 Silencio de los Kami: ${gd.soundLevel > 40 ? '¡RUIDO ALTO! Suelta para detenerte' : 'Mantén presionado para caminar sigilosamente'} (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = gd.soundLevel > 40 ? '#ef4444' : '#38bdf8';
+        ctx.fillText(`Distancia: ${Math.round(gd.distance)}m / ${gd.targetDist}m`, 600, 36);
     },
     inputSilencePress() {},
 
@@ -18494,18 +18860,22 @@ window.MinigamesManager = {
     drawSugidama() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Tatami Tea House Atmosphere & Petals
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = 'rgba(0, 255, 153, 0.4)';
+        // Target Circle Ring
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.5)';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(400, 300, gd.targetRadius, 0, Math.PI * 2);
         ctx.stroke();
         
-        ctx.fillStyle = '#1b5e20';
-        ctx.strokeStyle = '#2e7d32';
+        // Sugidama Bush Shape
+        ctx.fillStyle = '#166534';
+        ctx.strokeStyle = '#22c55e';
         ctx.lineWidth = 4;
         ctx.beginPath();
         gd.points.forEach((p, idx) => {
@@ -18518,18 +18888,19 @@ window.MinigamesManager = {
         ctx.fill();
         ctx.stroke();
         
+        // Shears Indicator
         if (this.mouse.isDown) {
-            ctx.fillStyle = '#b0bec5';
+            ctx.fillStyle = '#94a3b8';
             ctx.fillRect(this.mouse.x - 10, this.mouse.y - 4, 20, 8);
         }
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Poda el arbusto para dar forma a la Sugidama!', 400, 50);
-        ctx.font = 'bold 20px monospace';
-        ctx.fillStyle = gd.accuracy >= 96 ? '#00ff99' : '#ffeb3b';
-        ctx.fillText('Precisión Esférica: ' + gd.accuracy + '% / 96%', 400, 95);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌳 Bola de Cedro Sugidama: Poda las ramas para dar forma esférica`, 30, 36);
+        ctx.fillStyle = gd.accuracy >= 96 ? '#4ade80' : '#fbbf24';
+        ctx.fillText(`Precisión: ${gd.accuracy}% / 96%`, 620, 36);
     },
     inputSugidamaPress() {},
 
@@ -18548,9 +18919,11 @@ window.MinigamesManager = {
     drawWood() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Tatami Tea House Atmosphere & Gold Particles
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
         const ox = 250;
         const oy = 150;
@@ -18563,29 +18936,25 @@ window.MinigamesManager = {
             const cy = oy + row * ts;
             
             ctx.save();
-            ctx.translate(cx + ts/2, cy + ts/2);
+            ctx.translate(cx + ts / 2, cy + ts / 2);
             ctx.rotate(tile.angle * Math.PI / 180);
             
-            ctx.fillStyle = '#8d6e63';
-            ctx.strokeStyle = '#5d4037';
-            ctx.lineWidth = 3;
-            ctx.fillRect(-ts/2, -ts/2, ts, ts);
-            ctx.strokeRect(-ts/2, -ts/2, ts, ts);
+            this.drawGlassCard(-ts / 2, -ts / 2, ts, ts, { fill: 'rgba(180, 83, 9, 0.9)', borderColor: '#fbbf24', radius: 8 });
             
-            ctx.fillStyle = '#4e342e';
             ctx.font = '40px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             const reliefs = ['🐅', '🐉', '🦅', '🐾', '🌸', '🎋', '⛩️', '🍥', '🦊'];
-            ctx.fillText(reliefs[tile.id], 0, 15);
+            ctx.fillText(reliefs[tile.id], 0, 0);
             ctx.restore();
         });
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Restaura la talla feudal rotando los paneles!', 400, 60);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca los azulejos de madera para rotarlos.', 400, 100);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪵 Detective de Madera: Toca los paneles para rotarlos`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Puntuación: ${this.score}`, 640, 36);
     },
     inputWoodPress(x, y) {
         const gd = this.gameData;
@@ -18651,59 +19020,47 @@ window.MinigamesManager = {
     drawHida() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Lantern Street Atmosphere & Warm Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#1e1b18';
-        ctx.fillRect(0, 0, 800, 600);
+        // Charcoal Grill Grid Frame
+        this.drawGlassCard(100, 200, 600, 260, { fill: 'rgba(30, 41, 59, 0.9)', borderColor: '#ef4444', radius: 16 });
         
-        ctx.fillStyle = '#424242';
-        ctx.fillRect(100, 200, 600, 260);
-        ctx.fillStyle = '#ff3d00';
-        ctx.fillRect(110, 210, 580, 240);
-        
-        ctx.strokeStyle = '#616161';
+        // Grill Grate Lines
+        ctx.strokeStyle = '#475569';
         ctx.lineWidth = 3;
         for (let x = 120; x < 700; x += 30) {
             ctx.beginPath(); ctx.moveTo(x, 200); ctx.lineTo(x, 460); ctx.stroke();
         }
-        for (let y = 210; y < 460; y += 30) {
-            ctx.beginPath(); ctx.moveTo(100, y); ctx.lineTo(700, y); ctx.stroke();
-        }
         
+        // Wagyu Slabs
         gd.meats.forEach(m => {
             if (m.active) {
                 const currentSideLvl = m.side === 'A' ? m.sideA : m.sideB;
                 
-                let color = '#d32f2f';
-                if (currentSideLvl > 0.4 && currentSideLvl <= 0.7) color = '#8d6e63';
-                else if (currentSideLvl > 0.7) color = '#212121';
+                let color = '#ef4444';
+                if (currentSideLvl > 0.4 && currentSideLvl <= 0.7) color = '#b45309';
+                else if (currentSideLvl > 0.7) color = '#1e293b';
                 
-                ctx.fillStyle = color;
-                ctx.fillRect(m.x - 60, 280, 120, 70);
-                
-                if (currentSideLvl <= 0.4) {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(m.x - 40, 290); ctx.lineTo(m.x - 20, 340);
-                    ctx.moveTo(m.x, 290); ctx.lineTo(m.x + 20, 340);
-                    ctx.stroke();
-                }
+                this.drawGlassCard(m.x - 60, 280, 120, 70, { fill: color, borderColor: '#fbbf24', radius: 8 });
                 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 14px monospace';
-                ctx.textAlign = 'center';
+                ctx.font = 'bold 13px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 const statusStr = m.side === 'A' ? 'Lado A' : 'Lado B';
-                ctx.fillText(statusStr, m.x, 320);
+                ctx.fillText(statusStr, m.x, 315);
             }
         });
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Cocina carne Wagyu de Hida perfectamente!', 400, 50);
-        ctx.fillText('Cortes perfectos servidos: ' + gd.servedCount + ' / ' + gd.goal, 400, 95);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca la carne para voltear o servir en su punto exacto.', 400, 140);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🥩 Degustadora de Hida: Toca la carne Wagyu para voltear y servir al punto`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Servidos: ${gd.servedCount} / ${gd.goal}`, 620, 36);
     },
     inputHidaPress(x, y) {
         const gd = this.gameData;
@@ -18791,35 +19148,22 @@ window.MinigamesManager = {
                 }
             }
         }
-        
         gd.accuracy = Math.round((matched / totalValids) * 100);
         this.score = gd.accuracy;
-        
-        if (gd.accuracy >= 86) {
-            this.victory();
-        }
+        if (gd.accuracy >= 86) this.victory();
     },
     drawCarving() {
         const ctx = this.ctx;
         const gd = this.gameData;
         
-        ctx.fillStyle = '#2b1b18';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = 'rgba(0, 255, 153, 0.15)';
-        ctx.lineWidth = 15;
-        ctx.lineCap = 'round';
-        
-        ctx.beginPath(); ctx.moveTo(400, 180); ctx.lineTo(400, 420); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(300, 260); ctx.lineTo(500, 260); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(320, 380); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(400, 260); ctx.lineTo(480, 380); ctx.stroke();
-        
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.drawParticles();
+
         for (let r = 0; r < 15; r++) {
             for (let c = 0; c < 15; c++) {
                 if (gd.voxels[r][c]) {
-                    ctx.fillStyle = '#5c4033';
-                    ctx.strokeStyle = '#3d251d';
+                    ctx.fillStyle = '#78350f';
+                    ctx.strokeStyle = '#451a03';
                     ctx.lineWidth = 1;
                     ctx.fillRect(250 + c * 20, 150 + r * 20, 20, 20);
                     ctx.strokeRect(250 + c * 20, 150 + r * 20, 20, 20);
@@ -18827,13 +19171,13 @@ window.MinigamesManager = {
             }
         }
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Cincela el bloque para tallar el Kanji de la Madera: 木!', 400, 60);
-        ctx.font = 'bold 20px monospace';
-        ctx.fillStyle = gd.accuracy >= 86 ? '#00ff99' : '#ffeb3b';
-        ctx.fillText('Precisión del tallado: ' + gd.accuracy + '% / 86%', 400, 110);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`✒️ Talla en Madera: Cincela el bloque para tallar el Kanji (木)`, 30, 36);
+        ctx.fillStyle = gd.accuracy >= 86 ? '#4ade80' : '#fbbf24';
+        ctx.fillText(`Precisión: ${gd.accuracy}% / 86%`, 620, 36);
     },
     inputCarvingPress() {},
 
@@ -19020,49 +19364,36 @@ window.MinigamesManager = {
     drawPatrol() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Lantern Street Atmosphere
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#1e1c1a';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = '#4e342e';
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
         ctx.lineWidth = 6;
         ctx.beginPath(); ctx.moveTo(320, 0); ctx.lineTo(160, 600); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(480, 0); ctx.lineTo(640, 600); ctx.stroke();
-        
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([20, 20]);
-        ctx.beginPath(); ctx.moveTo(373, 0); ctx.lineTo(320, 600); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(427, 0); ctx.lineTo(480, 600); ctx.stroke();
-        ctx.setLineDash([]);
         
         gd.obstacles.forEach(obs => {
             const laneXs = [240, 400, 560];
             const ox = laneXs[obs.lane];
             ctx.font = '50px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(obs.emoji, ox, obs.y);
         });
         
         ctx.font = '60px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('🚲', gd.targetX, 500);
         
-        ctx.fillStyle = 'rgba(255,255,255,0.03)';
-        ctx.fillRect(0, 0, 300, 600);
-        ctx.fillRect(500, 0, 300, 600);
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('Patrulla Takayama: ' + Math.round(gd.distance) + ' / ' + gd.targetDist + 'm', 400, 55);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 95);
-        
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillStyle = '#aaa';
-        ctx.fillText('Toca el lado IZQUIERDO o DERECHO para cambiar de carril.', 400, 570);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🚲 Patrulla Takayama: Toca izquierda o derecha para esquivar obstáculos (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Distancia: ${Math.round(gd.distance)}m / ${gd.targetDist}m`, 600, 36);
     },
     inputPatrolPress(x, y) {
         const gd = this.gameData;
@@ -19127,9 +19458,11 @@ window.MinigamesManager = {
     drawAppraisal() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        
-        ctx.fillStyle = '#efebe9';
-        ctx.fillRect(0, 0, 800, 600);
+
+        // Tatami Tea House Atmosphere & Gold Particles
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
         const pivotX = 400;
         const pivotY = 300;
@@ -19138,7 +19471,7 @@ window.MinigamesManager = {
         const tilt = Math.max(-0.25, Math.min(0.25, diff * 0.003));
         
         ctx.save();
-        ctx.strokeStyle = '#795548';
+        ctx.strokeStyle = '#b45309';
         ctx.lineWidth = 8;
         
         ctx.beginPath(); ctx.moveTo(pivotX, pivotY); ctx.lineTo(pivotX, 450); ctx.stroke();
@@ -19147,80 +19480,26 @@ window.MinigamesManager = {
         ctx.rotate(tilt);
         ctx.beginPath(); ctx.moveTo(-200, 0); ctx.lineTo(200, 0); ctx.stroke();
         
-        ctx.fillStyle = '#b0bec5';
-        ctx.strokeStyle = '#37474f';
-        ctx.lineWidth = 3;
-        
-        ctx.save();
-        ctx.translate(-200, 0);
-        ctx.rotate(-tilt);
-        ctx.beginPath();
-        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
-        ctx.stroke(); ctx.fill();
-        ctx.fillStyle = '#4e342e';
-        ctx.font = 'bold 22px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(gd.targetWeight + 'g', 0, 100);
         ctx.restore();
         
-        ctx.save();
-        ctx.translate(200, 0);
-        ctx.rotate(-tilt);
-        ctx.beginPath();
-        ctx.moveTo(0, 0); ctx.lineTo(-60, 120); ctx.lineTo(60, 120); ctx.closePath();
-        ctx.stroke(); ctx.fill();
-        ctx.fillStyle = '#1b5e20';
-        ctx.font = 'bold 22px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(gd.currentWeight + 'g', 0, 100);
-        ctx.restore();
-        
-        ctx.restore();
-        
+        // Coins Base
         gd.coins.forEach(c => {
             if (!gd.placedCoins.includes(c)) {
-                ctx.fillStyle = '#ffca28';
-                ctx.strokeStyle = '#ff8f00';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(c.x, c.y, 25, 0, Math.PI * 2);
-                ctx.fill(); ctx.stroke();
-                ctx.fillStyle = '#5d4037';
-                ctx.font = 'bold 15px monospace';
-                ctx.textAlign = 'center';
-                ctx.fillText(c.weight + 'g', c.x, c.y + 5);
+                this.drawGlassCard(c.x - 25, c.y - 25, 50, 50, { fill: 'rgba(245, 158, 11, 0.9)', borderColor: '#fbbf24', radius: 25 });
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px Quicksand, monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(c.weight + 'g', c.x, c.y);
             }
         });
         
-        const rx = 600 + Math.cos(tilt) * 200;
-        const ry = 300 + Math.sin(tilt) * 200 + 100;
-        gd.placedCoins.forEach((c, idx) => {
-            ctx.fillStyle = '#ffca28';
-            ctx.strokeStyle = '#ff8f00';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(rx + (idx - 1) * 20, ry - 15, 20, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
-            ctx.fillStyle = '#5d4037';
-            ctx.font = 'bold 12px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(c.weight + 'g', rx + (idx - 1) * 20, ry - 11);
-        });
-        
-        if (gd.draggingCoin) {
-            ctx.fillStyle = '#ffca28';
-            ctx.beginPath();
-            ctx.arc(gd.draggingCoin.x, gd.draggingCoin.y, 25, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        ctx.fillStyle = '#37474f';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Equilibra las balanzas para tasar la restauración!', 400, 50);
-        ctx.fillText('Tasaciones resueltas: ' + gd.balancedRounds + ' / 3', 400, 95);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Arrastra las pesas de oro tradicionales a la bandeja derecha.', 400, 135);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⚖️ Tasador Feudal: Arrastra las pesas de oro a la balanza`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Equilibradas: ${gd.balancedRounds} / 3`, 620, 36);
     },
     inputAppraisalPress(x, y) {
         const gd = this.gameData;
@@ -19322,35 +19601,33 @@ window.MinigamesManager = {
     drawBridge() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Shoji Sunset / River Atmosphere & Steam
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#29b6f6';
-        ctx.fillRect(0, 0, 800, 600);
+        // River Water Track
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.4)';
+        ctx.fillRect(150, 0, 530, 600);
         
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(0, 0, 150, 600);
-        ctx.fillRect(680, 0, 120, 600);
-        
-        ctx.fillStyle = '#ef5350';
-        ctx.fillRect(710, 0, 20, 600);
-        
+        // Logs
         gd.logs.forEach(l => {
-            ctx.fillStyle = '#5c4033';
-            ctx.fillRect(l.x - 20, l.y - 50, 40, 100);
-            ctx.fillStyle = '#3e2723';
-            ctx.fillRect(l.x - 20, l.y - 50, 40, 8);
-            ctx.fillRect(l.x - 20, l.y + 42, 40, 8);
+            this.drawGlassCard(l.x - 20, l.y - 50, 40, 100, { fill: 'rgba(120, 53, 15, 0.9)', borderColor: '#fbbf24', radius: 8 });
         });
         
         ctx.font = '45px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('🦊', gd.p1.x, gd.p1.y + 15);
-        ctx.fillText('🐉', gd.p2.x, gd.p2.y + 15);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🦊', gd.p1.x, gd.p1.y);
+        ctx.fillText('🐉', gd.p2.x, gd.p2.y);
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('¡Ayuda a ambos a cruzar saltando los troncos!', 400, 50);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca la pantalla para hacer que ambos salten al siguiente tronco.', 400, 95);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌉 Cruzando el Miyagawa: Toca para hacer saltar a los personajes`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Progreso: ${Math.round((gd.p1.x + gd.p2.x) / 14)}%`, 620, 36);
     },
     inputBridgePress(x, y) {
         const gd = this.gameData;
@@ -19436,52 +19713,32 @@ window.MinigamesManager = {
     drawStairs() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Mount Fuji / Chureito Atmosphere & Petals
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#b3e5fc';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#3f51b5';
-        ctx.beginPath();
-        ctx.moveTo(100, 400); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(500, 400);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(212, 250); ctx.lineTo(250, 200); ctx.lineTo(350, 200); ctx.lineTo(388, 250);
-        ctx.fill();
-        
-        ctx.fillStyle = '#cfd8dc';
-        ctx.fillRect(300, 150, 200, 450);
-        
-        ctx.strokeStyle = '#90a4ae';
-        ctx.lineWidth = 4;
-        const offset = Math.round(gd.stepsClimbed * 4) % 40;
-        for (let y = 150; y < 600; y += 40) {
-            ctx.beginPath();
-            ctx.moveTo(300, y + offset);
-            ctx.lineTo(500, y + offset);
-            ctx.stroke();
-        }
+        // Stairs Track
+        this.drawGlassCard(300, 150, 200, 450, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: '#475569', radius: 8 });
         
         gd.obstacles.forEach(o => {
             ctx.font = '35px sans-serif';
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(o.emoji, o.x, o.y);
         });
         
         ctx.font = '50px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('🦊', 400, gd.playerY);
         
-        ctx.fillStyle = '#37474f';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('Escalones Chureito: ' + Math.round(gd.stepsClimbed) + ' / 398', 400, 60);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 100);
-        
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca para SALTAR obstáculos y subir los escalones.', 400, 560);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`⛩️ Escalada Chureito: Toca para saltar obstáculos (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Escalones: ${Math.round(gd.stepsClimbed)} / 398`, 620, 36);
     },
     inputStairsPress() {
         const gd = this.gameData;
@@ -19515,11 +19772,13 @@ window.MinigamesManager = {
     drawManhole() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Tatami Atmosphere & Gold Particles
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('gold_stars', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = '#cfd8dc';
+        ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 10;
         ctx.beginPath();
         ctx.arc(400, 260, 180, 0, Math.PI * 2);
@@ -19543,26 +19802,18 @@ window.MinigamesManager = {
             ctx.stroke();
         }
         
-        ctx.fillStyle = '#cfd8dc';
-        ctx.beginPath();
-        ctx.moveTo(350, 310); ctx.lineTo(400, 210); ctx.lineTo(450, 310); ctx.closePath();
-        ctx.fill();
-        
         const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
         brushColors.forEach((bc, idx) => {
-            ctx.fillStyle = bc;
-            ctx.fillRect(160 + idx * 130, 480, 80, 45);
-            ctx.strokeStyle = gd.selectedColor === bc ? '#ffffff' : '#37474f';
-            ctx.lineWidth = gd.selectedColor === bc ? 4 : 2;
-            ctx.strokeRect(160 + idx * 130, 480, 80, 45);
+            this.drawGlassCard(160 + idx * 130, 480, 80, 45, { fill: bc, borderColor: gd.selectedColor === bc ? '#ffffff' : '#475569', radius: 8 });
         });
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('¡Colorea la tapa de alcantarilla artística de Kawaguchiko!', 400, 50);
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Selecciona un esmalte abajo y toca las secciones del sello.', 400, 90);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🎨 Sello del Lago: Selecciona esmalte y toca las secciones`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Puntuación: ${this.score}`, 640, 36);
     },
     inputManholePress(x, y) {
         const gd = this.gameData;
@@ -19676,20 +19927,17 @@ window.MinigamesManager = {
     drawIcecream() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Shoji Sunset Atmosphere & Petals
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#e0f7fa';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#4db6ac';
-        ctx.beginPath();
-        ctx.moveTo(0, 480); ctx.lineTo(200, 300); ctx.lineTo(400, 480); ctx.closePath(); ctx.fill();
-        
-        ctx.fillStyle = '#d7ccc8';
-        ctx.strokeStyle = '#8d6e63';
-        ctx.lineWidth = 4;
+        // Cone Base
+        ctx.fillStyle = '#b45309';
         ctx.beginPath();
         ctx.moveTo(370, 440); ctx.lineTo(430, 440); ctx.lineTo(400, 550); ctx.closePath();
-        ctx.fill(); ctx.stroke();
+        ctx.fill();
         
         gd.scoops.forEach(s => {
             if (s.state === 'stacked') {
@@ -19708,33 +19956,19 @@ window.MinigamesManager = {
             ctx.fill();
         } else {
             const swingX = 400 + Math.sin(gd.swingAngle) * 150;
-            ctx.strokeStyle = '#37474f';
-            ctx.lineWidth = 2;
-            ctx.beginPath(); ctx.moveTo(400, 20); ctx.lineTo(swingX, 90); ctx.stroke();
-            
             ctx.fillStyle = gd.activeScoopColor;
             ctx.beginPath();
             ctx.arc(swingX, 90, 25, 0, Math.PI * 2);
             ctx.fill();
         }
         
-        ctx.fillStyle = '#006064';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Bolas apiladas: ' + gd.scoops.filter(x => x.state === 'stacked').length + ' / 6', 400, 50);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 95);
-        
-        ctx.font = '16px Outfit, sans-serif';
-        ctx.fillText('Toca la pantalla para soltar la bola cuando esté alineada.', 400, 580);
-        
-        if (gd.feedbackTimer > 0 && gd.feedbackText) {
-            ctx.fillStyle = gd.feedbackColor || '#006064';
-            ctx.font = 'bold 18px Outfit, sans-serif';
-            ctx.fillText(gd.feedbackText, 400, 140);
-        }
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🍦 Helados Exóticos: Soltar la bola alineada (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Apiladas: ${gd.scoops.filter(x => x.state === 'stacked').length} / 6`, 620, 36);
     },
     inputIcecreamPress() {
         const gd = this.gameData;
@@ -19779,60 +20013,43 @@ window.MinigamesManager = {
     drawYokai() {
         const ctx = this.ctx;
         const gd = this.gameData;
-        
-        ctx.fillStyle = '#08080c';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = 'rgba(255,255,255,0.03)';
-        ctx.fillRect(150, 100, 40, 500);
-        ctx.fillRect(480, 50, 50, 550);
+
+        // Sakura Night Atmosphere & Cyber Fog
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
         
         ctx.save();
         ctx.beginPath();
         ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
         ctx.clip();
         
-        ctx.fillStyle = '#651fff';
+        ctx.fillStyle = 'rgba(99, 102, 241, 0.4)';
         ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#00e5ff';
-        ctx.fillRect(150, 100, 40, 500);
-        ctx.fillRect(480, 50, 50, 550);
         
         gd.yokais.forEach(y => {
             const dist = Math.hypot(y.x - gd.lensX, y.y - gd.lensY);
             if (dist < 90 && !y.found) {
                 ctx.font = '55px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(y.emoji, y.x, y.y + 20);
-                
-                ctx.strokeStyle = '#00ff99';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(y.x - 30, y.y - 30, 60, 60);
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(y.emoji, y.x, y.y);
             }
         });
         ctx.restore();
         
-        ctx.strokeStyle = '#00ff99';
+        ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.arc(gd.lensX, gd.lensY, 90, 0, Math.PI * 2);
         ctx.stroke();
         
-        gd.yokais.forEach(y => {
-            if (y.found) {
-                ctx.font = '30px sans-serif';
-                ctx.fillText('📜', y.x, y.y);
-            }
-        });
-        
-        ctx.fillStyle = '#00ff99';
-        ctx.font = 'bold 22px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('Yokais capturados: ' + gd.count + ' / 5', 400, 50);
-        ctx.font = '15px monospace';
-        ctx.fillStyle = '#aaa';
-        ctx.fillText('Desplaza el visor espectral y toca al Yokai para sellarlo.', 400, 560);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👻 Filtro de Yōkai: Desplaza el visor espectral y toca al Yōkai`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Capturados: ${gd.count} / 5`, 620, 36);
     },
     inputYokaiPress(x, y) {
         const gd = this.gameData;
@@ -19900,61 +20117,41 @@ window.MinigamesManager = {
     drawPerspective() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Sakura Night Atmosphere & Fuji Mountain
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.03);
+        this.drawParticles();
         
-        ctx.fillStyle = '#e1f5fe';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#5c6bc0';
-        ctx.beginPath();
-        ctx.moveTo(250, 420); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(650, 420);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(395, 280); ctx.lineTo(440, 240); ctx.lineTo(470, 240); ctx.lineTo(515, 280);
-        ctx.fill();
-        
-        ctx.fillStyle = '#0288d1';
-        ctx.fillRect(0, 410, 800, 190);
-        
-        ctx.strokeStyle = 'rgba(255,23,68,0.3)';
+        // Target Frame Ring
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(gd.targetX, gd.targetY, 20, 0, Math.PI * 2);
         ctx.stroke();
         
+        // Camera Subject Avatar
         ctx.save();
         ctx.translate(gd.x, gd.y);
         ctx.scale(gd.scale, gd.scale);
-        
-        ctx.fillStyle = '#ff8a80';
-        ctx.fillRect(-25, -25, 50, 50);
-        ctx.fillStyle = '#ff8a65';
-        ctx.fillRect(25, -10, 30, 15);
-        ctx.fillStyle = '#ffe0b2';
-        ctx.beginPath(); ctx.arc(0, -50, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '50px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('🧍', 0, 0);
         ctx.restore();
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(150, 510, 200, 10);
-        ctx.fillStyle = '#0288d1';
-        ctx.beginPath();
-        ctx.arc(150 + ((gd.scale - 0.1)/0.8)*200, 515, 12, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#ef5350';
-        ctx.fillRect(520, 495, 160, 45);
+        // Shutter Button
+        this.drawGlassCard(520, 495, 160, 45, { fill: 'rgba(239, 68, 68, 0.9)', borderColor: '#ef4444', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Outfit, sans-serif';
-        ctx.fillText('📸 DISPARAR', 600, 523);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('📸 DISPARAR', 600, 517);
         
-        ctx.fillStyle = '#37474f';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('ÓPTICA FUJI: ALINEACIÓN DE PERSPECTIVA', 400, 50);
-        ctx.fillText('Coincidencia del encuadre: ' + this.score + '% / 90%', 400, 95);
-        
-        ctx.font = '14px Outfit, sans-serif';
-        ctx.fillText('Escala', 250, 545);
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`📷 Perspectiva del Gigante: Ajusta posición y escala para encuadrar`, 30, 36);
+        ctx.fillStyle = this.score >= 90 ? '#4ade80' : '#fbbf24';
+        ctx.fillText(`Encuadre: ${this.score}% / 90%`, 620, 36);
     },
     inputPerspectivePress(x, y) {
         const gd = this.gameData;
@@ -20037,48 +20234,33 @@ window.MinigamesManager = {
     drawTunnels() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Cyber Grid Tunnel Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
         
-        ctx.fillStyle = '#08080a';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = '#00ff99';
+        // Road Bounds
+        ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(150, 0); ctx.lineTo(150, 600); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(650, 0); ctx.lineTo(650, 600); ctx.stroke();
         
-        ctx.save();
-        ctx.fillStyle = 'rgba(255, 235, 59, 0.15)';
-        ctx.beginPath();
-        ctx.moveTo(gd.playerX, 480);
-        ctx.lineTo(gd.playerX - 160, 0);
-        ctx.lineTo(gd.playerX + 160, 0);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-        
+        // Obstacles
         gd.obstacles.forEach(o => {
-            const inLight = (o.y > 100 || Math.abs(o.x - gd.playerX) < 120);
-            if (inLight) {
-                ctx.font = '45px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(o.emoji, o.x, o.y);
-            }
+            ctx.font = '45px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(o.emoji, o.x, o.y);
         });
         
-        ctx.fillStyle = '#00b0ff';
-        ctx.fillRect(gd.playerX - 25, 480, 50, 80);
-        ctx.fillStyle = '#ffd54f';
-        ctx.fillRect(gd.playerX - 20, 480, 8, 8);
-        ctx.fillRect(gd.playerX + 12, 480, 8, 8);
+        // Car Body
+        this.drawGlassCard(gd.playerX - 25, 480, 50, 80, { fill: 'rgba(14, 165, 233, 0.9)', borderColor: '#38bdf8', radius: 10 });
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Túneles atravesados: ' + gd.tunnelsPassed + ' / ' + gd.targetTunnels, 400, 50);
-        
-        let heartStr = '';
-        for (let i = 0; i < gd.lives; i++) heartStr += '❤️ ';
-        ctx.fillText(heartStr, 400, 95);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🏎️ Navegantes del Asfalto: Conduce esquivando barreras (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Túneles: ${gd.tunnelsPassed} / ${gd.targetTunnels}`, 620, 36);
     },
     inputTunnelsPress() {},
 
@@ -20133,44 +20315,38 @@ window.MinigamesManager = {
     drawVolcano() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Lantern / Volcanic Atmosphere & Ember Particles
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.05);
+        this.drawParticles();
         
-        ctx.fillStyle = '#212121';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.fillStyle = '#d50000';
-        ctx.beginPath();
-        ctx.arc(400, 480, 150, 0, Math.PI, true);
-        ctx.fill();
-        
-        ctx.fillRect(360, 200, 80, 280);
-        
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(100, 80, 600, 20);
-        ctx.fillStyle = gd.pressure > 75 ? '#ff1744' : gd.pressure > 45 ? '#ffeb3b' : '#00e5ff';
+        // Pressure Gauge Frame
+        this.drawGlassCard(100, 80, 600, 20, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 10 });
+        ctx.fillStyle = gd.pressure > 75 ? '#ef4444' : gd.pressure > 45 ? '#fbbf24' : '#38bdf8';
         ctx.fillRect(100, 80, 600 * (gd.pressure / 100), 20);
         
+        // Magma Bubbles
         gd.bubbles.forEach(b => {
-            ctx.fillStyle = 'rgba(255, 235, 59, 0.6)';
-            ctx.strokeStyle = '#ffd54f';
-            ctx.lineWidth = 2;
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.7)';
             ctx.beginPath();
             ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-            ctx.fill(); ctx.stroke();
+            ctx.fill();
         });
         
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(100, 520, 200, 55);
+        // Valve Button
+        this.drawGlassCard(100, 520, 200, 55, { fill: 'rgba(239, 68, 68, 0.9)', borderColor: '#ef4444', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('💨 ABRIR VÁLVULA A', 200, 553);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('💨 ABRIR VÁLVULA A', 200, 547);
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('MONTE FUJI: ALIVIO DE PRESIÓN GEOLÓGICA', 400, 40);
-        ctx.font = 'bold 20px monospace';
-        ctx.fillText('Presión del Magma: ' + Math.round(gd.pressure) + '% / 100%', 400, 130);
-        ctx.fillText('Mantener a salvo: ' + Math.max(0, Math.round(gd.timer)) + 's', 400, 170);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌋 Análisis Vulcanológico: Toca burbujas y abre válvulas para liberar presión`, 30, 36);
+        ctx.fillStyle = gd.pressure > 75 ? '#ef4444' : '#fbbf24';
+        ctx.fillText(`Presión: ${Math.round(gd.pressure)}%`, 640, 36);
     },
     inputVolcanoPress(x, y) {
         const gd = this.gameData;
@@ -20242,18 +20418,18 @@ window.MinigamesManager = {
     drawTriangulation() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Cyber Grid Atmosphere
+        this.drawAtmosphericBackground('cyber_grid', this.gameTime);
         
-        ctx.fillStyle = '#0a0d14';
-        ctx.fillRect(0, 0, 800, 600);
-        
-        ctx.strokeStyle = '#ff1744';
+        ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 3;
         ctx.beginPath(); ctx.arc(400, 350, 15, 0, Math.PI * 2); ctx.stroke();
         
         const sats = [
-            { x: 150, y: 120, a: gd.angle1, color: '#ff3d00' },
-            { x: 400, y: 80, a: gd.angle2, color: '#ffd600' },
-            { x: 650, y: 120, a: gd.angle3, color: '#2979ff' }
+            { x: 150, y: 120, a: gd.angle1, color: '#ef4444' },
+            { x: 400, y: 80, a: gd.angle2, color: '#fbbf24' },
+            { x: 650, y: 120, a: gd.angle3, color: '#38bdf8' }
         ];
         
         sats.forEach(s => {
@@ -20263,32 +20439,21 @@ window.MinigamesManager = {
             const targetAngleRad = Math.atan2(350 - s.y, 400 - s.x);
             const actualAngleRad = targetAngleRad + (s.a - 45) * 0.02;
             
-            ctx.strokeStyle = s.color + '66';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = s.color;
+            ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(s.x, s.y);
             ctx.lineTo(s.x + Math.cos(actualAngleRad) * 600, s.y + Math.sin(actualAngleRad) * 600);
             ctx.stroke();
         });
         
-        ctx.fillStyle = '#ff3d00';
-        ctx.fillRect(80, 500, 200, 10);
-        ctx.beginPath(); ctx.arc(80 + (gd.angle1/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
-        
-        ctx.fillStyle = '#ffd600';
-        ctx.fillRect(300, 500, 200, 10);
-        ctx.beginPath(); ctx.arc(300 + (gd.angle2/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
-        
-        ctx.fillStyle = '#2979ff';
-        ctx.fillRect(520, 500, 200, 10);
-        ctx.beginPath(); ctx.arc(520 + (gd.angle3/180)*200, 505, 12, 0, Math.PI*2); ctx.fill();
-        
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('TRIANGULACIÓN DE MICROONDAS SATELITAL', 400, 45);
-        ctx.font = '16px monospace';
-        ctx.fillText('Ajusta los diales para cruzar los 3 haces en el cráter.', 400, 460);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`📡 Triangulación Satelital: Ajusta los diales abajo para cruzar los 3 haces en el cráter`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Estado: ${this.score ? 'ALINEADO' : 'BUSCANDO'}`, 620, 36);
     },
     inputTriangulationPress() {},
 
@@ -20318,52 +20483,33 @@ window.MinigamesManager = {
     drawOishi() {
         const ctx = this.ctx;
         const gd = this.gameData;
+
+        // Sakura Night Atmosphere & Petals
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
         
-        ctx.fillStyle = '#e3f2fd';
-        ctx.fillRect(0, 0, 800, 600);
+        // Lavender Field Track
+        ctx.fillStyle = 'rgba(147, 51, 234, 0.4)';
+        ctx.fillRect(0, 420, 800, 180);
         
-        ctx.fillStyle = '#7986cb';
-        ctx.beginPath();
-        ctx.moveTo(150, 400); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(650, 400);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(336, 250); ctx.lineTo(380, 210); ctx.lineTo(420, 210); ctx.lineTo(464, 250);
-        ctx.fill();
-        
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        ctx.beginPath();
-        ctx.arc(gd.cloudX, 230, 45, 0, Math.PI*2);
-        ctx.arc(gd.cloudX + 50, 230, 60, 0, Math.PI*2);
-        ctx.arc(gd.cloudX + 100, 230, 45, 0, Math.PI*2);
-        ctx.fill();
-        
-        ctx.fillStyle = '#0288d1';
-        ctx.fillRect(0, 390, 800, 90);
-        
-        ctx.fillStyle = '#7c4dff';
-        for (let x = 0; x < 800; x += 15) {
-            const h = 80 + Math.sin(x * 0.05 + this.gameTime) * 15;
-            ctx.fillRect(x, 600 - h, 12, h);
-        }
-        
-        ctx.font = '35px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.font = '45px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('🦋', gd.butterflyX, gd.butterflyY);
         
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(50, 100, 700, 350);
-        
-        ctx.fillStyle = '#ef5350';
-        ctx.fillRect(320, 510, 160, 50);
+        // Shutter Button
+        this.drawGlassCard(320, 510, 160, 50, { fill: 'rgba(239, 68, 68, 0.9)', borderColor: '#ef4444', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 18px Outfit, sans-serif';
-        ctx.fillText('📸 DISPARAR', 400, 541);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('📸 DISPARAR', 400, 535);
         
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('OISHI PARK: ENCUADRE DE LAVANDA Y FUJI', 400, 50);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🌸 Oishi Park en Flor: Captura la foto con la mariposa en encuadre`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Calidad: ${this.score}%`, 640, 36);
     },
     inputOishiPress(x, y) {
         const gd = this.gameData;
@@ -20475,93 +20621,43 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
 
-        // Volcanic background
-        ctx.fillStyle = '#1a0505';
-        ctx.fillRect(0, 0, 800, 600);
-
-        // Draw hot steam lines rising
-        ctx.strokeStyle = 'rgba(255,87,34,0.08)';
-        ctx.lineWidth = 4;
-        for (let i = 0; i < 8; i++) {
-            const x = (i * 100 + this.gameTime * 40) % 850 - 50;
-            ctx.beginPath();
-            ctx.moveTo(x, 600);
-            ctx.quadraticCurveTo(x + 30, 400, x - 20, 200);
-            ctx.quadraticCurveTo(x + 10, 100, x, 0);
-            ctx.stroke();
-        }
+        // Volcanic Atmosphere & Warm Embers
+        this.drawAtmosphericBackground('lantern_street', this.gameTime);
+        this.spawnAmbientParticles('lantern_glow', 0.05);
+        this.drawParticles();
 
         // Draw bins at top
         gd.bins.forEach(b => {
-            ctx.fillStyle = 'rgba(20,20,30,0.8)';
-            ctx.strokeStyle = b.color;
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.arc(b.x, 100, 60, 0, Math.PI, true);
-            ctx.lineTo(b.x - 60, 50);
-            ctx.lineTo(b.x + 60, 50);
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = b.color + '22';
-            ctx.beginPath();
-            ctx.arc(b.x, 70, 40, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 16px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText(b.name, b.x, 40);
+            this.drawGlassCard(b.x - 40, 50, 80, 50, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: b.color, radius: 8 });
+            ctx.fillStyle = b.color;
+            ctx.font = 'bold 13px Quicksand, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(b.name, b.x, 75);
         });
 
         // Draw rocks
         gd.rocks.forEach(r => {
             ctx.fillStyle = r.color;
-            ctx.strokeStyle = '#ffffff88';
-            ctx.lineWidth = 2;
             ctx.beginPath();
-            for (let i = 0; i < 8; i++) {
-                const angle = (i * Math.PI) / 4;
-                const offset = 1 + Math.sin(angle * 3 + r.r) * 0.15;
-                const px = r.x + Math.cos(angle) * r.r * offset;
-                const py = r.y + Math.sin(angle) * r.r * offset;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#00000022';
-            ctx.beginPath();
-            ctx.arc(r.x - r.r * 0.2, r.y - r.r * 0.2, r.r * 0.4, 0, Math.PI * 2);
+            ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
             ctx.fill();
         });
 
         // Draw sulphur bubbles
         gd.sulphur.forEach(s => {
-            ctx.fillStyle = 'rgba(204,255,51,0.2)';
-            ctx.strokeStyle = '#ccff33';
-            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.4)';
             ctx.beginPath();
             ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
             ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffffffbb';
-            ctx.beginPath();
-            ctx.arc(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.15, 0, Math.PI * 2);
-            ctx.fill();
         });
 
-        // HUD
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`Piedras Clasificadas: ${gd.count}/${this.goal}`, 30, 560);
-        ctx.textAlign = 'right';
-        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 560);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🪨 Buscador de Magma: Arrastra rocas a sus contenedores (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`Clasificadas: ${gd.count} / ${this.goal}`, 620, 36);
     },
     inputRockPress(x, y) {
         const gd = this.gameData;
@@ -20650,26 +20746,19 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
 
-        ctx.fillStyle = '#0a140d';
-        ctx.fillRect(0, 0, 800, 600);
+        // Sakura Night Atmosphere & Cyber Fog
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.04);
+        this.drawParticles();
 
-        ctx.strokeStyle = '#2e7d32';
+        ctx.strokeStyle = 'rgba(74, 222, 128, 0.6)';
         ctx.lineWidth = 12;
         ctx.beginPath();
         ctx.arc(400, 300, 200, 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.strokeStyle = '#9e9e9e';
-        ctx.lineWidth = 12;
-        ctx.beginPath();
-        ctx.arc(400, 300, 200, -0.4, 0.4);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(400, 300, 200, Math.PI - 0.4, Math.PI + 0.4);
-        ctx.stroke();
-
         gd.ripples.forEach(rp => {
-            ctx.strokeStyle = rp.tapped ? 'rgba(0,255,153,0.3)' : (rp.active ? 'rgba(96,239,255,0.7)' : 'rgba(255,51,51,0.6)');
+            ctx.strokeStyle = rp.tapped ? 'rgba(74, 222, 128, 0.4)' : (rp.active ? 'rgba(56, 189, 248, 0.8)' : 'rgba(239, 68, 68, 0.6)');
             ctx.lineWidth = rp.active ? 4 : 2;
             ctx.beginPath();
             ctx.arc(400, 300, rp.r, 0, Math.PI * 2);
@@ -20677,23 +20766,16 @@ window.MinigamesManager = {
         });
 
         ctx.font = '50px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('👏', 400, 315);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('👏', 400, 300);
 
-        ctx.strokeStyle = 'rgba(255,215,0,0.4)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(400, 300, 180, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(400, 300, 220, 0, Math.PI * 2);
-        ctx.stroke();
-
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 20px monospace';
-        ctx.fillText(`Silencios Capturados: ${gd.successCount}/${this.goal}`, 400, 540);
-        ctx.textAlign = 'right';
-        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`👏 Eco del Silencio: Toca cuando el aro coincida con la zona verde (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Eco: ${gd.successCount} / ${this.goal}`, 620, 36);
     },
     inputEchoPress(x, y) {
         const gd = this.gameData;
@@ -20799,11 +20881,12 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
 
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, 0, 800, 600);
+        // Tatami / Forest Soil Atmosphere
+        this.drawAtmosphericBackground('tatami', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.03);
+        this.drawParticles();
 
         gd.rocks.forEach(rk => {
-            ctx.fillStyle = '#4e342e';
             ctx.strokeStyle = '#ff330044';
             ctx.lineWidth = 4;
             ctx.beginPath();
@@ -20953,122 +21036,42 @@ window.MinigamesManager = {
         const ctx = this.ctx;
         const gd = this.gameData;
 
-        const grad = ctx.createLinearGradient(0, 0, 0, 600);
-        grad.addColorStop(0, '#001122');
-        grad.addColorStop(1, '#003366');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 600);
-
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 5; i++) {
-            const x = (i * 180 + this.gameTime * 200) % 850 - 50;
-            const y = (i * 90 + this.gameTime * 80) % 450;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + Math.sin(gd.windAngle) * 50, y + 30);
-            ctx.stroke();
-        }
-
-        ctx.fillStyle = '#0a2135';
-        ctx.beginPath();
-        ctx.moveTo(100, 480);
-        ctx.lineTo(350, 200);
-        ctx.lineTo(450, 200);
-        ctx.lineTo(700, 480);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(314, 240);
-        ctx.lineTo(350, 200);
-        ctx.lineTo(450, 200);
-        ctx.lineTo(486, 240);
-        ctx.lineTo(440, 260);
-        ctx.lineTo(420, 230);
-        ctx.lineTo(380, 270);
-        ctx.lineTo(350, 230);
-        ctx.closePath();
-        ctx.fill();
+        // Sakura Night Sky Atmosphere
+        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.03);
+        this.drawParticles();
 
         gd.obstacles.forEach(ob => {
-            ctx.fillStyle = '#78909c';
-            ctx.strokeStyle = '#cfd8dc';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(ob.x, ob.y, ob.r, 0, Math.PI * 2);
-            ctx.arc(ob.x - ob.r*0.5, ob.y, ob.r*0.7, 0, Math.PI * 2);
-            ctx.arc(ob.x + ob.r*0.5, ob.y, ob.r*0.7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#ffd600';
-            ctx.beginPath();
-            ctx.moveTo(ob.x - 5, ob.y - ob.r * 0.4);
-            ctx.lineTo(ob.x - 12, ob.y + 2);
-            ctx.lineTo(ob.x - 2, ob.y + 2);
-            ctx.lineTo(ob.x - 8, ob.y + ob.r * 0.5);
-            ctx.lineTo(ob.x + 8, ob.y - 2);
-            ctx.lineTo(ob.x - 2, ob.y - 2);
-            ctx.closePath();
-            ctx.fill();
+            this.drawGlassCard(ob.x - ob.r, ob.y - ob.r, ob.r * 2, ob.r * 2, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#ef4444', radius: ob.r });
         });
 
-        ctx.fillStyle = '#ff7b54';
+        // Balloon Body
+        ctx.fillStyle = '#ef4444';
         ctx.beginPath();
-        ctx.arc(gd.balloonX, gd.balloonY - 20, 25, 0, Math.PI*2);
+        ctx.arc(gd.balloonX, gd.balloonY - 20, 25, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.ellipse(gd.balloonX, gd.balloonY - 20, 10, 25, 0, 0, Math.PI*2);
+        ctx.ellipse(gd.balloonX, gd.balloonY - 20, 10, 25, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#8d6e63';
-        ctx.fillRect(gd.balloonX - 8, gd.balloonY + 12, 16, 12);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(gd.balloonX - 6, gd.balloonY + 5); ctx.lineTo(gd.balloonX - 6, gd.balloonY + 12);
-        ctx.moveTo(gd.balloonX + 6, gd.balloonY + 5); ctx.lineTo(gd.balloonX + 6, gd.balloonY + 12);
-        ctx.stroke();
-
-        ctx.fillStyle = '#112233';
-        ctx.fillRect(0, 480, 800, 120);
-
-        ctx.strokeStyle = '#00bcd4';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(400, 540, 45, 0, Math.PI*2);
-        ctx.stroke();
-
-        ctx.strokeStyle = '#ffd700';
+        // Control Dial
+        this.drawGlassCard(355, 495, 90, 90, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: '#38bdf8', radius: 45 });
+        ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(400, 540);
-        ctx.lineTo(400 + Math.sin(gd.controlAngle)*40, 540 - Math.cos(gd.controlAngle)*40);
+        ctx.lineTo(400 + Math.sin(gd.controlAngle) * 35, 540 - Math.cos(gd.controlAngle) * 35);
         ctx.stroke();
 
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(100, 540);
-        ctx.lineTo(100 + Math.sin(gd.windAngle)*30, 540 - Math.cos(gd.windAngle)*30);
-        ctx.stroke();
-
+        // Glassmorphic Top HUD Panel
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(56, 189, 248, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = '14px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('DIRECCIÓN DEL VIENTO', 100, 505);
-        ctx.fillText('TIMÓN DE VIENTOS', 400, 490);
-        ctx.fillText('Arrastra el timón para equilibrar el vuelo.', 400, 592);
-
-        ctx.textAlign = 'left';
-        ctx.font = 'bold 18px monospace';
-        ctx.fillText(`Altitud: ${Math.round(gd.altitude)}/${this.goal}m`, 25, 45);
-        ctx.textAlign = 'right';
-        ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 775, 45);
+        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText(`🎈 Vuelo a la Cima: Gira el dial inferior para dirigir el globo (${'❤️ '.repeat(gd.lives)})`, 30, 36);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText(`Altitud: ${this.score}%`, 640, 36);
     },
     inputCompassPress(x, y) {
         if (Math.hypot(x - 400, y - 540) < 60) {

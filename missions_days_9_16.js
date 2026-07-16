@@ -4,44 +4,144 @@ if (typeof MISSIONS_CONFIG === 'undefined') {
 }
 
 Object.assign(MISSIONS_CONFIG, {
-"day_9_kid14_gravity": {
-        tag: "versus", day: 9, title: "Piedra Gravedad", role: "kid14", xp: 15, location: "Kinkaku-ji",
+    "day_9_kid14_gravity": {
+        tag: "versus",
+        day: 9,
+        title: "Física del Kinkaku-ji",
+        role: "kid14",
+        xp: 15,
+        location: "Kinkaku-ji",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
-            <p style="color:#0f0;">>>> TEST DE GRAVEDAD TERRESTRE</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Encuentra una piedra del jardín zen. Déjala caer desde la altura de tu cintura y cronometra cuánto tarda en tocar el suelo. La gravedad de Japón es la misma... ¿o no?</p>
-            <div style="text-align:center; margin:15px 0; background:#0a0a1a; padding:20px; border-radius:12px;">
-                <div id="gv-icon" style="font-size:3rem; transition:transform 0.5s;">🪨</div>
-                <div id="gv-timer" style="font-size:2.5rem; color:#60efff; font-family:monospace; margin:10px 0;">0.00s</div>
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #00ff99; background:#0a0e12; color:#00ff99; font-family:monospace; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CÁLCULO DE CINEMÁTICA Y GRAVEDAD: KINKAKU-JI</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px; line-height:1.4;">El Pabellón Dorado mide aproximadamente <span style="color:#00ff99; font-weight:bold;">12.5 metros</span> de altura. Estima cuánto tiempo tardaría en caer una moneda de 10 yenes desde el tejado superior hasta el estanque de espejo en caída libre pura (ignorando el aire y usando \(g = 9.8\text{ m/s}^2\)).</p>
+                
+                <div style="background:rgba(0,255,153,0.05); border:1px dashed #00ff99; padding:15px; border-radius:8px; margin-bottom:15px; text-align:center;">
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#ffd700;">Formula Teórica: \(d = \frac{1}{2}gt^2\)</p>
+                    <div style="font-size:2.5rem; margin:10px 0;">🏯🪙&nbsp;&nbsp;&nbsp;&nbsp;💦</div>
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <input type="number" step="0.1" id="gravity-calc-ans" placeholder="Tiempo en segundos (ej: 1.5)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; font-family:monospace; box-sizing:border-box;">
+                </div>
+                
+                <button id="btn-submit-gravity" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">EJECUTAR SIMULACIÓN DE CAÍDA</button>
             </div>
-            <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px;">🫳 Soltar Piedra</button>
-            <button id="btn-end" class="btn-primary hidden" style="width:100%;">💥 ¡Impacto!</button>
-        </div>`,
-        attachEvents: () => {
-            let t0=0,int=null;
-            document.getElementById('btn-start').addEventListener('click',(e)=>{
-                t0=Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-                document.getElementById('gv-icon').style.transform='translateY(60px)';
-                int=setInterval(()=>document.getElementById('gv-timer').innerText=((Date.now()-t0)/1000).toFixed(2)+'s',10);
+        `,
+        attachEvents: (role) => {
+            const btn = document.getElementById('btn-submit-gravity');
+            btn.addEventListener('click', () => {
+                const val = parseFloat(document.getElementById('gravity-calc-ans').value);
+                if (isNaN(val)) {
+                    showAlert('VALOR VACÍO', 'Introduce un cálculo estimado en segundos.');
+                    return;
+                }
+                
+                if (val >= 1.5 && val <= 1.7) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_9_kid14_gravity', {type:'text', data:`Cálculo Gravedad Kinkaku-ji: ${val}s (Fórmula correcta)`}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO INEXACTO', 'La moneda caería a una velocidad diferente según la aceleración de la gravedad terrestre de 9.8 m/s². Rehaz el cálculo: t = raíz(2 * d / g).');
+                }
             });
-            document.getElementById('btn-end').addEventListener('click',()=>{clearInterval(int); submitMission('day_9_kid14_gravity',{type:'text',data:'Caída: '+document.getElementById('gv-timer').innerText});});
-            window._missionCleanup=()=>clearInterval(int);
         }
     },
 
-"day_9_kid14_angulo": {
-        tag: "photo", day: 9, title: "Ángulo Imposible", role: "kid14", xp: 15, location: "Fushimi Inari",
+    "day_9_kid14_angulo": {
+        tag: "photo",
+        day: 9,
+        title: "Ángulo Imposible",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi Inari",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
-            <p style="color:#0f0;">>>> MISIÓN FOTOGRÁFICA TÁCTICA</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Captura el túnel de toriis rojos desde un ángulo que nadie más haría: desde el suelo mirando hacia arriba, tumbado, en contrapicado extremo...</p>
-            <div style="text-align:center; margin:15px 0; background:#0a0a1a; padding:20px; border-radius:12px;">
-                <p style="font-size:3rem;">⛩️📐</p>
-                <p style="color:#ff6b35; font-style:italic;">El ángulo más creativo gana</p>
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03; background:#0a0e12; font-family:monospace; color:#00ff99;">
+                <p>>>> MISIÓN FOTOGRÁFICA TÁCTICA // FUSHIMI INARI</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Captura el túnel de toriis rojos desde un ángulo creativo (contrapicado extremo, desde el suelo) y responde la trivia de perspectiva:</p>
+                
+                <div style="background:#111; border-radius:10px; padding:12px; border:1px solid #00ff99; margin-bottom:15px; display:flex; flex-direction:column; gap:10px;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#00ff99; display:block;">📐 ¿CÓMO SE LLAMA EL EFECTO VISUAL DE CONVERGENCIA EN LA ALINEACIÓN DE TORIIS?</label>
+                    <select id="angulo-trivia" style="width:100%; padding:8px; border:1px solid #00ff99; background:#111; color:#00ff99; font-family:monospace; font-size:0.85rem;">
+                        <option value="">-- Selecciona una opción --</option>
+                        <option value="Efecto Moire">Efecto Moiré de interferencia</option>
+                        <option value="Punto de Fuga">Punto de Fuga de perspectiva</option>
+                        <option value="Proyeccion Isométrica">Proyección Isométrica de planos</option>
+                    </select>
+                </div>
+
+                <input type="file" id="file-input-angulo" accept="image/*" style="display:none;">
+                <div id="angulo-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:1px dashed #00ff99; padding:5px; background:#111; text-align:center;">
+                    <span style="font-size:0.75rem; color:#00ff99; font-weight:bold;">✓ Foto capturada y cargada en memoria táctica</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-file" class="btn-secondary" style="flex:1; border-color:#00ff99; color:#00ff99; background:transparent;">📸 Hacer Foto</button>
+                    <button id="btn-submit-angulo" class="btn-primary" style="flex:1; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR REPORTE</button>
+                </div>
             </div>
-            <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Ángulo Imposible</button>
-        </div>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_angulo', currentUser, false); }
+        `,
+        attachEvents: (role) => {
+            let selectedOpt = '';
+            let photoId = null;
+            const selectTrivia = document.getElementById('angulo-trivia');
+            const fileInput = document.getElementById('file-input-angulo');
+            const selectFileBtn = document.getElementById('btn-select-file');
+            const submitBtn = document.getElementById('btn-submit-angulo');
+            const previewEl = document.getElementById('angulo-preview');
+            
+            const checkValidity = () => {
+                if (selectedOpt && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'angulo_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedOpt || !photoId) return;
+                if (selectedOpt !== 'Punto de Fuga') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'La alineación de las puertas torii crea una ilusión de perspectiva conocida como Punto de Fuga, donde las líneas paralelas parecen converger a lo lejos. Por favor, reajusta tu análisis.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_9_kid14_angulo', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { answer: selectedOpt }
+                }, role);
+            });
+        }
     },
 
 "day_9_kid9_scratch": {
@@ -212,7 +312,7 @@ Object.assign(MISSIONS_CONFIG, {
         }
     },
 
-"day_9_kid9_zorros": {
+    "day_9_kid9_zorros": {
         tag: "physical",
         day: 9,
         title: "La Escalada de los Zorros",
@@ -220,27 +320,86 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 25,
         location: "Fushimi Inari-taisha",
         render: () => `
-            <p class="mission-desc">Subir la montaña lleva tiempo. Tienes 10 minutos de subida intensa. Al terminar, podrás descansar y contarle al Juez tu secreto.</p>
-            <div id="countdown" style="font-size:3rem; text-align:center; font-weight:bold; color:var(--color-primary); margin:15px 0;">10:00</div>
-            <button id="btn-start" class="btn-secondary" style="width:100%">Empezar subida</button>
-            <div id="rest-area" class="hidden" style="margin-top:20px;">
-                <p>🍵 <b>¡Hora de descansar!</b></p>
-                <input type="text" id="z-text" placeholder="¿Cuál es el zorro más raro que has visto?" style="width:100%">
-                <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px;">Enviar al Juez</button>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ffe8d6 0%, #ffb5a7 100%); border-radius:15px; border:3px solid #ff7b00; color:#5e1800; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">⛩️ La Escalada de los Zorros ⛩️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">Subir por el sendero de Fushimi Inari es una aventura sagrada. Asciende durante 3 minutos. El Kitsune te guiará y mostrará hitos en el camino.</p>
+                
+                <div style="background:#fff; border-radius:15px; padding:15px; border:2px solid #ff7b00; margin-bottom:15px;">
+                    <div id="countdown" style="font-size:3rem; font-weight:bold; color:#ff7b00; font-family:monospace; margin-bottom:5px;">03:00</div>
+                    <div id="climb-checkpoint" style="font-size:0.85rem; font-weight:bold; color:#a23c00; min-height:1.5rem;">🎒 ¡Prepara tu mochila y empieza a subir!</div>
+                    <div id="climb-avatar" style="font-size:2.5rem; margin-top:8px; transition:transform 0.5s ease;">🥾</div>
+                </div>
+                
+                <button id="btn-start" class="btn-primary" style="width:100%; background:#ff7b00; border-color:#ff7b00; color:#fff; font-weight:bold; border-radius:25px;">Iniciar Escalada Sagrada</button>
+                
+                <div id="rest-area" class="hidden" style="margin-top:20px; padding:10px; background:rgba(255,255,255,0.4); border-radius:10px; border:1px dashed #ff7b00; text-align:left;">
+                    <p style="margin:0 0 10px 0; font-weight:bold; color:#5e1800;">🍵 ¡Has llegado al punto de descanso! Tómate un respiro e indica:</p>
+                    <input type="text" id="z-text" placeholder="¿Cuál es el zorro de piedra más raro o divertido que has visto?" style="width:100%; padding:10px; border-radius:5px; border:1px solid #ff7b00; font-family:'Quicksand', sans-serif; box-sizing:border-box;">
+                    <button id="btn-sub" class="btn-primary" style="width:100%; background:#ff4f00; border-color:#ff4f00; color:#fff; font-weight:bold; border-radius:20px; margin-top:10px; font-family:'Quicksand', sans-serif;">Enviar al Juez Supremo</button>
+                </div>
             </div>
         `,
-        attachEvents: () => {
-            let time=600; let int=null;
-            document.getElementById('btn-start').addEventListener('click', () => {
-                if(int) return;
-                document.getElementById('btn-start').classList.add('hidden');
+        attachEvents: (role) => {
+            let time = 180;
+            let int = null;
+            const startBtn = document.getElementById('btn-start');
+            const countdownEl = document.getElementById('countdown');
+            const checkpointEl = document.getElementById('climb-checkpoint');
+            const avatarEl = document.getElementById('climb-avatar');
+            const restArea = document.getElementById('rest-area');
+            const submitBtn = document.getElementById('btn-sub');
+            
+            startBtn.addEventListener('click', () => {
+                if (int) return;
+                startBtn.classList.add('hidden');
+                time = 180;
+                countdownEl.innerText = '03:00';
+                checkpointEl.innerText = '⛩️ ¡Comienza la escalada! Cruzas los primeros Torii.';
+                avatarEl.style.transform = 'scale(1.2)';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
                 int = setInterval(() => {
-                    time--; let m=Math.floor(time/60); let s=time%60;
-                    document.getElementById('countdown').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-                    if(time<=0) { clearInterval(int); document.getElementById('rest-area').classList.remove('hidden'); }
+                    time--;
+                    let m = Math.floor(time / 60);
+                    let s = time % 60;
+                    countdownEl.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    
+                    avatarEl.style.transform = time % 2 === 0 ? 'translateX(10px) rotate(5deg)' : 'translateX(-10px) rotate(-5deg)';
+                    
+                    if (time === 120) {
+                        checkpointEl.innerText = '🦊 ¡Un mensajero de piedra Kitsune te sonríe en una encrucijada!';
+                        avatarEl.innerText = '🦊⛩️';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    } else if (time === 60) {
+                        checkpointEl.innerText = '🌇 ¡Las vistas de Kioto empiezan a asomar entre las ramas!';
+                        avatarEl.innerText = '🌇🥾';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    }
+                    
+                    if (time <= 0) {
+                        clearInterval(int);
+                        checkpointEl.innerText = '🍵 ¡Felicidades! Has alcanzado la estación de descanso intermedia.';
+                        avatarEl.innerText = '🎉🍵✨';
+                        restArea.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                    }
                 }, 1000);
             });
-            document.getElementById('btn-sub').addEventListener('click', () => submitMission('day_9_kid9_zorros', {type:'text', data:document.getElementById('z-text').value}));
+            
+            submitBtn.addEventListener('click', () => {
+                const answer = document.getElementById('z-text').value;
+                if (!answer) {
+                    showAlert('RESPUESTA VACÍA', 'Por favor, describe al menos un zorro de piedra.');
+                    return;
+                }
+                submitMission('day_9_kid9_zorros', {type: 'text', data: answer}, role);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(int);
+            };
         }
     },
 
@@ -254,38 +413,105 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> PROTOCOLO KITSUNE: ESTABILIZACIÓN DE NÚCLEO</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Imita al fénix del tejado del Kinkaku-ji. Ponte a la pata coja y mantén el equilibrio durante 60 segundos sin tambalearte.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Imita al fénix del tejado del Kinkaku-ji. Ponte a la pata coja, sujeta el móvil firme y mantén el equilibrio durante 30 segundos.</p>
                 
                 <div style="text-align:center; margin:15px 0; background:#111; padding:15px; border-radius:8px; border:1px solid #222;">
                     <div id="chrono-icon" style="font-size:3rem; margin-bottom:10px; transition: transform 0.3s;">🦅</div>
-                    <div id="chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700;">60.0s</div>
+                    <div id="chrono" style="font-size:2.5rem; font-weight:bold; font-family:monospace; color:#ffd700;">30.0s</div>
+                    
+                    <div style="margin:10px 0; font-size:0.75rem; color:#aaa;">DESVIACIÓN DE EQUILIBRIO:</div>
+                    <div style="width:100%; height:12px; background:#222; border-radius:6px; overflow:hidden; border:1px solid #333; position:relative;">
+                        <div id="balance-marker" style="position:absolute; top:0; left:50%; width:8px; height:100%; background:#ffd700; transform:translateX(-50%); transition:left 0.1s ease;"></div>
+                        <div style="position:absolute; top:0; left:50%; width:2px; height:100%; background:#00ff99; transform:translateX(-50%);"></div>
+                    </div>
+                    
                     <div id="chrono-bar-bg" style="width:100%; height:8px; background:#222; border-radius:4px; margin-top:10px; overflow:hidden;">
                         <div id="chrono-bar-fill" style="width:100%; height:100%; background:#ffd700; transition: width 0.1s linear;"></div>
                     </div>
                 </div>
                 
-                <button id="btn-start" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">⚡ CALIBRAR E INICIAR APNEA</button>
+                <button id="btn-start" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">⚡ CALIBRAR E INICIAR EQUILIBRIO</button>
                 <button id="btn-stop" class="btn-primary hidden" style="width:100%; border-color:#e74c3c; color:#e74c3c; background:transparent;">💥 DETECTAR CAÍDA (Perdí balance)</button>
             </div>
         `,
         attachEvents: (role) => {
             let active = false;
-            let time = 60.0;
+            let time = 30.0;
             let interval = null;
+            let initialBeta = null;
+            let initialGamma = null;
+            
             const btnStart = document.getElementById('btn-start');
             const btnStop = document.getElementById('btn-stop');
             const timerEl = document.getElementById('chrono');
             const fillEl = document.getElementById('chrono-bar-fill');
             const iconEl = document.getElementById('chrono-icon');
+            const markerEl = document.getElementById('balance-marker');
             
-            btnStart.addEventListener('click', () => {
+            const handleOrientation = (e) => {
+                if (!active) return;
+                const beta = e.beta;
+                const gamma = e.gamma;
+                
+                if (initialBeta === null) {
+                    initialBeta = beta;
+                    initialGamma = gamma;
+                }
+                
+                const dBeta = beta - initialBeta;
+                const dGamma = gamma - initialGamma;
+                const dev = Math.max(Math.abs(dBeta), Math.abs(dGamma));
+                
+                const limit = 12; 
+                const pct = 50 + (dGamma / limit) * 50;
+                if (markerEl) markerEl.style.left = Math.min(95, Math.max(5, pct)) + '%';
+                
+                if (dev > limit) {
+                    failBalance();
+                }
+            };
+            
+            const failBalance = () => {
+                if (active) {
+                    clearInterval(interval);
+                    active = false;
+                    window.removeEventListener('deviceorientation', handleOrientation);
+                    btnStop.classList.add('hidden');
+                    btnStart.classList.remove('hidden');
+                    timerEl.innerText = 'FALLO';
+                    timerEl.style.color = '#e74c3c';
+                    fillEl.style.width = '0%';
+                    if (markerEl) markerEl.style.left = '50%';
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('EQUILIBRIO PERDIDO', 'Has perdido el balance al inclinar el móvil más de 12 grados. Ponte firme e inténtalo de nuevo.');
+                }
+            };
+            
+            btnStart.addEventListener('click', async () => {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permissionState = await DeviceOrientationEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            showAlert('Permiso Requerido', 'Para esta misión necesitamos acceso a los sensores de orientación.');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+                
                 btnStart.classList.add('hidden');
                 btnStop.classList.remove('hidden');
                 active = true;
-                time = 60.0;
-                timerEl.innerText = '60.0s';
+                time = 30.0;
+                initialBeta = null;
+                initialGamma = null;
+                timerEl.innerText = '30.0s';
+                timerEl.style.color = '#ffd700';
+                fillEl.style.background = '#ffd700';
                 fillEl.style.width = '100%';
                 
+                window.addEventListener('deviceorientation', handleOrientation);
                 if (window.playProceduralSound) playProceduralSound('click');
                 
                 interval = setInterval(() => {
@@ -293,71 +519,214 @@ Object.assign(MISSIONS_CONFIG, {
                     if (time <= 0) {
                         time = 0;
                         clearInterval(interval);
+                        window.removeEventListener('deviceorientation', handleOrientation);
+                        active = false;
                         btnStop.classList.add('hidden');
                         timerEl.innerText = '¡LOGRADO!';
                         timerEl.style.color = '#00ff99';
                         fillEl.style.background = '#00ff99';
                         iconEl.style.transform = 'scale(1.3) rotate(360deg)';
+                        if (markerEl) markerEl.style.left = '50%';
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_9_kid14_ave', {type:'text', data: 'Equilibrio de Ave Dorada superado: 60s'}, role);
+                            submitMission('day_9_kid14_ave', {type:'text', data: 'Equilibrio de Ave Dorada superado con giroscopio real: 30s'}, role);
                         }, 1200);
                     } else {
                         timerEl.innerText = time.toFixed(1) + 's';
-                        fillEl.style.width = (time / 60.0 * 100) + '%';
-                        iconEl.style.transform = `scale(${1 + (60 - time)*0.002}) rotate(${(60 - time)*0.5}deg)`;
+                        fillEl.style.width = (time / 30.0 * 100) + '%';
                     }
                 }, 100);
             });
             
             btnStop.addEventListener('click', () => {
-                if (active) {
-                    clearInterval(interval);
-                    active = false;
-                    btnStop.classList.add('hidden');
-                    btnStart.classList.remove('hidden');
-                    timerEl.innerText = 'FALLO';
-                    timerEl.style.color = '#e74c3c';
-                    fillEl.style.width = '0%';
-                    iconEl.style.transform = 'scale(1)';
-                    if (window.playProceduralSound) playProceduralSound('error');
-                    showAlert('EQUILIBRIO PERDIDO', 'Has perdido el balance de fénix. Vuelve a intentarlo.');
-                }
+                failBalance();
             });
             
             window._missionCleanup = () => {
                 clearInterval(interval);
+                window.removeEventListener('deviceorientation', handleOrientation);
             };
         }
     },
 
 "day_9_kid9_altar": {
-        tag: "photo", day: 9, title: "El Altar Secreto", role: "kid9", xp: 15, location: "Fushimi Inari",
+        tag: "photo",
+        day: 9,
+        title: "El Altar Secreto",
+        role: "kid9",
+        xp: 15,
+        location: "Fushimi Inari",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🔮 En la montaña de Fushimi Inari hay altares escondidos entre los árboles que casi nadie ve. Tu misión de exploradora: encontrar uno secreto y fotografiarlo antes de que desaparezca.</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#2d1b69,#5b2c6f); border-radius:15px;">
-            <p style="font-size:3rem;">🔮⛩️✨</p>
-            <p style="color:#d8b4fe; font-style:italic;">Solo los verdaderos exploradores lo encuentran</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Altar Secreto</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid9_altar', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%); border-radius:15px; border:3px solid #3f51b5; color:#1a237e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🔮 El Altar Secreto de Fushimi Inari 🔮</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#303f9f;">Encuentra un altar de piedra escondido en el bosque de la montaña. Toma una foto y clasifica qué tipo de ofrendas tiene:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #3f51b5; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#303f9f; display:block; margin-bottom:5px;">🦊 SELECCIONA LAS OFRENDAS VISTAS:</label>
+                    <select id="altar-offering" style="width:100%; padding:8px; border:1px solid #3f51b5; border-radius:5px; background:#fff; color:#303f9f; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona una ofrenda --</option>
+                        <option value="Zorros">Estatuas de Zorros de piedra (Kitsune)</option>
+                        <option value="MiniTorii">Minicapillas o mini arcos Torii rojos</option>
+                        <option value="Monedas">Monedas y tazas de Sake/Agua</option>
+                        <option value="Varios">Varias de las anteriores / Mezclado</option>
+                    </select>
+                </div>
+
+                <input type="file" id="file-input-altar" accept="image/*" style="display:none;">
+                <div id="altar-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #3f51b5; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#303f9f; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto del altar registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-altar" class="btn-secondary" style="flex:1; background:#c5cae9; border-color:#3f51b5; color:#1a237e; font-weight:bold; border-radius:25px; font-family:'Quicksand';">📸 Tomar Foto</button>
+                    <button id="btn-submit-altar" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px; font-family:'Quicksand';" disabled>📨 Enviar Altar</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let selectedOffering = '';
+            let photoId = null;
+            const selectOff = document.getElementById('altar-offering');
+            const fileInput = document.getElementById('file-input-altar');
+            const selectFileBtn = document.getElementById('btn-select-altar');
+            const submitBtn = document.getElementById('btn-submit-altar');
+            const previewEl = document.getElementById('altar-preview');
+            
+            const checkValidity = () => {
+                if (selectedOffering && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#3f51b5';
+                    submitBtn.style.borderColor = '#3f51b5';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            selectOff.addEventListener('change', () => {
+                selectedOffering = selectOff.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'altar_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedOffering || !photoId) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_9_kid9_altar', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { offering: selectedOffering }
+                }, role);
+            });
+        }
     },
 
 "day_9_kid14_tunnel": {
-        tag: "photo", day: 9, title: "El Túnel Infinito", role: "kid14", xp: 15, location: "Fushimi Inari",
+        tag: "photo",
+        day: 9,
+        title: "El Túnel Infinito",
+        role: "kid14",
+        xp: 15,
+        location: "Fushimi Inari",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
-            <p style="color:#0f0;">>>> CAPTURA DE PERSPECTIVA INFINITA</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Miles de toriis forman un túnel que parece no terminar nunca. Captura la foto que mejor transmita esa sensación de infinito.</p>
-            <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(180deg,#ff4500,#ff6b35,#ff8c00); border-radius:12px;">
-                <p style="font-size:3rem;">⛩️⛩️⛩️</p>
-                <p style="color:#fff; font-weight:bold;">El túnel que no termina</p>
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03; background:#0a0e12; font-family:monospace; color:#00ff99;">
+                <p>>>> CÁLCULO DE DENSIDAD DE RUTA // PERSPECTIVA INFINITA</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Toma la foto del túnel infinito de toriis. Luego, resuelve este cálculo: Si colocamos un arco torii cada 0.5 metros en línea recta, ¿cuántos toriis habrá en un tramo de 100 metros?</p>
+                
+                <div style="background:#111; border-radius:10px; padding:12px; border:1px solid #00ff99; margin-bottom:15px;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#00ff99; display:block; margin-bottom:5px;">⛩️ CANTIDAD ESTIMADA DE TORIIS (100 metros):</label>
+                    <input type="number" id="tunnel-calc" placeholder="Escribe el número exacto..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;">
+                </div>
+
+                <input type="file" id="file-input-tunnel" accept="image/*" style="display:none;">
+                <div id="tunnel-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:1px dashed #00ff99; padding:5px; background:#111; text-align:center;">
+                    <span style="font-size:0.75rem; color:#00ff99; font-weight:bold;">✓ Foto del túnel infinito cargada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-tunnel" class="btn-secondary" style="flex:1; border-color:#00ff99; color:#00ff99; background:transparent;">📸 Hacer Foto</button>
+                    <button id="btn-submit-tunnel" class="btn-primary" style="flex:1; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR REPORTE</button>
+                </div>
             </div>
-            <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Fotografiar el Infinito</button>
-        </div>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_9_kid14_tunnel', currentUser, false); }
+        `,
+        attachEvents: (role) => {
+            let photoId = null;
+            const inputCalc = document.getElementById('tunnel-calc');
+            const fileInput = document.getElementById('file-input-tunnel');
+            const selectFileBtn = document.getElementById('btn-select-tunnel');
+            const submitBtn = document.getElementById('btn-submit-tunnel');
+            const previewEl = document.getElementById('tunnel-preview');
+            
+            const checkValidity = () => {
+                const val = parseInt(inputCalc.value);
+                if (!isNaN(val) && val > 0 && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
+            inputCalc.addEventListener('input', checkValidity);
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'tunnel_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const val = parseInt(inputCalc.value);
+                if (val !== 200) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO INCORRECTO', 'El cálculo correcto requiere dividir la longitud total del tramo por el espaciado de cada arco torii (100 / 0.5). Reajusta tu estimación.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_9_kid14_tunnel', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { calculated: val }
+                }, role);
+            });
+        }
     },
 
 "day_9_fam_portal": {
@@ -439,21 +808,58 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_10_kid9_nishiki": {
-        tag: "economy", day: 10, title: "Maestro Chatarra", role: "kid9", xp: 15, location: "Nishiki",
+        tag: "economy",
+        day: 10,
+        title: "Maestro Chatarra",
+        role: "kid9",
+        xp: 15,
+        location: "Nishiki",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🛍️ El mercado de Nishiki tiene cientos de puestos con cosas raras y maravillosas. Tu misión: encontrar el objeto más extraño que se venda y averiguar su precio.</p>
-        <div style="background:linear-gradient(135deg,#f7c948,#ff6b35); border-radius:15px; padding:20px; margin:15px 0; text-align:center;">
-            <p style="font-size:3rem;">🐙🍡🎎</p>
-            <p style="color:#fff; font-weight:bold;">¿Qué es lo más raro que puedes encontrar?</p>
-        </div>
-        <input type="text" id="ni-item" placeholder="Objeto encontrado..." style="width:100%; margin-bottom:8px; padding:12px; border-radius:8px; border:2px solid #f7c948; font-size:1rem;">
-        <input type="number" id="ni-price" placeholder="Precio en ¥..." style="width:100%; margin-bottom:15px; padding:12px; border-radius:8px; border:2px solid #f7c948; font-size:1rem;">
-        <button id="btn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar Hallazgo</button>`,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
-            const item=document.getElementById('ni-item').value, price=document.getElementById('ni-price').value;
-            if(!item||!price){showAlert('Incompleto','Indica qué encontraste y su precio.');return;}
-            submitMission('day_10_kid9_nishiki',{type:'text',data:'Objeto: '+item+', Precio: '+price+'¥'});
-        }); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff9c4 0%, #fff59d 100%); border-radius:15px; border:3px solid #fbc02d; color:#f57f17; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🛍️ Detective de Nishiki 🛍️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#f57f17;">Encuentra el objeto o comida más extraño del mercado y averigua su precio en yenes:</p>
+                
+                <input type="text" id="ni-item" placeholder="¿Qué objeto/comida encontraste? (mín. 4 carac.)" style="width:100%; margin-bottom:8px; padding:12px; border-radius:8px; border:2px solid #fbc02d; font-size:0.9rem; box-sizing:border-box; font-family:inherit;">
+                <input type="number" id="ni-price" placeholder="Precio en yenes (¥)..." style="width:100%; margin-bottom:15px; padding:12px; border-radius:8px; border:2px solid #fbc02d; font-size:0.9rem; box-sizing:border-box; font-family:inherit;">
+                <button id="btn-submit-nishiki" class="btn-primary" style="width:100%; font-size:1.1rem; padding:15px; font-family:inherit; background:#ccc; border-color:#ccc; color:#666;" disabled>📨 Enviar Hallazgo</button>
+            </div>
+        `,
+        attachEvents: () => {
+            const itemInput = document.getElementById('ni-item');
+            const priceInput = document.getElementById('ni-price');
+            const submitBtn = document.getElementById('btn-submit-nishiki');
+            
+            const checkValidity = () => {
+                const itemVal = itemInput.value.trim();
+                const priceVal = parseInt(priceInput.value);
+                if (itemVal.length >= 4 && !isNaN(priceVal) && priceVal >= 50 && priceVal <= 10000) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#fbc02d';
+                    submitBtn.style.borderColor = '#fbc02d';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            itemInput.addEventListener('input', checkValidity);
+            priceInput.addEventListener('input', checkValidity);
+            
+            submitBtn.addEventListener('click', () => {
+                const itemVal = itemInput.value.trim();
+                const priceVal = parseInt(priceInput.value);
+                if (itemVal.length < 4 || isNaN(priceVal) || priceVal < 50 || priceVal > 10000) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_10_kid9_nishiki', {
+                    type: 'text',
+                    data: `Objeto: ${itemVal}, Precio: ${priceVal}¥`
+                });
+            });
+        }
     },
 
 "day_10_fam_sayonara": {
@@ -601,28 +1007,56 @@ Object.assign(MISSIONS_CONFIG, {
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🐉 ¡Escamas de Dragón en Nishiki! 🐉</p>
                 <p style="font-size:0.85rem; margin-bottom:15px; color:#795548;">Busca los puestos de encurtidos tradicionales japoneses (Tsukemono). Sus colores son brillantes como escamas de un dragón de agua. ¿Cuántos puestos logras ver en todo el mercado?</p>
                 
-                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:15px 0;">
                     <button id="btn-sub-d" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #ffb74d; background:#fff; color:#ffb74d; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">-</button>
                     <div id="dragon-count" style="font-size:3.5rem; font-weight:bold; color:#e65100; min-width:80px;">0</div>
                     <button id="btn-add-d" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #ffb74d; background:#fff; color:#ffb74d; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">+</button>
                 </div>
+
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #ffb74d; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#795548; display:block; margin-bottom:5px;">🥬 TRIVIA DE ENCURTIDOS (TSUKEMONO):</label>
+                    <p style="font-size:0.75rem; color:#795548; margin-bottom:5px;">¿Cómo se preparan tradicionalmente estos coloridos encurtidos?</p>
+                    <select id="tsukemono-trivia" style="width:100%; padding:8px; border:1px solid #ffb74d; border-radius:5px; background:#fff; color:#795548; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona --</option>
+                        <option value="frescos">Se sirven frescos y crudos al momento</option>
+                        <option value="fermentados">Fermentados en sal, salvado de arroz o vinagre</option>
+                        <option value="hervidos">Hervidos a altas temperaturas con azúcar</option>
+                    </select>
+                </div>
                 
-                <button id="btn-submit" class="btn-primary" style="width:100%; background:#ff9800; border-color:#ff9800; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(255,152,0,0.3);">📨 Enviar Recuento al Juez</button>
+                <button id="btn-submit" class="btn-primary" style="width:100%; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Recuento al Juez</button>
             </div>
         `,
         attachEvents: (role) => {
             let count = 0;
+            let selectedOpt = '';
             const display = document.getElementById('dragon-count');
             const addBtn = document.getElementById('btn-add-d');
             const subBtn = document.getElementById('btn-sub-d');
+            const selectTrivia = document.getElementById('tsukemono-trivia');
             const subSubmit = document.getElementById('btn-submit');
             
+            const checkValidity = () => {
+                if (count > 0 && selectedOpt) {
+                    subSubmit.removeAttribute('disabled');
+                    subSubmit.style.background = '#ff9800';
+                    subSubmit.style.borderColor = '#ff9800';
+                    subSubmit.style.color = '#fff';
+                } else {
+                    subSubmit.setAttribute('disabled', 'true');
+                    subSubmit.style.background = '#ccc';
+                    subSubmit.style.borderColor = '#ccc';
+                    subSubmit.style.color = '#666';
+                }
+            };
+
             addBtn.addEventListener('click', () => {
                 count++;
                 display.innerText = count;
                 addBtn.style.transform = 'scale(0.9)';
                 setTimeout(() => addBtn.style.transform = 'scale(1)', 100);
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             });
             
             subBtn.addEventListener('click', () => {
@@ -632,15 +1066,29 @@ Object.assign(MISSIONS_CONFIG, {
                     subBtn.style.transform = 'scale(0.9)';
                     setTimeout(() => subBtn.style.transform = 'scale(1)', 100);
                     if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
                 }
+            });
+
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             });
             
             subSubmit.addEventListener('click', () => {
-                if (count === 0) {
-                    showAlert('Recuento vacío', 'Debes haber visto al menos un puesto de escamas de dragón.');
+                if (count === 0 || !selectedOpt) return;
+                if (selectedOpt !== 'fermentados') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Los Tsukemono son encurtidos tradicionales japoneses preparados mediante fermentación en sal, vinagre o lecho de salvado de arroz (nukazuke). Vuelve a leer y reajusta.');
                     return;
                 }
-                submitMission('day_10_kid9_dragon', {type:'number', data: count}, role);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_10_kid9_dragon', {
+                    type: 'number',
+                    data: count,
+                    metadata: { answer: selectedOpt }
+                }, role);
             });
         }
     },
@@ -996,32 +1444,186 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Ryokan",
         render: () => `
-        <p class="mission-desc">¿Cuántas personas con yukata has visto hoy?</p>
-        <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
-            <button id="btn-sub-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
-            <div id="yukata-count" style="font-size:3rem; font-weight:bold;">0</div>
-            <button id="btn-add-y" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
-        </div>
-        <button id="btn-send-yukata" class="btn-primary" style="width:100%;">Enviar recuento</button>
-    `,
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #4caf50; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👘 Detective de Yukatas en el Ryokan 👘</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Registra cuántas personas vestidas con yukata tradicional has observado hoy en el hotel tradicional:</p>
+                
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:15px 0;">
+                    <button id="btn-sub-y" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #4caf50; background:#fff; color:#4caf50; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">-</button>
+                    <div id="yukata-count" style="font-size:3.5rem; font-weight:bold; color:#1b5e20; min-width:80px;">0</div>
+                    <button id="btn-add-y" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #4caf50; background:#fff; color:#4caf50; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">+</button>
+                </div>
+
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #4caf50; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#2e7d32; display:block; margin-bottom:5px;">👘 CULTURA JAPONESA:</label>
+                    <p style="font-size:0.75rem; color:#2e7d32; margin-bottom:5px;">¿Cuál es el tejido habitual de una Yukata de verano/onsen?</p>
+                    <select id="yukata-trivia" style="width:100%; padding:8px; border:1px solid #4caf50; border-radius:5px; background:#fff; color:#2e7d32; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona --</option>
+                        <option value="seda">Seda pesada formal</option>
+                        <option value="lana">Lana gruesa de invierno</option>
+                        <option value="algodon">Algodón ligero y transpirable</option>
+                    </select>
+                </div>
+                
+                <button id="btn-send-yukata" class="btn-primary" style="width:100%; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>Enviar recuento</button>
+            </div>
+        `,
         attachEvents: () => {
-        let count = 0;
-        document.getElementById('btn-add-y').addEventListener('click', () => { count++; document.getElementById('yukata-count').innerText = count; });
-        document.getElementById('btn-sub-y').addEventListener('click', () => { if(count>0) count--; document.getElementById('yukata-count').innerText = count; });
-        document.getElementById('btn-send-yukata').addEventListener('click', () => { submitMission('day_11_yukata', {type:'number', data: count}); });
-    }
+            let count = 0;
+            let selectedOpt = '';
+            const display = document.getElementById('yukata-count');
+            const addBtn = document.getElementById('btn-add-y');
+            const subBtn = document.getElementById('btn-sub-y');
+            const selectTrivia = document.getElementById('yukata-trivia');
+            const sendBtn = document.getElementById('btn-send-yukata');
+            
+            const checkValidity = () => {
+                if (count > 0 && selectedOpt) {
+                    sendBtn.removeAttribute('disabled');
+                    sendBtn.style.background = '#4caf50';
+                    sendBtn.style.borderColor = '#4caf50';
+                    sendBtn.style.color = '#fff';
+                } else {
+                    sendBtn.setAttribute('disabled', 'true');
+                    sendBtn.style.background = '#ccc';
+                    sendBtn.style.borderColor = '#ccc';
+                    sendBtn.style.color = '#666';
+                }
+            };
+
+            addBtn.addEventListener('click', () => {
+                count++;
+                display.innerText = count;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            subBtn.addEventListener('click', () => {
+                if (count > 0) {
+                    count--;
+                    display.innerText = count;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
+                }
+            });
+
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            sendBtn.addEventListener('click', () => {
+                if (count === 0 || !selectedOpt) return;
+                if (selectedOpt !== 'algodon') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Las yukatas tradicionales de verano o baños termales se fabrican en algodón ligero para absorber la humedad tras el baño y garantizar comodidad.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_11_yukata', {
+                    type: 'number',
+                    data: count,
+                    metadata: { answer: selectedOpt }
+                });
+            });
+        }
     },
 
 "day_11_tatami": {
-        tag: "photo", day: 11, title: "La Textura del Tatami", role: "kid9", xp: 15, location: "Ryokan",
+        tag: "photo",
+        day: 11,
+        title: "La Textura del Tatami",
+        role: "kid9",
+        xp: 15,
+        location: "Ryokan",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🟫 El tatami huele a hierba fresca y tiene una textura única. Acerca la cámara al máximo y captura los detalles que nadie más ve: las fibras, los bordados, las sombras...</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B7355,#D2B48C); border-radius:15px;">
-            <p style="font-size:3rem;">🔍🟫✨</p>
-            <p style="color:#fff; font-style:italic;">Macro-fotografía de explorador</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto Macro del Tatami</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_11_tatami', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🟫 La Textura y Aroma del Tatami 🟫</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Toma una foto en plano detalle macro de las fibras tejidas del tatami del ryokan y responde su origen vegetal:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #8d6e63; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#5d4037; display:block; margin-bottom:5px;">🌾 ¿CON QUÉ COMPONENTE NATURAL SE TEJE EL TATAMI?</label>
+                    <select id="tatami-trivia" style="width:100%; padding:8px; border:1px solid #8d6e63; border-radius:5px; background:#fff; color:#5d4037; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona --</option>
+                        <option value="Bambu">Hojas de Bambú gigante machacado</option>
+                        <option value="Igusa">Paja de Junco (Igusa) y paja de arroz</option>
+                        <option value="FlorCerezo">Corteza seca de árbol de sakura</option>
+                    </select>
+                </div>
+
+                <input type="file" id="file-input-tatami" accept="image/*" style="display:none;">
+                <div id="tatami-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #8d6e63; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#8d6e63; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto macro de Tatami registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-tatami" class="btn-secondary" style="flex:1; background:#d7ccc8; border-color:#8d6e63; color:#4e342e; font-weight:bold; border-radius:25px; font-family:'Quicksand';">📸 Hacer Foto</button>
+                    <button id="btn-submit-tatami" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px; font-family:'Quicksand';" disabled>📨 Enviar Registro</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let selectedOpt = '';
+            let photoId = null;
+            const selectTrivia = document.getElementById('tatami-trivia');
+            const fileInput = document.getElementById('file-input-tatami');
+            const selectFileBtn = document.getElementById('btn-select-tatami');
+            const submitBtn = document.getElementById('btn-submit-tatami');
+            const previewEl = document.getElementById('tatami-preview');
+            
+            const checkValidity = () => {
+                if (selectedOpt && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#8d6e63';
+                    submitBtn.style.borderColor = '#8d6e63';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'tatami_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedOpt || !photoId) return;
+                if (selectedOpt !== 'Igusa') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Los tatamis tradicionales se fabrican trenzando juncos suaves cultivados llamados Igusa, rellenos tradicionalmente de paja de arroz prensada.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_11_tatami', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { answer: selectedOpt }
+                }, role);
+            });
+        }
     },
 
 "day_11_kaiseki": {
@@ -1032,25 +1634,83 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Ryokan",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> CATA GASTRONÓMICA: Prueba el plato más extraño.</p>
-            <input type="text" id="k-name" placeholder="Nombre del plato..." style="width:100%; margin-bottom:10px;">
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <input type="text" id="k-adj1" placeholder="Adjetivo 1" style="flex:1;">
-                <input type="text" id="k-adj2" placeholder="Adjetivo 2" style="flex:1;">
-                <input type="text" id="k-adj3" placeholder="Adjetivo 3" style="flex:1;">
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; border:1px solid #00ff99; background:#0a0e12; font-family:monospace; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> CATA GASTRONÓMICA: RITUAL DE KAISEKI</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:12px;">Prueba el plato más exótico de la cena tradicional Kaiseki. Escribe su nombre y selecciona al menos 2 descriptores sensoriales:</p>
+                
+                <input type="text" id="k-name" placeholder="Nombre del plato (mínimo 5 caracteres)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; margin-bottom:12px; font-family:monospace; box-sizing:border-box;">
+                
+                <div style="background:#111; padding:10px; border-radius:5px; border:1px solid #333; margin-bottom:12px; display:flex; flex-direction:column; gap:5px;">
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:3px;">SABORES Y TEXTURAS IDENTIFICADAS (mínimo 2):</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem;">
+                            <input type="checkbox" class="k-taste" value="Umami" style="accent-color:#00ff99;"> Umami
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem;">
+                            <input type="checkbox" class="k-taste" value="Salado" style="accent-color:#00ff99;"> Salado
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem;">
+                            <input type="checkbox" class="k-taste" value="Crujiente" style="accent-color:#00ff99;"> Crujiente
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem;">
+                            <input type="checkbox" class="k-taste" value="Gelatinoso" style="accent-color:#00ff99;"> Gelatinoso
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:5px; font-size:0.8rem;">
+                            <input type="checkbox" class="k-taste" value="Dulce" style="accent-color:#00ff99;"> Dulce/Agridulce
+                        </label>
+                    </div>
+                </div>
+                
+                <input type="text" id="k-drink" placeholder="Maridaje de bebida (té matcha, sake, agua de manantial)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; margin-bottom:15px; font-family:monospace; box-sizing:border-box;">
+                
+                <button id="btn-submit-kaiseki" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR ANÁLISIS DE CATA</button>
             </div>
-            <input type="text" id="k-drink" placeholder="Bebida ideal para maridar..." style="width:100%; margin-bottom:15px;">
-            <button id="btn" class="btn-primary" style="width:100%">Enviar cata</button>
-        </div>
-    `,
+        `,
         attachEvents: () => {
-        document.getElementById('btn').addEventListener('click', () => {
-            const n = document.getElementById('k-name').value;
-            const a1 = document.getElementById('k-adj1').value, a2 = document.getElementById('k-adj2').value, a3 = document.getElementById('k-adj3').value;
-            submitMission('day_11_kaiseki', {type:'text', data:`Plato: ${n}. Adjs: ${a1}, ${a2}, ${a3}. Bebida: ${document.getElementById('k-drink').value}.`});
-        });
-    }
+            const nameInput = document.getElementById('k-name');
+            const drinkInput = document.getElementById('k-drink');
+            const submitBtn = document.getElementById('btn-submit-kaiseki');
+            const tasteChks = document.querySelectorAll('.k-taste');
+            
+            const checkValidity = () => {
+                const nameVal = nameInput.value.trim();
+                const drinkVal = drinkInput.value.trim();
+                const checkedTastes = Array.from(tasteChks).filter(x => x.checked);
+                
+                if (nameVal.length >= 5 && drinkVal.length > 0 && checkedTastes.length >= 2) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
+            nameInput.addEventListener('input', checkValidity);
+            drinkInput.addEventListener('input', checkValidity);
+            tasteChks.forEach(chk => chk.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            }));
+            
+            submitBtn.addEventListener('click', () => {
+                const nameVal = nameInput.value.trim();
+                const drinkVal = drinkInput.value.trim();
+                const checkedTastes = Array.from(tasteChks).filter(x => x.checked).map(x => x.value);
+                
+                if (nameVal.length < 5 || drinkVal.length === 0 || checkedTastes.length < 2) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_11_kaiseki', {
+                    type: 'text',
+                    data: `Plato: ${nameVal} | Descriptores: ${checkedTastes.join(', ')} | Maridaje: ${drinkVal}`
+                });
+            });
+        }
     },
 
     "day_11_spring": {
@@ -1139,28 +1799,62 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Ryokan",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN</p>
-            <input type="number" id="v-l" placeholder="Largo (m)" style="width:100%; margin-bottom:10px;">
-            <input type="number" id="v-w" placeholder="Ancho (m)" style="width:100%; margin-bottom:10px;">
-            <input type="number" id="v-d" placeholder="Profundidad (m)" style="width:100%; margin-bottom:10px;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular</button>
-            <div id="v-res" style="font-weight:bold; color:#0f0; margin-bottom:15px;"></div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar Medidas</button>
-        </div>
-    `,
-        attachEvents: () => {
-        let finalVol = 0;
-        document.getElementById('btn-calc').addEventListener('click', () => {
-            const l = document.getElementById('v-l').value, w = document.getElementById('v-w').value, d = document.getElementById('v-d').value;
-            if(l && w && d) {
-                finalVol = (l * w * d).toFixed(1);
-                document.getElementById('v-res').innerText = `Volumen estimado: ${finalVol} m³ = ${finalVol * 1000} litros`;
-                document.getElementById('btn').classList.remove('hidden');
-            }
-        });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_11_architecture', {type:'text', data:`Volumen onsen: ${finalVol} m³`}));
-    }
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; border:1px solid #00ff99; background:#0a0e12; font-family:monospace; color:#00ff99;">
+                <p>>>> ESTIMACIÓN VOLUMÉTRICA DEL ONSEN</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:12px;">Calcula el volumen del baño termal exterior en metros cúbicos y litros. El volumen debe estar en un rango realista para un baño familiar (entre 0.5 m³ y 10.0 m³):</p>
+                
+                <input type="number" id="v-l" placeholder="Largo (metros)" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; margin-bottom:10px; font-family:monospace;">
+                <input type="number" id="v-w" placeholder="Ancho (metros)" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; margin-bottom:10px; font-family:monospace;">
+                <input type="number" id="v-d" placeholder="Profundidad (metros)" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; margin-bottom:10px; font-family:monospace;">
+                
+                <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px; border-color:#00ff99; color:#00ff99; background:transparent;">Calcular Volumen</button>
+                <div id="v-res" style="font-weight:bold; color:#00ff99; margin-bottom:15px; min-height:1.2rem; font-size:0.85rem;"></div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>Enviar Medidas</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let finalVol = 0;
+            const btnCalc = document.getElementById('btn-calc');
+            const submitBtn = document.getElementById('btn');
+            const resDiv = document.getElementById('v-res');
+            
+            btnCalc.addEventListener('click', () => {
+                const l = parseFloat(document.getElementById('v-l').value);
+                const w = parseFloat(document.getElementById('v-w').value);
+                const d = parseFloat(document.getElementById('v-d').value);
+                
+                if (isNaN(l) || isNaN(w) || isNaN(d) || l <= 0 || w <= 0 || d <= 0) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('VALORES INVÁLIDOS', 'Introduce dimensiones válidas mayores a cero.');
+                    return;
+                }
+                
+                finalVol = l * w * d;
+                resDiv.innerText = `Volumen: ${finalVol.toFixed(2)} m³ = ${(finalVol * 1000).toFixed(0)} litros`;
+                
+                if (finalVol < 0.5 || finalVol > 10.0) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RANGO IMPOSIBLE', `Un volumen de ${finalVol.toFixed(2)} m³ es inviable para un baño onsen familiar del ryokan. Debe estar entre 0.5 m³ (mini tina) y 10.0 m³ (gran baño común). Reajusta las medidas.`);
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (finalVol < 0.5 || finalVol > 10.0) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_11_architecture', {type:'text', data:`Volumen onsen: ${finalVol.toFixed(2)} m³`}, role);
+            });
+        }
     },
 
     "day_11_economy": {
@@ -1173,7 +1867,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> ESTIMADOR FINANCIERO: OPERATIVIDAD RYOKAN</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Calcula el coste diario aproximado para mantener operativo el ryokan alpino (comidas tradicionales, mantenimiento de baños onsen, personal local y climatización).</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:12px;">Equilibra el presupuesto operativo diario. Ajusta los deslizadores para que el coste total esté en el rango de presupuesto autorizado (entre ¥200.000 y ¥400.000):</p>
                 
                 <div style="margin:10px 0; padding:10px; background:rgba(255,255,255,0.03); border:1px solid #333; border-radius:5px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.8rem;">
@@ -1197,10 +1891,10 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px dashed #00ff99; font-weight:bold;">
                     <span>COSTE DIARIO ESTIMADO:</span>
-                    <span id="total-cost" style="color:#00ff99; font-size:1.2rem;">¥ 350.000</span>
+                    <span id="total-cost" style="color:#e74c3c; font-size:1.2rem;">¥ 350.000</span>
                 </div>
                 
-                <button id="btn-send" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; margin-top:10px;">💾 SUBIR ESTIMACIÓN ECONÓMICA</button>
+                <button id="btn-send" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent; margin-top:10px;" disabled>💾 SUBIR ESTIMACIÓN ECONÓMICA</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -1224,14 +1918,42 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 const total = staff + onsen + kaiseki;
                 totalCostEl.innerText = '¥ ' + total.toLocaleString('ja-JP');
+                
+                if (total >= 200000 && total <= 400000) {
+                    totalCostEl.style.color = '#00ff99';
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    totalCostEl.style.color = '#e74c3c';
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
             };
             
-            sStaff.addEventListener('input', updateCost);
-            sOnsen.addEventListener('input', updateCost);
-            sKaiseki.addEventListener('input', updateCost);
+            sStaff.addEventListener('input', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                updateCost();
+            });
+            sOnsen.addEventListener('input', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                updateCost();
+            });
+            sKaiseki.addEventListener('input', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                updateCost();
+            });
+            
+            // Initial call to set state
+            updateCost();
             
             btn.addEventListener('click', () => {
                 const total = parseInt(sStaff.value) + parseInt(sOnsen.value) + parseInt(sKaiseki.value);
+                if (total < 200000 || total > 400000) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_11_economy', {type:'number', data: total}, role);
             });
@@ -1473,20 +2195,27 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fbe9e7 0%, #ffccbc 100%); border-radius:15px; border:3px solid #ff8a65; color:#5d4037; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🥩 Catadora de Ternera de Hida 🥩</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#d84315;">Prueba una brocheta, bento o sushi de la legendaria carne de Hida (Hida-gyu). ¡Puntúa su delicia y suavidad!</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#d84315;">Prueba una brocheta, bento o sushi de la legendaria carne de Hida (Hida-gyu). ¡Puntúa su delicia y registra el precio en yenes!</p>
                 
-                <div style="font-size:3.5rem; letter-spacing:8px; margin:20px 0; cursor:pointer; user-select:none;" id="stars">
+                <div style="font-size:3.5rem; letter-spacing:8px; margin:15px 0; cursor:pointer; user-select:none;" id="stars">
                     <span data-val="1" style="transition: transform 0.2s; display:inline-block;">☆</span><span data-val="2" style="transition: transform 0.2s; display:inline-block;">☆</span><span data-val="3" style="transition: transform 0.2s; display:inline-block;">☆</span><span data-val="4" style="transition: transform 0.2s; display:inline-block;">☆</span><span data-val="5" style="transition: transform 0.2s; display:inline-block;">☆</span>
                 </div>
                 
                 <p id="star-desc" style="font-weight:bold; color:#d84315; min-height:1.2rem; margin-bottom:15px; font-size:0.9rem;">Toca las estrellas para calificar</p>
-                <button id="btn-hida" class="btn-primary" style="width:100%; background:#ff5722; border-color:#ff5722; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(255,87,34,0.3);">🥩 SUBIR CALIFICACIÓN GOURMET</button>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #ff8a65; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#d84315; display:block; margin-bottom:5px;">💰 PRECIO DE LA BROCHETA / PLATO (¥):</label>
+                    <input type="number" id="hida-price" placeholder="Introduce yenes (entre 800 y 12000)..." style="width:100%; border:1px solid #ff8a65; border-radius:5px; padding:8px; font-family:inherit; font-size:0.85rem; box-sizing:border-box;">
+                </div>
+                
+                <button id="btn-hida" class="btn-primary" style="width:100%; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>🥩 SUBIR CALIFICACIÓN GOURMET</button>
             </div>
         `,
         attachEvents: (role) => {
             let score = 0;
             const spans = document.querySelectorAll('#stars span');
             const desc = document.getElementById('star-desc');
+            const priceInput = document.getElementById('hida-price');
             const btn = document.getElementById('btn-hida');
             
             const descriptions = {
@@ -1495,6 +2224,21 @@ Object.assign(MISSIONS_CONFIG, {
                 3: '¡Rica y jugosa! 😋',
                 4: '¡Espectacular, se deshace! 😍',
                 5: '¡El mejor bocado de mi vida! 👑✨'
+            };
+            
+            const checkValidity = () => {
+                const price = parseInt(priceInput.value);
+                if (score > 0 && !isNaN(price) && price >= 800 && price <= 12000) {
+                    btn.removeAttribute('disabled');
+                    btn.style.background = '#ff5722';
+                    btn.style.borderColor = '#ff5722';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.background = '#ccc';
+                    btn.style.borderColor = '#ccc';
+                    btn.style.color = '#666';
+                }
             };
             
             spans.forEach(s => {
@@ -1516,16 +2260,21 @@ Object.assign(MISSIONS_CONFIG, {
                     });
                     
                     if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
                 });
             });
+
+            priceInput.addEventListener('input', checkValidity);
             
             btn.addEventListener('click', () => {
-                if (score === 0) {
-                    showAlert('Falta puntuación', 'Selecciona al menos una estrella para calificar la carne de Hida.');
-                    return;
-                }
+                const price = parseInt(priceInput.value);
+                if (score === 0 || isNaN(price) || price < 800 || price > 12000) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_12_hida', {type:'number', data: score}, role);
+                submitMission('day_12_hida', {
+                    type: 'mixed',
+                    data: `Calificación: ${score} Estrellas | Precio: ${price}¥`
+                }, role);
             });
         }
     },
@@ -1633,22 +2382,88 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Takayama",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> CASAS TRADICIONALES DETECTADAS:</p>
-            <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
-                <button id="btn-sub-p" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">-</button>
-                <div id="patrol-count" style="font-size:3rem; font-weight:bold; color:#0f0;">0</div>
-                <button id="btn-add-p" class="btn-secondary" style="font-size:2rem; padding:10px 20px;">+</button>
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; border:1px solid #00ff99; background:#0a0e12; font-family:monospace; color:#00ff99;">
+                <p>>>> CASAS TRADICIONALES DETECTADAS (SANMACHI):</p>
+                <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:15px 0;">
+                    <button id="btn-sub-p" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #00ff99; background:transparent; color:#00ff99; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">-</button>
+                    <div id="patrol-count" style="font-size:3rem; font-weight:bold; color:#00ff99; min-width:60px; text-align:center;">0</div>
+                    <button id="btn-add-p" class="btn-secondary" style="font-size:2rem; width:50px; height:50px; border-radius:50%; border:2px solid #00ff99; background:transparent; color:#00ff99; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; transition: transform 0.2s;">+</button>
+                </div>
+                
+                <div style="background:#111; border-radius:10px; padding:12px; border:1px solid #00ff99; margin-bottom:15px;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#00ff99; display:block; margin-bottom:5px;">🌲 MADERA TRADICIONAL DE TAKAYAMA:</label>
+                    <p style="font-size:0.75rem; color:#aaa; margin-bottom:5px;">¿Qué tipo de madera de conífera local se usa tradicionalmente en estas casas feudales?</p>
+                    <select id="patrol-trivia" style="width:100%; padding:8px; border:1px solid #00ff99; border-radius:5px; background:#111; color:#00ff99; font-family:monospace; font-size:0.85rem; box-sizing:border-box;">
+                        <option value="">-- Selecciona madera --</option>
+                        <option value="pino">Pino Rojo Americano importado</option>
+                        <option value="hinoki">Cedro Japonés (Sugi) o Ciprés (Hinoki)</option>
+                        <option value="eucalipto">Eucalipto australiano de rápido crecimiento</option>
+                    </select>
+                </div>
+                
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>Enviar Recuento</button>
             </div>
-            <button id="btn" class="btn-primary" style="width:100%">Enviar Recuento</button>
-        </div>
-    `,
-        attachEvents: () => {
-        let count = 0;
-        document.getElementById('btn-add-p').addEventListener('click', () => { count++; document.getElementById('patrol-count').innerText = count; });
-        document.getElementById('btn-sub-p').addEventListener('click', () => { if(count>0) count--; document.getElementById('patrol-count').innerText = count; });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_12_patrol', {type:'number', data: count}));
-    }
+        `,
+        attachEvents: (role) => {
+            let count = 0;
+            let selectedOpt = '';
+            const display = document.getElementById('patrol-count');
+            const addBtn = document.getElementById('btn-add-p');
+            const subBtn = document.getElementById('btn-sub-p');
+            const selectTrivia = document.getElementById('patrol-trivia');
+            const submitBtn = document.getElementById('btn');
+            
+            const checkValidity = () => {
+                if (count > 0 && selectedOpt) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
+            addBtn.addEventListener('click', () => {
+                count++;
+                display.innerText = count;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            subBtn.addEventListener('click', () => {
+                if (count > 0) {
+                    count--;
+                    display.innerText = count;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
+                }
+            });
+            
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (count === 0 || !selectedOpt) return;
+                if (selectedOpt !== 'hinoki') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Las casas históricas del distrito de Sanmachi Suji se construyen utilizando maderas nobles locales resistentes a la humedad y el frío alpino, principalmente Ciprés Japonés (Hinoki) y Cedro (Sugi).');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_12_patrol', {
+                    type: 'number',
+                    data: count,
+                    metadata: { woodUsed: selectedOpt }
+                }, role);
+            });
+        }
     },
 
     "day_12_appraisal": {
@@ -1669,7 +2484,7 @@ Object.assign(MISSIONS_CONFIG, {
                     <input type="range" id="appraisal-slider" min="50000" max="2000000" step="50000" value="200000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
                 </div>
                 
-                <button id="btn-appraisal" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 SUBIR VALORACIÓN CATASTRAL</button>
+                <button id="btn-appraisal" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>💾 SUBIR VALORACIÓN CATASTRAL</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -1677,17 +2492,47 @@ Object.assign(MISSIONS_CONFIG, {
             const disp = document.getElementById('appraisal-disp');
             const btn = document.getElementById('btn-appraisal');
             
+            const checkValidity = (val) => {
+                // If it is in the range of 300.000 to 1.200.000, we enable
+                if (val >= 300000 && val <= 1200000) {
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
+            };
+            
             slider.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
                 disp.innerText = val.toLocaleString('es-ES') + ' €';
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity(val);
             });
             
             btn.addEventListener('click', () => {
                 const val = parseInt(slider.value);
+                if (val < 300000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('VALOR INSUFICIENTE', 'Una tasación de menos de 300.000 € es insuficiente para cubrir la compra y la costosa restauración artesanal de maderas tradicionales Edo con artesanos locales certificados. Ajusta la tasación al alza.');
+                    return;
+                }
+                if (val > 1200000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('VALOR EXCESIVO', 'Una tasación superior a 1.200.000 € excede el valor catastral y de mercado promedio para estas propiedades tradicionales en Takayama. Ajusta la estimación a la baja.');
+                    return;
+                }
+                
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_12_appraisal', {type:'number', data: val}, role);
             });
+            
+            // Check initial value
+            checkValidity(parseInt(slider.value));
         }
     },
 
@@ -1794,27 +2639,72 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Kawaguchiko",
         render: () => `
-        <p class="mission-desc">Prueba un helado de un sabor raro y elige su color.</p>
-        <input type="text" id="ic-desc" placeholder="¿De qué sabor era?" style="width:100%; margin-bottom:10px;">
-        <div style="display:flex; gap:5px; margin-bottom:15px; justify-content:space-around;">
-            <button class="color-btn" data-c="🟢" style="background:#2ecc71; width:40px; height:40px; border-radius:50%; border:none;"></button>
-            <button class="color-btn" data-c="🟣" style="background:#9b59b6; width:40px; height:40px; border-radius:50%; border:none;"></button>
-            <button class="color-btn" data-c="🟡" style="background:#f1c40f; width:40px; height:40px; border-radius:50%; border:none;"></button>
-            <button class="color-btn" data-c="🔵" style="background:#3498db; width:40px; height:40px; border-radius:50%; border:none;"></button>
-            <button class="color-btn" data-c="⚪" style="background:#fff; border:1px solid #ccc; width:40px; height:40px; border-radius:50%;"></button>
-        </div>
-        <button id="btn" class="btn-primary" style="width:100%">Enviar sabor</button>
-    `,
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🍦 Helados Raros del Monte Fuji 🍦</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">Prueba un helado artesanal con sabor japonés singular (sake, wasabi, uva kyoho, matcha) y selecciona su color:</p>
+                
+                <input type="text" id="ic-desc" placeholder="¿De qué sabor era el helado? (mín. 4 carac.)" style="width:100%; margin-bottom:12px; padding:12px; border-radius:8px; border:2px solid #00acc1; font-size:0.9rem; box-sizing:border-box; font-family:inherit;">
+                
+                <p style="font-size:0.8rem; font-weight:bold; color:#00838f; margin-bottom:8px; text-align:left;">SELECCIONA EL COLOR DEL HELADO:</p>
+                <div style="display:flex; gap:10px; margin-bottom:20px; justify-content:space-around;">
+                    <button class="color-btn" data-c="🟢" style="background:#2ecc71; width:45px; height:45px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition: transform 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button>
+                    <button class="color-btn" data-c="🟣" style="background:#9b59b6; width:45px; height:45px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition: transform 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button>
+                    <button class="color-btn" data-c="🟡" style="background:#f1c40f; width:45px; height:45px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition: transform 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button>
+                    <button class="color-btn" data-c="🔵" style="background:#3498db; width:45px; height:45px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition: transform 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button>
+                    <button class="color-btn" data-c="⚪" style="background:#ffffff; width:45px; height:45px; border-radius:50%; border:3px solid #ccc; cursor:pointer; transition: transform 0.2s; box-shadow:0 2px 5px rgba(0,0,0,0.1);"></button>
+                </div>
+                
+                <button id="btn-submit-icecream" class="btn-primary" style="width:100%; padding:15px; font-family:inherit; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>Enviar sabor</button>
+            </div>
+        `,
         attachEvents: () => {
-        let selectedC = "";
-        const btns = document.querySelectorAll('.color-btn');
-        btns.forEach(b => b.addEventListener('click', (e) => {
-            btns.forEach(bb => bb.style.transform = 'scale(1)');
-            e.target.style.transform = 'scale(1.2)';
-            selectedC = e.target.dataset.c;
-        }));
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_13_icecream', {type:'text', data:`Sabor: ${document.getElementById('ic-desc').value} Color: ${selectedC}`}));
-    }
+            let selectedC = "";
+            const flavorInput = document.getElementById('ic-desc');
+            const btns = document.querySelectorAll('.color-btn');
+            const submitBtn = document.getElementById('btn-submit-icecream');
+            
+            const checkValidity = () => {
+                const flavorVal = flavorInput.value.trim();
+                if (flavorVal.length >= 4 && selectedC) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#00acc1';
+                    submitBtn.style.borderColor = '#00acc1';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            btns.forEach(b => b.addEventListener('click', (e) => {
+                btns.forEach(bb => {
+                    bb.style.transform = 'scale(1)';
+                    bb.style.borderColor = bb.dataset.c === '⚪' ? '#ccc' : 'transparent';
+                });
+                
+                e.target.style.transform = 'scale(1.2)';
+                e.target.style.borderColor = '#006064';
+                selectedC = e.target.dataset.c;
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            }));
+            
+            flavorInput.addEventListener('input', checkValidity);
+            
+            submitBtn.addEventListener('click', () => {
+                const flavorVal = flavorInput.value.trim();
+                if (flavorVal.length < 4 || !selectedC) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_13_icecream', {
+                    type: 'text',
+                    data: `Sabor: ${flavorVal} | Color: ${selectedC}`
+                });
+            });
+        }
     },
 
     "day_13_yokai": {
@@ -1907,18 +2797,89 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_13_perspective": {
-        tag: "photo", day: 13, title: "Perspectiva del Gigante", role: "kid14", xp: 15, location: "Monte Fuji",
+        tag: "photo",
+        day: 13,
+        title: "Perspectiva del Gigante",
+        role: "kid14",
+        xp: 15,
+        location: "Monte Fuji",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
-            <p style="color:#0f0;">>>> CAPTURA DE ESCALA HUMANA</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Fotografía el Monte Fuji con una persona en primer plano para demostrar su escala descomunal. La diferencia de tamaño debe ser impactante.</p>
-            <div style="text-align:center; margin:15px 0; background:#0a0a1a; padding:20px; border-radius:12px;">
-                <p style="font-size:3rem;">🗻🧍‍♂️</p>
-                <p style="color:#60efff;">Humano vs. Montaña</p>
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03; background:#0a0e12; font-family:monospace; color:#00ff99;">
+                <p style="color:#00ff99;">>>> CAPTURA DE ESCALA HUMANA / METADATA FUJI</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Fotografía el Monte Fuji con una persona en primer plano para demostrar su escala descomunal. Tras la foto, indica la altitud exacta de la montaña en metros:</p>
+                
+                <div style="background:#111; border-radius:10px; padding:12px; border:1px solid #00ff99; margin-bottom:15px;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#00ff99; display:block; margin-bottom:5px;">🗻 ALTITUD OFICIAL DEL MONTE FUJI (metros):</label>
+                    <input type="number" id="fuji-alt" placeholder="Escribe la altitud en metros..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;">
+                </div>
+
+                <input type="file" id="file-input-fuji" accept="image/*" style="display:none;">
+                <div id="fuji-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:1px dashed #00ff99; padding:5px; background:#111; text-align:center;">
+                    <span style="font-size:0.75rem; color:#00ff99; font-weight:bold;">✓ Foto del gigante cargada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-fuji" class="btn-secondary" style="flex:1; border-color:#00ff99; color:#00ff99; background:transparent;">📸 Hacer Foto</button>
+                    <button id="btn-submit-fuji" class="btn-primary" style="flex:1; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR REPORTE</button>
+                </div>
             </div>
-            <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Perspectiva</button>
-        </div>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_13_perspective', currentUser, false); }
+        `,
+        attachEvents: (role) => {
+            let photoId = null;
+            const inputAlt = document.getElementById('fuji-alt');
+            const fileInput = document.getElementById('file-input-fuji');
+            const selectFileBtn = document.getElementById('btn-select-fuji');
+            const submitBtn = document.getElementById('btn-submit-fuji');
+            const previewEl = document.getElementById('fuji-preview');
+            
+            const checkValidity = () => {
+                const val = parseInt(inputAlt.value);
+                if (!isNaN(val) && val > 0 && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
+            inputAlt.addEventListener('input', checkValidity);
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'fuji_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const val = parseInt(inputAlt.value);
+                if (val !== 3776) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ALTITUD INCORRECTA', 'La altitud oficial del Monte Fuji es una cifra sagrada en Japón: 3776 metros de altura sobre el nivel del mar. Vuelve a intentarlo.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_13_perspective', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { altitude: val }
+                }, role);
+            });
+        }
     },
 
     "day_13_tunnels": {
@@ -1931,7 +2892,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> RASTREO TÁCTICO: NAVEGANTES DEL ASFALTO</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Durante el trayecto de carretera, cuenta la cantidad de túneles montañosos que atraviesa el vehículo.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Durante el trayecto de carretera, cuenta la cantidad de túneles montañosos que atraviesa el vehículo. (mínimo 1 túnel para reportar):</p>
                 
                 <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:20px 0;">
                     <button id="btn-sub-t" class="btn-secondary" style="border:1px solid #00ff99; background:transparent; color:#00ff99; font-size:1.5rem; width:45px; height:45px; cursor:pointer;">-</button>
@@ -1939,7 +2900,7 @@ Object.assign(MISSIONS_CONFIG, {
                     <button id="btn-add-t" class="btn-secondary" style="border:1px solid #00ff99; background:transparent; color:#00ff99; font-size:1.5rem; width:45px; height:45px; cursor:pointer;">+</button>
                 </div>
                 
-                <button id="btn-tunnels" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 REGISTRAR TÚNELES ATRAVESADOS</button>
+                <button id="btn-tunnels" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>💾 REGISTRAR TÚNELES ATRAVESADOS</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -1949,10 +2910,25 @@ Object.assign(MISSIONS_CONFIG, {
             const subBtn = document.getElementById('btn-sub-t');
             const submitBtn = document.getElementById('btn-tunnels');
             
+            const checkValidity = () => {
+                if (count > 0) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+            
             addBtn.addEventListener('click', () => {
                 count++;
                 display.innerText = count;
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             });
             
             subBtn.addEventListener('click', () => {
@@ -1960,10 +2936,12 @@ Object.assign(MISSIONS_CONFIG, {
                     count--;
                     display.innerText = count;
                     if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
                 }
             });
             
             submitBtn.addEventListener('click', () => {
+                if (count <= 0) return;
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_13_tunnels', {type:'number', data: count}, role);
             });
@@ -2227,7 +3205,7 @@ Object.assign(MISSIONS_CONFIG, {
                             ctx.strokeStyle = '#4caf50';
                             ctx.stroke();
                             
-                            timerEl.innerText = '00.0s';
+                    timerEl.innerText = '00.0s';
                             btnRec.innerText = '✨ Silencio Registrado';
                             btnSubmit.classList.remove('hidden');
                             if (window.playProceduralSound) playProceduralSound('success');
@@ -2256,16 +3234,100 @@ Object.assign(MISSIONS_CONFIG, {
         }
     },
 
-"day_14_root": {
-        tag: "photo", day: 14, title: "Guardián del Bosque", role: "kid9", xp: 15, location: "Hakone",
+    "day_14_root": {
+        tag: "photo",
+        day: 14,
+        title: "Guardián del Bosque",
+        role: "kid9",
+        xp: 15,
+        location: "Hakone",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌳 En el bosque de Hakone, las raíces de los árboles gigantes salen de la tierra como tentáculos. Encuentra el árbol con las raíces más impresionantes y posa junto a él como su guardiana.</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a472a,#2d5a27); border-radius:15px;">
-            <p style="font-size:3rem;">🌳🧝‍♀️✨</p>
-            <p style="color:#90EE90; font-style:italic;">El bosque tiene guardianes secretos</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto con el Árbol Guardián</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_14_root', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #2e7d32; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌳 El Guardián del Bosque Volcánico 🌳</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Toma una foto de raíces gigantes y retorcidas sobre suelo de roca volcánica, y responde a la trivia de adaptación natural:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #2e7d32; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#1b5e20; display:block; margin-bottom:5px;">🌲 ¿CÓMO CRECEN LAS RAÍCES EN SUELO DE LAVA IMPENETRABLE?</label>
+                    <select id="root-trivia" style="width:100%; padding:8px; border:1px solid #2e7d32; border-radius:5px; background:#fff; color:#2e7d32; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona --</option>
+                        <option value="profundo">Perforan verticalmente la roca de lava hasta el agua</option>
+                        <option value="horizontal">Se extienden horizontalmente buscando musgo y suelo superficial</option>
+                        <option value="aire">Absorben agua directamente del aire y no usan raíces</option>
+                    </select>
+                </div>
+
+                <input type="file" id="file-input-root" accept="image/*" style="display:none;">
+                <div id="root-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #2e7d32; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#2e7d32; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto de raíces registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-root" class="btn-secondary" style="flex:1; background:#c8e6c9; border-color:#2e7d32; color:#1b5e20; font-weight:bold; border-radius:25px; font-family:'Quicksand';">📸 Hacer Foto</button>
+                    <button id="btn-submit-root" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px; font-family:'Quicksand';" disabled>📨 Enviar Reporte</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let selectedOpt = '';
+            let photoId = null;
+            const selectTrivia = document.getElementById('root-trivia');
+            const fileInput = document.getElementById('file-input-root');
+            const selectFileBtn = document.getElementById('btn-select-root');
+            const submitBtn = document.getElementById('btn-submit-root');
+            const previewEl = document.getElementById('root-preview');
+            
+            const checkValidity = () => {
+                if (selectedOpt && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#2e7d32';
+                    submitBtn.style.borderColor = '#2e7d32';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'root_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedOpt || !photoId) return;
+                if (selectedOpt !== 'horizontal') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Las coladas de lava endurecida son impenetrables para las raíces normales. Por eso, en Aokigahara y bosques volcánicos, los árboles extienden sus raíces horizontalmente sobre las rocas de lava cubiertas de musgo, creando espectaculares formas retorcidas en la superficie.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_14_root', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { answer: selectedOpt }
+                }, role);
+            });
+        }
     },
 
 "day_14_compass": {
@@ -2533,23 +3595,37 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> REPORTE CIENTÍFICO: ABSORCIÓN ACÚSTICA DEL BOSQUE</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce y redacta la explicación física de por qué en el bosque de Aokigahara no hay eco y el sonido parece desaparecer al instante (Pista: relaciona la textura del suelo de roca volcánica con los árboles).</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Deduce y redacta la explicación física de por qué en el bosque de Aokigahara no hay eco y el sonido parece desaparecer al instante. Relaciona la textura porosa de la lava con los árboles (mínimo 30 caracteres):</p>
                 
                 <textarea id="echo-explanation" placeholder=">>> Escribe tu reporte físico aquí..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
                 
-                <button id="btn-echo-report" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 TRANSMITIR INFORME DE RESONANCIA</button>
+                <button id="btn-echo-report" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>💾 TRANSMITIR INFORME DE RESONANCIA</button>
             </div>
         `,
         attachEvents: (role) => {
             const btn = document.getElementById('btn-echo-report');
             const input = document.getElementById('echo-explanation');
             
+            const checkValidity = () => {
+                if (input.value.trim().length >= 30) {
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
+            };
+            
+            input.addEventListener('input', checkValidity);
+            
             btn.addEventListener('click', () => {
                 const txt = input.value.trim();
-                if (txt.length < 15) {
-                    showAlert('INFORME CORTO', 'El informe requiere mayor detalle analítico de la densidad acústica.');
-                    return;
-                }
+                if (txt.length < 30) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_14_kid14_echo', {type:'text', data: txt}, role);
             });
@@ -2565,59 +3641,126 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Fuji",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border-radius:15px; border:3px solid #4dd0e1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">💨 Reto de Apnea Familiar 💨</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">A 2300 metros hay menos moléculas de oxígeno en el aire. ¡Toda la familia debe aguantar la respiración durante 60 segundos juntos!</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">💨 Reto de Apnea Estable 💨</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">Aguantad la respiración en familia durante 30 segundos. ¡Mantened el móvil completamente inmóvil para verificar la concentración!</p>
                 
                 <div style="text-align:center; margin:15px 0; background:#fff; padding:15px; border-radius:10px; border:2px solid #4dd0e1;">
-                    <div style="font-size:3.5rem; animation: pulse 1s infinite;" id="lung-emoji">🫁</div>
-                    <div id="apnea-timer" style="font-size:2.5rem; font-weight:bold; color:#00838f;">60s</div>
+                    <div style="font-size:3.5rem; transition: transform 0.2s;" id="lung-emoji">🫁</div>
+                    <div id="apnea-timer" style="font-size:2.5rem; font-weight:bold; color:#00838f;">30.0s</div>
+                    <div style="font-size:0.75rem; color:#888; margin-top:5px;" id="motion-status">Calibrando sensor de pulso...</div>
                 </div>
                 
-                <button id="btn-apnea" class="btn-primary" style="width:100%; background:#00bcd4; border-color:#00bcd4; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(0,188,212,0.3);">⏱️ EMPEZAR APNEA EN FAMILIA</button>
+                <button id="btn-apnea" class="btn-primary" style="width:100%; background:#00bcd4; border-color:#00bcd4; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(0,188,212,0.3);">⏱️ INICIAR VERIFICACIÓN DE APNEA</button>
             </div>
         `,
         attachEvents: (role) => {
             const btn = document.getElementById('btn-apnea');
             const timerEl = document.getElementById('apnea-timer');
             const lung = document.getElementById('lung-emoji');
+            const statusEl = document.getElementById('motion-status');
             
             let active = false;
-            let time = 60;
+            let time = 30.0;
             let interval = null;
+            let initialMag = null;
             
-            btn.addEventListener('click', () => {
+            const handleMotion = (e) => {
+                if (!active) return;
+                const acc = e.accelerationIncludingGravity || e.acceleration || {x:0, y:0, z:0};
+                const x = acc.x || 0;
+                const y = acc.y || 0;
+                const z = acc.z || 0;
+                const mag = Math.sqrt(x*x + y*y + z*z);
+                
+                if (initialMag === null) {
+                    initialMag = mag;
+                    return;
+                }
+                
+                const diff = Math.abs(mag - initialMag);
+                if (diff > 3.0) { 
+                    failApnea();
+                }
+            };
+            
+            const failApnea = () => {
+                if (active) {
+                    active = false;
+                    clearInterval(interval);
+                    window.removeEventListener('devicemotion', handleMotion);
+                    btn.removeAttribute('disabled');
+                    btn.style.background = '#00bcd4';
+                    btn.style.borderColor = '#00bcd4';
+                    btn.innerText = '⏱️ REINTENTAR APNEA';
+                    timerEl.innerText = 'FALLO';
+                    timerEl.style.color = '#e74c3c';
+                    statusEl.innerText = '¡Fallo por movimiento repentino!';
+                    statusEl.style.color = '#e74c3c';
+                    lung.innerText = '😮‍💨';
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('DEMASIADO MOVIMIENTO', 'Habéis movido el dispositivo o reído. Mantened la calma y el móvil inmóvil.');
+                }
+            };
+            
+            btn.addEventListener('click', async () => {
                 if (active) return;
                 
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            showAlert('Permiso Requerido', 'Necesitamos acceso al sensor de movimiento para verificar la estabilidad.');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+                
                 active = true;
-                time = 60;
-                timerEl.innerText = '60s';
-                btn.disabled = true;
+                time = 30.0;
+                initialMag = null;
+                timerEl.innerText = '30.0s';
+                timerEl.style.color = '#00838f';
+                statusEl.innerText = '✓ Sensor Activo. ¡No te muevas!';
+                statusEl.style.color = '#4caf50';
+                lung.innerText = '🫁';
+                btn.setAttribute('disabled', 'true');
+                btn.style.background = '#ccc';
+                btn.style.borderColor = '#ccc';
                 btn.innerText = '😤 ¡Aguantad la respiración!';
                 
+                window.addEventListener('devicemotion', handleMotion);
                 if (window.playProceduralSound) playProceduralSound('click');
                 
                 interval = setInterval(() => {
-                    time--;
-                    timerEl.innerText = time + 's';
-                    
+                    time -= 0.1;
                     if (time <= 0) {
+                        time = 0;
                         clearInterval(interval);
-                        timerEl.innerText = '¡COMPLETADO!';
+                        window.removeEventListener('devicemotion', handleMotion);
+                        active = false;
+                        timerEl.innerText = '¡LOGRADO!';
                         timerEl.style.color = '#4caf50';
+                        statusEl.innerText = '✓ Pulso de oxígeno estabilizado';
                         lung.innerText = '✨🫁✨';
                         
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_14_oxygen', {type:'game', data: 'Apnea familiar 60s completada'}, role, true);
+                            submitMission('day_14_oxygen', {type:'game', data: 'Apnea familiar 30s completada y verificada por sensor'}, role, true);
                         }, 1200);
+                    } else {
+                        timerEl.innerText = time.toFixed(1) + 's';
+                        lung.style.transform = `scale(${1 + (30.0 - time) * 0.005})`;
                     }
-                }, 1000);
+                }, 100);
             });
             
             window._missionCleanup = () => {
                 clearInterval(interval);
+                window.removeEventListener('devicemotion', handleMotion);
             };
         }
     },
@@ -2632,7 +3775,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #80deea 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌊 El Estruendo de Shiraito 🌊</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">La cascada tiene 150m de ancho y cae en hilos finos. Inicia la grabación para capturar el sonido del agua chocando contra el estanque.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">La cascada tiene 150m de ancho y cae en hilos finos. Inicia la grabación para capturar el sonido del agua chocando contra el estanque. El volumen debe superar un umbral del 15% para validar que estás cerca.</p>
                 
                 <div style="background:#1a1a24; padding:10px; border-radius:10px; margin-bottom:15px; border:2px solid #00acc1; position:relative;">
                     <canvas id="water-wave" width="280" height="80" style="width:100%; height:80px; display:block; background:#111; border-radius:5px;"></canvas>
@@ -2659,6 +3802,7 @@ Object.assign(MISSIONS_CONFIG, {
             let dataArray = [];
             let timeLeft = 5.0;
             let interval = null;
+            let maxVol = 0;
             
             const drawWave = () => {
                 if (!recording) return;
@@ -2674,10 +3818,11 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 const sliceWidth = canvas.width / dataArray.length;
                 let x = 0;
+                let sum = 0;
                 
                 for (let i = 0; i < dataArray.length; i++) {
-                    const v = dataArray[i] / 128.0;
-                    const y = (v * canvas.height) / 2;
+                    const valNorm = dataArray[i] / 128.0;
+                    const y = (valNorm * canvas.height) / 2;
                     
                     if (i === 0) {
                         ctx.moveTo(x, y);
@@ -2685,7 +3830,13 @@ Object.assign(MISSIONS_CONFIG, {
                         ctx.lineTo(x, y);
                     }
                     x += sliceWidth;
+                    
+                    const v = (dataArray[i] - 128) / 128.0;
+                    sum += v * v;
                 }
+                
+                const rms = Math.sqrt(sum / dataArray.length);
+                if (rms > maxVol) maxVol = rms;
                 
                 ctx.lineTo(canvas.width, canvas.height / 2);
                 ctx.stroke();
@@ -2706,6 +3857,7 @@ Object.assign(MISSIONS_CONFIG, {
                     dataArray = new Uint8Array(analyser.frequencyBinCount);
                     recording = true;
                     timeLeft = 5.0;
+                    maxVol = 0;
                     timerEl.innerText = '05.0s';
                     btnRec.disabled = true;
                     btnRec.innerText = '⏳ Grabando...';
@@ -2732,9 +3884,18 @@ Object.assign(MISSIONS_CONFIG, {
                             ctx.stroke();
                             
                             timerEl.innerText = '00.0s';
-                            btnRec.innerText = '✨ Audio Capturado';
-                            btnSubmit.classList.remove('hidden');
-                            if (window.playProceduralSound) playProceduralSound('success');
+                            btnRec.disabled = false;
+                            
+                            if (maxVol < 0.15) {
+                                if (window.playProceduralSound) playProceduralSound('error');
+                                showAlert('VOLUMEN MUY BAJO', 'El volumen medio registrado es demasiado bajo (menos del 15% de sonoridad). Acércate a la cascada de Shiraito para capturar su verdadero y ensordecedor murmullo natural e inténtalo de nuevo.');
+                                btnRec.innerText = '🎤 REINTENTAR GRABACIÓN';
+                            } else {
+                                if (window.playProceduralSound) playProceduralSound('success');
+                                btnRec.innerText = '✨ Audio Válido Capturado';
+                                btnRec.disabled = true;
+                                btnSubmit.classList.remove('hidden');
+                            }
                         } else {
                             timerEl.innerText = `${timeLeft.toFixed(1)}s`;
                         }
@@ -2779,52 +3940,279 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Estanques",
         render: () => `
-        <p class="mission-desc">Dibuja el pez más bonito que hayas visto en el agua cristalina.</p>
-        <div style="background:#fff; border:2px solid #ccc; width:100%; max-width:300px; height:300px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
-            <canvas id="fish-can" width="300" height="300" style="width:100%; height:100%;"></canvas>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <button id="btn-clear" class="btn-secondary" style="flex:1;">Borrar</button>
-            <button id="btn-sub" class="btn-primary" style="flex:2;">Enviar Pez</button>
-        </div>
-    `,
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🐟 Dibuja la Carpa Koi 🐟</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#0277bd;">Dibuja una colorida carpa Koi de los estanques tradicionales en el canvas. Elige tus colores de tinta tradicional:</p>
+                
+                <div style="display:flex; justify-content:center; gap:12px; margin-bottom:12px;">
+                    <button class="fish-color" data-color="#e74c3c" style="background:#e74c3c; width:35px; height:35px; border-radius:50%; border:3px solid #01579b; cursor:pointer; transition:transform 0.2s;"></button>
+                    <button class="fish-color" data-color="#e67e22" style="background:#e67e22; width:35px; height:35px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.2s;"></button>
+                    <button class="fish-color" data-color="#2c3e50" style="background:#2c3e50; width:35px; height:35px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.2s;"></button>
+                    <button class="fish-color" data-color="#f1c40f" style="background:#f1c40f; width:35px; height:35px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform 0.2s;"></button>
+                </div>
+
+                <div style="background:#fff; border:2px solid #0288d1; width:100%; max-width:300px; height:250px; margin:0 auto 15px; border-radius:10px; position:relative; overflow:hidden; touch-action:none;">
+                    <canvas id="fish-can" width="300" height="250" style="width:100%; height:100%; display:block;"></canvas>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-clear" class="btn-secondary" style="flex:1; border-radius:25px; font-family:inherit; font-weight:bold; background:#b3e5fc; border-color:#0288d1; color:#01579b;">🗑️ Borrar</button>
+                    <button id="btn-sub" class="btn-primary" style="flex:2; border-radius:25px; font-family:inherit; font-weight:bold; background:#ccc; border-color:#ccc; color:#666;" disabled>📨 Enviar Dibujo</button>
+                </div>
+            </div>
+        `,
         attachEvents: () => {
-        const can = document.getElementById('fish-can'); const ctx = can.getContext('2d');
-        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 5; ctx.lineCap = 'round';
-        let drawing = false;
-        const getPos = (e) => { const rect=can.getBoundingClientRect(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY; return {x:cx-rect.left, y:cy-rect.top}; };
-        const start = (e) => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); };
-        const draw = (e) => { if(!drawing) return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); };
-        const stop = () => { drawing=false; };
-        can.addEventListener('mousedown', start); can.addEventListener('mousemove', draw); can.addEventListener('mouseup', stop); can.addEventListener('mouseout', stop);
-        can.addEventListener('touchstart', start, {passive:false}); can.addEventListener('touchmove', draw, {passive:false}); can.addEventListener('touchend', stop);
-        
-        document.getElementById('btn-clear').addEventListener('click', () => ctx.clearRect(0,0,can.width,can.height));
-        document.getElementById('btn-sub').addEventListener('click', async () => {
-            const data = can.toDataURL(); const id = 'fish_'+Date.now();
-            await savePhotoToDB(id, data); submitMission('day_15_fish', {type:'photo', data:id});
-        });
-    }
+            const can = document.getElementById('fish-can');
+            const ctx = can.getContext('2d');
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            
+            let drawing = false;
+            let pointCount = 0;
+            const colorBtns = document.querySelectorAll('.fish-color');
+            const submitBtn = document.getElementById('btn-sub');
+            
+            colorBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    colorBtns.forEach(bb => bb.style.borderColor = 'transparent');
+                    e.target.style.borderColor = '#01579b';
+                    ctx.strokeStyle = e.target.dataset.color;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                });
+            });
+            
+            const checkValidity = () => {
+                if (pointCount >= 15) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#0288d1';
+                    submitBtn.style.borderColor = '#0288d1';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            const getPos = (e) => {
+                const rect = can.getBoundingClientRect();
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: cx - rect.left, y: cy - rect.top };
+            };
+            
+            const start = (e) => {
+                drawing = true;
+                const p = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            };
+            
+            const draw = (e) => {
+                if (!drawing) return;
+                e.preventDefault();
+                const p = getPos(e);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                pointCount++;
+                checkValidity();
+            };
+            
+            const stop = () => { drawing = false; };
+            
+            can.addEventListener('mousedown', start);
+            can.addEventListener('mousemove', draw);
+            can.addEventListener('mouseup', stop);
+            can.addEventListener('mouseout', stop);
+            can.addEventListener('touchstart', start, { passive: false });
+            can.addEventListener('touchmove', draw, { passive: false });
+            can.addEventListener('touchend', stop);
+            
+            document.getElementById('btn-clear').addEventListener('click', () => {
+                ctx.clearRect(0, 0, can.width, can.height);
+                pointCount = 0;
+                checkValidity();
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            submitBtn.addEventListener('click', async () => {
+                if (pointCount < 15) return;
+                const data = can.toDataURL();
+                const id = 'fish_' + Date.now();
+                await savePhotoToDB(id, data);
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_15_fish', { type: 'photo', data: id });
+            });
+        }
     },
 
 "day_15_shogun": {
-        tag: "physical", day: 15, title: "El Trono del Shogun", role: "kid9", xp: 15, location: "Takayama",
+        tag: "physical",
+        day: 15,
+        title: "El Trono del Shogun",
+        role: "kid9",
+        xp: 15,
+        location: "Takayama",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">👑 Encuentra el lugar con la mejor vista de la aldea y siéntate como si fueras la Shogun que gobierna todo lo que ve. Mantén la postura real durante 60 segundos.</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a1a2e,#4a148c); border-radius:15px;">
-            <p style="font-size:3rem;">👑🏯⚔️</p>
-            <div id="sh-timer" style="font-size:2.5rem; color:#d4af37; font-family:monospace; margin:10px 0;">60</div>
-        </div>
-        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">👑 Adoptar Postura Real</button>
-        <button id="btn" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar al Juez</button>`,
-        attachEvents: () => {
-            let t=60,int=null;
-            document.getElementById('btn-start').addEventListener('click',(e)=>{
-                e.target.classList.add('hidden');
-                int=setInterval(()=>{t--;document.getElementById('sh-timer').innerText=t;if(t<=0){clearInterval(int);document.getElementById('btn').classList.remove('hidden');document.getElementById('sh-timer').innerText='👑';}},1000);
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #795548; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👑 El Trono del Shōgun 👑</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Sube a un mirador con vistas a la aldea histórica. Adopta una postura real e inmóvil durante 30s. Después, toma una foto del hermoso paisaje para reportar:</p>
+                
+                <div style="text-align:center; margin:15px 0; background:#fff; padding:15px; border-radius:10px; border:2px solid #795548;">
+                    <div style="font-size:3rem;" id="shogun-icon">👑</div>
+                    <div id="sh-timer" style="font-size:2.5rem; font-weight:bold; color:#5d4037; font-family:monospace; margin:10px 0;">30.0s</div>
+                    <div style="font-size:0.75rem; color:#888;" id="sh-status">Pulsa iniciar para adoptar la postura...</div>
+                </div>
+
+                <input type="file" id="file-input-shogun" accept="image/*" style="display:none;">
+                <div id="shogun-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #795548; padding:5px; background:#fff; text-align:center;">
+                    <span style="font-size:0.75rem; color:#795548; font-weight:bold;">✓ Foto del mirador del Shōgun registrada</span>
+                </div>
+                
+                <button id="btn-start" class="btn-secondary" style="width:100%; font-weight:bold; border-radius:25px; padding:12px; margin-bottom:10px;">👑 Iniciar Postura (30s)</button>
+                <button id="btn-photo-shogun" class="btn-secondary hidden" style="width:100%; font-weight:bold; border-radius:25px; padding:12px; margin-bottom:10px;">📸 Capturar Paisaje</button>
+                <button id="btn-submit-shogun" class="btn-primary" style="width:100%; font-weight:bold; border-radius:25px; padding:12px; background:#ccc; border-color:#ccc; color:#666;" disabled>📨 Enviar Reporte del Trono</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnStart = document.getElementById('btn-start');
+            const btnPhoto = document.getElementById('btn-photo-shogun');
+            const btnSubmit = document.getElementById('btn-submit-shogun');
+            const timerEl = document.getElementById('sh-timer');
+            const statusEl = document.getElementById('sh-status');
+            const fileInput = document.getElementById('file-input-shogun');
+            const previewEl = document.getElementById('shogun-preview');
+            const shogunIcon = document.getElementById('shogun-icon');
+            
+            let active = false;
+            let time = 30.0;
+            let interval = null;
+            let initialMag = null;
+            let photoId = null;
+            
+            const handleMotion = (e) => {
+                if (!active) return;
+                const acc = e.accelerationIncludingGravity || e.acceleration || {x:0, y:0, z:0};
+                const x = acc.x || 0;
+                const y = acc.y || 0;
+                const z = acc.z || 0;
+                const mag = Math.sqrt(x*x + y*y + z*z);
+                
+                if (initialMag === null) {
+                    initialMag = mag;
+                    return;
+                }
+                
+                const diff = Math.abs(mag - initialMag);
+                if (diff > 3.0) { 
+                    failPostura();
+                }
+            };
+            
+            const failPostura = () => {
+                if (active) {
+                    active = false;
+                    clearInterval(interval);
+                    window.removeEventListener('devicemotion', handleMotion);
+                    btnStart.classList.remove('hidden');
+                    btnStart.innerText = '👑 REINTENTAR POSTURA';
+                    timerEl.innerText = 'FALLO';
+                    timerEl.style.color = '#e74c3c';
+                    statusEl.innerText = '¡Fallo por movimiento!';
+                    statusEl.style.color = '#e74c3c';
+                    shogunIcon.innerText = '💥';
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('TEMBLOR DETECTADO', 'El Shōgun debe permanecer inmóvil e imponente ante sus dominios. Vuelve a intentarlo sin mover el móvil.');
+                }
+            };
+            
+            btnStart.addEventListener('click', async () => {
+                if (active) return;
+                
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            showAlert('Permiso Requerido', 'Necesitamos acceso al sensor de movimiento para verificar la postura.');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+                
+                active = true;
+                time = 30.0;
+                initialMag = null;
+                timerEl.innerText = '30.0s';
+                timerEl.style.color = '#795548';
+                statusEl.innerText = '✓ Postura Zen Activa. No te muevas.';
+                statusEl.style.color = '#4caf50';
+                shogunIcon.innerText = '👑';
+                btnStart.classList.add('hidden');
+                
+                window.addEventListener('devicemotion', handleMotion);
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                interval = setInterval(() => {
+                    time -= 0.1;
+                    if (time <= 0) {
+                        time = 0;
+                        clearInterval(interval);
+                        window.removeEventListener('devicemotion', handleMotion);
+                        active = false;
+                        timerEl.innerText = '✓ ¡INMÓVIL!';
+                        timerEl.style.color = '#4caf50';
+                        statusEl.innerText = '¡Reto físico superado! Toma foto del paisaje.';
+                        shogunIcon.innerText = '🏯';
+                        btnPhoto.classList.remove('hidden');
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    } else {
+                        timerEl.innerText = time.toFixed(1) + 's';
+                    }
+                }, 100);
             });
-            document.getElementById('btn').addEventListener('click',()=>submitMission('day_15_shogun',{type:'game',data:'Postura Shogun completada'}));
-            window._missionCleanup=()=>clearInterval(int);
+            
+            btnPhoto.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'shogun_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        btnPhoto.classList.add('hidden');
+                        
+                        btnSubmit.removeAttribute('disabled');
+                        btnSubmit.style.background = '#795548';
+                        btnSubmit.style.borderColor = '#795548';
+                        btnSubmit.style.color = '#fff';
+                        
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            btnSubmit.addEventListener('click', () => {
+                if (!photoId) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_15_shogun', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { posturePassed: true }
+                }, role);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(interval);
+                window.removeEventListener('devicemotion', handleMotion);
+            };
         }
     },
 
@@ -2922,33 +4310,66 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> CÁLCULO DE AFORO HÍDRICO: SHIRAITO</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima la cantidad de caudal que cae por segundo a lo largo de los 150m de pared rocosa de la cascada.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima la cantidad de caudal que cae por segundo a lo largo de los 150m de pared rocosa de la cascada. El caudal de Shiraito en condiciones normales se sitúa entre 1.000 y 2.000 Litros/s.</p>
                 
                 <div style="margin:20px 0; padding:15px; background:rgba(0,255,153,0.03); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
                     <span style="font-size:0.8rem; color:#aaa;">CAUDAL ESTIMADO:</span>
                     <div id="flow-disp" style="font-size:2rem; font-weight:bold; color:#ffd700; margin:10px 0;">1.500 Litros/s</div>
                     <input type="range" id="flow-slider" min="100" max="5000" step="100" value="1500" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                    <div id="flow-status" style="font-size:0.75rem; color:#00ff99; margin-top:8px;">✓ Caudal en rango de flujo regular (1.000 - 2.000 L/s)</div>
                 </div>
                 
-                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 ENVIAR DATOS DE AFORO</button>
+                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#111; background:#00ff99;">💾 ENVIAR DATOS DE AFORO</button>
             </div>
         `,
         attachEvents: (role) => {
             const slider = document.getElementById('flow-slider');
             const disp = document.getElementById('flow-disp');
             const btn = document.getElementById('btn-flow');
+            const statusEl = document.getElementById('flow-status');
+            
+            const checkValidity = (val) => {
+                if (val >= 1000 && val <= 2000) {
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
+            };
             
             slider.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
                 disp.innerText = val.toLocaleString('es-ES') + ' Litros/s';
                 if (window.playProceduralSound) playProceduralSound('click');
+                
+                if (val < 1000) {
+                    statusEl.innerText = '⚠ Muy bajo. Las cascadas reciben una inmensa escorrentía subterránea del deshielo del Fuji.';
+                    statusEl.style.color = '#e74c3c';
+                } else if (val > 2000) {
+                    statusEl.innerText = '⚠ Demasiado alto. Salvo en tifón severo, el caudal regular no supera los 2.000 L/s.';
+                    statusEl.style.color = '#e74c3c';
+                } else {
+                    statusEl.innerText = '✓ Caudal en rango de flujo regular (1.000 - 2.000 L/s)';
+                    statusEl.style.color = '#00ff99';
+                }
+                checkValidity(val);
             });
             
             btn.addEventListener('click', () => {
                 const val = parseInt(slider.value);
+                if (val < 1000 || val > 2000) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_15_flow', {type:'number', data: val}, role);
             });
+            
+            // Set initial state
+            checkValidity(parseInt(slider.value));
         }
     },
 
@@ -3095,7 +4516,7 @@ Object.assign(MISSIONS_CONFIG, {
                     <span id="meters-disp" style="font-size:0.95rem; font-weight:bold; color:#ff9800; margin-top:5px;">Altura estimada: 90 metros</span>
                 </div>
                 
-                <button id="btn-skyscraper" class="btn-primary" style="width:100%; background:#81c784; border-color:#81c784; color:#fff; font-weight:bold; border-radius:25px;">🏢 ENVIAR REGISTRO DE ALTURA</button>
+                <button id="btn-skyscraper" class="btn-primary" style="width:100%; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>🏢 ENVIAR REGISTRO DE ALTURA</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -3104,6 +4525,22 @@ Object.assign(MISSIONS_CONFIG, {
             const meters = document.getElementById('meters-disp');
             const btn = document.getElementById('btn-skyscraper');
             const emoji = document.getElementById('elev-emoji');
+            
+            let interacted = false;
+            
+            const checkValidity = () => {
+                if (interacted) {
+                    btn.removeAttribute('disabled');
+                    btn.style.background = '#81c784';
+                    btn.style.borderColor = '#81c784';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.background = '#ccc';
+                    btn.style.borderColor = '#ccc';
+                    btn.style.color = '#666';
+                }
+            };
             
             slider.addEventListener('input', (e) => {
                 const floors = parseInt(e.target.value);
@@ -3114,14 +4551,20 @@ Object.assign(MISSIONS_CONFIG, {
                 else if (floors > 40) emoji.innerText = '🏙️';
                 else emoji.innerText = '🏢';
                 
+                interacted = true;
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             });
             
             btn.addEventListener('click', () => {
                 const floors = parseInt(slider.value);
+                if (!interacted) return;
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_16_skyscraper', {type:'number', data: `${floors} pisos (${floors * 3}m)`}, role);
             });
+            
+            // Set initial validation
+            checkValidity();
         }
     },
 
@@ -3133,23 +4576,83 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Shinjuku",
         render: () => `
-        <p class="mission-desc">Observa las luces de neón y elige los 3 colores que más te llamen la atención.</p>
-        <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:15px;">
-            ${['Rojo', 'Naranja', 'Amarillo', 'Verde', 'Azul', 'Morado', 'Rosa', 'Blanco', 'Dorado', 'Plata'].map(c => `<button class="c-btn" style="padding:10px; border-radius:10px; border:2px solid #ccc; background:#333; flex-grow:1;">${c}</button>`).join('')}
-        </div>
-        <div id="c-count" style="text-align:center; margin-bottom:10px; font-weight:bold;">Colores elegidos: 0/3</div>
-        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar colores</button>
-    `,
+            <div style="text-align:center; padding:15px; background:#12121c; border-radius:15px; border:3px solid #ff007f; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 0 20px rgba(255,0,127,0.3);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px; text-shadow:0 0 5px #ff007f;">🌃 Neones de Shinjuku 🌃</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ff80bf;">Observa las deslumbrantes luces nocturnas de Shinjuku y selecciona exactamente 3 colores de neones que veas brillando a tu alrededor:</p>
+                
+                <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:15px;">
+                    ${['Rojo', 'Naranja', 'Amarillo', 'Verde', 'Azul', 'Morado', 'Rosa', 'Blanco', 'Dorado', 'Plata'].map(c => `
+                        <button class="c-btn" style="padding:10px 14px; border-radius:8px; border:2px solid #555; background:#1a1a2e; color:#bbb; font-weight:bold; cursor:pointer; transition:all 0.2s; font-family:inherit;">${c}</button>
+                    `).join('')}
+                </div>
+                
+                <div id="c-count" style="text-align:center; margin-bottom:15px; font-weight:bold; text-shadow:0 0 5px #00ffff; color:#00ffff;">Colores elegidos: 0/3</div>
+                <button id="btn-colors-submit" class="btn-primary" style="width:100%; padding:12px; border-radius:25px; background:#ccc; border-color:#ccc; color:#666; font-family:inherit; font-weight:bold;" disabled>Enviar colores</button>
+            </div>
+        `,
         attachEvents: () => {
-        let sel = []; const btns = document.querySelectorAll('.c-btn'); const cEl = document.getElementById('c-count'); const btn = document.getElementById('btn');
-        btns.forEach(b => b.addEventListener('click', () => {
-            if(sel.includes(b.innerText)) { sel = sel.filter(x => x !== b.innerText); b.style.borderColor = '#ccc'; b.style.color = 'white'; }
-            else if(sel.length < 3) { sel.push(b.innerText); b.style.borderColor = '#0f0'; b.style.color = '#0f0'; }
-            cEl.innerText = `Colores elegidos: ${sel.length}/3`;
-            if(sel.length === 3) btn.classList.remove('hidden'); else btn.classList.add('hidden');
-        }));
-        btn.addEventListener('click', () => submitMission('day_16_colors', {type:'text', data:sel.join(', ')}));
-    }
+            let sel = [];
+            const btns = document.querySelectorAll('.c-btn');
+            const cEl = document.getElementById('c-count');
+            const btn = document.getElementById('btn-colors-submit');
+            
+            const neonColors = {
+                'Rojo': '#ff3b30',
+                'Naranja': '#ff9500',
+                'Amarillo': '#ffcc00',
+                'Verde': '#4cd964',
+                'Azul': '#5ac8fa',
+                'Morado': '#5856d6',
+                'Rosa': '#ff2d55',
+                'Blanco': '#ffffff',
+                'Dorado': '#ffd700',
+                'Plata': '#e5e5ea'
+            };
+            
+            const checkValidity = () => {
+                cEl.innerText = `Colores elegidos: ${sel.length}/3`;
+                if (sel.length === 3) {
+                    btn.removeAttribute('disabled');
+                    btn.style.background = '#ff007f';
+                    btn.style.borderColor = '#ff007f';
+                    btn.style.color = '#fff';
+                    btn.style.boxShadow = '0 0 10px #ff007f';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.background = '#ccc';
+                    btn.style.borderColor = '#ccc';
+                    btn.style.color = '#666';
+                    btn.style.boxShadow = 'none';
+                }
+            };
+            
+            btns.forEach(b => b.addEventListener('click', () => {
+                const color = b.innerText.trim();
+                if (sel.includes(color)) {
+                    sel = sel.filter(x => x !== color);
+                    b.style.borderColor = '#555';
+                    b.style.color = '#bbb';
+                    b.style.boxShadow = 'none';
+                    b.style.textShadow = 'none';
+                } else if (sel.length < 3) {
+                    sel.push(color);
+                    const hex = neonColors[color] || '#ff007f';
+                    b.style.borderColor = hex;
+                    b.style.color = hex;
+                    b.style.boxShadow = `0 0 10px ${hex}`;
+                    b.style.textShadow = `0 0 5px ${hex}`;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            }));
+            
+            btn.addEventListener('click', () => {
+                if (sel.length !== 3) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_16_colors', {type:'text', data: sel.join(', ')});
+            });
+        }
     },
 
     "day_16_traffic": {
@@ -3413,28 +4916,75 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> MONITOR DE FLUJO: DENSIDAD CRUCE PEATONAL</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">En el cruce de Shibuya o Shinjuku, estima cuántas personas aproximadamente cruzan la calle en un solo semáforo verde peatonal.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Toma una foto de un cruce peatonal concurrido y estima cuántas personas aproximadamente cruzan la calle en un solo semáforo verde:</p>
                 
                 <div style="margin-bottom:15px;">
                     <label style="display:block; font-size:0.8rem; color:#00ff99; margin-bottom:5px;">PERSONAS ESTIMADAS POR CICLO VERDE:</label>
-                    <input type="number" id="people-count" placeholder="Ej: 1000" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                    <input type="number" id="people-count" placeholder="Introduce estimación (mínimo 10)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:5px; font-family:monospace; box-sizing:border-box;">
+                </div>
+
+                <input type="file" id="file-input-density" accept="image/*" style="display:none;">
+                <div id="density-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:1px dashed #00ff99; padding:5px; background:#111; text-align:center;">
+                    <span style="font-size:0.75rem; color:#00ff99; font-weight:bold;">✓ Foto del cruce peatonal cargada</span>
                 </div>
                 
-                <button id="btn-density" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">💾 REGISTRAR CENSADO POBLACIONAL</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-density" class="btn-secondary" style="flex:1; border-color:#00ff99; color:#00ff99; background:transparent;">📸 Hacer Foto</button>
+                    <button id="btn-density" class="btn-primary" style="flex:1; border-color:#555; color:#555; background:transparent;" disabled>💾 REGISTRAR CENSO</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
-            const btn = document.getElementById('btn-density');
-            const input = document.getElementById('people-count');
+            let photoId = null;
+            const inputVal = document.getElementById('people-count');
+            const fileInput = document.getElementById('file-input-density');
+            const selectFileBtn = document.getElementById('btn-select-density');
+            const submitBtn = document.getElementById('btn-density');
+            const previewEl = document.getElementById('density-preview');
             
-            btn.addEventListener('click', () => {
-                const val = parseInt(input.value);
-                if (isNaN(val) || val < 10) {
-                    showAlert('VALOR INCONSISTENTE', 'Indica un volumen de personas realista para un gran cruce peatonal de Tokio.');
-                    return;
+            const checkValidity = () => {
+                const val = parseInt(inputVal.value);
+                if (!isNaN(val) && val >= 10 && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
                 }
+            };
+            
+            inputVal.addEventListener('input', checkValidity);
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'density_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const val = parseInt(inputVal.value);
+                if (isNaN(val) || val < 10 || !photoId) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_16_density', {type:'number', data: val}, role);
+                submitMission('day_16_density', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { estimatedCount: val }
+                }, role);
             });
         }
     },

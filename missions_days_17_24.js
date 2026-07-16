@@ -12,27 +12,165 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Senso-ji",
         render: () => `
-        <p class="mission-desc">Saca un papel de la suerte (omikuji) y registra tu resultado.</p>
-        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
-            <button class="btn-secondary btn-o" data-res="Buena Suerte">🌟 Buena Suerte</button>
-            <button class="btn-secondary btn-o" data-res="Suerte Regular">😐 Suerte Regular</button>
-            <button class="btn-secondary btn-o" data-res="Mala Suerte">💀 Mala Suerte</button>
-        </div>
-        <div id="o-msg" style="color:red; font-weight:bold; margin-bottom:10px; text-align:center;"></div>
-        <button id="btn" class="btn-primary hidden" style="width:100%">Enviar destino</button>
-    `,
-        attachEvents: () => {
-        let res = "";
-        document.querySelectorAll('.btn-o').forEach(b => b.addEventListener('click', (e) => {
-            res = e.target.dataset.res;
-            document.querySelectorAll('.btn-o').forEach(bb => bb.style.borderColor='transparent');
-            e.target.style.borderColor='#0f0';
-            if(res === 'Mala Suerte') document.getElementById('o-msg').innerText = "¡Átalo al poste del templo para que no te siga!";
-            else document.getElementById('o-msg').innerText = "";
-            document.getElementById('btn').classList.remove('hidden');
-        }));
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_omikuji', {type:'text', data:`Destino: ${res}`}));
-    }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fffde7 0%, #fff9c4 100%); border-radius:15px; border:3px solid #fbc02d; color:#f57f17; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🏮 Oráculo Omikuji 🏮</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#f9a825;">Agita la caja de bambú sagrada (o pulsa el botón) para revelar tu destino de la suerte en Senso-ji:</p>
+                
+                <div id="shaking-cup" style="font-size:4rem; margin:15px auto; width:100px; height:100px; display:flex; align-items:center; justify-content:center; transition: transform 0.1s;">🎋</div>
+                <div id="omikuji-result" style="display:none; font-size:1.8rem; font-weight:bold; color:#d84315; margin:15px 0;"></div>
+                <div id="omikuji-description" style="display:none; font-size:0.85rem; color:#f57f17; margin-bottom:15px;"></div>
+                
+                <div id="tie-area" style="display:none; background:#fff; border-radius:10px; padding:12px; border:2px dashed #d84315; margin-bottom:15px;">
+                    <p style="font-size:0.8rem; color:#d84315; font-weight:bold; margin-bottom:8px;">🏮 ¡MALA SUERTE DETECTADA! 🏮</p>
+                    <p style="font-size:0.75rem; color:#888; margin-bottom:8px;">Para no llevarte el mal augurio a casa, dibuja un lazo protector en el lienzo para atarlo al poste del templo:</p>
+                    <canvas id="tie-canvas" width="200" height="100" style="width:200px; height:100px; border:1px solid #ffab91; background:#fff5f2; border-radius:6px; touch-action:none; display:block; margin:0 auto;"></canvas>
+                </div>
+                
+                <button id="btn-shake" class="btn-primary" style="width:100%; border-radius:25px; background:#fbc02d; border-color:#fbc02d; color:#fff; font-weight:bold;">⚡ AGITAR CAJA</button>
+                <button id="btn-submit-omikuji" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#ccc; border-color:#ccc; color:#666; font-weight:bold;" disabled>📨 Registrar Destino</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const cup = document.getElementById('shaking-cup');
+            const resultEl = document.getElementById('omikuji-result');
+            const descEl = document.getElementById('omikuji-description');
+            const tieArea = document.getElementById('tie-area');
+            const shakeBtn = document.getElementById('btn-shake');
+            const submitBtn = document.getElementById('btn-submit-omikuji');
+            const canvas = document.getElementById('tie-canvas');
+            
+            let shaking = false;
+            let result = '';
+            let motionRegistered = false;
+            
+            const outcomes = [
+                { res: 'Buena Suerte', msg: '🌟 ¡Gran Fortuna! La suerte te sonríe en tu viaje por Japón.' },
+                { res: 'Suerte Regular', msg: '😐 Suerte Moderada. Todo marchará sobre ruedas si eres precavida.' },
+                { res: 'Mala Suerte', msg: '💀 Mala Suerte. ¡Peligro! Debes atar este papel en el poste sagrado del templo.' }
+            ];
+            
+            const handleMotion = (e) => {
+                if (shaking || result) return;
+                const acc = e.acceleration || {x:0, y:0, z:0};
+                const totalAcc = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
+                if (totalAcc > 12) {
+                    motionRegistered = true;
+                    startShake();
+                }
+            };
+            
+            const startShake = () => {
+                if (shaking) return;
+                shaking = true;
+                shakeBtn.setAttribute('disabled', 'true');
+                shakeBtn.innerText = '⏳ Agitando...';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                // Add CSS shake animation
+                cup.style.animation = 'shake 0.5s infinite';
+                const styleSheet = document.createElement("style");
+                styleSheet.innerText = `@keyframes shake { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 2px) rotate(-8deg); } 20%, 40%, 60%, 80% { transform: translate(5px, -2px) rotate(8deg); } }`;
+                document.head.appendChild(styleSheet);
+                
+                setTimeout(() => {
+                    cup.style.animation = '';
+                    shaking = false;
+                    
+                    const pick = outcomes[Math.floor(Math.random() * outcomes.length)];
+                    result = pick.res;
+                    
+                    resultEl.innerText = (result === 'Buena Suerte' ? '🌟 ' : result === 'Suerte Regular' ? '😐 ' : '💀 ') + result;
+                    resultEl.style.display = 'block';
+                    descEl.innerText = pick.msg;
+                    descEl.style.display = 'block';
+                    shakeBtn.classList.add('hidden');
+                    
+                    if (result === 'Mala Suerte') {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        tieArea.style.display = 'block';
+                        initTieCanvas();
+                    } else {
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        enableSubmit();
+                    }
+                }, 2000);
+            };
+            
+            const enableSubmit = () => {
+                submitBtn.classList.remove('hidden');
+                submitBtn.removeAttribute('disabled');
+                submitBtn.style.background = '#fbc02d';
+                submitBtn.style.borderColor = '#fbc02d';
+                submitBtn.style.color = '#fff';
+            };
+            
+            const initTieCanvas = () => {
+                const ctx = canvas.getContext('2d');
+                ctx.strokeStyle = '#d84315';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                
+                let drawing = false;
+                let points = 0;
+                
+                const getPos = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+                    return { x: cx - rect.left, y: cy - rect.top };
+                };
+                
+                const start = (e) => {
+                    drawing = true;
+                    const p = getPos(e);
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                };
+                
+                const draw = (e) => {
+                    if (!drawing) return;
+                    e.preventDefault();
+                    const p = getPos(e);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                    points++;
+                    if (points >= 12) {
+                        enableSubmit();
+                        tieArea.style.background = '#e8f5e9';
+                        tieArea.style.borderColor = '#2e7d32';
+                        document.querySelector('#tie-area p').innerText = '✓ ¡Destino atado y purificado!';
+                        document.querySelector('#tie-area p').style.color = '#2e7d32';
+                    }
+                };
+                
+                const stop = () => { drawing = false; };
+                
+                canvas.addEventListener('mousedown', start);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stop);
+                canvas.addEventListener('touchstart', start, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', stop);
+            };
+            
+            shakeBtn.addEventListener('click', startShake);
+            
+            if (typeof DeviceMotionEvent !== 'undefined') {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+            
+            submitBtn.addEventListener('click', () => {
+                if (!result) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_17_omikuji', { type: 'text', data: `Destino Omikuji: ${result}` }, role);
+            });
+            
+            window._missionCleanup = () => {
+                window.removeEventListener('devicemotion', handleMotion);
+            };
+        }
     },
 
 "day_17_incense": {
@@ -58,8 +196,7 @@ Object.assign(MISSIONS_CONFIG, {
         <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Gashapon</button>`,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_17_gashapon', currentUser, false); }
     },
-
-"day_17_p2p_receiver": {
+    "day_17_p2p_receiver": {
         tag: "expert",
         day: 17,
         title: "Sincronización P2P (Receptor)",
@@ -67,19 +204,107 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 25,
         location: "Akihabara",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #ffd700; color:#ffd700; box-shadow:0 4px 15px rgba(255,215,0,0.15); line-height:1.5;">
-            <p>>>> RECEPTORA P2P: PANEL DE CONEXIÓN</p>
-            <p style="color:#aaa; font-size:0.85rem;">Estás conectada en modo receptor con tu hermano Iván.</p>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:10px;">Iván verá la regla secreta y la secuencia de colores base en su pantalla. Deberá dictarte el orden correcto (Puerto 1 a Puerto 4). Tú tendrás los cables de colores que arrastrar en el juego.</p>
-            <p style="color:#ffffff; font-weight:bold; margin-top:15px;">¡Coordinaros por voz para conectar cada color en su puerto!</p>
-            <button id="btn" class="btn-primary" style="width:100%; margin-top:20px; border-color:#ffd700; color:#ffd700; background:transparent;">🔌 ABRIR PANEL DE CONEXIÓN</button>
-        </div>
-    `,
-        attachEvents: () => {
-        document.getElementById('btn').addEventListener('click', () => {
-            submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado'});
-        });
-    }
+            <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #ffd700; color:#ffd700; box-shadow:0 4px 15px rgba(255,215,0,0.15); line-height:1.5;">
+                <p>>>> RECEPTORA P2P: PANEL DE CONEXIÓN</p>
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:15px;">Pídele a Iván que te dicte el orden de conexión secreto (secuencia de 4 colores). Pulsa los botones en ese orden exacto para alinear la señal:</p>
+                
+                <div style="background:#111b24; padding:15px; border-radius:10px; border:1px dashed #ffd700; margin-bottom:15px; text-align:center;">
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa;">PUERTOS DE RED CONECTADOS:</p>
+                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
+                        <div id="p2p-port-0" style="width:40px; height:40px; border:2px solid #555; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; background:#222; color:#aaa;">P1</div>
+                        <div id="p2p-port-1" style="width:40px; height:40px; border:2px solid #555; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; background:#222; color:#aaa;">P2</div>
+                        <div id="p2p-port-2" style="width:40px; height:40px; border:2px solid #555; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; background:#222; color:#aaa;">P3</div>
+                        <div id="p2p-port-3" style="width:40px; height:40px; border:2px solid #555; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.8rem; background:#222; color:#aaa;">P4</div>
+                    </div>
+                    
+                    <p style="margin:0 0 10px 0; font-size:0.8rem; color:#aaa;">SELECCIONA COLORES DE RED:</p>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button class="p2p-btn-color" data-color="amarillo" style="width:45px; height:45px; border-radius:8px; background:#ffd700; border:none; cursor:pointer; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></button>
+                        <button class="p2p-btn-color" data-color="azul" style="width:45px; height:45px; border-radius:8px; background:#00e5ff; border:none; cursor:pointer; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></button>
+                        <button class="p2p-btn-color" data-color="rojo" style="width:45px; height:45px; border-radius:8px; background:#ff4081; border:none; cursor:pointer; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></button>
+                        <button class="p2p-btn-color" data-color="verde" style="width:45px; height:45px; border-radius:8px; background:#00ff99; border:none; cursor:pointer; font-weight:bold; box-shadow:0 3px 6px rgba(0,0,0,0.3);"></button>
+                    </div>
+                    <button id="p2p-reset" style="margin-top:15px; background:transparent; border:1px solid #ff4081; color:#ff4081; border-radius:15px; padding:3px 12px; font-size:0.75rem; font-family:monospace; cursor:pointer;">🧹 Reiniciar Puertos</button>
+                </div>
+                
+                <button id="btn-p2p-receiver-submit" class="btn-primary hidden" style="width:100%; border-color:#ffd700; color:#ffd700; background:transparent; font-family:monospace; font-family:'Quicksand', sans-serif;">🔌 TRANSMITIR DATOS SINCRO</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const ports = [
+                document.getElementById('p2p-port-0'),
+                document.getElementById('p2p-port-1'),
+                document.getElementById('p2p-port-2'),
+                document.getElementById('p2p-port-3')
+            ];
+            const colorBtns = document.querySelectorAll('.p2p-btn-color');
+            const resetBtn = document.getElementById('p2p-reset');
+            const submitBtn = document.getElementById('btn-p2p-receiver-submit');
+            
+            const correctSequence = ['amarillo', 'azul', 'rojo', 'verde'];
+            let userSequence = [];
+            
+            const colorHex = {
+                amarillo: '#ffd700',
+                azul: '#00e5ff',
+                rojo: '#ff4081',
+                verde: '#00ff99'
+            };
+            
+            const resetSequence = () => {
+                userSequence = [];
+                ports.forEach((p, idx) => {
+                    p.innerText = 'P' + (idx + 1);
+                    p.style.background = '#222';
+                    p.style.borderColor = '#555';
+                    p.style.color = '#aaa';
+                });
+                submitBtn.classList.add('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
+            };
+            
+            colorBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (userSequence.length >= 4) return;
+                    const color = this.dataset.color;
+                    userSequence.push(color);
+                    
+                    const currentIdx = userSequence.length - 1;
+                    const port = ports[currentIdx];
+                    port.innerText = '🔌';
+                    port.style.background = colorHex[color];
+                    port.style.borderColor = colorHex[color];
+                    port.style.color = '#000';
+                    
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    if (userSequence.length === 4) {
+                        let win = true;
+                        for (let i = 0; i < 4; i++) {
+                            if (userSequence[i] !== correctSequence[i]) {
+                                win = false;
+                                break;
+                            }
+                        }
+                        
+                        if (win) {
+                            submitBtn.classList.remove('hidden');
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            if (window.launchConfetti) launchConfetti();
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            showAlert('SEÑAL INCORRECTA', 'Los cables no están en los puertos indicados. La señal se ha perdido. ¡Sincronízate con Iván y reinicia el panel!');
+                        }
+                    }
+                });
+            });
+            
+            resetBtn.addEventListener('click', resetSequence);
+            
+            submitBtn.addEventListener('click', () => {
+                submitMission('day_17_p2p_receiver', {type:'game', data:'P2P Sincronizado correctamente con Iván (Amarillo, Azul, Rojo, Verde)'}, role);
+            });
+        }
     },
 
 "day_17_retro": {
@@ -90,23 +315,76 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Akihabara",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> BUSCANDO JUEGO RETRO EN SUPER POTATO</p>
-            <input type="text" id="r-game" placeholder="Nombre del juego..." style="width:100%; margin-bottom:10px;">
-            <input type="number" id="r-yen" placeholder="Precio en Yenes (¥)..." style="width:100%; margin-bottom:10px;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Convertir a Euros</button>
-            <div id="r-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
-        </div>
-    `,
-        attachEvents: () => {
-        let eur = 0;
-        document.getElementById('btn-calc').addEventListener('click', () => {
-            const y = document.getElementById('r-yen').value;
-            if(y) { eur = (y / 160).toFixed(2); document.getElementById('r-res').innerText = `Aprox: ${eur} €`; document.getElementById('btn').classList.remove('hidden'); }
-        });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_17_retro', {type:'text', data:`Juego: ${document.getElementById('r-game').value}. Precio: ${document.getElementById('r-yen').value}¥ (${eur}€)`}));
-    }
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> BUSCANDO JUEGO RETRO EN SUPER POTATO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:12px;">Encuentra un juego retro en la mítica tienda Super Potato. Introduce su nombre y precio en yenes para calcular su tasación en euros (rango realista: ¥200 - ¥90.000):</p>
+                
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:4px;">NOMBRE DEL JUEGO:</label>
+                    <input type="text" id="r-game" placeholder="Ej: Super Mario Bros..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:4px; font-family:inherit; box-sizing:border-box;">
+                </div>
+                
+                <div style="margin-bottom:15px;">
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:4px;">PRECIO EN YENES (¥):</label>
+                    <input type="number" id="r-yen" placeholder="Ej: 3200..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; border-radius:4px; font-family:inherit; box-sizing:border-box;">
+                </div>
+                
+                <button id="btn-calc" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>Convertir a Euros</button>
+                
+                <div id="r-res" style="color:#ffd700; margin:15px 0 0 0; font-weight:bold; font-size:1.1rem; text-align:center;"></div>
+                <button id="btn" class="btn-primary hidden" style="width:100%; margin-top:10px; border-color:#00ff99; color:#111; background:#00ff99;">Enviar tasación</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const gameInput = document.getElementById('r-game');
+            const yenInput = document.getElementById('r-yen');
+            const calcBtn = document.getElementById('btn-calc');
+            const resEl = document.getElementById('r-res');
+            const submitBtn = document.getElementById('btn');
+            
+            let eur = 0;
+            
+            const checkInputs = () => {
+                const name = gameInput.value.trim();
+                const yen = parseInt(yenInput.value);
+                if (name.length >= 3 && !isNaN(yen) && yen > 0) {
+                    calcBtn.removeAttribute('disabled');
+                    calcBtn.style.borderColor = '#00ff99';
+                    calcBtn.style.color = '#00ff99';
+                } else {
+                    calcBtn.setAttribute('disabled', 'true');
+                    calcBtn.style.borderColor = '#555';
+                    calcBtn.style.color = '#555';
+                }
+            };
+            
+            gameInput.addEventListener('input', checkInputs);
+            yenInput.addEventListener('input', checkInputs);
+            
+            calcBtn.addEventListener('click', () => {
+                const name = gameInput.value.trim();
+                const yen = parseInt(yenInput.value);
+                if (name.length < 3 || isNaN(yen) || yen < 200 || yen > 90000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RANGO FUERA DE LÍMITES', 'El precio indicado en yenes debe estar entre ¥200 y ¥90.000 para ser un juego coleccionable realista de Super Potato.');
+                    return;
+                }
+                
+                eur = (yen / 160).toFixed(2);
+                resEl.innerText = `Aprox: ${eur} € (Cambio: 160 JPY/EUR)`;
+                submitBtn.classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('success');
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const name = gameInput.value.trim();
+                const yen = parseInt(yenInput.value);
+                submitMission('day_17_retro', {
+                    type: 'text',
+                    data: `Juego: ${name}. Precio: ${yen}¥ (${eur}€)`
+                }, role);
+            });
+        }
     },
 
 "day_17_skytree": {
@@ -357,24 +635,93 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Shibuya",
         render: () => `
-        <p class="mission-desc">Cuenta a todas las personas que lleven gafas de sol en un solo cruce en verde (60s).</p>
-        <div style="font-size:3rem; text-align:center; font-weight:bold;" id="s-count">0</div>
-        <div style="font-size:1.5rem; text-align:center; color:red;" id="s-timer">60s</div>
-        <button id="btn-plus" class="btn-secondary" style="width:100%; height:80px; font-size:3rem; margin:10px 0;">+</button>
-        <button id="btn-start" class="btn-primary" style="width:100%;">Comenzar Semáforo</button>
-        <button id="btn" class="btn-primary hidden" style="width:100%;">Enviar recuento</button>
-    `,
-        attachEvents: () => {
-        let c=0, t=60, int=null, active=false;
-        const count = document.getElementById('s-count'); const timer = document.getElementById('s-timer');
-        document.getElementById('btn-plus').addEventListener('click', () => { if(active) { c++; count.innerText = c; } });
-        document.getElementById('btn-start').addEventListener('click', (e) => {
-            active=true; e.target.classList.add('hidden');
-            int = setInterval(()=>{ t--; timer.innerText=t+'s'; if(t<=0) { active=false; clearInterval(int); document.getElementById('btn').classList.remove('hidden'); count.innerText=`Final: ${c}`; } }, 1000);
-        });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_18_shibuya', {type:'number', data:c}));
-        window._missionCleanup = () => clearInterval(int);
-    }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #cfd8dc 100%); border-radius:15px; border:3px solid #607d8b; color:#37474f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🚶 Marea Humana en Shibuya 🚶</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#455a64;">Inicia el cronómetro verde del semáforo (30s) y pulsa el botón cada vez que cruce alguien con gafas de sol:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:15px; border:2px solid #607d8b; margin-bottom:15px; display:flex; align-items:center; justify-content:space-around;">
+                    <div>
+                        <span style="font-size:0.75rem; color:#888; display:block;">GAFAS DETECTADAS:</span>
+                        <span style="font-size:2.8rem; font-weight:bold; color:#37474f;" id="s-count">0</span>
+                    </div>
+                    <div>
+                        <span style="font-size:0.75rem; color:#888; display:block;">TIEMPO RESTANTE:</span>
+                        <span style="font-size:2.8rem; font-weight:bold; color:#e53935; font-family:monospace;" id="s-timer">30.0s</span>
+                    </div>
+                </div>
+                
+                <button id="btn-plus" class="btn-secondary" style="width:100%; height:75px; font-size:3rem; margin-bottom:12px; background:#cfd8dc; border-color:#607d8b; color:#37474f; font-weight:bold; border-radius:12px;" disabled>+</button>
+                <button id="btn-start" class="btn-primary" style="width:100%; border-radius:25px; background:#607d8b; border-color:#607d8b; color:#fff; font-weight:bold; padding:12px;">🚦 INICIAR SEMÁFORO VERDE</button>
+                <button id="btn" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-weight:bold; padding:12px;">📨 Enviar Recuento</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let c = 0, t = 30.0, int = null, active = false;
+            const count = document.getElementById('s-count');
+            const timer = document.getElementById('s-timer');
+            const plusBtn = document.getElementById('btn-plus');
+            const startBtn = document.getElementById('btn-start');
+            const submitBtn = document.getElementById('btn');
+            
+            plusBtn.addEventListener('click', () => {
+                if (active) {
+                    c++;
+                    count.innerText = c;
+                    if (window.playProceduralSound) playProceduralSound('click');
+                }
+            });
+            
+            startBtn.addEventListener('click', () => {
+                active = true;
+                c = 0;
+                t = 30.0;
+                count.innerText = '0';
+                timer.innerText = '30.0s';
+                
+                startBtn.classList.add('hidden');
+                plusBtn.removeAttribute('disabled');
+                plusBtn.style.background = '#90caf9';
+                plusBtn.style.borderColor = '#1976d2';
+                plusBtn.style.color = '#0d47a1';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                int = setInterval(() => {
+                    t -= 0.1;
+                    if (t <= 0) {
+                        t = 0;
+                        active = false;
+                        clearInterval(int);
+                        plusBtn.setAttribute('disabled', 'true');
+                        plusBtn.style.background = '#cfd8dc';
+                        plusBtn.style.borderColor = '#607d8b';
+                        plusBtn.style.color = '#37474f';
+                        
+                        if (c === 0) {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            showAlert('RECUENTO NULO', 'No habéis contado a ningún transeúnte con gafas de sol. Shibuya está lleno de peatones. ¡Busca bien e inténtalo de nuevo!');
+                            startBtn.classList.remove('hidden');
+                            startBtn.innerText = '🚦 REINTENTAR SEMÁFORO';
+                            timer.innerText = '30.0s';
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            submitBtn.classList.remove('hidden');
+                            count.innerText = `Final: ${c}`;
+                        }
+                    } else {
+                        timer.innerText = t.toFixed(1) + 's';
+                    }
+                }, 100);
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (c <= 0) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_18_shibuya', { type: 'number', data: c }, role);
+            });
+            
+            window._missionCleanup = () => clearInterval(int);
+        }
     },
 
 "day_18_hachiko": {
@@ -675,16 +1022,17 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> MODELADOR DE TRÁFICO PEATONAL: SHIBUYA</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima el flujo total de personas que cruzan la intersección en una hora completa en base al promedio por ciclo verde.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estima el flujo de personas por ciclo verde y calcula el volumen por hora. Los aforos en Shibuya varían habitualmente entre 1.000 y 3.000 cruces por cada luz verde:</p>
                 
                 <div style="margin:15px 0; padding:15px; background:rgba(0,255,153,0.03); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
                     <span style="font-size:0.8rem; color:#aaa;">CRUCES POR VERDE ESTIMADOS:</span>
-                    <div id="flow-disp" style="font-size:2.2rem; font-weight:bold; color:#00ff99; margin:10px 0;">3.000 Pers.</div>
-                    <input type="range" id="flow-slider" min="500" max="5000" step="100" value="3000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
-                    <div id="flow-calc" style="font-size:0.85rem; color:#ffb300; margin-top:5px;">Est. por hora (~24 verdes/h): 72.000 pers/h</div>
+                    <div id="flow-disp" style="font-size:2.2rem; font-weight:bold; color:#ffd700; margin:10px 0;">2.000 Pers.</div>
+                    <input type="range" id="flow-slider" min="100" max="5000" step="100" value="2000" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                    <div id="flow-calc" style="font-size:0.85rem; color:#ffb300; margin-top:5px;">Est. por hora (~24 verdes/h): 48.000 pers/h</div>
+                    <div id="flow-status" style="font-size:0.75rem; color:#00ff99; margin-top:8px;">✓ Caudal en rango de aforo regular (1.000 - 3.000 pers/ciclo)</div>
                 </div>
                 
-                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 REGISTRAR AFORO ESTIMADO</button>
+                <button id="btn-flow" class="btn-primary" style="width:100%; border-color:#00ff99; color:#111; background:#00ff99; font-family:monospace;">💾 REGISTRAR AFORO ESTIMADO</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -692,6 +1040,21 @@ Object.assign(MISSIONS_CONFIG, {
             const disp = document.getElementById('flow-disp');
             const calc = document.getElementById('flow-calc');
             const btn = document.getElementById('btn-flow');
+            const statusEl = document.getElementById('flow-status');
+            
+            const checkValidity = (val) => {
+                if (val >= 1000 && val <= 3000) {
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
+            };
             
             slider.addEventListener('input', (e) => {
                 const val = parseInt(e.target.value);
@@ -699,14 +1062,31 @@ Object.assign(MISSIONS_CONFIG, {
                 const hourly = val * 24;
                 calc.innerText = `Est. por hora (~24 verdes/h): ${hourly.toLocaleString('es-ES')} pers/h`;
                 if (window.playProceduralSound) playProceduralSound('click');
+                
+                if (val < 1000) {
+                    statusEl.innerText = '⚠ Muy bajo. En las horas activas de Shibuya, el cruce es masivo y supera las 1.000 personas.';
+                    statusEl.style.color = '#e74c3c';
+                } else if (val > 3000) {
+                    statusEl.innerText = '⚠ Muy alto. Excepto en fin de año o eventos extremos, no se superan las 3.000 personas por ciclo.';
+                    statusEl.style.color = '#e74c3c';
+                } else {
+                    statusEl.innerText = '✓ Caudal en rango de aforo regular (1.000 - 3.000 pers/ciclo)';
+                    statusEl.style.color = '#00ff99';
+                }
+                checkValidity(val);
             });
             
             btn.addEventListener('click', () => {
                 const val = parseInt(slider.value);
+                if (val < 1000 || val > 3000) return;
+                
                 const hourly = val * 24;
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_18_flow', {type:'number', data: hourly}, role);
             });
+            
+            // Initial check
+            checkValidity(parseInt(slider.value));
         }
     },
 
@@ -1041,15 +1421,104 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_19_liberty": {
-        tag: "photo", day: 19, title: "La Libertad Nipona", role: "kid9", xp: 15, location: "Odaiba",
+        tag: "photo",
+        day: 19,
+        title: "La Libertad Nipona",
+        role: "kid9",
+        xp: 15,
+        location: "Odaiba",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🗽 ¡Japón tiene su propia Estatua de la Libertad en Odaiba! Es más pequeña que la de Nueva York, pero está junto al mar con el Rainbow Bridge de fondo. ¡Ilusión óptica: haz que parezca que la tocas!</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#1a1a2e,#006994,#00bcd4); border-radius:15px;">
-            <p style="font-size:3rem;">🗽🌉✨</p>
-            <p style="color:#80deea; font-style:italic;">La libertad brilla en la bahía de Tokio</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Foto Estatua de la Libertad</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_19_liberty', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #80deea 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🗽 La Libertad de Odaiba 🗽</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">Toma una foto de ilusión óptica tocando la estatua, y responde a la trivia de origen histórico:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #00acc1; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#006064; display:block; margin-bottom:5px;">🗼 ¿DE DÓNDE PROVIENE ESTA ESTATUA DE LA LIBERTAD?</label>
+                    <select id="liberty-trivia" style="width:100%; padding:8px; border:1px solid #00acc1; border-radius:5px; background:#fff; color:#006064; font-family:'Quicksand'; font-size:0.85rem;">
+                        <option value="">-- Selecciona --</option>
+                        <option value="ny">Nueva York (copia donada por el alcalde de Nueva York)</option>
+                        <option value="paris">París (réplica francesa instalada por el Año de Francia en Japón)</option>
+                        <option value="tokio">Tokio (un diseño hecho por artesanos locales en metal reciclado)</option>
+                    </select>
+                </div>
+
+                <input type="file" id="file-input-liberty" accept="image/*" style="display:none;">
+                <div id="liberty-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #00acc1; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#00acc1; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto de la estatua registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-liberty" class="btn-secondary" style="flex:1; background:#b2ebf2; border-color:#00acc1; color:#006064; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-liberty" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Reporte</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let selectedOpt = '';
+            let photoId = null;
+            
+            const selectTrivia = document.getElementById('liberty-trivia');
+            const fileInput = document.getElementById('file-input-liberty');
+            const selectBtn = document.getElementById('btn-select-liberty');
+            const submitBtn = document.getElementById('btn-submit-liberty');
+            const previewEl = document.getElementById('liberty-preview');
+            
+            const checkValidity = () => {
+                if (selectedOpt && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#00acc1';
+                    submitBtn.style.borderColor = '#00acc1';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            selectTrivia.addEventListener('change', () => {
+                selectedOpt = selectTrivia.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            selectBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'liberty_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedOpt || !photoId) return;
+                
+                if (selectedOpt !== 'paris') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'En 1998, Francia prestó la estatua original de París a Tokio durante un año para celebrar los lazos bilaterales. Fue tan sumamente popular que, al devolverla, los tokiotas construyeron esta réplica permanente autorizada.');
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_19_liberty', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { answer: selectedOpt }
+                }, role);
+            });
+        }
     },
 
 "day_19_crypto": {
@@ -1175,7 +1644,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15); text-align:center;">
                 <p>>>> CRONOMETRAJE TÁCTICO: TREN YURIKAMOME (SIN CONDUCTOR)</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px; text-align:left;">Mide cuánto tarda exactamente el monorriel autónomo en recorrer el trayecto entre dos estaciones consecutivas.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px; text-align:left;">Mide cuánto tarda exactamente el monorriel autónomo en recorrer el trayecto entre dos estaciones consecutivas (rango esperado: 15s a 180s).</p>
                 
                 <div style="background:#111; padding:20px; border-radius:10px; border:1px solid #333; margin-bottom:15px; position:relative; overflow:hidden;">
                     <div id="chrono" style="font-size:3.5rem; font-weight:bold; color:#00ff99; text-shadow:0 0 20px rgba(0,255,153,0.4); font-family:monospace;">0.0s</div>
@@ -1194,6 +1663,7 @@ Object.assign(MISSIONS_CONFIG, {
             
             let t0 = 0;
             let int = null;
+            let finalSecs = 0;
             
             btnStart.addEventListener('click', () => {
                 t0 = Date.now();
@@ -1204,6 +1674,7 @@ Object.assign(MISSIONS_CONFIG, {
                 int = setInterval(() => {
                     const elapsed = (Date.now() - t0) / 1000;
                     clock.innerText = elapsed.toFixed(1) + 's';
+                    finalSecs = elapsed;
                     
                     let speed = 0;
                     if (elapsed < 10) speed = Math.floor(elapsed * 5.5);
@@ -1216,6 +1687,17 @@ Object.assign(MISSIONS_CONFIG, {
             
             btnEnd.addEventListener('click', () => {
                 clearInterval(int);
+                if (finalSecs < 15 || finalSecs > 180) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('TIEMPO INCOHERENTE', 'El monorriel de la línea Yurikamome circula de forma regular y tarda entre 15s y 180s entre paradas. Asegúrate de medir un trayecto real.');
+                    btnStart.classList.remove('hidden');
+                    btnStart.innerText = '🚀 REINTENTAR MEDIDA';
+                    btnEnd.classList.add('hidden');
+                    clock.innerText = '0.0s';
+                    speedo.innerText = 'Velocidad: 0 km/h (Inactivo)';
+                    return;
+                }
+                
                 const finalTime = clock.innerText;
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_19_monorail', {type:'text', data:`Tiempo de tránsito Yurikamome: ${finalTime}`}, role);
@@ -1239,36 +1721,60 @@ Object.assign(MISSIONS_CONFIG, {
                 <p class="mission-desc" style="font-weight:bold; font-size:1.2rem; margin-bottom:10px; color:#bb86fc;">🌌 Reflejos de TeamLab 🌌</p>
                 <p style="font-size:0.85rem; margin-bottom:15px; color:#cfd8dc;">Conseguid una foto familiar artística usando las superficies infinitas reflejantes de la sala de luces o agua.</p>
                 
-                <div style="text-align:center; margin:15px 0; padding:15px; background:rgba(255,255,255,0.05); border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
-                    <p style="font-size:3.5rem;">🔮✨👨‍👩‍👧‍👦</p>
-                    <p style="color:#b388ff; font-style:italic; font-size:0.85rem; margin-top:10px;">Rodeados de magia e infinidad</p>
+                <input type="file" id="file-input-immersive" accept="image/*" style="display:none;">
+                <div id="immersive-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #bb86fc; padding:5px; background:rgba(255,255,255,0.05); text-align:center;">
+                    <span style="font-size:0.75rem; color:#bb86fc; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto familiar inmersiva cargada</span>
                 </div>
                 
-                <label style="display:flex; align-items:center; gap:12px; margin:20px 0; font-size:1.05rem; background:rgba(255,255,255,0.1); padding:15px; border-radius:12px; cursor:pointer; text-align:left;">
-                    <input type="checkbox" id="chk-im" style="transform:scale(1.5); accent-color:#bb86fc;"> 
-                    <span>✅ ¡Foto inmersiva realizada!</span>
-                </label>
-                
-                <button id="btn-im" class="btn-primary" style="width:100%; border-radius:25px; background:#bb86fc; border-color:#bb86fc; color:#000; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">📨 CONSOLIDAR REGISTRO INMERSIVO</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-immersive" class="btn-secondary" style="flex:1; background:rgba(187,134,252,0.15); border-color:#bb86fc; color:#bb86fc; font-weight:bold; border-radius:25px; padding:12px;">📸 Seleccionar Foto</button>
+                    <button id="btn-im" class="btn-primary" style="flex:1; border-radius:25px; background:#ccc; border-color:#ccc; color:#666; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;" disabled>📨 Enviar Registro</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
-            const btn = document.getElementById('btn-im');
-            const chk = document.getElementById('chk-im');
+            let photoId = null;
+            const btnSelect = document.getElementById('btn-select-immersive');
+            const fileInput = document.getElementById('file-input-immersive');
+            const submitBtn = document.getElementById('btn-im');
+            const previewEl = document.getElementById('immersive-preview');
             
-            btn.addEventListener('click', () => {
-                if (chk.checked) {
-                    if (window.playProceduralSound) playProceduralSound('success');
-                    if (window.launchConfetti) launchConfetti();
-                    submitMission('day_19_immersive', {type:'text', data:'Foto familiar TeamLab confirmada'}, role, true);
-                } else {
-                    showAlert('Falta confirmación', 'Por favor, marca la casilla cuando tengáis la foto familiar.');
+            btnSelect.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'teamlab_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        
+                        submitBtn.removeAttribute('disabled');
+                        submitBtn.style.background = '#bb86fc';
+                        submitBtn.style.borderColor = '#bb86fc';
+                        submitBtn.style.color = '#000';
+                        
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    };
+                    reader.readAsDataURL(file);
                 }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!photoId) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_19_immersive', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { type: 'immersive_reflection' }
+                }, role, true);
             });
         }
     },
 
-"day_20_bento": {
+    "day_20_bento": {
         tag: "expert",
         day: 20,
         title: "Maestro del Bento (Cooperativo)",
@@ -1276,19 +1782,158 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 25,
         location: "Ueno",
         render: () => `
-        <div class="ui-terminal" style="padding:20px; border-radius:12px; font-family:monospace; background:#0a0e12; border:1px solid #ff7b54; color:#ff7b54; box-shadow:0 4px 15px rgba(255,123,84,0.15); line-height:1.5;">
-            <p>>>> PREPARACIÓN DEL BENTO JAPONÉS</p>
-            <p style="color:#aaa; font-size:0.85rem;">Esta es una prueba de coordinación física cooperativa en tiempo real.</p>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:10px;">Los ingredientes del Bento caerán desde la parte superior. Iván debe controlar las rampas magnéticas izquierdas y Laura las rampas derechas en el Canvas. Rebotad los ingredientes con cuidado para encajarlos en el compartimento correspondiente (🍚, 🐟, 🥒, 🍳).</p>
-            <p style="color:#ffffff; font-weight:bold; margin-top:15px;">¡Sincronizad vuestros movimientos para no arruinar la comida!</p>
-            <button id="btn" class="btn-primary" style="width:100%; margin-top:20px; border-color:#ff7b54; color:#ff7b54; background:transparent;">🍱 ABRIR PREPARADOR DE BENTO</button>
-        </div>
-    `,
-        attachEvents: () => {
-        document.getElementById('btn').addEventListener('click', () => {
-            submitMission('day_20_bento', {type:'game', data:'Bento completado'});
-        });
-    }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius:15px; border:3px solid #ff9800; color:#e65100; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🍱 Preparación del Bento 🍱</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#e65100;">Atrapad los ingredientes tradicionales (arroz 🍚, pescado 🐟, pepino 🥒, tortilla 🍳) moviendo la caja de bento. ¡Atrapad 5 para completar la comida!</p>
+                
+                <div style="background:#111; padding:5px; border-radius:10px; border:2px solid #ff9800; margin-bottom:12px; position:relative;">
+                    <canvas id="bento-canvas" width="280" height="180" style="width:100%; height:180px; display:block; background:#1a1a24; border-radius:5px;"></canvas>
+                    <div id="bento-score" style="position:absolute; right:15px; top:15px; color:#ff9800; font-weight:bold; font-family:monospace; font-size:1rem;">Ingredientes: 0/5</div>
+                </div>
+                
+                <div id="bento-controls" style="display:none; gap:15px; margin-bottom:12px; justify-content:center;">
+                    <button id="btn-left" class="btn-secondary" style="flex:1; background:#ffe0b2; border-color:#ff9800; color:#e65100; font-weight:bold; font-size:1.2rem; padding:10px 0; border-radius:10px;">⬅️ Izquierda</button>
+                    <button id="btn-right" class="btn-secondary" style="flex:1; background:#ffe0b2; border-color:#ff9800; color:#e65100; font-weight:bold; font-size:1.2rem; padding:10px 0; border-radius:10px;">Derecha ➡️</button>
+                </div>
+                
+                <button id="btn-play" class="btn-primary" style="width:100%; border-radius:25px; background:#ff9800; border-color:#ff9800; color:#fff; font-weight:bold;">🎮 EMPEZAR PREPARACIÓN</button>
+                <button id="btn-submit-bento" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-weight:bold;">📨 Enviar Bento Terminado</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const canvas = document.getElementById('bento-canvas');
+            const ctx = canvas.getContext('2d');
+            const scoreDisp = document.getElementById('bento-score');
+            const controls = document.getElementById('bento-controls');
+            const playBtn = document.getElementById('btn-play');
+            const submitBtn = document.getElementById('btn-submit-bento');
+            const btnLeft = document.getElementById('btn-left');
+            const btnRight = document.getElementById('btn-right');
+            
+            let score = 0;
+            let gameActive = false;
+            let animationFrame = null;
+            let boxX = 110;
+            const boxWidth = 60;
+            const boxHeight = 15;
+            let ingredient = { x: 140, y: 0, emoji: '🍚', speed: 2.5 };
+            
+            const emojis = ['🍚', '🐟', '🥒', '🍳'];
+            
+            const resetIngredient = () => {
+                ingredient.x = 20 + Math.random() * (canvas.width - 40);
+                ingredient.y = 0;
+                ingredient.emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                ingredient.speed = 2.0 + Math.random() * 1.5;
+            };
+            
+            const draw = () => {
+                if (!gameActive) return;
+                
+                // Clear
+                ctx.fillStyle = '#1a1a24';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw Catcher (Bento Box)
+                ctx.fillStyle = '#ff9800';
+                ctx.fillRect(boxX, canvas.height - boxHeight - 5, boxWidth, boxHeight);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.fillText('🍱 BENTO', boxX + 8, canvas.height - 8);
+                
+                // Update and draw ingredient
+                ingredient.y += ingredient.speed;
+                ctx.font = '20px sans-serif';
+                ctx.fillText(ingredient.emoji, ingredient.x - 10, ingredient.y);
+                
+                // Collision check
+                if (ingredient.y >= canvas.height - boxHeight - 15) {
+                    if (ingredient.x >= boxX && ingredient.x <= boxX + boxWidth) {
+                        score++;
+                        scoreDisp.innerText = `Ingredientes: ${score}/5`;
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        
+                        if (score >= 5) {
+                            endGame(true);
+                            return;
+                        }
+                        resetIngredient();
+                    } else if (ingredient.y > canvas.height) {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        resetIngredient();
+                    }
+                }
+                
+                animationFrame = requestAnimationFrame(draw);
+            };
+            
+            const endGame = (win) => {
+                gameActive = false;
+                cancelAnimationFrame(animationFrame);
+                controls.style.display = 'none';
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#4caf50';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('✓ BENTO COMPLETADO', canvas.width / 2, canvas.height / 2);
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitBtn.classList.remove('hidden');
+            };
+            
+            playBtn.addEventListener('click', () => {
+                score = 0;
+                scoreDisp.innerText = 'Ingredientes: 0/5';
+                boxX = 110;
+                resetIngredient();
+                
+                gameActive = true;
+                playBtn.classList.add('hidden');
+                controls.style.display = 'flex';
+                
+                // Clear any leftover drawings
+                ctx.textAlign = 'left';
+                
+                draw();
+            });
+            
+            btnLeft.addEventListener('click', () => {
+                if (boxX > 10) boxX -= 30;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btnRight.addEventListener('click', () => {
+                if (boxX < canvas.width - boxWidth - 10) boxX += 30;
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            // Allow arrow keys for desktop users
+            const handleKeyDown = (e) => {
+                if (!gameActive) return;
+                if (e.key === 'ArrowLeft' && boxX > 10) {
+                    boxX -= 20;
+                } else if (e.key === 'ArrowRight' && boxX < canvas.width - boxWidth - 10) {
+                    boxX += 20;
+                }
+            };
+            window.addEventListener('keydown', handleKeyDown);
+            
+            submitBtn.addEventListener('click', () => {
+                if (score < 5) return;
+                submitMission('day_20_bento', { type: 'game', data: 'Bento tradicional completado con 5 ingredientes' }, role);
+            });
+            
+            window._missionCleanup = () => {
+                gameActive = false;
+                cancelAnimationFrame(animationFrame);
+                window.removeEventListener('keydown', handleKeyDown);
+            };
+        }
     },
 
 "day_20_potion": {
@@ -1338,15 +1983,155 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_20_pond": {
-        tag: "photo", day: 20, title: "El Pato del Estanque", role: "kid9", xp: 15, location: "Ueno",
+        tag: "photo",
+        day: 20,
+        title: "El Pato del Estanque",
+        role: "kid9",
+        xp: 15,
+        location: "Ueno",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🦆 El parque de Ueno tiene un enorme estanque lleno de lotos y patos. Tu misión de exploradora: fotografiar el pato más gracioso o el loto más bonito que encuentres.</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#006400,#228B22,#90EE90); border-radius:15px;">
-            <p style="font-size:3rem;">🦆🪷💚</p>
-            <p style="color:#fff; font-style:italic;">La naturaleza en medio de la ciudad</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Vida del Estanque</button>`,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_20_pond', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg,#e8f5e9 0%,#a5d6a7 100%); border-radius:15px; border:3px solid #2e7d32; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🦆 Vida en Shinobazu 🪷</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#2e7d32;">Parque de Ueno. Fotografía un pato o una flor de loto gigante del estanque Shinobazu y responde a la trivia biológica:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #2e7d32; margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.8rem; font-weight:bold; color:#1b5e20; display:block; margin-bottom:5px;">🔍 ¿QUÉ HAS FOTOGRAFIADO?</label>
+                    <select id="pond-type" style="width:100%; padding:8px; border:1px solid #2e7d32; border-radius:5px; background:#fff; color:#1b5e20; font-family:inherit; font-size:0.85rem; margin-bottom:10px;">
+                        <option value="">-- Elige un elemento --</option>
+                        <option value="duck">🦆 Un Pato Gracioso</option>
+                        <option value="lotus">🪷 Una Flor de Loto Hermosa</option>
+                    </select>
+                    
+                    <div id="pond-duck-trivia" style="display:none; margin-bottom:5px;">
+                        <label style="font-size:0.75rem; color:#555; display:block; margin-bottom:4px;">🦆 ¿Cómo se llama el pato de cuello verde brillante muy común aquí?</label>
+                        <select id="duck-ans" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; font-family:inherit; background:#fff; color:#333;">
+                            <option value="">-- Elige respuesta --</option>
+                            <option value="magamo">Ánade azulón (Magamo) - Cuello verde metálico</option>
+                            <option value="oshidori">Pato mandarín (Oshidori) - Colores de fantasía</option>
+                        </select>
+                    </div>
+
+                    <div id="pond-lotus-trivia" style="display:none; margin-bottom:5px;">
+                        <label style="font-size:0.75rem; color:#555; display:block; margin-bottom:4px;">🪷 ¿En qué época florecen con esplendor los lotos de Ueno?</label>
+                        <select id="lotus-ans" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px; font-size:0.8rem; font-family:inherit; background:#fff; color:#333;">
+                            <option value="">-- Elige respuesta --</option>
+                            <option value="verano">Pleno Verano (Julio - Agosto)</option>
+                            <option value="invierno">Pleno Invierno (Diciembre - Enero)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="file" id="file-input-pond" accept="image/*" style="display:none;">
+                <div id="pond-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #2e7d32; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#2e7d32; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto del estanque registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-pond" class="btn-secondary" style="flex:1; background:#c8e6c9; border-color:#2e7d32; color:#1b5e20; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-pond" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Registro</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let pondType = '';
+            let triviaSelected = '';
+            let photoId = null;
+            
+            const pondSelect = document.getElementById('pond-type');
+            const duckDiv = document.getElementById('pond-duck-trivia');
+            const lotusDiv = document.getElementById('pond-lotus-trivia');
+            const duckSelect = document.getElementById('duck-ans');
+            const lotusSelect = document.getElementById('lotus-ans');
+            
+            const fileInput = document.getElementById('file-input-pond');
+            const selectBtn = document.getElementById('btn-select-pond');
+            const submitBtn = document.getElementById('btn-submit-pond');
+            const previewEl = document.getElementById('pond-preview');
+            
+            const checkValidity = () => {
+                let triviaOk = false;
+                if (pondType === 'duck' && duckSelect.value) triviaOk = true;
+                if (pondType === 'lotus' && lotusSelect.value) triviaOk = true;
+                
+                if (triviaOk && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#2e7d32';
+                    submitBtn.style.borderColor = '#2e7d32';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            pondSelect.addEventListener('change', () => {
+                pondType = pondSelect.value;
+                duckDiv.style.display = 'none';
+                lotusDiv.style.display = 'none';
+                
+                if (pondType === 'duck') duckDiv.style.display = 'block';
+                if (pondType === 'lotus') lotusDiv.style.display = 'block';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            duckSelect.addEventListener('change', () => {
+                triviaSelected = duckSelect.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            lotusSelect.addEventListener('change', () => {
+                triviaSelected = lotusSelect.value;
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+            
+            selectBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'pond_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!photoId) return;
+                
+                if (pondType === 'duck' && duckSelect.value !== 'magamo') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'El Ánade azulón (Magamo) es el pato silvestre migratorio más común de Shinobazu, célebre por su cuello y cabeza verdes metálicos brillantes en los machos.');
+                    return;
+                }
+                
+                if (pondType === 'lotus' && lotusSelect.value !== 'verano') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESPUESTA INCORRECTA', 'Los lotos del estanque Shinobazu florecen majestuosamente durante el caluroso verano japonés (Julio a Agosto), cubriendo casi toda la superficie de verde y rosa.');
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_20_pond', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { type: pondType, answer: triviaSelected }
+                }, role);
+            });
+        }
     },
 
     "day_20_weight": {
@@ -1451,18 +2236,18 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> REPORTE ANALÍTICO: CONTRASTE ARQUITECTÓNICO (UENO)</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estudia el edificio principal del Museo Nacional de Tokio (Honkan, estilo Imperial Crown) y compáralo con los rascacielos circundantes.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Estudia el edificio principal del Museo Nacional de Tokio (Honkan, estilo Imperial Crown) y compáralo con los rascacielos circundantes. Escribe al menos 30 caracteres incluyendo palabras clave de contraste.</p>
                 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
                     <div style="background:#111; padding:8px; border-radius:5px; border:1px solid #333; text-align:center; font-size:0.75rem;">
-                        🏯 CLÁSICO / TEJADOS<br><span style="color:#aaa;">Madera, tejas, arcos</span>
+                        🏯 CLÁSICO / TEJADOS<br><span style="color:#aaa;">Madera, tejas, corona, arcos</span>
                     </div>
                     <div style="background:#111; padding:8px; border-radius:5px; border:1px solid #333; text-align:center; font-size:0.75rem;">
                         🏢 MODERNO / TOKIO<br><span style="color:#aaa;">Vidrio, acero, altura</span>
                     </div>
                 </div>
                 
-                <textarea id="m-ans" placeholder=">>> Describe las principales diferencias visuales que percibes..." style="width:100%; height:80px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                <textarea id="m-ans" placeholder=">>> Describe las principales diferencias visuales (mín. 30 caracteres)..." style="width:100%; height:80px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
                 
                 <button id="btn-museum" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 ENVIAR ANÁLISIS ESTRUCTURAL</button>
             </div>
@@ -1472,13 +2257,22 @@ Object.assign(MISSIONS_CONFIG, {
             const input = document.getElementById('m-ans');
             
             btn.addEventListener('click', () => {
-                const val = input.value.trim();
-                if (val.length < 15) {
-                    showAlert('Reporte incompleto', 'Explica de forma más extensa el contraste de estilos tradicional y contemporáneo.');
+                const val = input.value.trim().toLowerCase();
+                if (val.length < 30) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RESEÑA INSUFICIENTE', 'Tu reseña debe ser más descriptiva (al menos 30 caracteres) para analizar el contraste del edificio Honkan.');
                     return;
                 }
+                const keywords = ['vidrio', 'tejas', 'madera', 'corona', 'acero'];
+                const found = keywords.filter(w => val.includes(w));
+                if (found.length < 2) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('FALTAN PALABRAS CLAVE', `Para enriquecer tu análisis, menciona al menos 2 materiales o términos clave (como: ${keywords.join(', ')}).`);
+                    return;
+                }
+                
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_20_museum', {type:'text', data: val}, role);
+                submitMission('day_20_museum', {type:'text', data: input.value}, role);
             });
         }
     },
@@ -1595,26 +2389,72 @@ Object.assign(MISSIONS_CONFIG, {
                 <p style="font-size:0.85rem; margin-bottom:15px; color:#f57c00;">De todos los puestos callejeros y snacks probados hoy (brochetas, croquetas, dulces de gato), ¿cuál ha sido vuestro favorito y por qué?</p>
                 
                 <div style="background:#fff; border-radius:12px; padding:15px; border:2px dashed #ff9800; margin-bottom:15px;">
-                    <div style="font-size:3.5rem; margin-bottom:10px;">🍢🍡🍣🍟</div>
-                    <textarea id="t-ans" placeholder="El mejor bocado de hoy fue..." style="width:100%; height:80px; border:none; background:transparent; font-family:inherit; font-size:1rem; text-align:center; color:#e65100; outline:none; resize:none; box-sizing:border-box;"></textarea>
+                    <textarea id="t-ans" placeholder="El mejor bocado de hoy fue... (mínimo 15 caracteres)" style="width:100%; height:70px; border:none; background:transparent; font-family:inherit; font-size:0.95rem; text-align:center; color:#e65100; outline:none; resize:none; box-sizing:border-box; margin-bottom:10px;"></textarea>
+                    
+                    <input type="file" id="file-input-tasting" accept="image/*" style="display:none;">
+                    <div id="tasting-preview" style="display:none; border-radius:8px; overflow:hidden; border:1px solid #ffe0b2; padding:5px; background:#fff5e6; text-align:center; margin-top:8px;">
+                        <span style="font-size:0.75rem; color:#ff9800; font-weight:bold;">✓ Foto del snack registrada</span>
+                    </div>
                 </div>
                 
-                <button id="btn-tasting" class="btn-primary" style="width:100%; border-radius:25px; background:#ff9800; border-color:#ff9800; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">😋 REGISTRAR DEGUSTACIÓN</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-photo-tasting" class="btn-secondary" style="flex:1; background:#ffe0b2; border-color:#ff9800; color:#e65100; font-weight:bold; border-radius:25px;">📸 Foto Snack</button>
+                    <button id="btn-tasting" class="btn-primary" style="flex:1; border-radius:25px; background:#ccc; border-color:#ccc; color:#666; font-family:'Quicksand', sans-serif; font-weight:bold;" disabled>😋 Registrar Degustación</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
+            let photoId = null;
             const btn = document.getElementById('btn-tasting');
+            const photoBtn = document.getElementById('btn-photo-tasting');
+            const fileInput = document.getElementById('file-input-tasting');
+            const previewEl = document.getElementById('tasting-preview');
             const input = document.getElementById('t-ans');
+            
+            const checkValidity = () => {
+                const textVal = input.value.trim();
+                if (photoId && textVal.length >= 15) {
+                    btn.removeAttribute('disabled');
+                    btn.style.background = '#ff9800';
+                    btn.style.borderColor = '#ff9800';
+                    btn.style.color = '#fff';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.background = '#ccc';
+                    btn.style.borderColor = '#ccc';
+                    btn.style.color = '#666';
+                }
+            };
+            
+            input.addEventListener('input', checkValidity);
+            photoBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'tasting_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
             
             btn.addEventListener('click', () => {
                 const val = input.value.trim();
-                if (val.length < 8) {
-                    showAlert('Reseña muy corta', 'Escribe al menos el nombre del alimento y qué tal estaba.');
-                    return;
-                }
+                if (!photoId || val.length < 15) return;
+                
                 if (window.playProceduralSound) playProceduralSound('success');
                 if (window.launchConfetti) launchConfetti();
-                submitMission('day_20_tasting', {type:'text', data: val}, role, true);
+                submitMission('day_20_tasting', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { review: val }
+                }, role, true);
             });
         }
     },
@@ -1827,22 +2667,41 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Templo",
         render: () => `
-        <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-            <p>>>> ESTADÍSTICAS DEL TEMPLO DORADO</p>
-            <p>Superficie: 200m², Grosor pan oro: 0.0001m, Densidad: 19.300 kg/m³.</p>
-            <input type="number" id="g-ans" placeholder="Kilos de oro estimados..." style="width:100%; margin-bottom:10px;">
-            <button id="btn-calc" class="btn-secondary" style="width:100%; margin-bottom:10px;">Calcular Realidad</button>
-            <div id="g-res" style="color:#0f0; margin-bottom:15px; font-weight:bold;"></div>
-            <button id="btn" class="btn-primary hidden" style="width:100%">Enviar tasación</button>
-        </div>
-    `,
-        attachEvents: () => {
-        document.getElementById('btn-calc').addEventListener('click', () => {
-            const w = document.getElementById('g-ans').value;
-            if(w) { document.getElementById('g-res').innerText = `Resultado analítico: ~386 kg`; document.getElementById('btn').classList.remove('hidden'); }
-        });
-        document.getElementById('btn').addEventListener('click', () => submitMission('day_21_gold', {type:'number', data:document.getElementById('g-ans').value}));
-    }
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #ffd700; color:#ffd700; box-shadow:0 4px 15px rgba(255,215,0,0.15);">
+                <p>>>> ESTADÍSTICAS DEL TEMPLO DORADO</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:12px;">Calcula el peso total en kg del oro empleado para cubrir el templo. Datos físicos:<br>• Superficie: 200 m²<br>• Grosor del pan de oro: 0,0001 m (0,1 mm)<br>• Densidad del oro: 19.300 kg/m³</p>
+                
+                <input type="number" id="g-ans" placeholder="Introduce el peso en kg..." style="width:100%; background:#111; color:#ffd700; border:1px solid #ffd700; padding:8px; border-radius:4px; font-family:inherit; box-sizing:border-box; margin-bottom:10px;">
+                
+                <button id="btn-calc" class="btn-primary" style="width:100%; border-color:#ffd700; color:#111; background:#ffd700;">Calcular Realidad</button>
+                <div id="g-res" style="color:#ffd700; margin:15px 0; font-weight:bold; text-align:center;"></div>
+                <button id="btn" class="btn-primary hidden" style="width:100%; border-color:#ffd700; color:#ffd700; background:transparent;">Enviar tasación</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const btnCalc = document.getElementById('btn-calc');
+            const submitBtn = document.getElementById('btn');
+            const input = document.getElementById('g-ans');
+            const resEl = document.getElementById('g-res');
+            
+            btnCalc.addEventListener('click', () => {
+                const w = parseFloat(input.value);
+                if (isNaN(w) || w < 380 || w > 392) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO ERRÓNEO', 'El peso introducido no es correcto. Multiplica la superficie (200 m²) por el grosor (0,0001 m) y por la densidad del oro (19.300 kg/m³) para obtener la masa total real.');
+                    return;
+                }
+                
+                resEl.innerText = `Resultado analítico: ~${w.toFixed(1)} kg (Estimación Exacta)`;
+                submitBtn.classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('success');
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const w = parseFloat(input.value);
+                submitMission('day_21_gold', { type: 'number', data: w }, role);
+            });
+        }
     },
 
     "day_21_tracking": {
@@ -1965,13 +2824,13 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> MÓDULO ESTRATÉGICO MILITAR: CASTILLO DE ODAWARA / NIKKO</p>
-                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Analiza la topografía defensiva (fosos de agua, colinas escarpadas, murallas en zigzag) y escribe por qué era difícil de invadir.</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">Analiza la topografía defensiva (fosos de agua, colinas escarpadas, murallas en zigzag) y escribe por qué era difícil de invadir. Mínimo 30 caracteres.</p>
                 
                 <div style="background:#111; padding:10px; border:1px dashed #00ff99; border-radius:5px; font-size:0.75rem; color:#888; margin-bottom:15px;">
-                    🛡️ PARÁMETROS GEOPOLÍTICOS: Altitud defensiva, campos de tiro, cuellos de botella tácticos.
+                    🛡️ PARÁMETROS GEOPOLÍTICOS: foso, colina, muro, piedra, defensa.
                 </div>
                 
-                <textarea id="d-ans" placeholder=">>> Redacta tu análisis táctico del perímetro..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
+                <textarea id="d-ans" placeholder=">>> Redacta tu análisis táctico del perímetro (mín. 30 carac.)..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
                 
                 <button id="btn-defense" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">💾 ENVIAR ANÁLISIS DE BALUARTE</button>
             </div>
@@ -1981,13 +2840,22 @@ Object.assign(MISSIONS_CONFIG, {
             const input = document.getElementById('d-ans');
             
             btn.addEventListener('click', () => {
-                const val = input.value.trim();
-                if (val.length < 15) {
-                    showAlert('Análisis corto', 'Proporciona al menos 2 argumentos tácticos sobre la defensa militar del sitio.');
+                const val = input.value.trim().toLowerCase();
+                if (val.length < 30) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ANÁLISIS INCOMPLETO', 'Tu análisis estratégico debe tener al menos 30 caracteres.');
                     return;
                 }
+                const keywords = ['foso', 'colina', 'muro', 'piedra', 'defensa'];
+                const found = keywords.filter(w => val.includes(w));
+                if (found.length < 2) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('FALTAN TÉRMINOS CLAVE', `Menciona al menos 2 elementos militares clave de la lista: ${keywords.join(', ')}.`);
+                    return;
+                }
+                
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_21_defense', {type:'text', data: val}, role);
+                submitMission('day_21_defense', {type:'text', data: input.value}, role);
             });
         }
     },
@@ -2002,11 +2870,12 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.15rem; margin-bottom:10px;">🌸 Meditación Zen Colectiva 🌸</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Frente a la sagrada tumba del Shogun, guardad silencio absoluto en familia durante 60 segundos para conectar con la paz del bosque.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Frente a la tumba del Shogun, mantened silencio absoluto en familia durante 30 segundos. Si habláis o hacéis ruido, el sensor os detectará y reiniciará el tiempo.</p>
                 
                 <div style="display:flex; flex-direction:column; align-items:center; margin:20px 0;">
                     <div id="lotus-pulse" style="font-size:4.5rem; transition: transform 1s ease-in-out; display:inline-block;">🪷</div>
-                    <div id="si-timer" style="font-size:3rem; font-weight:bold; color:#01579b; margin-top:10px; font-family:monospace;">60s</div>
+                    <div id="si-timer" style="font-size:3rem; font-weight:bold; color:#01579b; margin-top:10px; font-family:monospace;">30.0s</div>
+                    <div id="si-mic-level" style="font-size:0.8rem; color:#0288d1; margin-top:5px;">Micrófono inactivo</div>
                 </div>
                 
                 <button id="btn-start" class="btn-primary" style="width:100%; border-radius:25px; background:#0288d1; border-color:#0288d1; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;">🧘 INICIAR MINUTOS DE PAZ</button>
@@ -2018,39 +2887,127 @@ Object.assign(MISSIONS_CONFIG, {
             const btnSub = document.getElementById('btn-submit');
             const timer = document.getElementById('si-timer');
             const lotus = document.getElementById('lotus-pulse');
+            const micLevelEl = document.getElementById('si-mic-level');
             
-            let t = 60;
+            let t = 30.0;
             let int = null;
+            let lotusInt = null;
+            let stream = null;
+            let audioContext = null;
+            let analyser = null;
+            let source = null;
+            let active = false;
             
-            const startMeditation = () => {
+            const resetMeditation = () => {
+                active = false;
+                clearInterval(int);
+                clearInterval(lotusInt);
+                t = 30.0;
+                timer.innerText = '30.0s';
+                timer.style.color = '#01579b';
+                lotus.style.transform = 'scale(1)';
+                btnStart.classList.remove('hidden');
+                btnStart.innerText = '🧘 RECOMPONER MEDITACIÓN';
+                micLevelEl.innerText = 'Silencio interrumpido';
+                micLevelEl.style.color = '#e74c3c';
+                
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                if (audioContext) {
+                    audioContext.close();
+                }
+            };
+            
+            const startMeditation = async () => {
                 btnStart.classList.add('hidden');
+                active = true;
+                t = 30.0;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    analyser.fftSize = 256;
+                    
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    micLevelEl.innerText = '🎤 Monitorizando silencio...';
+                    micLevelEl.style.color = '#2e7d32';
+                    
+                    const checkSilence = () => {
+                        if (!active) return;
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            sum += dataArray[i];
+                        }
+                        let average = sum / bufferLength;
+                        
+                        // Noise threshold: if average volume is high (e.g. > 35)
+                        if (average > 35) {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            showAlert('RUIDO DETECTADO', 'Se ha interrumpido el recogimiento acústico. Volved a concentraros en silencio total para reiniciar la prueba.');
+                            resetMeditation();
+                            return;
+                        }
+                        requestAnimationFrame(checkSilence);
+                    };
+                    requestAnimationFrame(checkSilence);
+                    
+                } catch (e) {
+                    console.log('Microphone not available, using timer-only fallback', e);
+                    micLevelEl.innerText = '⚠ Micrófono no disponible (modo temporizador)';
+                    micLevelEl.style.color = '#e65100';
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('click');
                 
                 let grow = true;
-                const lotusInt = setInterval(() => {
+                lotusInt = setInterval(() => {
                     lotus.style.transform = grow ? 'scale(1.2)' : 'scale(1)';
                     grow = !grow;
                 }, 1500);
                 
                 int = setInterval(() => {
-                    t--;
-                    timer.innerText = t + 's';
+                    t -= 0.1;
                     if (t <= 0) {
+                        t = 0;
+                        active = false;
                         clearInterval(int);
                         clearInterval(lotusInt);
                         timer.innerText = '✨ Silencio Completado';
                         timer.style.color = '#2e7d32';
+                        micLevelEl.innerText = '🎤 Sesión Zen Cerrada';
+                        micLevelEl.style.color = '#2e7d32';
                         btnSub.classList.remove('hidden');
+                        
+                        if (stream) stream.getTracks().forEach(track => track.stop());
+                        
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (window.launchConfetti) launchConfetti();
+                    } else {
+                        timer.innerText = t.toFixed(1) + 's';
                     }
-                }, 1000);
+                }, 100);
             };
             
             btnStart.addEventListener('click', startMeditation);
-            btnSub.addEventListener('click', () => submitMission('day_21_silence', {type:'game', data:'Silencio de 60s completado'}, role, true));
+            
+            btnSub.addEventListener('click', () => {
+                if (t > 0) return;
+                submitMission('day_21_silence', { type: 'game', data: 'Silencio de 30s completado en Nikko' }, role, true);
+            });
             
             window._missionCleanup = () => {
+                active = false;
                 clearInterval(int);
+                clearInterval(lotusInt);
+                if (stream) stream.getTracks().forEach(track => track.stop());
+                if (audioContext) audioContext.close();
             };
         }
     },
@@ -2063,39 +3020,136 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Toyosu",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🐟 En el mercado de Toyosu, los vendedores saludan a pleno pulmón a cada cliente que pasa. Tu misión: imitar su grito legendario con toda tu energía.</p>
-        <div style="background:linear-gradient(135deg,#1a1a2e,#16213e); border-radius:15px; padding:20px; margin:15px 0; text-align:center;">
-            <p style="font-size:2rem; font-weight:bold; color:#ff6b6b; text-shadow:0 0 10px rgba(255,107,107,0.5); letter-spacing:4px;">¡EE-RA-SHAI-MA-SÉ!</p>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">Pronunciación: <em>Irasshaimase</em> = ¡Bienvenido!</p>
-            <div id="vol-meter" style="width:80%; height:12px; background:#333; border-radius:6px; margin:15px auto; overflow:hidden;">
-                <div id="vol-fill" style="width:0%; height:100%; background:linear-gradient(90deg,#00ff87,#60efff); border-radius:6px; transition:width 0.1s;"></div>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius:15px; border:3px solid #ff6b6b; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px; color:#ff6b6b;">🎙️ Saludo del Mercado Toyosu 🎙️</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#aaa;">Los pescaderos de Toyosu saludan con fuerza extrema. Graba tu voz gritando el saludo tradicional. Se requiere al menos un 15% de pico de volumen:</p>
+                
+                <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:15px; border:1px solid rgba(255,255,255,0.1); margin-bottom:12px; text-align:center;">
+                    <p style="font-size:1.8rem; font-weight:bold; color:#ff6b6b; text-shadow:0 0 10px rgba(255,107,107,0.5); letter-spacing:4px; margin:0 0 5px 0;">¡EE-RA-SHAI-MA-SÉ!</p>
+                    <p style="color:#aaa; font-size:0.75rem; margin:0 0 10px 0;">(Irasshaimase - Significa "¡Bienvenidos!")</p>
+                    <div id="vol-meter" style="width:85%; height:12px; background:#333; border-radius:6px; margin:10px auto; overflow:hidden;">
+                        <div id="vol-fill" style="width:0%; height:100%; background:linear-gradient(90deg,#00ff87,#60efff); border-radius:6px; transition:width 0.1s;"></div>
+                    </div>
+                </div>
+                
+                <button id="btn-rec" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:12px; border-radius:25px; background:rgba(255,107,107,0.15); border-color:#ff6b6b; color:#ff6b6b; font-weight:bold;">🎙️ GRABAR SALUDO (3s)</button>
+                <audio id="au-s" controls class="hidden" style="width:100%; margin:12px 0;"></audio>
+                <button id="btn" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#ff6b6b; border-color:#ff6b6b; color:#fff; font-weight:bold; padding:12px;">📨 Enviar al Juez</button>
             </div>
-        </div>
-        <button id="btn-rec" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">🎙️ ¡GRABAR MI GRITO!</button>
-        <audio id="au-s" controls class="hidden" style="width:100%; margin:15px 0;"></audio>
-        <button id="btn" class="btn-primary hidden" style="width:100%">📨 Enviar al Juez</button>
-    `,
-        attachEvents: () => {
-        const btnR = document.getElementById('btn-rec'); const au = document.getElementById('au-s'); const btn = document.getElementById('btn');
-        let mr=null, stream=null, blobId=null;
-        btnR.addEventListener('click', async () => {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({audio:true});
-                mr = new MediaRecorder(stream); let chunks=[]; mr.ondataavailable = e=>chunks.push(e.data);
-                mr.onstop = () => {
-                    const blob = new Blob(chunks, {'type':'audio/webm'});
-                    au.src = URL.createObjectURL(blob); au.classList.remove('hidden');
-                    btnR.classList.add('hidden'); btn.classList.remove('hidden');
-                    const r = new FileReader(); r.readAsDataURL(blob); r.onloadend = () => { blobId = r.result; };
-                    stream.getTracks().forEach(t=>t.stop());
-                };
-                mr.start(); btnR.innerText="Grabando (3s)..."; btnR.disabled=true;
-                setTimeout(() => { if(mr.state==='recording') mr.stop(); }, 3000);
-            } catch(e) { alert("Error"); }
-        });
-        btn.addEventListener('click', () => { if(blobId) submitMission('day_22_shout', {type:'audio', data:'Grito guardado'}); });
-        window._missionCleanup = () => { if(stream) stream.getTracks().forEach(t=>t.stop()); };
-    }
+        `,
+        attachEvents: (role) => {
+            const btnR = document.getElementById('btn-rec');
+            const au = document.getElementById('au-s');
+            const btn = document.getElementById('btn');
+            const volFill = document.getElementById('vol-fill');
+            
+            let mr = null;
+            let stream = null;
+            let blobId = null;
+            let audioCtx = null;
+            let analyser = null;
+            let maxVolume = 0;
+            
+            btnR.addEventListener('click', async () => {
+                maxVolume = 0;
+                volFill.style.width = '0%';
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioCtx.createAnalyser();
+                    const source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    analyser.fftSize = 256;
+                    
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    let recording = true;
+                    const updateMeter = () => {
+                        if (!recording) return;
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            sum += dataArray[i];
+                        }
+                        let val = sum / bufferLength;
+                        let pct = Math.min(100, Math.floor((val / 128) * 100));
+                        volFill.style.width = pct + '%';
+                        if (pct > maxVolume) maxVolume = pct;
+                        requestAnimationFrame(updateMeter);
+                    };
+                    updateMeter();
+                    
+                    mr = new MediaRecorder(stream);
+                    let chunks = [];
+                    mr.ondataavailable = e => chunks.push(e.data);
+                    
+                    mr.onstop = () => {
+                        recording = false;
+                        if (audioCtx) audioCtx.close();
+                        
+                        const blob = new Blob(chunks, { 'type': 'audio/webm' });
+                        
+                        if (maxVolume < 15) {
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            showAlert('GRITO DEMASIADO SUAVE', `Tu saludo solo alcanzó un ${maxVolume}% de volumen. ¡Los mercaderes gritan con el alma! Vuelve a grabarlo con más potencia.`);
+                            btnR.removeAttribute('disabled');
+                            btnR.innerText = '🎙️ GRABAR OTRA VEZ';
+                            volFill.style.width = '0%';
+                            
+                            if (stream) stream.getTracks().forEach(t => t.stop());
+                        } else {
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            au.src = URL.createObjectURL(blob);
+                            au.classList.remove('hidden');
+                            btnR.classList.add('hidden');
+                            btn.classList.remove('hidden');
+                            btn.innerText = `📨 Enviar al Juez (Volumen: ${maxVolume}%)`;
+                            
+                            const r = new FileReader();
+                            r.readAsDataURL(blob);
+                            r.onloadend = () => {
+                                blobId = r.result;
+                            };
+                            
+                            if (stream) stream.getTracks().forEach(t => t.stop());
+                        }
+                    };
+                    
+                    mr.start();
+                    btnR.innerText = "🎤 GRABANDO...";
+                    btnR.setAttribute('disabled', 'true');
+                    
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    
+                    setTimeout(() => {
+                        if (mr && mr.state === 'recording') mr.stop();
+                    }, 3000);
+                    
+                } catch (e) {
+                    showAlert('ERROR DE AUDIO', 'No se ha podido acceder al micrófono para verificar la potencia del grito.');
+                }
+            });
+            
+            btn.addEventListener('click', () => {
+                if (blobId) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    if (window.launchConfetti) launchConfetti();
+                    submitMission('day_22_shout', {
+                        type: 'audio',
+                        data: blobId,
+                        metadata: { peakVolume: maxVolume }
+                    }, role);
+                }
+            });
+            
+            window._missionCleanup = () => {
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
+        }
     },
 
 "day_22_car": {
@@ -2106,14 +3160,82 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Ginza",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏎️ La milla de oro de Ginza es el desfile de coches más exclusivo del planeta: Lamborghinis, Rolls-Royce, Ferrari... Tu misión de espía: capturar el más impresionante antes de que desaparezca.</p>
-        <div style="text-align:center; margin:15px 0; padding:15px; background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); border-radius:15px;">
-            <p style="font-size:3rem;">🏎️✨</p>
-            <p style="color:#d4af37; font-style:italic;">Objetivo: el coche que haga girar más cabezas</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar Vehículo de Lujo</button>
-    `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_22_car', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg,#0f0c29 0%,#302b63 100%); border-radius:15px; border:3px solid #ffd700; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px; color:#ffd700;">🏎️ Superdeportivo en Ginza 🏎️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#e0e0e0;">Ginza. Fotografía un vehículo de alta gama y escribe su marca/modelo:</p>
+                
+                <div style="background:rgba(255,255,255,0.05); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.1); margin-bottom:15px; text-align:left;">
+                    <label style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:4px;">MARCA Y MODELO:</label>
+                    <input type="text" id="car-desc" placeholder="Ej: Ferrari F8 Tributo..." style="width:100%; background:#111; color:#ffd700; border:1px solid #ffd700; padding:8px; border-radius:4px; font-family:inherit; box-sizing:border-box; margin-bottom:10px;">
+                </div>
+
+                <input type="file" id="file-input-car" accept="image/*" style="display:none;">
+                <div id="car-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #ffd700; padding:5px; background:rgba(255,255,255,0.03);">
+                    <span style="font-size:0.75rem; color:#ffd700; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto del vehículo registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-car" class="btn-secondary" style="flex:1; background:rgba(255,215,0,0.1); border-color:#ffd700; color:#ffd700; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-car" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Reporte</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let photoId = null;
+            
+            const fileInput = document.getElementById('file-input-car');
+            const selectBtn = document.getElementById('btn-select-car');
+            const submitBtn = document.getElementById('btn-submit-car');
+            const previewEl = document.getElementById('car-preview');
+            const descInput = document.getElementById('car-desc');
+            
+            const checkValidity = () => {
+                const desc = descInput.value.trim();
+                if (photoId && desc.length >= 3) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#ffd700';
+                    submitBtn.style.borderColor = '#ffd700';
+                    submitBtn.style.color = '#000';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            descInput.addEventListener('input', checkValidity);
+            selectBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'car_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const desc = descInput.value.trim();
+                if (!photoId || desc.length < 3) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_22_car', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { description: desc }
+                }, role);
+            });
+        }
     },
 
 "day_22_elevator": {
@@ -2346,20 +3468,61 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Ginza/Roppongi",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌃 Misión Familiar: Tokio de noche es un espectáculo de luces. Buscad el fondo más espectacular de neón y haceos la foto más épica del viaje.</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#0f0c29,#302b63,#24243e); border-radius:15px; border:1px solid rgba(100,100,255,0.2);">
-            <p style="font-size:3rem;">🌃👨‍👩‍👧‍👦✨</p>
-            <p style="color:#a78bfa; font-style:italic; margin-top:10px;">La noche de Tokio os espera</p>
-        </div>
-        <label style="display:flex; align-items:center; gap:15px; margin:20px 0; font-size:1.1rem; background:var(--color-gray-light); padding:18px; border-radius:12px; cursor:pointer;"><input type="checkbox" id="chk-n" style="transform:scale(1.8); accent-color:#a78bfa;"> ✅ ¡Foto nocturna familiar lista!</label>
-        <button id="btn" class="btn-primary" style="width:100%; font-size:1.1rem; padding:15px;">📨 Enviar al Juez</button>
-    `,
+            <div style="text-align:center; padding:20px; background:linear-gradient(135deg,#0f0c29 0%,#24243e 100%); border-radius:18px; border:3px solid #a78bfa; color:#e0e0e0; font-family:'Quicksand', sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.3);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.2rem; margin-bottom:10px; color:#a78bfa;">🌃 Luces de Neón 🌃</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#cfd8dc;">Conseguid una foto familiar nocturna rodeados de los espectaculares neones de Tokio.</p>
+                
+                <input type="file" id="file-input-neon" accept="image/*" style="display:none;">
+                <div id="neon-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #a78bfa; padding:5px; background:rgba(255,255,255,0.05); text-align:center;">
+                    <span style="font-size:0.75rem; color:#a78bfa; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto familiar nocturna registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-neon" class="btn-secondary" style="flex:1; background:rgba(167,139,250,0.15); border-color:#a78bfa; color:#a78bfa; font-weight:bold; border-radius:25px; padding:12px;">📸 Seleccionar Foto</button>
+                    <button id="btn" class="btn-primary" style="flex:1; border-radius:25px; background:#ccc; border-color:#ccc; color:#666; font-family:'Quicksand', sans-serif; font-weight:bold; padding:12px;" disabled>📨 Enviar Foto</button>
+                </div>
+            </div>
+        `,
         attachEvents: (role) => {
-        document.getElementById('btn').addEventListener('click', () => {
-            if(document.getElementById('chk-n').checked) submitMission('day_22_neon', {type:'text', data:'Foto neón completada'}, role, true);
-            else showAlert('Aviso', 'Marca la casilla de confirmación.');
-        });
-    }
+            let photoId = null;
+            const btnSelect = document.getElementById('btn-select-neon');
+            const fileInput = document.getElementById('file-input-neon');
+            const submitBtn = document.getElementById('btn');
+            const previewEl = document.getElementById('neon-preview');
+            
+            btnSelect.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'neon_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        
+                        submitBtn.removeAttribute('disabled');
+                        submitBtn.style.background = '#a78bfa';
+                        submitBtn.style.borderColor = '#a78bfa';
+                        submitBtn.style.color = '#000';
+                        
+                        if (window.playProceduralSound) playProceduralSound('success');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!photoId) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_22_neon', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { type: 'tokyo_neon' }
+                }, role, true);
+            });
+        }
     },
 
 "day_23_kitkat": {
@@ -2673,18 +3836,39 @@ Object.assign(MISSIONS_CONFIG, {
         </div>
     `,
         attachEvents: () => {
-        let t0 = 0; let int = null;
-        document.getElementById('btn-start').addEventListener('click', (e) => {
-            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-            int = setInterval(() => {
-                const elapsed = (Date.now()-t0)/1000;
-                document.getElementById('sec-timer').innerText = elapsed.toFixed(1)+'s';
-                document.getElementById('sec-fill').style.width = Math.min(100, elapsed/300*100) + '%';
-            }, 100);
-        });
-        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int); submitMission('day_23_security', {type:'text', data:`Control de seguridad: ${document.getElementById('sec-timer').innerText}`}); });
-        window._missionCleanup = () => clearInterval(int);
-    }
+            let t0 = 0;
+            let int = null;
+            document.getElementById('btn-start').addEventListener('click', (e) => {
+                t0 = Date.now();
+                e.target.classList.add('hidden');
+                document.getElementById('btn-end').classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                int = setInterval(() => {
+                    const elapsed = (Date.now() - t0) / 1000;
+                    document.getElementById('sec-timer').innerText = elapsed.toFixed(1) + 's';
+                    document.getElementById('sec-fill').style.width = Math.min(100, elapsed / 300 * 100) + '%';
+                }, 100);
+            });
+            document.getElementById('btn-end').addEventListener('click', () => {
+                clearInterval(int);
+                const elapsed = (Date.now() - t0) / 1000;
+                if (elapsed < 10 || elapsed > 300) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('TIEMPO NO VÁLIDO', 'El tiempo registrado de paso de seguridad no coincide con los parámetros de la cola del aeropuerto (debe ser entre 10s y 300s).');
+                    document.getElementById('btn-start').classList.remove('hidden');
+                    document.getElementById('btn-start').innerText = '🚶 REINICIAR CONTROL';
+                    document.getElementById('btn-end').classList.add('hidden');
+                    document.getElementById('sec-timer').innerText = '0.0s';
+                    document.getElementById('sec-fill').style.width = '0%';
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_23_security', { type: 'text', data: `Control de seguridad: ${elapsed.toFixed(1)}s` });
+            });
+            window._missionCleanup = () => clearInterval(int);
+        }
     },
 
 "day_23_weight": {
@@ -2753,14 +3937,97 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 10,
         location: "Avión",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🍱 ¡Tu última comida japonesa! Pero esta vez... ¡estás volando a 10.000 metros de altura! Fotografía la bandeja del avión antes de devorarla. ¿Qué lleva?</p>
-        <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#87CEEB,#4682B4); border-radius:15px;">
-            <p style="font-size:3rem;">✈️🍱☁️</p>
-            <p style="color:#fff; font-style:italic; margin-top:10px;">Última comida del cielo nipón</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Fotografiar Bandeja Aérea</button>
-    `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_meal', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius:15px; border:3px solid #1e88e5; color:#0d47a1; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🍱 Comida A bordo ✈️</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#1e88e5;">Toma una foto de tu bandeja de comida a 10.000 metros de altitud y califícala:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #1e88e5; margin-bottom:15px;">
+                    <span style="font-size:0.75rem; color:#aaa; display:block; margin-bottom:5px;">VALORACIÓN CULINARIA:</span>
+                    <div id="star-rating" style="display:flex; justify-content:center; gap:8px; font-size:2rem; cursor:pointer;">
+                        <span class="star" data-val="1" style="opacity:0.3; transition:opacity 0.2s;">⭐</span>
+                        <span class="star" data-val="2" style="opacity:0.3; transition:opacity 0.2s;">⭐</span>
+                        <span class="star" data-val="3" style="opacity:0.3; transition:opacity 0.2s;">⭐</span>
+                        <span class="star" data-val="4" style="opacity:0.3; transition:opacity 0.2s;">⭐</span>
+                        <span class="star" data-val="5" style="opacity:0.3; transition:opacity 0.2s;">⭐</span>
+                    </div>
+                </div>
+
+                <input type="file" id="file-input-meal" accept="image/*" style="display:none;">
+                <div id="meal-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #1e88e5; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#1e88e5; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto de la bandeja registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-meal" class="btn-secondary" style="flex:1; background:#90caf9; border-color:#1e88e5; color:#0d47a1; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-meal" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Comida</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let rating = 0;
+            let photoId = null;
+            
+            const stars = document.querySelectorAll('#star-rating .star');
+            const fileInput = document.getElementById('file-input-meal');
+            const selectBtn = document.getElementById('btn-select-meal');
+            const submitBtn = document.getElementById('btn-submit-meal');
+            const previewEl = document.getElementById('meal-preview');
+            
+            const checkValidity = () => {
+                if (rating > 0 && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#1e88e5';
+                    submitBtn.style.borderColor = '#1e88e5';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    rating = parseInt(star.dataset.val);
+                    stars.forEach((s, idx) => {
+                        s.style.opacity = (idx < rating) ? '1.0' : '0.3';
+                    });
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
+                });
+            });
+            
+            selectBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'meal_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (rating <= 0 || !photoId) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_24_meal', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { stars: rating }
+                }, role);
+            });
+        }
     },
 
 "day_24_clouds": {
@@ -2771,14 +4038,81 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 10,
         location: "Avión",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">☁️ Mira por la ventanilla. Estás cruzando el cielo entre dos mundos: Japón queda atrás, Europa se acerca. Captura la foto más bonita del cielo desde las nubes. ¡La última foto del viaje!</p>
-        <div style="text-align:center; margin:15px 0; padding:25px; background:linear-gradient(180deg,#1a1a2e,#e94560,#f7c948); border-radius:15px;">
-            <p style="font-size:3rem;">🌅✨☁️</p>
-            <p style="color:#fff; font-weight:bold; margin-top:10px;">El cielo entre dos mundos</p>
-        </div>
-        <button id="btn-cam" class="btn-secondary" style="width:100%; font-size:1.1rem; padding:15px;">📸 Capturar el Cielo</button>
-    `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_24_clouds', currentUser, false); }
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius:15px; border:3px solid #ff9800; color:#e65100; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌅 Nubes sobre Europa ☁️</p>
+                <p style="font-size:0.85rem; margin-bottom:12px; color:#e65100;">Mira por la ventanilla del avión, toma una última foto aérea e introduce tus reflexiones del viaje:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #ff9800; margin-bottom:15px;">
+                    <textarea id="clouds-reflection" placeholder="Lo que más me gustó de este viaje fue... (mínimo 10 caracteres)" style="width:100%; height:60px; border:none; background:transparent; font-family:inherit; font-size:0.9rem; text-align:center; color:#e65100; outline:none; resize:none; box-sizing:border-box;"></textarea>
+                </div>
+
+                <input type="file" id="file-input-clouds" accept="image/*" style="display:none;">
+                <div id="clouds-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #ff9800; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#ff9800; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto de las nubes registrada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-clouds" class="btn-secondary" style="flex:1; background:#ffe0b2; border-color:#ff9800; color:#e65100; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-clouds" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Registrar</button>
+                </div>
+            </div>
+        `,
+        attachEvents: (role) => {
+            let photoId = null;
+            
+            const fileInput = document.getElementById('file-input-clouds');
+            const selectBtn = document.getElementById('btn-select-clouds');
+            const submitBtn = document.getElementById('btn-submit-clouds');
+            const previewEl = document.getElementById('clouds-preview');
+            const refInput = document.getElementById('clouds-reflection');
+            
+            const checkValidity = () => {
+                const txt = refInput.value.trim();
+                if (photoId && txt.length >= 10) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#ff9800';
+                    submitBtn.style.borderColor = '#ff9800';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            refInput.addEventListener('input', checkValidity);
+            selectBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'clouds_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                const txt = refInput.value.trim();
+                if (!photoId || txt.length < 10) return;
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_24_clouds', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { reflection: txt }
+                }, role);
+            });
+        }
     },
 
 "day_24_turbulence": {
@@ -2789,32 +4123,101 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Avión",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">⚠️ ¡TURBULENCIAS! Cuando el avión empiece a temblar, inicia el cronómetro. ¿Cuánto dura el zarandeo? ¡Agárrate fuerte!</p>
-        <div style="background:linear-gradient(135deg,#1a0a0a,#2a1a1a); border-radius:15px; padding:20px; margin:15px 0; text-align:center; border:1px solid rgba(255,0,0,0.2);">
-            <p style="font-size:2rem; margin-bottom:5px;">⚠️✈️💨</p>
-            <div id="tu-timer" style="font-size:3.5rem; font-weight:bold; color:#ff6b6b; text-shadow:0 0 20px rgba(255,107,107,0.4); font-family:monospace;">0.0s</div>
-            <div id="tu-shake" style="font-size:0.9rem; color:#888; margin-top:5px;">Esperando turbulencia...</div>
-        </div>
-        <button id="btn-start" class="btn-secondary" style="width:100%; margin-bottom:10px; font-size:1.1rem; padding:15px;">💺 ¡Empieza a temblar!</button>
-        <button id="btn-end" class="btn-primary hidden" style="width:100%; font-size:1.1rem; padding:15px;">✅ ¡Ya pasó!</button>
-    `,
-        attachEvents: () => {
-        let t0 = 0; let int = null;
-        document.getElementById('btn-start').addEventListener('click', (e) => {
-            t0 = Date.now(); e.target.classList.add('hidden'); document.getElementById('btn-end').classList.remove('hidden');
-            document.getElementById('tu-shake').innerText = '¡¡TEMBLANDO!!';
-            document.getElementById('tu-shake').style.color = '#ff6b6b';
-            int = setInterval(() => {
-                const el = (Date.now()-t0)/1000;
-                document.getElementById('tu-timer').innerText = el.toFixed(1)+'s';
-            }, 100);
-        });
-        document.getElementById('btn-end').addEventListener('click', () => { clearInterval(int);
-            document.getElementById('tu-shake').innerText = '¡Superviviente!';
-            document.getElementById('tu-shake').style.color = '#4ade80';
-            submitMission('day_24_turbulence', {type:'text', data:`Turbulencia: ${document.getElementById('tu-timer').innerText}`}); });
-        window._missionCleanup = () => clearInterval(int);
-    }
+            <div style="background:linear-gradient(135deg, #1a0a0a 0%, #2a1a1a 100%); border-radius:15px; padding:20px; margin:15px 0; text-align:center; border:2px solid #ff3d00; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(255,61,0,0.25);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px; color:#ff3d00;">⚠️ ¡TURBULENCIAS DETECTADAS! ⚠️</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ccc;">Inicia el cronómetro cuando empiece a temblar. El sensor físico debe detectar vibraciones reales agitando el móvil (>1.5 m/s²):</p>
+                
+                <div style="background:#0a0a0a; border-radius:12px; padding:20px; border:1px solid #ff3d00; margin-bottom:15px;">
+                    <div id="tu-timer" style="font-size:3.5rem; font-weight:bold; color:#ff3d00; text-shadow:0 0 20px rgba(255,61,0,0.4); font-family:monospace;">0.0s</div>
+                    <div id="tu-shake" style="font-size:0.9rem; color:#888; margin-top:5px;">Esperando turbulencia física...</div>
+                </div>
+                
+                <button id="btn-start" class="btn-primary" style="width:100%; border-radius:25px; background:#ff3d00; border-color:#ff3d00; color:#fff; font-weight:bold; padding:12px;">💺 ¡Empieza a temblar!</button>
+                <button id="btn-end" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-weight:bold; padding:12px;">✅ ¡Ya pasó!</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const startBtn = document.getElementById('btn-start');
+            const endBtn = document.getElementById('btn-end');
+            const timer = document.getElementById('tu-timer');
+            const statusEl = document.getElementById('tu-shake');
+            
+            let t0 = 0;
+            let int = null;
+            let active = false;
+            let maxAcceleration = 0;
+            
+            const handleMotion = (e) => {
+                if (!active) return;
+                const acc = e.acceleration || { x: 0, y: 0, z: 0 };
+                const totalAcc = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+                if (totalAcc > maxAcceleration) {
+                    maxAcceleration = totalAcc;
+                }
+                
+                if (totalAcc > 1.5) {
+                    statusEl.innerText = `¡¡VIBRACIÓN DETECTADA!! (${totalAcc.toFixed(1)} m/s²)`;
+                    statusEl.style.color = '#ffeb3b';
+                }
+            };
+            
+            startBtn.addEventListener('click', () => {
+                t0 = Date.now();
+                active = true;
+                maxAcceleration = 0;
+                
+                startBtn.classList.add('hidden');
+                endBtn.classList.remove('hidden');
+                
+                statusEl.innerText = '¡Agita el móvil para simular turbulencias!';
+                statusEl.style.color = '#ff9800';
+                
+                if (window.playProceduralSound) playProceduralSound('click');
+                
+                int = setInterval(() => {
+                    const elapsed = (Date.now() - t0) / 1000;
+                    timer.innerText = elapsed.toFixed(1) + 's';
+                }, 100);
+                
+                if (typeof DeviceMotionEvent !== 'undefined') {
+                    window.addEventListener('devicemotion', handleMotion);
+                }
+            });
+            
+            endBtn.addEventListener('click', () => {
+                clearInterval(int);
+                active = false;
+                window.removeEventListener('devicemotion', handleMotion);
+                
+                const elapsed = (Date.now() - t0) / 1000;
+                
+                if (maxAcceleration < 1.5) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('FALTA VIBRACIÓN', 'El sensor no ha registrado turbulencias. Por favor, vuelve a iniciar y agita el dispositivo con fuerza para simular el zarandeo real del avión.');
+                    
+                    startBtn.classList.remove('hidden');
+                    startBtn.innerText = '💺 REINTENTAR SIMULACIÓN';
+                    endBtn.classList.add('hidden');
+                    timer.innerText = '0.0s';
+                    statusEl.innerText = 'Esperando turbulencia física...';
+                    statusEl.style.color = '#888';
+                    return;
+                }
+                
+                statusEl.innerText = '¡Superviviente!';
+                statusEl.style.color = '#4ade80';
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_24_turbulence', { type: 'text', data: `Turbulencia simulada: ${elapsed.toFixed(1)}s (Pico: ${maxAcceleration.toFixed(1)} m/s²)` }, role);
+            });
+            
+            window._missionCleanup = () => {
+                clearInterval(int);
+                window.removeEventListener('devicemotion', handleMotion);
+            };
+        }
     },
 
 "day_24_badges": {
@@ -2859,7 +4262,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
         <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
             <p style="color:#0f0;">>>> ANÁLISIS DE SINCRONIZACIÓN TEMPORAL</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">En este momento, tres relojes del mundo marcan horas distintas. Investiga y registra la hora simultánea en cada zona.</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">En este momento, tres relojes del mundo marcan horas distintas. Investiga y registra la hora simultánea en cada zona (huso horario en verano: España es -7h respecto a Japón).</p>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:15px 0;">
                 <div style="text-align:center; background:#0a0a1a; padding:12px; border-radius:10px; border:1px solid #0f02;">
                     <p style="font-size:2rem;">🗼</p>
@@ -2877,20 +4280,58 @@ Object.assign(MISSIONS_CONFIG, {
                     <p style="color:#666; font-size:0.7rem;">¿?</p>
                 </div>
             </div>
-            <label style="color:#0f0; font-size:0.8rem;">HORA EN JAPÓN:</label>
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN JAPÓN (HH:MM):</label>
             <input type="text" id="tz-jap" placeholder="Ej: 23:30" style="width:100%; margin-bottom:8px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
-            <label style="color:#0f0; font-size:0.8rem;">HORA EN ESPAÑA:</label>
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN ESPAÑA (HH:MM):</label>
             <input type="text" id="tz-esp" placeholder="Ej: 16:30" style="width:100%; margin-bottom:8px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
-            <label style="color:#0f0; font-size:0.8rem;">HORA EN EL AVIÓN:</label>
+            <label style="color:#0f0; font-size:0.8rem;">HORA EN EL AVIÓN (HH:MM):</label>
             <input type="text" id="tz-air" placeholder="Ej: 19:30" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:10px; border-radius:6px;">
             <button id="btn" class="btn-primary" style="width:100%">📤 Transmitir Sincronización</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
-            const j=document.getElementById('tz-jap').value, e=document.getElementById('tz-esp').value, a=document.getElementById('tz-air').value;
-            if(!j||!e||!a) { showAlert('Incompleto','Rellena las 3 horas.'); return; }
-            submitMission('day_24_timezones', {type:'text', data:`JP: ${j}, ES: ${e}, AV: ${a}`});
-        }); }
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                const j = document.getElementById('tz-jap').value;
+                const e = document.getElementById('tz-esp').value;
+                const a = document.getElementById('tz-air').value;
+                if (!j || !e || !a) {
+                    showAlert('Incompleto', 'Rellena las 3 horas.');
+                    return;
+                }
+                
+                const parseMinutes = (timeStr) => {
+                    const parts = timeStr.trim().split(':');
+                    if (parts.length !== 2) return null;
+                    const h = parseInt(parts[0]);
+                    const m = parseInt(parts[1]);
+                    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
+                    return h * 60 + m;
+                };
+                
+                const minJap = parseMinutes(j);
+                const minEsp = parseMinutes(e);
+                const minAir = parseMinutes(a);
+                
+                if (minJap === null || minEsp === null || minAir === null) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('FORMATO INCORRECTO', 'Escribe las horas en formato de reloj de 24 horas separado por dos puntos (Ej: 15:30).');
+                    return;
+                }
+                
+                // Summer time offset check: Japan (UTC+9) and Spain (UTC+2) has exactly 7 hours diff.
+                let diff = (minJap - minEsp + 24 * 60) % (24 * 60);
+                if (diff !== 7 * 60) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('HUSO HORARIO INEXACTO', 'La diferencia horaria en verano entre Japón (UTC+9) y España (UTC+2) debe ser exactamente de 7 horas.');
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                
+                submitMission('day_24_timezones', { type: 'text', data: `JP: ${j}, ES: ${e}, AV: ${a}` }, role);
+            });
+        }
     },
 
 "day_24_distance": {
@@ -2903,7 +4344,7 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
         <div class="ui-terminal" style="padding:20px; border-radius:12px; border:1px solid #0f03;">
             <p style="color:#0f0;">>>> REGISTRO DE DISTANCIA DE VUELO</p>
-            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Consulta la pantalla del asiento. ¿Cuántos kilómetros separan Tokio de casa?</p>
+            <p style="color:#0a0; font-size:0.85rem; margin-bottom:15px;">Consulta la pantalla del asiento. ¿Cuántos kilómetros separan Tokio de casa? (Ruta típica a Europa: 9.000 - 12.000 km).</p>
             <div style="text-align:center; margin:15px 0; position:relative;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:1.5rem;">🗼</span>
@@ -2919,11 +4360,19 @@ Object.assign(MISSIONS_CONFIG, {
             <button id="btn" class="btn-primary" style="width:100%">📤 Registrar Distancia</button>
         </div>
     `,
-        attachEvents: () => { document.getElementById('btn').addEventListener('click', () => {
-            const val = document.getElementById('d-ans').value;
-            if(!val) { showAlert('Error','Introduce la distancia.'); return; }
-            submitMission('day_24_distance', {type:'number', data:val});
-        }); }
+        attachEvents: (role) => {
+            document.getElementById('btn').addEventListener('click', () => {
+                const val = parseInt(document.getElementById('d-ans').value);
+                if (isNaN(val) || val < 9000 || val > 12000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('DISTANCIA INCOHERENTE', 'La distancia de vuelo real de vuelta a casa desde Japón debe estar comprendida entre 9.000 km y 12.000 km según el plan de vuelo oficial.');
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_24_distance', { type: 'number', data: val }, role);
+            });
+        }
     },
 
 "day_24_speed": {
@@ -2940,25 +4389,35 @@ Object.assign(MISSIONS_CONFIG, {
             <div style="text-align:center; margin:15px 0; background:#0a0a1a; border-radius:12px; padding:20px; border:1px solid #0f02;">
                 <p style="font-size:3rem;">🛩️💨</p>
                 <div id="sp-display" style="font-size:2rem; color:#60efff; font-weight:bold; margin:10px 0; font-family:monospace;">--- km/h</div>
-                <p style="color:#666; font-size:0.8rem;">Velocidad crucero típica: 850-920 km/h</p>
+                <p style="color:#666; font-size:0.8rem;">Velocidad crucero típica: 700-1100 km/h</p>
             </div>
             <label style="color:#0f0; font-size:0.8rem;">VELOCIDAD MÁXIMA REGISTRADA (km/h):</label>
             <input type="number" id="v-ans" placeholder="Ej: 912" style="width:100%; margin-bottom:15px; background:#111; color:#0f0; border:1px solid #0f03; padding:12px; border-radius:6px; font-size:1.3rem; text-align:center;">
             <button id="btn" class="btn-primary" style="width:100%">📤 Registrar Velocidad</button>
         </div>
     `,
-        attachEvents: () => {
-        document.getElementById('v-ans').addEventListener('input', (e) => {
-            const v = e.target.value;
-            document.getElementById('sp-display').innerText = v ? v + ' km/h' : '--- km/h';
-            document.getElementById('sp-display').style.color = v > 900 ? '#4ade80' : '#60efff';
-        });
-        document.getElementById('btn').addEventListener('click', () => {
-            const val = document.getElementById('v-ans').value;
-            if(!val) { showAlert('Error','Introduce la velocidad.'); return; }
-            submitMission('day_24_speed', {type:'number', data:val});
-        });
-    }
+        attachEvents: (role) => {
+            const display = document.getElementById('sp-display');
+            const ansInput = document.getElementById('v-ans');
+            const btn = document.getElementById('btn');
+            
+            ansInput.addEventListener('input', (e) => {
+                const v = e.target.value;
+                display.innerText = v ? v + ' km/h' : '--- km/h';
+                display.style.color = v >= 700 && v <= 1100 ? '#4ade80' : '#ff3d00';
+            });
+            btn.addEventListener('click', () => {
+                const val = parseInt(ansInput.value);
+                if (isNaN(val) || val < 700 || val > 1100) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('VELOCIDAD INCOHERENTE', 'La velocidad máxima de crucero registrada debe corresponder a un avión a reacción comercial (entre 700 y 1.100 km/h).');
+                    return;
+                }
+                
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_24_speed', { type: 'number', data: val }, role);
+            });
+        }
     },
 
 "day_24_log": {

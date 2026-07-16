@@ -8,42 +8,93 @@ Object.assign(MISSIONS_CONFIG, {
         tag: "photo", day: 1, title: "Formas en las Nubes", role: "kid9", xp: 10, location: "Avión",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(180deg, #a1c4fd 0%, #c2e9fb 100%); border-radius:15px; border:3px solid #ffb3d9; color:#333; position:relative; overflow:hidden;">
-                <p class="mission-desc" style="font-weight:bold; margin-bottom:10px; font-family:'Quicksand', sans-serif;">☁️ ¡Mira las nubes! Toca el cielo mágico para buscar siluetas ocultas...</p>
-                <div id="sky-canvas" style="height:120px; position:relative; background:transparent; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                    <span id="cloud-shape" style="font-size:4.5rem; transition:transform 0.5s ease; filter:drop-shadow(0 2px 5px rgba(255,255,255,0.8));">☁️</span>
-                    <div id="magic-sparkles" style="position:absolute; width:100%; height:100%; pointer-events:none;"></div>
+                <p class="mission-desc" style="font-weight:bold; margin-bottom:10px; font-family:'Quicksand', sans-serif;">☁️ ¡Dibuja la silueta de nube mágica que ves por la ventana! 🎨</p>
+                <div style="background:#fff; border-radius:10px; padding:5px; border:2px solid #ffb3d9; margin-bottom:10px;">
+                    <canvas id="cloud-paint-canvas" width="280" height="150" style="display:block; width:100%; height:150px; background:#fff; border-radius:8px; cursor:crosshair; touch-action:none;"></canvas>
                 </div>
-                <p id="sky-hint" style="font-size:0.85rem; color:#666; font-style:italic; margin-top:5px;">(Haz clic en la nube para cambiar su forma mágica)</p>
-                <button id="btn-cam" class="btn-secondary" style="width:100%; margin-top:15px; font-family:'Quicksand', sans-serif; background:#ff80b3; border-color:#ff80b3; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,128,179,0.3);">📸 Capturar Nube Real</button>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button id="btn-clear-paint" class="btn-secondary" style="flex:1; background:#ff80b3; border-color:#ff80b3; color:#fff; border-radius:20px; font-size:0.9rem; padding:5px; font-family:'Quicksand', sans-serif;">🧹 Borrar</button>
+                    <button id="btn-save-paint" class="btn-primary" style="flex:1; background:#4caf50; border-color:#4caf50; color:#fff; border-radius:20px; font-size:0.9rem; padding:5px; font-family:'Quicksand', sans-serif;">💾 Confirmar Dibujo</button>
+                </div>
+                <div id="cam-section" class="hidden">
+                    <p style="font-size:0.85rem; color:#666; font-style:italic; margin-bottom:10px;">¡Dibujo guardado! Ahora toma la foto de la nube real para contrastar:</p>
+                    <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#ff80b3; border-color:#ff80b3; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,128,179,0.3);">📸 Capturar Nube Real</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
-            const cloud = document.getElementById('cloud-shape');
-            const hint = document.getElementById('sky-hint');
-            const sky = document.getElementById('sky-canvas');
-            const shapes = [
-                {emoji: '🐉', name: '¡Un Dragón Celestial!'},
-                {emoji: '🦊', name: '¡Un Zorro Mágico!'},
-                {emoji: '🦌', name: '¡Un Ciervo de Nara!'},
-                {emoji: '🐱', name: '¡Un Gato de la Suerte!'},
-                {emoji: '🗻', name: '¡El Monte Fuji!'},
-                {emoji: '🍣', name: '¡Un Sushi Volador!'}
-            ];
-            let index = 0;
-            sky.addEventListener('click', () => {
-                index = (index + 1) % shapes.length;
-                cloud.style.transform = 'scale(0) rotate(-20deg)';
+            const canvas = document.getElementById('cloud-paint-canvas');
+            const ctx = canvas.getContext('2d');
+            const btnClear = document.getElementById('btn-clear-paint');
+            const btnSave = document.getElementById('btn-save-paint');
+            const camSec = document.getElementById('cam-section');
+            
+            ctx.strokeStyle = '#a1c4fd';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            let drawing = false;
+            let strokes = 0;
+            
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) * (canvas.width / rect.width),
+                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                };
+            };
+            
+            const startDraw = (e) => {
+                e.preventDefault();
+                drawing = true;
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+                strokes++;
                 if (window.playProceduralSound) playProceduralSound('click');
-                setTimeout(() => {
-                    const sh = shapes[index];
-                    cloud.innerText = sh.emoji;
-                    cloud.style.transform = 'scale(1.2) rotate(5deg)';
-                    hint.innerText = sh.name;
-                    hint.style.color = '#ff3385';
-                    hint.style.fontWeight = 'bold';
-                }, 200);
+            };
+            
+            const draw = (e) => {
+                if (!drawing) return;
+                e.preventDefault();
+                const pos = getPos(e);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            };
+            
+            const stopDraw = () => {
+                drawing = false;
+            };
+            
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('mouseleave', stopDraw);
+            
+            canvas.addEventListener('touchstart', startDraw, { passive: false });
+            canvas.addEventListener('touchmove', draw, { passive: false });
+            canvas.addEventListener('touchend', stopDraw);
+            
+            btnClear.addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                strokes = 0;
+                camSec.classList.add('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
             });
-            attachCameraFlow('btn-cam', 'day_1_clouds', currentUser, false);
+            
+            btnSave.addEventListener('click', () => {
+                if (strokes === 0) {
+                    showAlert('DIBUJO VACÍO', '¡Dibuja algo en el cielo primero!');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                camSec.classList.remove('hidden');
+            });
+            
+            attachCameraFlow('btn-cam', 'day_1_clouds', role, false);
         }
     },
 
@@ -84,7 +135,6 @@ Object.assign(MISSIONS_CONFIG, {
                     status.style.color = '#ffd700';
                 }
             });
-
             btn.addEventListener('click', () => {
                 const val = parseInt(slider.value);
                 if (val === 1000000) {
@@ -108,32 +158,50 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius:15px; border:3px solid #ffb74d; color:#5d4037;">
                 <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">✨ ¡Colecciona los Cromos del Aeropuerto! ✨</p>
-                <p style="font-size:0.8rem; margin-bottom:15px; color:#795548;">Toca cada cromo cuando los encuentres en la realidad para pegarlos con magia.</p>
+                <p style="font-size:0.8rem; margin-bottom:15px; color:#795548;">Busca y toca cada uno en la realidad. También debes tomar al menos una foto de prueba.</p>
                 <div class="bingo-grid" id="b-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:15px;">
                     <div class="bingo-card" data-val="av" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        ✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Avión Jumbo</span>
+                        🈯️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Letrero Kanji</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="pi" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        👨‍✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Piloto</span>
+                        👾<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Cartel Pokémon</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="ma" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        🧳<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Maleta Roja</span>
+                        🥫<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Café Boss en lata</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="pa" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        🛂<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Pasaporte</span>
+                        🎌<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Bandera Empleado</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
+                </div>
+                <div style="margin-bottom:15px;">
+                    <button id="btn-bingo-photo" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#ffb74d; border-color:#ffb74d; color:#fff; font-weight:bold; border-radius:20px; padding:8px 15px;">📸 Tomar Foto de Prueba</button>
+                    <input type="file" id="input-bingo-photo" accept="image/*" capture="environment" style="display:none;">
+                    <p id="bingo-photo-status" style="font-size:0.8rem; color:#795548; margin-top:5px;">(Falta foto de prueba)</p>
                 </div>
                 <button id="btn-b" class="btn-primary hidden" style="width:100%; font-family:'Quicksand', sans-serif; background:#ff9800; border-color:#ff9800; color:#fff; font-weight:bold; border-radius:20px; box-shadow:0 4px 10px rgba(255,152,0,0.4);">🎉 ¡Bingo Completado! 🎉</button>
             </div>
         `,
         attachEvents: (role) => {
             let found = 0;
+            let photoId = null;
             const cards = document.querySelectorAll('.bingo-card');
             const btn = document.getElementById('btn-b');
+            const btnPhoto = document.getElementById('btn-bingo-photo');
+            const inputPhoto = document.getElementById('input-bingo-photo');
+            const photoStatus = document.getElementById('bingo-photo-status');
+            
+            const checkCompletion = () => {
+                if (found === 4 && photoId) {
+                    btn.classList.remove('hidden');
+                } else {
+                    btn.classList.add('hidden');
+                }
+            };
+            
             cards.forEach(c => {
                 c.addEventListener('click', function() {
                     if (!this.classList.contains('flipped')) {
@@ -146,19 +214,78 @@ Object.assign(MISSIONS_CONFIG, {
                         if (sparkle) sparkle.style.opacity = '1';
                         found++;
                         if (window.playProceduralSound) playProceduralSound('click');
-                        if (found === 4) {
-                            btn.classList.remove('hidden');
-                            if (window.playProceduralSound) playProceduralSound('success');
-                            if (window.launchConfetti) launchConfetti();
-                        }
+                        checkCompletion();
                     }
                 });
             });
-            btn.addEventListener('click', () => submitMission('day_1_bingo', {type:'game', data:'Bingo 4/4'}, role));
+            
+            btnPhoto.addEventListener('click', () => {
+                inputPhoto.click();
+            });
+            
+            inputPhoto.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                btnPhoto.innerText = '⏳ Procesando...';
+                btnPhoto.disabled = true;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = async () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const MAX_SIZE = 800;
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                        
+                        photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                        try {
+                            await window.savePhotoToDB(photoId, compressed);
+                            photoStatus.innerText = '✅ ¡Foto de prueba lista!';
+                            photoStatus.style.color = '#4caf50';
+                            photoStatus.style.fontWeight = 'bold';
+                            btnPhoto.innerText = '📸 Cambiar Foto';
+                            btnPhoto.disabled = false;
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            checkCompletion();
+                        } catch (err) {
+                            console.error(err);
+                            showAlert('Error', 'No se pudo guardar la foto.');
+                            btnPhoto.innerText = '📸 Tomar Foto de Prueba';
+                            btnPhoto.disabled = false;
+                        }
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            btn.addEventListener('click', () => {
+                if (found === 4 && photoId) {
+                    submitMission('day_1_bingo', {type:'photo', data: photoId}, role);
+                }
+            });
         }
     },
 
-"day_1_balance": {
+    "day_1_balance": {
         tag: "sensors",
         day: 1,
         title: "Equilibrio a 10.000 Metros",
@@ -166,33 +293,54 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Avión",
         render: () => `
-            <p class="mission-desc">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. La gota no debe salir del círculo durante 60 segundos.</p>
-            <div class="level-container">
-                <div class="target-zone"></div>
-                <div class="bubble" id="lvl-bubble"></div>
+            <div style="text-align:center; padding:15px; background:linear-gradient(180deg, #fffde7 0%, #fff9c4 100%); border-radius:15px; border:3px solid #ffd54f; color:#5d4037; font-family:'Quicksand', sans-serif;">
+                <p class="mission-desc" style="font-weight:bold;">🍵 El Té del Emperador 🍵</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#795548;">Entrena el pulso de un samurái. Coloca el móvil plano sobre la bandeja. No inclines la taza más de 15 grados durante 20 segundos.</p>
+                
+                <div style="width:140px; height:140px; border-radius:50%; background:#fff; border:4px solid #ffd54f; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; box-shadow:inset 0 2px 5px rgba(0,0,0,0.1);">
+                    <div id="lvl-bubble-container" style="position:relative; width:100%; height:100%; transition:transform 0.1s ease-out;">
+                        <span id="lvl-tea-cup" style="font-size:4rem; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); transition: transform 0.1s ease; filter:drop-shadow(0 4px 6px rgba(0,0,0,0.15));">🍵</span>
+                    </div>
+                    <div style="position:absolute; width:40px; height:40px; border:2px dashed #ff5722; border-radius:50%; pointer-events:none;"></div>
+                </div>
+                
+                <p id="lvl-timer" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">20.0s</p>
+                <button id="btn-start-balance" class="btn-primary" style="width:100%; border-radius:25px; background:#ffd54f; border-color:#ffd54f; color:#5d4037; font-weight:bold; font-family:'Quicksand', sans-serif;">Calibrar y Empezar</button>
             </div>
-            <p id="lvl-timer" style="text-align:center; font-size:2rem; font-weight:bold;">60.0s</p>
-            <button id="btn-start" class="btn-primary" style="width:100%">Calibrar y Empezar</button>
         `,
         attachEvents: (role) => {
-            let active = false; let timeLeft = 60; let timerInt;
-            const bubble = document.getElementById('lvl-bubble');
+            let active = false;
+            let timeLeft = 20.0;
+            let timerInt = null;
+            const cup = document.getElementById('lvl-tea-cup');
+            const timerDisp = document.getElementById('lvl-timer');
+            const startBtn = document.getElementById('btn-start-balance');
+            
             const handleOrient = (e) => {
-                if(!active) return;
-                const x = e.gamma; const y = e.beta;
-                bubble.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-                if(Math.abs(x) > 30 || Math.abs(y) > 30) {
-                    active = false; clearInterval(timerInt);
-                    showAlert("Fallo", "¡Se ha derramado el té! Vuelve a intentarlo.");
-                    document.getElementById('btn-start').classList.remove('hidden');
+                if (!active) return;
+                const x = e.gamma || 0;
+                const y = e.beta || 0;
+                
+                cup.style.transform = `translate(-50%, -50%) translate(${x * 1.5}px, ${y * 1.5}px) rotate(${x}deg)`;
+                
+                if (Math.abs(x) > 20 || Math.abs(y) > 20) {
+                    active = false;
+                    clearInterval(timerInt);
+                    window.removeEventListener('deviceorientation', handleOrient);
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert("¡Se ha derramado el té!", "¡Mantén el pulso firme y no inclines tanto el dispositivo! Vuelve a intentarlo.");
+                    startBtn.classList.remove('hidden');
+                    cup.style.transform = 'translate(-50%, -50%) rotate(90deg)';
+                    timerDisp.innerText = '20.0s';
                 }
             };
-            document.getElementById('btn-start').addEventListener('click', async (e) => {
+            
+            startBtn.addEventListener('click', async (e) => {
                 if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     try {
                         const p = await DeviceOrientationEvent.requestPermission();
                         if (p !== 'granted') {
-                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento. Por favor, habilítalos en los ajustes de tu dispositivo.');
+                            showAlert('Permiso Denegado', 'Esta misión requiere acceso a los sensores de movimiento.');
                             return;
                         }
                     } catch (err) {
@@ -201,19 +349,34 @@ Object.assign(MISSIONS_CONFIG, {
                         return;
                     }
                 }
-                e.target.classList.add('hidden');
-                active = true; timeLeft = 60;
+                
+                startBtn.classList.add('hidden');
+                active = true;
+                timeLeft = 20.0;
+                cup.style.transform = 'translate(-50%, -50%)';
+                timerDisp.innerText = '20.0s';
+                
                 window.addEventListener('deviceorientation', handleOrient);
+                if (window.playProceduralSound) playProceduralSound('click');
+                
                 timerInt = setInterval(() => {
                     timeLeft -= 0.1;
-                    document.getElementById('lvl-timer').innerText = timeLeft.toFixed(1) + 's';
-                    if(timeLeft <= 0) {
-                        active = false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient);
-                        submitMission('day_1_balance', {type:'sensors', data:'60s completados'}, role);
+                    timerDisp.innerText = timeLeft.toFixed(1) + 's';
+                    if (timeLeft <= 0) {
+                        active = false;
+                        clearInterval(timerInt);
+                        window.removeEventListener('deviceorientation', handleOrient);
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        submitMission('day_1_balance', {type:'sensors', data:'Equilibrio 20s completado sin derrames'}, role);
                     }
                 }, 100);
             });
-            window._missionCleanup = () => { active=false; clearInterval(timerInt); window.removeEventListener('deviceorientation', handleOrient); };
+            
+            window._missionCleanup = () => {
+                active = false;
+                clearInterval(timerInt);
+                window.removeEventListener('deviceorientation', handleOrient);
+            };
         }
     },
 
@@ -225,15 +388,25 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Avión",
         render: () => `
-            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #f48fb1; color:#880e4f;">
-                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">🎙️ ¡Escáner de Magia del Motor!</p>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #f48fb1; color:#880e4f; font-family:'Quicksand', sans-serif;">
+                <p class="mission-desc" style="font-weight:bold;">🎙️ ¡Escáner de Magia del Motor!</p>
                 <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">Acerca el micrófono a la ventanilla y mira cómo bailan las ondas de sonido.</p>
                 <div style="background:#1a1a24; padding:10px; border-radius:10px; margin-bottom:15px; border:2px solid #f48fb1; position:relative;">
                     <canvas id="engine-wave" width="280" height="80" style="width:100%; height:80px; display:block; background:#111; border-radius:5px;"></canvas>
                     <div id="engine-timer" style="position:absolute; right:15px; bottom:15px; color:#ff4081; font-family:monospace; font-size:1.1rem; font-weight:bold; text-shadow:0 0 5px #000;">05.0s</div>
                 </div>
-                <button id="btn-rec-engine" class="btn-primary" style="width:100%; border-radius:25px; background:#ff4081; border-color:#ff4081; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">🎤 Iniciar Escaneo (5s)</button>
-                <button id="btn-submit-engine" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold; margin-top:10px;">Enviar Grabación</button>
+                <button id="btn-rec-engine" class="btn-primary" style="width:100%; border-radius:25px; background:#ff4081; border-color:#ff4081; color:#fff; font-weight:bold;">🎤 Iniciar Escaneo (5s)</button>
+                
+                <div id="engine-quiz" class="hidden" style="margin-top:15px; padding:10px; background:rgba(255,255,255,0.4); border-radius:10px; border:1px dashed #f48fb1; text-align:left;">
+                    <p style="font-size:0.85rem; font-weight:bold; color:#880e4f; margin-bottom:10px;">⚡ ANALIZADOR DE FRECUENCIAS:</p>
+                    <p style="font-size:0.8rem; color:#ad1457; margin-bottom:8px;">Según el escaneo de ondas, ¿cuál es el tono predominante del zumbido del motor?</p>
+                    <div style="display:flex; gap:10px;">
+                        <button id="btn-freq-grave" class="btn-secondary" style="flex:1; background:#880e4f; border-color:#880e4f; color:#fff; font-size:0.8rem; border-radius:15px; padding:5px; font-family:'Quicksand', sans-serif;">Grave (<150 Hz)</button>
+                        <button id="btn-freq-agudo" class="btn-secondary" style="flex:1; background:#ad1457; border-color:#ad1457; color:#fff; font-size:0.8rem; border-radius:15px; padding:5px; font-family:'Quicksand', sans-serif;">Agudo (>1000 Hz)</button>
+                    </div>
+                </div>
+                
+                <button id="btn-submit-engine" class="btn-primary hidden" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-weight:bold; margin-top:10px; font-family:'Quicksand', sans-serif;">Enviar Análisis</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -242,6 +415,9 @@ Object.assign(MISSIONS_CONFIG, {
             const canvas = document.getElementById('engine-wave');
             const ctx = canvas.getContext('2d');
             const timerEl = document.getElementById('engine-timer');
+            const quizEl = document.getElementById('engine-quiz');
+            const btnGrave = document.getElementById('btn-freq-grave');
+            const btnAgudo = document.getElementById('btn-freq-agudo');
             
             let recording = false;
             let audioCtx = null;
@@ -252,6 +428,7 @@ Object.assign(MISSIONS_CONFIG, {
             let dataArray = [];
             let timeLeft = 5.0;
             let interval = null;
+            let selectedFreq = '';
             
             const drawWave = () => {
                 if (!recording) return;
@@ -330,8 +507,8 @@ Object.assign(MISSIONS_CONFIG, {
                             ctx.stroke();
                             
                             timerEl.innerText = '00.0s';
-                            btnRec.innerText = '✨ Grabado con Éxito';
-                            btnSubmit.classList.remove('hidden');
+                            btnRec.innerText = '✨ Grabado';
+                            quizEl.classList.remove('hidden');
                             if (window.playProceduralSound) playProceduralSound('success');
                         } else {
                             timerEl.innerText = `${timeLeft.toFixed(1)}s`;
@@ -343,9 +520,29 @@ Object.assign(MISSIONS_CONFIG, {
                     showAlert('Error', 'No se pudo acceder al micrófono para el escaneo.');
                 }
             });
+            
+            btnGrave.addEventListener('click', () => {
+                selectedFreq = 'Grave';
+                btnGrave.style.border = '2px solid #4caf50';
+                btnAgudo.style.border = 'none';
+                btnSubmit.classList.remove('hidden');
+                if (window.playProceduralSound) playProceduralSound('click');
+            });
+            
+            btnAgudo.addEventListener('click', () => {
+                selectedFreq = 'Agudo';
+                btnAgudo.style.border = '2px solid #f44336';
+                btnGrave.style.border = 'none';
+                btnSubmit.classList.add('hidden');
+                if (window.playProceduralSound) playProceduralSound('error');
+                showAlert('FRECUENCIA ERRÓNEA', 'Los motores a reacción emiten un zumbido subsónico de baja frecuencia (Grave). Revisa tu respuesta.');
+            });
 
             btnSubmit.addEventListener('click', () => {
-                submitMission('day_1_engine', {type: 'audio', data: 'Sonido del motor del avión analizado y verificado.'}, role);
+                if (selectedFreq === 'Grave') {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_1_engine', {type: 'audio', data: 'Sonido del motor analizado. Frecuencia correctamente identificada como Grave (<150Hz).'}, role);
+                }
             });
 
             window._missionCleanup = () => {
@@ -358,7 +555,7 @@ Object.assign(MISSIONS_CONFIG, {
         }
     },
 
-"day_1_navigator": {
+    "day_1_navigator": {
         tag: "writing",
         day: 1,
         title: "Navegante de Altura",
@@ -366,16 +563,40 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Avión",
         render: () => `
-            <div class="ui-terminal" style="padding:15px; border-radius:8px;">
-                <p>>>> PROTOCOLO DE VUELO: ACTIVO</p>
-                <input type="number" id="nav-alt" placeholder="Altitud (pies)..." style="width:100%; margin-bottom:10px;">
-                <input type="number" id="nav-spd" placeholder="Velocidad (km/h)..." style="width:100%; margin-bottom:10px;">
-                <button id="btn" class="btn-primary" style="width:100%">ENVIAR DATOS TELEMÉTRICOS</button>
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
+                <p>>>> PROTOCOLO DE VUELO: NAVEGADOR DE ALTURA</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:10px;">Consulta la pantalla del avión e introduce la telemetría actual.</p>
+                <input type="number" id="nav-alt" placeholder="Altitud actual (pies, ej: 35000)..." style="width:100%; margin-bottom:10px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; box-sizing:border-box;">
+                <input type="number" id="nav-spd" placeholder="Velocidad actual (km/h, ej: 900)..." style="width:100%; margin-bottom:10px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; box-sizing:border-box;">
+                
+                <p style="color:#ffd700; font-size:0.8rem; margin:15px 0 5px 0;">⚡ RETO DE CÁLCULO DE NAVEGACIÓN:</p>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:10px;">Si quedan <span style="color:#00ff99; font-weight:bold;">3.600 km</span> para llegar a Tokio y viajas a la velocidad indicada, ¿cuántas horas exactas de vuelo quedan?</p>
+                <input type="number" step="0.1" id="nav-eta" placeholder="Horas restantes (ej: 4.0)..." style="width:100%; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; box-sizing:border-box;">
+                
+                <button id="btn-nav-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">ENVIAR DATOS TELEMÉTRICOS</button>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                submitMission('day_1_navigator', {type:'text', data:`Alt: ${document.getElementById('nav-alt').value}ft, Vel: ${document.getElementById('nav-spd').value}km/h`}, role);
+            document.getElementById('btn-nav-submit').addEventListener('click', () => {
+                const alt = document.getElementById('nav-alt').value;
+                const spd = parseFloat(document.getElementById('nav-spd').value);
+                const eta = parseFloat(document.getElementById('nav-eta').value);
+                
+                if (!alt || !spd || !eta) {
+                    showAlert('DATOS INCOMPLETOS', 'Por favor, rellena todos los parámetros telemétricos.');
+                    return;
+                }
+                
+                const expectedEta = parseFloat((3600 / spd).toFixed(1));
+                const difference = Math.abs(eta - expectedEta);
+                
+                if (difference <= 0.2) {
+                    if (window.playProceduralSound) playProceduralSound('success');
+                    submitMission('day_1_navigator', {type:'text', data:`Alt: ${alt}ft, Vel: ${spd}km/h, ETA calculado: ${eta}h (Esperado: ${expectedEta}h)`}, role);
+                } else {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO ERRÓNEO', `Tu estimación de tiempo restante (${eta}h) no coincide con los datos físicos (3600 km / ${spd} km/h = ${expectedEta}h). Recalcula con precisión.`);
+                }
             });
         }
     },
@@ -388,68 +609,47 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Avión",
         render: () => `
-            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
+            <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 15px rgba(0,255,153,0.15);">
                 <p>>>> SENSOR DE SUEÑO Y CRONOBIOLOGÍA</p>
-                <p style="color:#aaa;">Calcula el desfase de horas para mitigar el jetlag en vuelo.</p>
-                <div style="display:flex; gap:15px; justify-content:center; margin:15px 0;">
-                    <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:5px;">
-                        <p style="margin:0; font-size:0.8rem;">MADRID (Origen)</p>
-                        <div id="madrid-sky" style="font-size:2rem; margin:5px 0;">🌙</div>
-                        <p id="madrid-time" style="font-size:1.5rem; font-weight:bold; margin:0;">22:00</p>
-                    </div>
-                    <div style="flex:1; text-align:center; padding:10px; background:rgba(255,255,255,0.05); border-radius:5px;">
-                        <p style="margin:0; font-size:0.8rem;">TOKIO (+7h/Japón)</p>
-                        <div id="tokyo-sky" style="font-size:2rem; margin:5px 0;">🌅</div>
-                        <p id="tokyo-time" style="font-size:1.5rem; font-weight:bold; margin:0; color:#ffd700;">05:00</p>
-                        <span style="font-size:0.6rem; color:#aaa;">(Día Siguiente)</span>
-                    </div>
+                <p style="color:#aaa; font-size:0.8rem; margin-bottom:10px;">Calcula el desfase para mitigar el jetlag en vuelo. Japón va <span style="color:#00ff99; font-weight:bold;">+7 horas</span> por delante de Madrid.</p>
+                
+                <div style="background:rgba(255,255,255,0.05); border:1px solid #00ff99; border-radius:5px; padding:12px; margin-bottom:15px; text-align:center;">
+                    <p style="margin:0 0 10px 0; font-size:0.9rem; font-weight:bold; color:#ffd700;">🔮 ENIGMA DE BIOCRONOLOGÍA:</p>
+                    <p style="margin:0; font-size:0.8rem; line-height:1.4;">"Si quieres acostarte en Tokio a las <span style="color:#00ff99; font-weight:bold;">22:00</span> para adaptarte al horario nipón, ¿qué hora marcaría tu reloj biológico de Madrid en ese preciso instante?"</p>
                 </div>
-                <div style="margin-bottom:15px;">
-                    <p style="font-size:0.8rem; text-align:center; color:#aaa;">Desplaza para ajustar la hora de Madrid a las 22:00:</p>
-                    <input type="range" id="timezone-slider" min="0" max="23" value="12" style="width:100%; accent-color:#00ff99; cursor:pointer;">
+                
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                    <input type="number" id="timezone-ans-h" placeholder="Hora (0-23)..." style="flex:1; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;">
+                    <span style="font-weight:bold; color:#00ff99;">:</span>
+                    <input type="number" id="timezone-ans-m" placeholder="Minutos (0-59)..." style="flex:1; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;" value="0">
                 </div>
-                <button id="btn-timezone" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">SINCRONIZAR SUEÑO</button>
+                
+                <button id="btn-timezone" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent; font-family:monospace;">SINCRONIZAR CRONOS</button>
             </div>
         `,
         attachEvents: (role) => {
-            const slider = document.getElementById('timezone-slider');
-            const madridTime = document.getElementById('madrid-time');
-            const tokyoTime = document.getElementById('tokyo-time');
-            const madridSky = document.getElementById('madrid-sky');
-            const tokyoSky = document.getElementById('tokyo-sky');
             const btn = document.getElementById('btn-timezone');
-
-            const updateClocks = () => {
-                const hMadrid = parseInt(slider.value);
-                const hTokyo = (hMadrid + 7) % 24;
-                
-                madridTime.innerText = `${String(hMadrid).padStart(2, '0')}:00`;
-                tokyoTime.innerText = `${String(hTokyo).padStart(2, '0')}:00`;
-                
-                madridSky.innerText = (hMadrid >= 7 && hMadrid < 20) ? '☀️' : '🌙';
-                tokyoSky.innerText = (hTokyo >= 7 && hTokyo < 20) ? '☀️' : '🌙';
-                if (hTokyo === 5 || hTokyo === 6) tokyoSky.innerText = '🌅';
-                if (hTokyo === 19 || hTokyo === 20) tokyoSky.innerText = '🌇';
-            };
-
-            slider.addEventListener('input', updateClocks);
-            updateClocks();
-
             btn.addEventListener('click', () => {
-                const hMadrid = parseInt(slider.value);
-                const hTokyo = (hMadrid + 7) % 24;
-                if (hMadrid === 22) {
+                const h = parseInt(document.getElementById('timezone-ans-h').value);
+                const m = parseInt(document.getElementById('timezone-ans-m').value);
+                
+                if (isNaN(h) || isNaN(m)) {
+                    showAlert('VALOR INCOMPLETO', 'Por favor, introduce la hora y los minutos.');
+                    return;
+                }
+                
+                if (h === 15 && m === 0) {
                     if (window.playProceduralSound) playProceduralSound('success');
-                    submitMission('day_1_timezone', {type:'text', data: `Madrid 22:00 | Tokio ${String(hTokyo).padStart(2, '0')}:00`}, role);
+                    submitMission('day_1_timezone', {type:'text', data: '22:00 Tokio = 15:00 Madrid (Jetlag Sincronizado)'}, role);
                 } else {
                     if (window.playProceduralSound) playProceduralSound('error');
-                    showAlert('DESFASE INCORRECTO', 'Sincroniza los relojes para cuando en Madrid sean las 22:00.');
+                    showAlert('HORA INCORRECTA', 'Ese desfase alteraría tu ciclo del sueño. Resta 7 horas a las 22:00.');
                 }
             });
         }
     },
 
-"day_1_exchange": {
+    "day_1_exchange": {
         tag: "economy",
         day: 1,
         title: "El Precio del Yen",
@@ -489,9 +689,92 @@ Object.assign(MISSIONS_CONFIG, {
         role: "kid9",
         xp: 15,
         location: "Calle",
-        render: () => `<p class="mission-desc">Las máquinas expendedoras en Japón venden cosas locas. Haz foto a la Vending Machine más rara que veas hoy.</p>
-                       <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
-        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_vending', role, false)
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius:15px; border:3px solid #1e88e5; color:#0d47a1; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🥤 Detective de Vending 🥤</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#1565c0;">Las máquinas expendedoras en Japón venden cosas locas. Encuentra una máquina real, sácale una foto y selecciona al menos una bebida exótica o curiosa que hayas visto en ella:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #1e88e5; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#1e88e5; margin:0 0 8px 0;">BEBIDAS EXTRAÑAS OBSERVADAS:</p>
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;">
+                        <button type="button" class="btn-drink-tag" data-val="Té verde caliente" style="padding:6px; font-size:0.75rem; border:1px solid #ccc; background:#fff; border-radius:5px; cursor:pointer; font-family:'Quicksand';">🍵 Té Verde</button>
+                        <button type="button" class="btn-drink-tag" data-val="Café en lata" style="padding:6px; font-size:0.75rem; border:1px solid #ccc; background:#fff; border-radius:5px; cursor:pointer; font-family:'Quicksand';">☕ Café en lata</button>
+                        <button type="button" class="btn-drink-tag" data-val="Sopa de maíz caliente" style="padding:6px; font-size:0.75rem; border:1px solid #ccc; background:#fff; border-radius:5px; cursor:pointer; font-family:'Quicksand';">🌽 Sopa de maíz</button>
+                        <button type="button" class="btn-drink-tag" data-val="Refresco de uva" style="padding:6px; font-size:0.75rem; border:1px solid #ccc; background:#fff; border-radius:5px; cursor:pointer; font-family:'Quicksand';">🍇 Jelly de uva</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <button type="button" id="btn-select-file" class="btn-secondary" style="width:100%; margin-bottom:8px; font-family:'Quicksand';">📸 Hacer Foto de la Máquina</button>
+                    <input type="file" id="vending-photo-input" accept="image/*" style="display:none;">
+                    <div id="vending-photo-preview" style="display:none; margin-top:10px; font-size:0.85rem; color:#2e7d32; font-weight:bold;">✅ ¡Foto cargada correctamente!</div>
+                </div>
+                
+                <button id="btn-submit-vending" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold;" disabled>Enviar Reporte</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const selectFileBtn = document.getElementById('btn-select-file');
+            const fileInput = document.getElementById('vending-photo-input');
+            const previewEl = document.getElementById('vending-photo-preview');
+            const submitBtn = document.getElementById('btn-submit-vending');
+            const drinkTags = document.querySelectorAll('.btn-drink-tag');
+            
+            let photoId = null;
+            let selectedDrinks = [];
+            
+            drinkTags.forEach(tag => {
+                tag.addEventListener('click', () => {
+                    const drinkVal = tag.dataset.val;
+                    if (selectedDrinks.includes(drinkVal)) {
+                        selectedDrinks = selectedDrinks.filter(d => d !== drinkVal);
+                        tag.style.background = '#fff';
+                        tag.style.borderColor = '#ccc';
+                        tag.style.color = '#333';
+                    } else {
+                        selectedDrinks.push(drinkVal);
+                        tag.style.background = '#e3f2fd';
+                        tag.style.borderColor = '#1e88e5';
+                        tag.style.color = '#0d47a1';
+                    }
+                    if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
+                });
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'vending_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            const checkValidity = () => {
+                if (photoId && selectedDrinks.length > 0) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            };
+
+            submitBtn.addEventListener('click', () => {
+                submitMission('day_2_vending', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { drinks: selectedDrinks }
+                }, role);
+            });
+        }
     },
 
     "day_2_maze": {
@@ -706,24 +989,49 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 15,
         location: "Calle",
         render: () => `
-            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e;">
-                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">👾 Radar Yōkai de las Calles</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Encuentra una mascota, muñeco o cartel manga y captúralo con el radar.</p>
-                <div style="width:160px; height:160px; border-radius:50%; background:#1a1a24; border:5px solid #8d6e63; margin:0 auto 15px; position:relative; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
-                    <div id="radar-sweep" style="position:absolute; top:50%; left:50%; width:100px; height:100px; background:linear-gradient(45deg, rgba(244,143,177,0.4), transparent); transform-origin: top left; animation: radarSweep 3s linear infinite; pointer-events:none;"></div>
-                    <div style="position:absolute; width:100%; height:1px; background:rgba(255,255,255,0.1); top:50%;"></div>
-                    <div style="position:absolute; height:100%; width:1px; background:rgba(255,255,255,0.1); left:50%;"></div>
-                    <div id="radar-blip" style="position:absolute; width:12px; height:12px; border-radius:50%; background:#ff4081; top:35%; left:65%; animation: blipBlink 1.5s infinite; opacity:0; pointer-events:none;"></div>
-                    <div style="display:flex; align-items:center; justify-content:center; height:100%; font-size:3rem; z-index:2; position:relative;">📡</div>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif;">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👾 Radar Yōkai de las Calles 👾</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Encuentra una mascota, muñeco, estatua o cartel manga en la calle y captúralo con el Radar:</p>
+                
+                <div style="width:120px; height:120px; border-radius:50%; background:#1a1a24; border:5px solid #8d6e63; margin:0 auto 15px; position:relative; overflow:hidden; box-shadow:inset 0 3px 10px rgba(0,0,0,0.5);">
+                    <div id="radar-sweep" style="position:absolute; top:50%; left:50%; width:80px; height:80px; background:linear-gradient(45deg, rgba(244,143,177,0.4), transparent); transform-origin: top left; animation: radarSweep 3s linear infinite; pointer-events:none;"></div>
+                    <div id="radar-blip" style="position:absolute; width:10px; height:10px; border-radius:50%; background:#ff4081; top:35%; left:65%; animation: blipBlink 1.5s infinite; opacity:0; pointer-events:none;"></div>
+                    <div style="display:flex; align-items:center; justify-content:center; height:100%; font-size:2.5rem; position:relative; z-index:2;">📡</div>
                 </div>
-                <p id="radar-status" style="font-size:0.85rem; color:#8d6e63; font-style:italic; min-height:1.2rem;">>>> Escaneando espectro espiritual...</p>
-                <button id="btn-cam-yokai" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:25px; margin-top:10px;">📸 Capturar con Lente Yōkai</button>
+                
+                <p id="radar-status" style="font-size:0.8rem; color:#8d6e63; font-style:italic; min-height:1.2rem; margin-bottom:15px;">>>> Escaneando espectro espiritual...</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #8d6e63; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#8d6e63; margin:0 0 5px 0;">🛡️ CLASIFICACIÓN DEL ESPÍRITU:</p>
+                    <select id="yokai-type" style="width:100%; padding:8px; border:1px solid #8d6e63; border-radius:5px; background:#fff; font-family:'Quicksand', sans-serif; font-size:0.8rem;">
+                        <option value="">-- Selecciona tipo de Yōkai --</option>
+                        <option value="tsukumogami">Tsukumogami (Espíritu de objeto inanimado)</option>
+                        <option value="kitsune">Kitsune/Tanuki (Espíritu animal con poderes)</option>
+                        <option value="oni">Oni/Tengu (Gigante, demonio o espíritu de la montaña)</option>
+                        <option value="yurei">Yūrei (Fantasma o aparición humana)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <button type="button" id="btn-select-yokai-file" class="btn-secondary" style="width:100%; margin-bottom:8px; font-family:'Quicksand'; font-weight:bold; background:#8d6e63; border-color:#8d6e63; color:#fff;">📸 Fotografiar Criatura</button>
+                    <input type="file" id="yokai-photo-input" accept="image/*" style="display:none;">
+                    <div id="yokai-photo-preview" style="display:none; margin-top:10px; font-size:0.85rem; color:#2e7d32; font-weight:bold;">✅ ¡Espíritu registrado en la base de datos!</div>
+                </div>
+
+                <button id="btn-submit-yokai" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold;" disabled>Sellar Registro Yōkai</button>
             </div>
         `,
         attachEvents: (role) => {
             const blip = document.getElementById('radar-blip');
             const status = document.getElementById('radar-status');
-            
+            const selectFileBtn = document.getElementById('btn-select-yokai-file');
+            const fileInput = document.getElementById('yokai-photo-input');
+            const previewEl = document.getElementById('yokai-photo-preview');
+            const submitBtn = document.getElementById('btn-submit-yokai');
+            const typeSelect = document.getElementById('yokai-type');
+
+            let photoId = null;
+
             setTimeout(() => {
                 if (blip) {
                     blip.style.opacity = '1';
@@ -732,9 +1040,45 @@ Object.assign(MISSIONS_CONFIG, {
                     status.style.fontWeight = 'bold';
                     if (window.playProceduralSound) playProceduralSound('click');
                 }
-            }, 2500);
+            }, 2000);
 
-            attachCameraFlow('btn-cam-yokai', 'day_2_yokai', role, false);
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'yokai_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            typeSelect.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            const checkValidity = () => {
+                if (photoId && typeSelect.value !== "") {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            };
+
+            submitBtn.addEventListener('click', () => {
+                submitMission('day_2_yokai', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { yokaiType: typeSelect.value }
+                }, role);
+            });
         }
     },
 
@@ -746,15 +1090,18 @@ Object.assign(MISSIONS_CONFIG, {
         xp: 20,
         location: "Metro",
         render: () => `
-            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20;">
-                <p class="mission-desc" style="font-family:'Quicksand', sans-serif; font-weight:bold;">🦊 El Jardín del Silencio Kitsune 🌸</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El zorrito Kitsune está meditando. No hagas ruido y mantén la calma durante 60 segundos.</p>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20; font-family:'Quicksand', sans-serif;">
+                <p class="mission-desc" style="font-weight:bold;">🦊 El Jardín del Silencio Kitsune 🌸</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">El zorrito Kitsune está meditando. Mantén un silencio total durante 30 segundos. Si haces ruido, ¡el zorro se despertará y el tiempo se reiniciará!</p>
                 <div id="kitsune-garden" style="height:150px; background:#fff; border-radius:10px; border:2px solid #81c784; position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center;">
                     <span id="kitsune-character" style="font-size:4.5rem; transition:transform 0.5s ease; z-index:2;">🦊</span>
                     <span id="kitsune-status-txt" style="font-size:0.8rem; font-weight:bold; color:#2e7d32; margin-top:5px; z-index:2;">(Esperando calma...)</span>
+                    <div id="silence-bar-container" style="width:80%; height:8px; background:#e0e0e0; border-radius:4px; margin-top:5px; z-index:2; overflow:hidden; border:1px solid #ccc;">
+                        <div id="silence-bar-fill" style="width:0%; height:100%; background:#4caf50; transition:width 0.1s ease;"></div>
+                    </div>
                     <canvas id="sakura-canvas" width="280" height="150" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;"></canvas>
                 </div>
-                <p id="crono-disp" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">60s</p>
+                <p id="crono-disp" style="font-size:2.2rem; font-weight:bold; margin:10px 0; font-family:monospace;">30.0s</p>
                 <button id="btn-start-kitsune" class="btn-primary" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; color:#fff; font-family:'Quicksand', sans-serif; font-weight:bold;">Iniciar Meditación Zen</button>
             </div>
         `,
@@ -763,13 +1110,19 @@ Object.assign(MISSIONS_CONFIG, {
             const cronoDisp = document.getElementById('crono-disp');
             const kitsune = document.getElementById('kitsune-character');
             const statusTxt = document.getElementById('kitsune-status-txt');
+            const silenceFill = document.getElementById('silence-bar-fill');
             const canvas = document.getElementById('sakura-canvas');
             const ctx = canvas.getContext('2d');
             
-            let timer = 60;
+            let timer = 30.0;
             let interval = null;
             let animating = false;
             let animFrame = null;
+            let audioCtx = null;
+            let analyser = null;
+            let source = null;
+            let stream = null;
+            let micCheckInterval = null;
             
             const petals = [];
             for(let i=0; i<15; i++) {
@@ -802,10 +1155,25 @@ Object.assign(MISSIONS_CONFIG, {
                 });
             };
             
-            startBtn.addEventListener('click', () => {
+            startBtn.addEventListener('click', async () => {
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+                    analyser = audioCtx.createAnalyser();
+                    analyser.fftSize = 512;
+                    source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Micrófono requerido', 'Esta misión requiere el micrófono para medir el nivel de silencio real.');
+                    return;
+                }
+                
                 startBtn.classList.add('hidden');
-                timer = 60;
-                cronoDisp.innerText = '60s';
+                timer = 30.0;
+                cronoDisp.innerText = '30.0s';
+                cronoDisp.style.color = '#1b5e20';
                 kitsune.innerText = '🦊';
                 statusTxt.innerText = '¡Shh! Meditando...';
                 
@@ -814,47 +1182,196 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 if (window.playProceduralSound) playProceduralSound('click');
                 
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                
+                micCheckInterval = setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        sum += dataArray[i];
+                    }
+                    const average = sum / bufferLength;
+                    const pct = Math.min(100, (average / 80) * 100);
+                    silenceFill.style.width = pct + '%';
+                    
+                    if (average > 28) {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        timer = 30.0;
+                        cronoDisp.innerText = '¡RUIDO DETECTADO!';
+                        cronoDisp.style.color = '#f44336';
+                        kitsune.innerText = '🦊💥';
+                        statusTxt.innerText = '¡El Kitsune se ha asustado! Silencio...';
+                        silenceFill.style.background = '#f44336';
+                        setTimeout(() => {
+                            if (animating) {
+                                kitsune.innerText = '🦊';
+                                statusTxt.innerText = '¡Shh! Meditando...';
+                                silenceFill.style.background = '#4caf50';
+                                cronoDisp.style.color = '#1b5e20';
+                            }
+                        }, 1200);
+                    }
+                }, 100);
+                
                 interval = setInterval(() => {
-                    timer--;
-                    cronoDisp.innerText = `${timer}s`;
-                    
-                    kitsune.style.transform = timer % 2 === 0 ? 'scale(1.1)' : 'scale(1)';
-                    
-                    if (timer <= 0) {
+                    timer -= 0.1;
+                    if (timer > 0) {
+                        cronoDisp.innerText = `${timer.toFixed(1)}s`;
+                        kitsune.style.transform = Math.floor(timer) % 2 === 0 ? 'scale(1.1)' : 'scale(1)';
+                    } else {
                         clearInterval(interval);
+                        clearInterval(micCheckInterval);
                         animating = false;
                         cancelAnimationFrame(animFrame);
+                        if (stream) stream.getTracks().forEach(t => t.stop());
+                        if (audioCtx) audioCtx.close();
+                        
                         kitsune.innerText = '🦊✨';
                         statusTxt.innerText = '¡Meditación superada con honor!';
+                        silenceFill.style.width = '0%';
+                        cronoDisp.innerText = '¡LOGRADO!';
                         cronoDisp.style.color = '#4caf50';
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (window.launchConfetti) launchConfetti();
                         
                         setTimeout(() => {
-                            submitMission('day_2_posture', {type:'text', data:'Meditación Zen 60 segundos'}, role);
+                            submitMission('day_2_posture', {type:'text', data:'Meditación Zen 30 segundos completada en silencio real'}, role);
                         }, 1500);
                     }
-                }, 1000);
+                }, 100);
             });
             
             window._missionCleanup = () => {
-                clearInterval(interval);
                 animating = false;
+                clearInterval(interval);
+                clearInterval(micCheckInterval);
                 if (animFrame) cancelAnimationFrame(animFrame);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
             };
         }
     },
 
-"day_2_melody": {
+    "day_2_melody": {
         tag: "audio",
         day: 2,
         title: "Melodía Subterránea",
         role: "kid9",
         xp: 20,
         location: "Metro",
-        render: () => `<p class="mission-desc">Cuando suene la musiquita de la estación para anunciar un tren, ¡grábala!</p>
-                       <button id="btn-rec" class="btn-primary" style="width:100%; height:80px; border-radius:40px; font-size:1.5rem">🎤 Grabar 5s</button>`,
-        attachEvents: (role) => attachCameraFlow('btn-rec', 'day_2_melody', role, false)
+        render: () => `
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #4caf50; color:#1b5e20; font-family:'Quicksand', sans-serif;">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🎵 Melodía Subterránea 🎵</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Cuando suene la música alegre de la estación (Hassha Melody) al anunciar la salida del tren, graba 5 segundos y clasifícala:</p>
+                
+                <div style="margin-bottom:15px;">
+                    <button type="button" id="btn-record-melody" class="btn-primary" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; font-weight:bold; font-family:'Quicksand';">🎤 Grabar Melodía (5s)</button>
+                    <div id="melody-status" style="margin-top:10px; font-size:0.85rem; color:#1b5e20; font-style:italic;">Listo para grabar.</div>
+                </div>
+
+                <div id="melody-classification" class="hidden" style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #4caf50; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#4caf50; margin:0 0 8px 0;">🎹 ANÁLISIS DE LA MELODÍA:</p>
+                    <p style="font-size:0.8rem; margin:0 0 5px 0; font-weight:bold; color:#1b5e20;">¿Qué instrumento destaca más?</p>
+                    <select id="melody-instrument" style="width:100%; padding:6px; border:1px solid #4caf50; border-radius:5px; font-family:'Quicksand'; font-size:0.8rem; margin-bottom:10px; background:#fff;">
+                        <option value="">-- Elige el instrumento --</option>
+                        <option value="bell">Campanillas / Xilófono cristalino</option>
+                        <option value="synth">Sintetizador electrónico futurista</option>
+                        <option value="piano">Piano / Clavicordio clásico</option>
+                    </select>
+
+                    <p style="font-size:0.8rem; margin:0 0 5px 0; font-weight:bold; color:#1b5e20;">¿Cómo es el ritmo?</p>
+                    <select id="melody-tempo" style="width:100%; padding:6px; border:1px solid #4caf50; border-radius:5px; font-family:'Quicksand'; font-size:0.8rem; background:#fff;">
+                        <option value="">-- Elige la velocidad --</option>
+                        <option value="rapido">Rápido y alegre (¡Apúrate que se va!)</option>
+                        <option value="lento">Lento y relajante</option>
+                    </select>
+                </div>
+
+                <button id="btn-submit-melody" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold;" disabled>Transmitir Melodía</button>
+            </div>
+        `,
+        attachEvents: (role) => {
+            const recordBtn = document.getElementById('btn-record-melody');
+            const statusEl = document.getElementById('melody-status');
+            const classificationDiv = document.getElementById('melody-classification');
+            const instrumentSelect = document.getElementById('melody-instrument');
+            const tempoSelect = document.getElementById('melody-tempo');
+            const submitBtn = document.getElementById('btn-submit-melody');
+            
+            let mediaRecorder = null;
+            let audioChunks = [];
+            let audioBlobId = null;
+            let recording = false;
+            
+            recordBtn.addEventListener('click', async () => {
+                if (recording) return;
+                recording = true;
+                recordBtn.disabled = true;
+                recordBtn.innerText = '🔴 Grabando...';
+                statusEl.innerText = 'Escuchando el andén de la estación...';
+                audioChunks = [];
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            audioBlobId = 'melody_' + Date.now();
+                            window.savePhotoToDB(audioBlobId, event.target.result);
+                            statusEl.innerText = '✅ Grabación finalizada correctamente.';
+                            recordBtn.innerText = '🎤 Volver a Grabar';
+                            recordBtn.disabled = false;
+                            recording = false;
+                            classificationDiv.classList.remove('hidden');
+                            checkValidity();
+                        };
+                        reader.readAsDataURL(audioBlob);
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    
+                    mediaRecorder.start();
+                    setTimeout(() => {
+                        if (mediaRecorder.state !== 'inactive') {
+                            mediaRecorder.stop();
+                        }
+                    }, 5000);
+                } catch (err) {
+                    console.error(err);
+                    showAlert('ERROR DE AUDIO', 'No se pudo acceder al micrófono del dispositivo. Permite el acceso para continuar.');
+                    recordBtn.disabled = false;
+                    recordBtn.innerText = '🎤 Grabar 5s';
+                    statusEl.innerText = 'Error al abrir micrófono.';
+                    recording = false;
+                }
+            });
+
+            const checkValidity = () => {
+                if (audioBlobId && instrumentSelect.value && tempoSelect.value) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            };
+
+            instrumentSelect.addEventListener('change', checkValidity);
+            tempoSelect.addEventListener('change', checkValidity);
+
+            submitBtn.addEventListener('click', () => {
+                submitMission('day_2_melody', {
+                    type: 'audio',
+                    data: audioBlobId,
+                    metadata: {
+                        instrument: instrumentSelect.value,
+                        tempo: tempoSelect.value
+                    }
+                }, role);
+            });
+        }
     },
 
 "day_2_shogun": {
@@ -911,22 +1428,49 @@ Object.assign(MISSIONS_CONFIG, {
     "day_3_ninja": {
         tag: "photo",
         day: 3,
-        title: "Ninja de las Sombras",
+        title: "El Cangrejo de Dotonbori",
         role: "kid9",
-        xp: 10,
-        location: "Calles",
+        xp: 15,
+        location: "Dotonbori",
         render: () => `
-            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #1a1a24 0%, #2a2a36 100%); border-radius:15px; border:3px solid #ff5722; color:#fff; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👤 El Arte del Kagejutsu (Sombras) 🥷</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#ccc;">Busca una luz potente en la calle (un farol o foco) que proyecte tu silueta gigante sobre una pared. ¡Haz una pose ninja de ataque o sigilo!</p>
-                <div style="display:flex; justify-content:center; gap:15px; margin:15px 0;">
-                    <div style="font-size:3rem; filter:drop-shadow(0 0 10px #ff5722); opacity:0.8;">🥷</div>
-                    <div style="font-size:3rem; filter:drop-shadow(0 0 10px #ffd700); opacity:0.8;">👥</div>
+            <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%); border-radius:15px; border:3px solid #f57c00; color:#e65100; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🦀 El Cangrejo Gigante de Dotonbori 🦀</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">¡Busca el restaurante Kani Doraku con el cangrejo gigante mecánico! Sácate una foto imitando su pose con las manos en forma de pinzas y responde al enigma:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #f57c00; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#f57c00; margin:0 0 5px 0;">💬 OBSERVACIÓN DE NAVEGACIÓN:</p>
+                    <p style="font-size:0.8rem; color:#5d4037; margin:0 0 10px 0;">¿Cómo se mueven las patas y las pinzas de este cangrejo mecánico gigante?</p>
+                    <select id="crab-observation" style="width:100%; padding:8px; border:1px solid #f57c00; border-radius:5px; background:#fff; font-family:'Quicksand', sans-serif; font-size:0.8rem;">
+                        <option value="">-- Elige lo que ves --</option>
+                        <option value="estatico">No se mueven, es una estatua fija</option>
+                        <option value="lento">Se mueven lentamente de lado a lado de forma coordinada</option>
+                        <option value="luces">Solo parpadean luces rojas de discoteca</option>
+                    </select>
                 </div>
-                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#ff5722; border-color:#ff5722; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(255,87,34,0.3);">📸 Capturar Sombra Ninja</button>
+                
+                <button id="btn-cam-crab" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#f57c00; border-color:#f57c00; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(245,124,0,0.3);">📸 Capturar Pose de Cangrejo</button>
             </div>
         `,
-        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_ninja', role, false)
+        attachEvents: (role) => {
+            const select = document.getElementById('crab-observation');
+            const btnCam = document.getElementById('btn-cam-crab');
+            
+            btnCam.addEventListener('click', (e) => {
+                const obs = select.value;
+                if (!obs) {
+                    e.stopImmediatePropagation();
+                    showAlert('RETO INCOMPLETO', 'Primero observa el cangrejo gigante y selecciona cómo se mueve.');
+                    return;
+                }
+                if (obs !== 'lento') {
+                    e.stopImmediatePropagation();
+                    showAlert('OBSERVACIÓN ERRÓNEA', '¡Mira con atención el cangrejo de la fachada! Sus pinzas y patas tienen un movimiento articulado continuo.');
+                    return;
+                }
+            }, true);
+            
+            attachCameraFlow('btn-cam-crab', 'day_3_ninja', role, false);
+        }
     },
 
     "day_3_bridge": {
@@ -1105,17 +1649,79 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0c0812; border:1px solid #ff007f; color:#ff007f; box-shadow: 0 4px 20px rgba(255,0,127,0.25);">
                 <p>>>> RASTREO ÓPTICO NOCTURNO // DOTONBORI NEÓN</p>
-                <p style="color:#00f0ff;">Busca una callejuela angosta iluminada con letreros de neón brillantes y tómale una foto de perspectiva angular estilo Neo-Tokio.</p>
+                <p style="color:#00f0ff; font-size:0.85rem;">Busca una callejuela angosta iluminada con letreros de neón brillantes y tómale una foto de perspectiva angular estilo Neo-Tokio. Luego responde la pregunta de criptografía lingüística:</p>
                 
-                <div style="margin:15px 0; padding:10px; background:rgba(0,240,255,0.05); border:1px solid #00f0ff; border-radius:5px; text-align:center;">
-                    <div style="font-size:0.75rem; color:#ff007f; margin-bottom:5px; font-weight:bold;">⚡ PARÁMETROS CYBERPUNK RECOMENDADOS:</div>
-                    <span style="font-size:0.8rem; color:#fff;">Reflejo en asfalto húmedo | Letreros retro kanji | Sombras marcadas</span>
+                <div style="background:rgba(0,240,255,0.05); border:1px solid #00f0ff; border-radius:5px; padding:10px; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#00f0ff; margin:0 0 5px 0;">💬 LINGÜÍSTICA DE CARTELES:</p>
+                    <p style="font-size:0.75rem; color:#ccc; margin:0 0 8px 0;">¿Qué silabario japonés se usa principalmente en los neones para transcribir fonéticamente palabras de origen extranjero (como "Coffee" o "Hotel")?</p>
+                    <select id="neon-alphabet" style="width:100%; padding:8px; border:1px solid #00f0ff; border-radius:5px; background:#0c0812; color:#00f0ff; font-family:monospace; font-size:0.8rem;">
+                        <option value="">-- Selecciona el silabario --</option>
+                        <option value="hiragana">Hiragana (para gramática y palabras nativas)</option>
+                        <option value="katakana">Katakana (para préstamos y nombres extranjeros)</option>
+                        <option value="kanji">Kanji (ideogramas de origen chino)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <button type="button" id="btn-select-neon-file" class="btn-secondary" style="width:100%; margin-bottom:8px; font-family:monospace; background:#ff007f; border-color:#ff007f; color:#fff; font-weight:bold;">📸 Capturar Óptica Cyberpunk</button>
+                    <input type="file" id="neon-photo-input" accept="image/*" style="display:none;">
+                    <div id="neon-photo-preview" style="display:none; margin-top:10px; font-size:0.8rem; color:#00f0ff; font-weight:bold;">>>> FOTO CARGADA EN MEMORIA DE LA CENTRAL</div>
                 </div>
                 
-                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:monospace; background:#ff007f; border-color:#ff007f; color:#fff; font-weight:bold; font-size:1rem; border-radius:5px;">📸 ACTIVAR OPTICA CYBERPUNK</button>
+                <button id="btn-submit-neon" class="btn-primary" style="width:100%; border-color:#ff007f; color:#ff007f; background:transparent; font-family:monospace; font-weight:bold;" disabled>TRANSMITIR REPORTE OPTICO</button>
             </div>
         `,
-        attachEvents: (role) => attachCameraFlow('btn-cam', 'day_3_neon', role, false)
+        attachEvents: (role) => {
+            const selectFileBtn = document.getElementById('btn-select-neon-file');
+            const fileInput = document.getElementById('neon-photo-input');
+            const previewEl = document.getElementById('neon-photo-preview');
+            const alphabetSelect = document.getElementById('neon-alphabet');
+            const submitBtn = document.getElementById('btn-submit-neon');
+            
+            let photoId = null;
+            
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'neon_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            alphabetSelect.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            const checkValidity = () => {
+                if (photoId && alphabetSelect.value === 'katakana') {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#ff007f';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = 'transparent';
+                    submitBtn.style.color = '#ff007f';
+                }
+            };
+            
+            submitBtn.addEventListener('click', () => {
+                if (alphabetSelect.value !== 'katakana') {
+                    showAlert('DECODIFICACIÓN ERRÓNEA', 'Ese silabario no se corresponde con las transcripciones de términos foráneos.');
+                    return;
+                }
+                submitMission('day_3_neon', {type:'photo', data: photoId}, role);
+            });
+        }
     },
 
     "day_3_rush": {
@@ -1138,8 +1744,15 @@ Object.assign(MISSIONS_CONFIG, {
                         <button id="btn-rush-reset" style="padding:5px 15px; background:#444; border:none; color:#fff; border-radius:3px; cursor:pointer;">RESET</button>
                     </div>
                 </div>
+
+                <div id="rush-observation" class="hidden" style="background:rgba(255,215,0,0.05); border:1px solid #ffd700; border-radius:5px; padding:10px; margin-bottom:15px; text-align:left; color:#ffd700;">
+                    <p style="font-size:0.8rem; font-weight:bold; margin:0 0 5px 0;">🏰 VERIFICACIÓN DE ENTRADA AL CASTILLO:</p>
+                    <p style="font-size:0.75rem; color:#ccc; margin:0 0 8px 0;">¿Cuántos fosos concéntricos (líneas de agua/defensas) tuviste que cruzar para llegar a la base de la torre principal?</p>
+                    <input type="number" id="rush-moats-count" style="width:100%; background:#0a0e12; color:#ffd700; border:1px solid #ffd700; padding:8px; font-family:monospace; font-size:0.85rem;" placeholder="Escribe el número de fosos...">
+                </div>
+
                 <input type="hidden" id="ans" value="">
-                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;" disabled>ENVIAR REGISTRO TELEMÉTRICO</button>
+                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>ENVIAR REGISTRO TELEMÉTRICO</button>
             </div>
         `,
         attachEvents: (role) => {
@@ -1152,6 +1765,8 @@ Object.assign(MISSIONS_CONFIG, {
             const btnReset = document.getElementById('btn-rush-reset');
             const btnSubmit = document.getElementById('btn-submit');
             const ansInput = document.getElementById('ans');
+            const obsDiv = document.getElementById('rush-observation');
+            const moatsInput = document.getElementById('rush-moats-count');
             
             const updateTime = () => {
                 const now = Date.now();
@@ -1169,6 +1784,7 @@ Object.assign(MISSIONS_CONFIG, {
                 btnStart.disabled = true;
                 btnStop.disabled = false;
                 btnSubmit.disabled = true;
+                obsDiv.classList.add('hidden');
                 if (window.playProceduralSound) playProceduralSound('click');
             });
             
@@ -1180,8 +1796,9 @@ Object.assign(MISSIONS_CONFIG, {
                 btnStart.disabled = false;
                 btnStart.innerText = 'REANUDAR';
                 btnStop.disabled = true;
-                btnSubmit.disabled = false;
                 ansInput.value = display.innerText;
+                obsDiv.classList.remove('hidden');
+                checkValidity();
                 if (window.playProceduralSound) playProceduralSound('click');
             });
             
@@ -1197,13 +1814,35 @@ Object.assign(MISSIONS_CONFIG, {
                 btnStop.disabled = true;
                 btnSubmit.disabled = true;
                 ansInput.value = '';
+                moatsInput.value = '';
+                obsDiv.classList.add('hidden');
                 if (window.playProceduralSound) playProceduralSound('click');
             });
+
+            const checkValidity = () => {
+                const moats = parseInt(moatsInput.value);
+                if (ansInput.value && ansInput.value !== '00:00.0' && moats === 2) {
+                    btnSubmit.removeAttribute('disabled');
+                    btnSubmit.style.borderColor = '#00ff99';
+                    btnSubmit.style.color = '#00ff99';
+                } else {
+                    btnSubmit.setAttribute('disabled', 'true');
+                    btnSubmit.style.borderColor = '#555';
+                    btnSubmit.style.color = '#555';
+                }
+            };
+
+            moatsInput.addEventListener('input', checkValidity);
             
             btnSubmit.addEventListener('click', () => {
-                if (!ansInput.value || ansInput.value === '00:00.0') return;
+                const moats = parseInt(moatsInput.value);
+                if (moats !== 2) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('OBSERVACIÓN DE ASALTO INEXACTA', 'El Shogun de Osaka diseñó el castillo con un número específico de anillos concéntricos defensivos (el foso interior y exterior) para repeler invasores. Cuenta bien cuántos has cruzado.');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_3_rush', {type:'text', data: `Tiempo de asalto: ${ansInput.value}`}, role);
+                submitMission('day_3_rush', {type:'text', data: `Tiempo de asalto: ${ansInput.value} | Fosos: ${moats}`}, role);
             });
             
             window._missionCleanup = () => {
@@ -1381,7 +2020,7 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
     "day_4_gachapon": {
-        tag: "game",
+        tag: "photo",
         day: 4,
         title: "Gachapon",
         role: "kid9",
@@ -1389,61 +2028,37 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Tiendas",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15); overflow:hidden;">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🔮 ¡Máquina de Gachapon! 🔮</p>
-                <p style="font-size:0.85rem; margin-bottom:15px;">Toca repetidamente la manivela giratoria para llenar la barra de energía y liberar tu cápsula de juguete.</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🔮 ¡Desafío Gachapon Real! 🔮</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">Encuentra una máquina expendedora real de Gachapon en la tienda. Gira la manivela física, saca un juguete sorpresa, sácale una foto y clasifícalo:</p>
                 
-                <div style="background:#fff; border-radius:15px; padding:15px; border:2px solid #0288d1; display:inline-block; margin-bottom:15px; position:relative; min-width:180px;">
-                    <div id="gacha-dial" style="width:80px; height:80px; border-radius:50%; background:#e0e0e0; border:6px dashed #0288d1; margin:0 auto; display:flex; align-items:center; justify-content:center; font-size:2rem; cursor:pointer; transition:transform 0.1s ease; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);">⚙️</div>
-                    
-                    <div style="width:100%; background:#eee; height:10px; border-radius:5px; margin-top:15px; overflow:hidden; border:1px solid #ccc;">
-                        <div id="gacha-progress" style="width:0%; height:100%; background:linear-gradient(90deg, #ffeb3b, #00e676); transition:width 0.2s ease;"></div>
-                    </div>
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #0288d1; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#0288d1; margin:0 0 5px 0;">🧸 CLASIFICACIÓN DE TU JUGUETE:</p>
+                    <select id="gachapon-category" style="width:100%; padding:8px; border:1px solid #0288d1; border-radius:5px; background:#fff; font-family:'Quicksand', sans-serif; font-size:0.8rem;">
+                        <option value="">-- Elige la categoría --</option>
+                        <option value="anime">Personaje de Anime / Manga / Videojuegos</option>
+                        <option value="animal">Animal kawaii (gato, perro, criatura...)</option>
+                        <option value="objeto">Objeto miniatura / Comida realista / Llavero raro</option>
+                        <option value="otro">Otro tipo de juguete</option>
+                    </select>
                 </div>
                 
-                <div id="gacha-capsule" style="display:none; text-align:center; margin-bottom:15px; animation: bounce 0.5s infinite alternate;">
-                    <span style="font-size:3rem;">🔴🔵</span><br>
-                    <span style="font-size:0.85rem; font-weight:bold; color:#e91e63;">✨ ¡CÁPSULA CON JUGUETE OBTENIDA! ✨</span>
-                </div>
-                
-                <button id="btn" class="btn-primary" style="width:100%; background:#0288d1; border-color:#0288d1; color:#fff;" disabled>Abrir Cápsula</button>
-                
-                <style>
-                    @keyframes bounce {
-                        from { transform: translateY(0); }
-                        to { transform: translateY(-10px); }
-                    }
-                </style>
+                <button id="btn-cam-gachapon" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#0288d1; border-color:#0288d1; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(2,136,209,0.3);">📸 Fotografiar Juguete Obtenido</button>
             </div>
         `,
         attachEvents: (role) => {
-            let energy = 0;
-            const dial = document.getElementById('gacha-dial');
-            const progress = document.getElementById('gacha-progress');
-            const capsule = document.getElementById('gacha-capsule');
-            const btn = document.getElementById('btn');
+            const select = document.getElementById('gachapon-category');
+            const btnCam = document.getElementById('btn-cam-gachapon');
             
-            dial.addEventListener('click', () => {
-                if (energy >= 100) return;
-                energy += 10;
-                progress.style.width = energy + '%';
-                dial.style.transform = `rotate(${energy * 3.6}deg) scale(1.1)`;
-                setTimeout(() => dial.style.transform = `rotate(${energy * 3.6}deg) scale(1)`, 100);
-                
-                if (window.playProceduralSound) playProceduralSound('click');
-                
-                if (energy >= 100) {
-                    capsule.style.display = 'block';
-                    btn.disabled = false;
-                    btn.style.boxShadow = '0 0 10px #ff007f';
-                    dial.style.background = '#00e676';
-                    if (window.playProceduralSound) playProceduralSound('success');
-                    if (window.launchConfetti) launchConfetti();
+            btnCam.addEventListener('click', (e) => {
+                const category = select.value;
+                if (!category) {
+                    e.stopImmediatePropagation();
+                    showAlert('RETO INCOMPLETO', 'Por favor, selecciona primero la categoría de tu juguete obtenido.');
+                    return;
                 }
-            });
+            }, true);
             
-            btn.addEventListener('click', () => {
-                submitMission('day_4_gachapon', {type:'game', data:'Juguete virtual coleccionado'}, role);
-            });
+            attachCameraFlow('btn-cam-gachapon', 'day_4_gachapon', role, false);
         }
     },
 
@@ -1494,43 +2109,13 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-radius:15px; border:3px solid #f44336; color:#b71c1c; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🦀 El Baile del Cangrejo Gigante 🦀</p>
-                <p style="font-size:0.85rem; margin-bottom:15px;">Dotonbori es famoso por sus cangrejos mecánicos gigantes (Kani Doraku). Cruza el siguiente puente o paso de cebra de lado, como un cangrejo, y pulsa las pinzas en la pantalla al mismo ritmo.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px;">Dotonbori es famoso por sus cangrejos mecánicos gigantes (Kani Doraku). Cruza el puente de lado, caminando como un cangrejo, y graba un vídeo corto (5s) demostrando tus habilidades de crustáceo:</p>
                 
-                <div style="background:#fff; border-radius:10px; padding:15px; border:2px solid #f44336; margin-bottom:15px;">
-                    <div style="font-size:1.1rem; font-weight:bold; margin-bottom:5px;">PULSOS DE PINZA: <span id="crab-count">0/10</span></div>
-                    <div style="display:flex; justify-content:center; gap:20px; margin:15px 0;">
-                        <button type="button" id="btn-claw-left" style="width:70px; height:70px; border-radius:50%; background:#f44336; color:#fff; border:none; font-size:2rem; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.2);">🦀</button>
-                        <button type="button" id="btn-claw-right" style="width:70px; height:70px; border-radius:50%; background:#f44336; color:#fff; border:none; font-size:2rem; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.2);">🦀</button>
-                    </div>
-                </div>
-                
-                <button id="btn" class="btn-primary" style="width:100%; background:#b71c1c; border-color:#b71c1c; color:#fff;" disabled>¡Hecho, clip, clap!</button>
+                <button id="btn-video-crab" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#f44336; border-color:#f44336; color:#fff; font-weight:bold; font-size:1.1rem; border-radius:25px; box-shadow:0 4px 10px rgba(244,67,54,0.3);">🎬 Grabar Vídeo Cangrejo</button>
             </div>
         `,
         attachEvents: (role) => {
-            let count = 0;
-            const countEl = document.getElementById('crab-count');
-            const btn = document.getElementById('btn');
-            
-            const hitClaw = () => {
-                if (count >= 10) return;
-                count++;
-                countEl.innerText = count + '/10';
-                if (window.playProceduralSound) playProceduralSound('click');
-                
-                if (count >= 10) {
-                    btn.disabled = false;
-                    btn.style.boxShadow = '0 0 10px #f44336';
-                    if (window.playProceduralSound) playProceduralSound('success');
-                }
-            };
-            
-            document.getElementById('btn-claw-left').addEventListener('click', hitClaw);
-            document.getElementById('btn-claw-right').addEventListener('click', hitClaw);
-            
-            btn.addEventListener('click', () => {
-                submitMission('day_4_crab', {type:'physical', data:'Paso del cangrejo completado'}, role);
-            });
+            attachCameraFlow('btn-video-crab', 'day_4_crab', role, false);
         }
     },
 
@@ -1702,30 +2287,54 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
                 <p>>>> RASTREO TÁCTICO DE MERCANCÍAS // WAGYU-KOBE</p>
-                <p style="color:#aaa; font-size:0.85rem;">Camina por el mercado de Kuromon e incrementa el contador por cada puesto que veas exhibiendo/sirviendo brochetas de carne de Kobe o Wagyu.</p>
+                <p style="color:#aaa; font-size:0.85rem;">Camina por el mercado de Kuromon, incrementa el contador por cada puesto que veas sirviendo carne de Kobe/Wagyu y reporta su tasación comercial:</p>
                 
-                <div style="background:#111; padding:15px; border-radius:5px; border:1px solid #333; margin:15px 0; text-align:center;">
+                <div style="background:#111; padding:12px; border-radius:5px; border:1px solid #333; margin:15px 0; text-align:center;">
                     <div style="font-size:0.8rem; color:#ffd700; margin-bottom:5px;">WAGYU DETECTADOS EN EL ENTORNO:</div>
                     <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin:10px 0;">
-                        <button type="button" id="btn-sub-wagyu" style="width:40px; height:40px; background:#333; border:none; color:#fff; border-radius:5px; font-weight:bold; cursor:pointer;">-</button>
-                        <span id="wagyu-count" style="font-size:2.5rem; font-weight:bold; min-width:60px;">0</span>
-                        <button type="button" id="btn-add-wagyu" style="width:40px; height:40px; background:#00ff99; border:none; color:#222; border-radius:5px; font-weight:bold; cursor:pointer;">+</button>
+                        <button type="button" id="btn-sub-wagyu" style="width:35px; height:35px; background:#333; border:none; color:#fff; border-radius:5px; font-weight:bold; cursor:pointer;">-</button>
+                        <span id="wagyu-count" style="font-size:2.2rem; font-weight:bold; min-width:50px;">0</span>
+                        <button type="button" id="btn-add-wagyu" style="width:35px; height:35px; background:#00ff99; border:none; color:#222; border-radius:5px; font-weight:bold; cursor:pointer;">+</button>
                     </div>
+                </div>
+
+                <div id="wagyu-pricing-box" class="hidden" style="background:rgba(0,255,153,0.05); border:1px solid #00ff99; border-radius:5px; padding:10px; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#00ff99; margin:0 0 5px 0;">💰 TASACIÓN COMERCIAL:</p>
+                    <p style="font-size:0.75rem; color:#ccc; margin:0 0 8px 0;">¿Cuál es el precio aproximado (en Yenes) de la brocheta o porción de Kobe/Wagyu más barata que has observado?</p>
+                    <input type="number" id="wagyu-price-input" style="width:100%; background:#0a0e12; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; font-size:0.85rem;" placeholder="Introduce precio en ¥...">
                 </div>
                 
                 <input type="hidden" id="ans" value="0">
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">ENVIAR REPORTE AL CUARTEL</button>
+                <button id="btn-submit-kobe" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>ENVIAR REPORTE AL CUARTEL</button>
             </div>
         `,
         attachEvents: (role) => {
             let count = 0;
             const countEl = document.getElementById('wagyu-count');
             const ansInput = document.getElementById('ans');
+            const priceBox = document.getElementById('wagyu-pricing-box');
+            const priceInput = document.getElementById('wagyu-price-input');
+            const submitBtn = document.getElementById('btn-submit-kobe');
+            
+            const checkValidity = () => {
+                const price = parseInt(priceInput.value);
+                if (count > 0 && price >= 1000 && price <= 5000) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                }
+            };
             
             document.getElementById('btn-add-wagyu').addEventListener('click', () => {
                 count++;
                 countEl.innerText = count;
                 ansInput.value = count;
+                priceBox.classList.remove('hidden');
+                checkValidity();
                 if (window.playProceduralSound) playProceduralSound('click');
             });
             
@@ -1734,13 +2343,29 @@ Object.assign(MISSIONS_CONFIG, {
                     count--;
                     countEl.innerText = count;
                     ansInput.value = count;
+                    if (count === 0) {
+                        priceBox.classList.add('hidden');
+                        priceInput.value = '';
+                    }
+                    checkValidity();
                     if (window.playProceduralSound) playProceduralSound('click');
                 }
             });
+
+            priceInput.addEventListener('input', checkValidity);
             
-            document.getElementById('btn').addEventListener('click', () => {
+            submitBtn.addEventListener('click', () => {
+                const price = parseInt(priceInput.value);
+                if (price < 1000 || price > 5000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('TASACIÓN INCOHERENTE', 'El precio ingresado no se corresponde con las tasas de mercado habituales de carne de Kobe en brochetas en Kuromon (rango típico: 1,000 ¥ a 5,000 ¥). Investiga con atención.');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_4_tracker', {type:'number', data: count}, role);
+                submitMission('day_4_tracker', {
+                    type: 'mixed',
+                    data: `Puestos: ${count} | Precio unitario min: ¥${price}`
+                }, role);
             });
         }
     },
@@ -1775,14 +2400,80 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #f06292; color:#880e4f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌸 Pose de la Gacela de Nara 🦌</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">Busca un prado verde en el parque de Nara. Haz tu mejor salto, puente o pose de equilibrio imitando la elegancia de un ciervo y pídele a tu familia una foto espectacular.</p>
-                <div style="display:flex; justify-content:center; gap:10px; margin:15px 0; font-size:2.5rem;">
-                    🤸‍♀️✨🦌
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">Busca un prado verde en el parque de Nara. Haz tu mejor salto o pose de equilibrio imitando la elegancia de un ciervo, sácale una foto y responde:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:10px; border:2px dashed #f06292; margin-bottom:15px; text-align:left; color:#880e4f;">
+                    <p style="font-size:0.8rem; font-weight:bold; margin:0 0 5px 0;">🍘 TRIVIA DE CIERVOS:</p>
+                    <p style="font-size:0.75rem; color:#ad1457; margin:0 0 8px 0;">¿Cómo se llaman las galletas redondas tradicionales que se venden para alimentar a los ciervos de Nara?</p>
+                    <select id="gymnast-food" style="width:100%; padding:8px; border:1px solid #f06292; border-radius:5px; background:#fff; font-family:'Quicksand', sans-serif; font-size:0.8rem; color:#880e4f;">
+                        <option value="">-- Selecciona una respuesta --</option>
+                        <option value="mochi">Mochi de Matcha</option>
+                        <option value="senbei">Shika-senbei (Galleta de ciervo)</option>
+                        <option value="dango">Mitarashi Dango</option>
+                    </select>
                 </div>
-                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#f06292; border-color:#f06292; color:#fff; font-weight:bold; border-radius:25px; box-shadow:0 4px 10px rgba(240,98,146,0.3);">📸 Foto de la Pose Sagrada</button>
+
+                <div style="margin-bottom:15px;">
+                    <button type="button" id="btn-select-gymnast-file" class="btn-secondary" style="width:100%; margin-bottom:8px; font-family:'Quicksand'; font-weight:bold; background:#f06292; border-color:#f06292; color:#fff;">📸 Foto de la Pose Sagrada</button>
+                    <input type="file" id="gymnast-photo-input" accept="image/*" style="display:none;">
+                    <div id="gymnast-photo-preview" style="display:none; margin-top:10px; font-size:0.85rem; color:#2e7d32; font-weight:bold;">✅ ¡Foto de acrobacia guardada!</div>
+                </div>
+
+                <button id="btn-submit-gymnast" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold; background:#f06292; border-color:#f06292; color:#fff;" disabled>Enviar Reporte Gacela</button>
             </div>
         `,
-        attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_5_gymnast', role, false); }
+        attachEvents: (role) => {
+            const selectFileBtn = document.getElementById('btn-select-gymnast-file');
+            const fileInput = document.getElementById('gymnast-photo-input');
+            const previewEl = document.getElementById('gymnast-photo-preview');
+            const foodSelect = document.getElementById('gymnast-food');
+            const submitBtn = document.getElementById('btn-submit-gymnast');
+            
+            let photoId = null;
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'gymnast_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            foodSelect.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            const checkValidity = () => {
+                if (photoId && foodSelect.value === 'senbei') {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            };
+
+            submitBtn.addEventListener('click', () => {
+                if (foodSelect.value !== 'senbei') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('TRIVIA INCORRECTA', 'Investiga el nombre de las galletas especiales. Se elaboran con salvado de trigo y harina de arroz, y están registradas oficialmente como Shika-senbei.');
+                    return;
+                }
+                submitMission('day_5_gymnast', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { foodSelection: foodSelect.value }
+                }, role);
+            });
+        }
     },
 
     "day_5_investor": {
@@ -1934,64 +2625,45 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Buda",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🧘 Concentración Zen del Buda 🧘</p>
-                <p style="font-size:0.85rem; margin-bottom:15px;">Demuestra el autocontrol de un monje de Todai-ji. Mantén pulsado el loto dorado sin soltarlo ni moverte durante 60 segundos exactos.</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🧘 El Trono de Loto del Gran Buda 🧘</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">El Todai-ji custodia una estatua colosal de bronce de Buda sentado sobre un gigantesco loto. Contempla la base de la estatua y averigua:</p>
                 
-                <div id="monk-sphere" style="width:90px; height:90px; border-radius:50%; background:#ffd700; border:4px solid #8d6e63; margin:20px auto; display:flex; align-items:center; justify-content:center; font-size:3rem; cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; box-shadow:0 4px 10px rgba(0,0,0,0.2);">🪷</div>
-                <p id="monk-timer" style="text-align:center; font-size:2.5rem; font-weight:bold; color:#8d6e63; text-shadow:0 1px 3px rgba(0,0,0,0.1); margin:0;">60s</p>
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px dashed #8d6e63; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#8d6e63; margin:0 0 5px 0;">🪷 PÉTALOS DE BRONCE:</p>
+                    <p style="font-size:0.75rem; color:#5d4037; margin:0 0 8px 0;">¿Cuántos pétalos gigantes grabados componen el trono de loto de bronce del Daibutsu?</p>
+                    <input type="number" id="monk-petals" style="width:100%; padding:8px; border:1px solid #8d6e63; border-radius:5px; font-family:'Quicksand'; font-size:0.85rem;" placeholder="Escribe el número de pétalos...">
+                    <p style="font-size:0.7rem; color:#8d6e63; margin:5px 0 0 0; font-style:italic;">Pista: Es un número par mayor de 50 y menor de 60.</p>
+                </div>
+
+                <button id="btn-submit-monk" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold; background:#8d6e63; border-color:#8d6e63; color:#fff;" disabled>Enviar Respuesta Zen</button>
             </div>
         `,
         attachEvents: (role) => {
-            let active = false; let timeLeft = 60; let timerInt;
-            const sphere = document.getElementById('monk-sphere');
-            const timerEl = document.getElementById('monk-timer');
-            
-            const startMeditation = (e) => {
-                e.preventDefault();
-                if (active) return;
-                active = true;
-                timeLeft = 60;
-                timerEl.innerText = '60s';
-                sphere.style.transform = "scale(1.3)";
-                sphere.style.boxShadow = "0 0 20px #ffd700";
-                
-                if (window.playProceduralSound) playProceduralSound('click');
-                
-                timerInt = setInterval(() => {
-                    timeLeft--;
-                    timerEl.innerText = timeLeft + 's';
-                    if (window.playProceduralSound) playProceduralSound('click');
-                    
-                    if(timeLeft <= 0) {
-                        active = false; clearInterval(timerInt);
-                        sphere.style.transform = "scale(1)";
-                        sphere.style.background = "#00e676";
-                        if (window.playProceduralSound) playProceduralSound('success');
-                        if (window.launchConfetti) launchConfetti();
-                        
-                        setTimeout(() => {
-                            submitMission('day_5_monk', {type:'game', data:'Meditación lograda'}, role);
-                        }, 1200);
-                    }
-                }, 1000);
+            const petalsInput = document.getElementById('monk-petals');
+            const submitBtn = document.getElementById('btn-submit-monk');
+
+            const checkValidity = () => {
+                const val = parseInt(petalsInput.value);
+                if (val === 56) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
             };
-            
-            const stopMeditation = () => {
-                if(!active) return;
-                active = false; clearInterval(timerInt); timeLeft = 60;
-                timerEl.innerText = '60s';
-                sphere.style.transform = "scale(1)";
-                sphere.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
-                if (window.playProceduralSound) playProceduralSound('error');
-                showAlert("CONCENTRACIÓN ROTA", "¡Has perdido el pulso meditativo! Inténtalo de nuevo.");
-            };
-            
-            sphere.addEventListener('mousedown', startMeditation);
-            sphere.addEventListener('mouseup', stopMeditation);
-            sphere.addEventListener('mouseleave', stopMeditation);
-            sphere.addEventListener('touchstart', startMeditation, {passive:false});
-            sphere.addEventListener('touchend', stopMeditation);
-            window._missionCleanup = () => { active=false; clearInterval(timerInt); };
+
+            petalsInput.addEventListener('input', checkValidity);
+
+            submitBtn.addEventListener('click', () => {
+                const val = parseInt(petalsInput.value);
+                if (val !== 56) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÓDIGO INEXACTO', 'Ese número no es correcto. Observa el pedestal del Buda o consulta los folletos del Todai-ji. El loto tiene exactamente 56 pétalos de bronce esculpidos.');
+                    return;
+                }
+                if (window.playProceduralSound) playProceduralSound('success');
+                if (window.launchConfetti) launchConfetti();
+                submitMission('day_5_monk', {type:'game', data:`Pétalos de loto del Buda: ${val}`}, role);
+            });
         }
     },
 
@@ -2005,36 +2677,60 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f7fa 0%, #80deea 100%); border-radius:15px; border:3px solid #00acc1; color:#006064; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">✨ El Registro Galáctico de Ciervos 🦌</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">¡Hay cientos de ciervos! Tienes 2 minutos para contar todos los que veas a tu alrededor. Pulsa los botones para sumarlos y verlos aparecer en tu pantalla.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#00838f;">¡Hay cientos de ciervos libres en Nara! Cuéntalos con el panel táctil y estima la proporción de astas en el rebaño:</p>
                 
                 <div style="background:#fff; border-radius:10px; padding:15px; border:2px solid #00acc1; margin-bottom:15px;">
                     <div style="display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:10px;">
-                        <button id="btn-sub" class="btn-secondary" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#00acc1; color:#fff; border:none; line-height:1; cursor:pointer;">-</button>
+                        <button type="button" id="btn-sub" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#00acc1; color:#fff; border:none; line-height:1; cursor:pointer;">-</button>
                         <div id="deer-count" style="font-size:2.5rem; font-weight:bold; color:#006064; min-width:60px;">0</div>
-                        <button id="btn-add" class="btn-secondary" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#00acc1; color:#fff; border:none; line-height:1; cursor:pointer;">+</button>
+                        <button type="button" id="btn-add" style="font-size:1.5rem; width:45px; height:45px; border-radius:50%; background:#00acc1; color:#fff; border:none; line-height:1; cursor:pointer;">+</button>
                     </div>
                     
                     <div id="deer-grid" style="display:flex; flex-wrap:wrap; justify-content:center; gap:4px; min-height:40px; max-height:80px; overflow-y:auto; border-top:1px dashed #b2ebf2; padding-top:8px;">
                         <span style="color:#aaa; font-size:0.8rem;">(Añade ciervos para verlos aparecer)</span>
                     </div>
                 </div>
+
+                <div id="deer-horns-box" class="hidden" style="background:#fff; border-radius:10px; padding:12px; border:2px dashed #00acc1; margin-bottom:15px; text-align:left;">
+                    <p style="font-size:0.8rem; font-weight:bold; color:#00acc1; margin:0 0 5px 0;">🦌 ESTIMACIÓN DE ASTAS:</p>
+                    <p style="font-size:0.75rem; color:#00838f; margin:0 0 8px 0;">¿Qué porcentaje aproximado de los ciervos contados tienen astas visibles?</p>
+                    <input type="range" id="deer-horns-ratio" min="0" max="100" value="30" style="width:100%; cursor:pointer;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#00838f; font-weight:bold; margin-top:5px;">
+                        <span>0% (Ninguno)</span>
+                        <span id="horns-val">30%</span>
+                        <span>100% (Todos)</span>
+                    </div>
+                </div>
                 
-                <button id="btn-start" class="btn-primary" style="width:100%; background:#00acc1; border-color:#00acc1; font-weight:bold; border-radius:20px;">⏱️ Empezar Cuenta Atrás (2m)</button>
+                <button id="btn-submit-deer" class="btn-primary" style="width:100%; background:#00acc1; border-color:#00acc1; font-weight:bold; border-radius:20px;" disabled>Enviar Censo de Ciervos</button>
             </div>
         `,
         attachEvents: (role) => {
             let count = 0;
-            let timer = null;
             const countEl = document.getElementById('deer-count');
             const gridEl = document.getElementById('deer-grid');
-            const btnS = document.getElementById('btn-start');
+            const submitBtn = document.getElementById('btn-submit-deer');
+            const hornsBox = document.getElementById('deer-horns-box');
+            const hornsRatio = document.getElementById('deer-horns-ratio');
+            const hornsVal = document.getElementById('horns-val');
             
             const updateDeerVisual = () => {
                 countEl.innerText = count;
                 if (count === 0) {
                     gridEl.innerHTML = '<span style="color:#aaa; font-size:0.8rem;">(Añade ciervos para verlos aparecer)</span>';
+                    hornsBox.classList.add('hidden');
                 } else {
                     gridEl.innerHTML = '🦌'.repeat(count);
+                    hornsBox.classList.remove('hidden');
+                }
+                checkValidity();
+            };
+
+            const checkValidity = () => {
+                if (count > 0) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
                 }
             };
             
@@ -2051,22 +2747,19 @@ Object.assign(MISSIONS_CONFIG, {
                     if (window.playProceduralSound) playProceduralSound('click');
                 }
             });
-            
-            btnS.addEventListener('click', (e) => {
-                btnS.disabled = true;
-                btnS.innerText = '⏳ Escaneo del prado activo (120s)...';
-                btnS.style.background = '#80deea';
-                if (window.playProceduralSound) playProceduralSound('click');
-                
-                timer = setTimeout(() => {
-                    if (window.playProceduralSound) playProceduralSound('success');
-                    submitMission('day_5_deer_galaxy', {type:'physical', data:`Contados: ${count} ciervos`}, role);
-                }, 120000); // 2 minutes
+
+            hornsRatio.addEventListener('input', () => {
+                hornsVal.innerText = hornsRatio.value + '%';
             });
             
-            window._missionCleanup = () => {
-                if (timer) clearTimeout(timer);
-            };
+            submitBtn.addEventListener('click', () => {
+                if (count <= 0) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_5_deer_galaxy', {
+                    type:'physical', 
+                    data:`Contados: ${count} ciervos | Proporción de astas: ${hornsRatio.value}%`
+                }, role);
+            });
         }
     },
 
@@ -2147,6 +2840,9 @@ Object.assign(MISSIONS_CONFIG, {
                 btn.style.display = 'none';
                 active = true;
                 score = 0;
+                points = [];
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
                 handler = (ev) => {
                     if(!active) return;
@@ -2156,7 +2852,7 @@ Object.assign(MISSIONS_CONFIG, {
                     drawRibbon();
                     
                     score += Math.abs(ev.alpha || 0) / 10;
-                    const percent = Math.min(100, Math.floor(score));
+                    const percent = Math.min(100, Math.floor((score / 150) * 100));
                     valEl.innerText = percent + ' %';
                 };
                 
@@ -2166,12 +2862,24 @@ Object.assign(MISSIONS_CONFIG, {
                 timer = setTimeout(() => {
                     active = false;
                     window.removeEventListener('deviceorientation', handler);
-                    valEl.innerText = '100% [COMPLETA]';
-                    if (window.playProceduralSound) playProceduralSound('success');
                     
-                    setTimeout(() => {
-                        submitMission('day_5_ribbon', {type:'sensors', data:'Danza de la cinta: ' + Math.floor(score) + ' ptos'}, role);
-                    }, 1200);
+                    if (score < 150) {
+                        if (window.playProceduralSound) playProceduralSound('error');
+                        showAlert('DANZA INSUFICIENTE', 'La cinta mágica apenas se ha dibujado en el aire. Mueve tu brazo trazando círculos amplios para saludar con elegancia a los ciervos de Nara.');
+                        btn.style.display = 'block';
+                        valEl.innerText = '0 %';
+                        points = [];
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    } else {
+                        valEl.innerText = '100% [COMPLETA]';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                        
+                        setTimeout(() => {
+                            submitMission('day_5_ribbon', {type:'sensors', data:'Danza de la cinta: ' + Math.floor(score) + ' ptos'}, role);
+                        }, 1200);
+                    }
                 }, 10000);
             });
             
@@ -2295,8 +3003,14 @@ Object.assign(MISSIONS_CONFIG, {
             });
             
             btn.addEventListener('click', () => {
+                const val = parseInt(ansInput.value);
+                if (val < 12 || val > 20) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO INEXACTO', 'La altura real del pabellón principal del Todai-ji es de 49 metros. Aproxímate a su equivalencia real en plantas de edificio convencional (cada planta mide ~3 metros). Reajusta el slider entre 12 y 20 plantas.');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_5_engineer', {type:'number', data: parseInt(ansInput.value)}, role);
+                submitMission('day_5_engineer', {type:'number', data: val}, role);
             });
         }
     },
@@ -2311,49 +3025,51 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0f0f0a; border:1px solid #ff9800; color:#ff9800; box-shadow:0 4px 20px rgba(255,152,0,0.25);">
                 <p>>>> ESCANEO BIOMÉTRICO DE PILARES SAGRADOS</p>
-                <p style="color:#aaa; font-size:0.85rem;">En Todai-ji hay un pilar con un agujero del tamaño de la fosa nasal del Buda. Intenta rodear un pilar e introduce si tus manos logran tocarse.</p>
+                <p style="color:#aaa; font-size:0.85rem;">En el Todai-ji hay un pilar con un agujero del tamaño de una fosa nasal del Buda. Abrázalo o simúlalo e introduce la respuesta correcta del enigma:</p>
                 
                 <div style="background:#111; padding:15px; border-radius:5px; border:1px solid #333; margin:15px 0; text-align:center;">
                     <div style="font-size:3rem; margin-bottom:10px;" id="pillar-emoji">🪵</div>
-                    <label style="font-size:0.8rem; color:#ff9800; display:block; margin-bottom:10px;">¿SE TOCARON TUS MANOS AL ABRAZAR EL PILAR?</label>
-                    <div style="display:flex; gap:10px;">
-                        <button id="btn-tocan" style="flex:1; padding:8px; background:#ff9800; border:none; color:#222; font-weight:bold; border-radius:4px; cursor:pointer;">SÍ, SE TOCAN</button>
-                        <button id="btn-no-tocan" style="flex:1; padding:8px; background:#444; border:none; color:#fff; border-radius:4px; cursor:pointer;">FALTAN METROS</button>
-                    </div>
+                    <label style="font-size:0.8rem; color:#ff9800; display:block; margin-bottom:10px;">¿QUÉ PARTE DE LA ANATOMÍA DEL BUDA TIENE EL MISMO TAMAÑO QUE EL AGUJERO DEL PILAR DE LA SUERTE?</label>
+                    <select id="pillar-anatomia" style="width:100%; padding:8px; border:1px solid #ff9800; border-radius:5px; background:#0f0f0a; color:#ff9800; font-family:monospace; font-size:0.85rem;">
+                        <option value="">-- Elige la opción --</option>
+                        <option value="oreja">Su oreja gigante (que escucha todas las plegarias)</option>
+                        <option value="dedo">Su dedo pulgar (que da la bendición)</option>
+                        <option value="fosanasal">Su fosa nasal (por donde respira el Gran Buda)</option>
+                    </select>
                 </div>
                 
-                <input type="hidden" id="ans" value="">
-                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#ff9800; color:#ff9800; background:transparent;" disabled>ENVIAR REPORTE BIOMÉTRICO</button>
+                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>ENVIAR REPORTE BIOMÉTRICO</button>
             </div>
         `,
         attachEvents: (role) => {
-            const tocanBtn = document.getElementById('btn-tocan');
-            const noTocanBtn = document.getElementById('btn-no-tocan');
+            const selectOption = document.getElementById('pillar-anatomia');
             const submitBtn = document.getElementById('btn-submit');
-            const ansInput = document.getElementById('ans');
             const emojiEl = document.getElementById('pillar-emoji');
             
-            tocanBtn.addEventListener('click', () => {
-                ansInput.value = 'Sí, se tocan';
-                tocanBtn.style.background = '#e65100';
-                noTocanBtn.style.background = '#444';
-                emojiEl.innerText = '🤗';
-                submitBtn.disabled = false;
-                if (window.playProceduralSound) playProceduralSound('click');
-            });
-            
-            noTocanBtn.addEventListener('click', () => {
-                ansInput.value = 'Faltan metros';
-                noTocanBtn.style.background = '#e65100';
-                tocanBtn.style.background = '#ff9800';
-                emojiEl.innerText = '📏';
-                submitBtn.disabled = false;
+            selectOption.addEventListener('change', () => {
+                const val = selectOption.value;
+                if (val === 'fosanasal') {
+                    emojiEl.innerText = '👃✨';
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#ff9800';
+                    submitBtn.style.color = '#ff9800';
+                } else {
+                    emojiEl.innerText = '🪵';
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                }
                 if (window.playProceduralSound) playProceduralSound('click');
             });
             
             submitBtn.addEventListener('click', () => {
+                if (selectOption.value !== 'fosanasal') {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ESCANEO ERRÓNEO', 'El agujero en la columna trasera del templo Todai-ji tiene exactamente las mismas dimensiones que una fosa nasal del Gran Buda (Daibutsu). Los valientes que logran pasar por el agujero obtienen la iluminación en la siguiente vida.');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_5_guardian', {type:'text', data: ansInput.value}, role);
+                submitMission('day_5_guardian', {type:'text', data: 'Fosa nasal de Buda confirmada'}, role);
             });
         }
     },
@@ -2367,45 +3083,118 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Nijo",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🥷 Sigilo en el Puente del Shogun 🥷</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Cruza el puente de piedra dando pasos extremadamente silenciosos, sin rozar la suela de tus zapatillas. Pulsa el botón cuando cruces sin hacer ruido.</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🥷 Sigilo en el Castillo Nijo 🥷</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Cruza el puente exterior de piedra dando pasos extremadamente silenciosos. Si haces ruido, activarás los sensores de alerta. Mantén el silencio por 15 segundos:</p>
                 
                 <div style="background:#fff; border-radius:10px; padding:15px; border:2px solid #8d6e63; margin-bottom:15px;">
-                    <div style="font-size:1.1rem; font-weight:bold; color:#5d4037; margin-bottom:10px;">🔊 AUDITORÍA DE RUIDO ZEN:</div>
-                    <div style="width:100%; background:#eee; height:15px; border-radius:8px; overflow:hidden; border:1px solid #ccc;">
-                        <div id="noise-meter" style="width:10%; height:100%; background:#4caf50; transition:width 0.3s ease, background 0.3s ease;"></div>
+                    <div style="font-size:1.1rem; font-weight:bold; color:#5d4037; margin-bottom:10px;">🔊 AUDITORÍA DE RUIDO REAL:</div>
+                    <div style="width:100%; background:#eee; height:15px; border-radius:8px; overflow:hidden; border:1px solid #ccc; margin-bottom:8px;">
+                        <div id="noise-meter" style="width:0%; height:100%; background:#4caf50; transition:width 0.1s ease;"></div>
                     </div>
-                    <span id="noise-txt" style="font-size:0.75rem; font-weight:bold; color:#4caf50; display:block; margin-top:5px;">SILENCIO COMPLETO</span>
+                    <div id="noise-txt" style="font-size:0.8rem; font-weight:bold; color:#4caf50; margin-bottom:10px;">LISTO PARA ESCUCHAR</div>
+                    <div id="escape-timer" style="font-size:2rem; font-weight:bold; color:#8d6e63;">15s</div>
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:20px;">🔇 He Cruzado en Silencio</button>
+                <button id="btn-start-escape" class="btn-primary" style="width:100%; background:#8d6e63; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:20px; font-family:'Quicksand';">🔇 Activar Sensores y Cruzar</button>
             </div>
         `,
         attachEvents: (role) => {
+            const startBtn = document.getElementById('btn-start-escape');
             const meter = document.getElementById('noise-meter');
             const txt = document.getElementById('noise-txt');
+            const timerEl = document.getElementById('escape-timer');
             
-            const int = setInterval(() => {
-                const noiseVal = Math.floor(Math.random() * 25);
-                meter.style.width = noiseVal + '%';
-                if (noiseVal > 15) {
-                    meter.style.background = '#ffd54f';
-                    txt.innerText = 'SUSURRO LEVE DETECTADO';
-                    txt.style.color = '#ffd54f';
-                } else {
-                    meter.style.background = '#4caf50';
-                    txt.innerText = 'SILENCIO COMPLETO';
-                    txt.style.color = '#4caf50';
+            let audioCtx = null;
+            let analyser = null;
+            let stream = null;
+            let interval = null;
+            let active = false;
+            let timeLeft = 15;
+            
+            startBtn.addEventListener('click', async () => {
+                if (active) return;
+                
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioCtx.createAnalyser();
+                    const source = audioCtx.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    
+                    analyser.fftSize = 256;
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    
+                    active = true;
+                    startBtn.style.display = 'none';
+                    timeLeft = 15;
+                    timerEl.innerText = '15s';
+                    
+                    interval = setInterval(() => {
+                        if (!active) return;
+                        
+                        analyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < bufferLength; i++) {
+                            sum += dataArray[i];
+                        }
+                        const avg = sum / bufferLength;
+                        
+                        const pct = Math.min(100, Math.floor((avg / 60) * 100));
+                        meter.style.width = pct + '%';
+                        
+                        if (avg > 28) {
+                            meter.style.background = '#f44336';
+                            txt.innerText = '¡ALERTA DE RUIDO! PISADA FUERTE';
+                            txt.style.color = '#f44336';
+                            timeLeft = 15;
+                            timerEl.innerText = '15s';
+                            if (window.playProceduralSound) playProceduralSound('error');
+                            timerEl.style.transform = 'scale(1.2)';
+                            setTimeout(() => { timerEl.style.transform = 'scale(1)'; }, 200);
+                        } else if (avg > 12) {
+                            meter.style.background = '#ffd54f';
+                            txt.innerText = 'SUSURRO/ROCE DETECTADO';
+                            txt.style.color = '#ffd54f';
+                        } else {
+                            meter.style.background = '#4caf50';
+                            txt.innerText = 'SILENCIO ABSOLUTO';
+                            txt.style.color = '#4caf50';
+                        }
+                        
+                        timeLeft -= 0.25;
+                        const dispTime = Math.max(0, Math.ceil(timeLeft));
+                        timerEl.innerText = dispTime + 's';
+                        
+                        if (timeLeft <= 0) {
+                            active = false;
+                            clearInterval(interval);
+                            stream.getTracks().forEach(t => t.stop());
+                            audioCtx.close();
+                            
+                            timerEl.innerText = '¡LOGRADO!';
+                            timerEl.style.color = '#4caf50';
+                            if (window.playProceduralSound) playProceduralSound('success');
+                            if (window.launchConfetti) launchConfetti();
+                            
+                            setTimeout(() => {
+                                submitMission('day_6_evasion', {type:'physical', data:'Puente cruzado en silencio auditado con micrófono real'}, role);
+                            }, 1200);
+                        }
+                    }, 250);
+                    
+                } catch (err) {
+                    console.error(err);
+                    showAlert('MICRÓFONO REQUERIDO', 'Para cruzar el puente de piedra de Nijo en silencio absoluto es necesario activar el micrófono del dispositivo.');
                 }
-            }, 1000);
-            
-            document.getElementById('btn').addEventListener('click', () => {
-                clearInterval(int);
-                if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_6_evasion', {type:'physical', data:'Puente cruzado en silence absoluto'}, role);
             });
             
-            window._missionCleanup = () => clearInterval(int);
+            window._missionCleanup = () => {
+                active = false;
+                if (interval) clearInterval(interval);
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (audioCtx) audioCtx.close();
+            };
         }
     },
 
@@ -2459,25 +3248,36 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%); border-radius:15px; border:3px solid #0288d1; color:#01579b; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌲 Pinos Nube del Palacio ☁️</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Los pinos del Palacio Imperial de Kioto están esculpidos para parecer nubes. Encuentra el que tenga la forma más extraña y descríbelo: ¿a qué animal se parece?</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#0288d1;">Los pinos del Palacio Imperial de Kioto están esculpidos para parecer nubes. Encuentra uno, elige a qué se parece y descríbelo en detalle:</p>
                 
                 <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #0288d1; text-align:left; margin-bottom:15px;">
                     <label style="font-size:0.8rem; font-weight:bold; color:#0288d1; display:block; margin-bottom:5px;">🦖 GUÍA DE ANIMALES IMAGINADOS:</label>
                     <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
-                        <button type="button" class="cloud-tag-btn" data-tag="Dragón" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🐉 Dragón</button>
-                        <button type="button" class="cloud-tag-btn" data-tag="Zorro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🦊 Zorro</button>
-                        <button type="button" class="cloud-tag-btn" data-tag="Pájaro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🦅 Pájaro</button>
-                        <button type="button" class="cloud-tag-btn" data-tag="Tortuga" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer;">🐢 Tortuga</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Dragón" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer; font-family:'Quicksand';">🐉 Dragón</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Zorro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer; font-family:'Quicksand';">🦊 Zorro</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Pájaro" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer; font-family:'Quicksand';">🦅 Pájaro</button>
+                        <button type="button" class="cloud-tag-btn" data-tag="Tortuga" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #0288d1; background:#fff; cursor:pointer; font-family:'Quicksand';">🐢 Tortuga</button>
                     </div>
-                    <input type="text" id="ans" style="width:100%; border:1px solid #ccc; border-radius:5px; padding:8px; font-family:inherit; font-size:1rem; box-sizing:border-box;" placeholder="Escribe aquí tu observación...">
+                    <input type="text" id="ans" style="width:100%; border:1px solid #ccc; border-radius:5px; padding:8px; font-family:inherit; font-size:0.85rem; box-sizing:border-box;" placeholder="Descríbelo con al menos 10 letras...">
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; background:#0288d1; border-color:#0288d1; color:#fff; font-weight:bold; border-radius:20px;">📨 Mandar Reporte</button>
+                <button id="btn" class="btn-primary" style="width:100%; background:#0288d1; border-color:#0288d1; color:#fff; font-weight:bold; border-radius:20px;" disabled>📨 Mandar Reporte</button>
             </div>
         `,
         attachEvents: (role) => {
             let selectedTag = '';
             const tagBtns = document.querySelectorAll('.cloud-tag-btn');
+            const textInput = document.getElementById('ans');
+            const submitBtn = document.getElementById('btn');
+            
+            const checkValidity = () => {
+                const text = textInput.value.trim();
+                if (selectedTag && text.length >= 10) {
+                    submitBtn.removeAttribute('disabled');
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                }
+            };
             
             tagBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -2489,16 +3289,16 @@ Object.assign(MISSIONS_CONFIG, {
                     btn.style.color = '#01579b';
                     selectedTag = btn.dataset.tag;
                     if (window.playProceduralSound) playProceduralSound('click');
+                    checkValidity();
                 });
             });
+
+            textInput.addEventListener('input', checkValidity);
             
-            document.getElementById('btn').addEventListener('click', () => {
-                const text = document.getElementById('ans').value.trim();
-                if (!text) {
-                    showAlert('TEXTO REQUERIDO', 'Describe qué forma de animal ves en el árbol.');
-                    return;
-                }
-                const result = selectedTag ? `[Tipo ${selectedTag}] ${text}` : text;
+            submitBtn.addEventListener('click', () => {
+                const text = textInput.value.trim();
+                if (text.length < 10) return;
+                const result = `[Tipo ${selectedTag}] ${text}`;
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_6_clouds', {type:'text', data: result}, role);
             });
@@ -2591,15 +3391,40 @@ Object.assign(MISSIONS_CONFIG, {
                     </div>
                 </div>
                 
-                <textarea id="ans" style="width:100%; height:80px; background:#111; color:#00e5ff; border:1px solid #00e5ff; font-family:monospace; padding:8px; box-sizing:border-box; margin-bottom:10px;" placeholder=">>> Escribe tu informe de ruta táctica..."></textarea>
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#00e5ff; color:#00e5ff; background:transparent;">TRANSMITIR VECTOR DE ESCAPE</button>
+                <textarea id="ans" style="width:100%; height:80px; background:#111; color:#00e5ff; border:1px solid #00e5ff; font-family:monospace; padding:8px; box-sizing:border-box; margin-bottom:10px;" placeholder=">>> Escribe tu informe de ruta táctica... (pared, foso, silencio, ruiseñor...)"></textarea>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR VECTOR DE ESCAPE</button>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                const text = document.getElementById('ans').value.trim();
-                if (text.length < 15) {
-                    showAlert('DATOS INCOMPLETOS', 'Proporciona una descripción de ruta más detallada.');
+            const submitBtn = document.getElementById('btn');
+            const textarea = document.getElementById('ans');
+            
+            const checkValidity = () => {
+                const text = textarea.value.trim().toLowerCase();
+                const keywords = ['pared', 'silencio', 'ruiseñor', 'sombra', 'jardín', 'jardin', 'foso', 'puente'];
+                const hasKeyword = keywords.some(kw => text.includes(kw));
+                if (text.length >= 15 && hasKeyword) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00e5ff';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00e5ff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+
+            textarea.addEventListener('input', checkValidity);
+
+            submitBtn.addEventListener('click', () => {
+                const text = textarea.value.trim();
+                const keywords = ['pared', 'silencio', 'ruiseñor', 'sombra', 'jardín', 'jardin', 'foso', 'puente'];
+                const hasKeyword = keywords.some(kw => text.toLowerCase().includes(kw));
+                if (text.length < 15 || !hasKeyword) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('RUTA INCOMPLETA', 'El cuartel ninja requiere un vector con al menos 15 caracteres y términos de referencia topográfica (pared, silencio, ruiseñor, foso, sombra, jardín) para certificar el análisis.');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
@@ -2622,18 +3447,39 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 <div style="margin:15px 0; padding:12px; background:#fff; border-radius:6px; border:2px solid #ff1744; color:#222; text-align:center; position:relative; font-family:Georgia, serif;">
                     <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">📜 DECRETO REAL 📜</div>
-                    <textarea id="ans" style="width:100%; height:60px; border:1px dashed #ff1744; background:transparent; font-family:inherit; padding:5px; font-size:0.95rem; box-sizing:border-box;" placeholder="Todos los súbditos deberán caminar a la pata coja en el palacio..."></textarea>
+                    <textarea id="ans" style="width:100%; height:60px; border:1px dashed #ff1744; background:transparent; font-family:inherit; padding:5px; font-size:0.95rem; box-sizing:border-box;" placeholder="Todos los súbditos deberán caminar a la pata coja en el palacio... (mínimo 20 caracteres)"></textarea>
                     <div style="position:absolute; bottom:5px; right:10px; font-size:2rem; opacity:0.8;">💮</div>
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#ff1744; color:#ff1744; background:transparent;">PROMULGAR DECRETO REAL</button>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>PROMULGAR DECRETO REAL</button>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                const val = document.getElementById('ans').value.trim();
-                if (!val) {
-                    showAlert('EDICTO VACÍO', 'El emperador debe redactar su decreto real antes de promulgarlo.');
+            const textarea = document.getElementById('ans');
+            const submitBtn = document.getElementById('btn');
+
+            const checkValidity = () => {
+                const val = textarea.value.trim();
+                if (val.length >= 20) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#ff1744';
+                    submitBtn.style.color = '#fff';
+                    submitBtn.style.background = '#ff1744';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+
+            textarea.addEventListener('input', checkValidity);
+
+            submitBtn.addEventListener('click', () => {
+                const val = textarea.value.trim();
+                if (val.length < 20) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('EDICTO INSIGNIFICANTE', 'Un edicto imperial debe ser solemne y descriptivo. Escribe al menos 20 caracteres de decreto absurdo.');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
@@ -2671,69 +3517,47 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Palacio Imperial",
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
-                <p>>>> CRONOMETRAJE DE MARCHA: 100 PASOS IMPERIALES</p>
-                <p style="color:#aaa; font-size:0.85rem;">Mide tu cadencia de marcha real. Inicia el cronómetro, da exactamente 100 pasos por el recinto de gravilla y deténlo para compilar la telemetría.</p>
+                <p>>>> CÁLCULO DE PERÍMETROS DE SEGURIDAD // PALACIO IMPERIAL</p>
+                <p style="color:#aaa; font-size:0.85rem;">El palacio imperial está rodeado por grandes murallas y fosos rectangulares de defensa. Resuelve el cálculo perimetral de escala:</p>
                 
-                <div style="text-align:center; padding:15px; background:rgba(255,255,255,0.05); border-radius:5px; margin:15px 0;">
-                    <div id="ring-chrono" style="font-size:2.5rem; font-weight:bold; color:#ffd700; text-shadow:0 0 10px rgba(255,215,0,0.5);">00:00.0</div>
-                    <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
-                        <button id="btn-ring-start" style="padding:5px 15px; background:#00ff99; border:none; color:#222; font-weight:bold; border-radius:3px; cursor:pointer;">EMPEZAR</button>
-                        <button id="btn-ring-stop" style="padding:5px 15px; background:#ff5722; border:none; color:#fff; font-weight:bold; border-radius:3px; cursor:pointer;" disabled>DETENER</button>
-                    </div>
+                <div style="background:#111; padding:15px; border-radius:5px; border:1px solid #333; margin:15px 0; text-align:left;">
+                    <p style="font-size:0.8rem; color:#ffd700; margin:0 0 8px 0; font-weight:bold;">📐 ENIGMA GEOMÉTRICO:</p>
+                    <p style="font-size:0.75rem; color:#ccc; margin:0 0 10px 0;">Sabiendo que el muro exterior del recinto palaciego mide aproximadamente 1.300 metros en sus lados más largos (Norte-Sur) y 700 metros en sus lados más cortos (Este-Oeste), ¿cuántos kilómetros totales (km) recorre su muralla en un perímetro completo?</p>
+                    <input type="number" id="ring-perimeter-ans" step="0.1" style="width:100%; background:#0a0e12; color:#ffd700; border:1px solid #ffd700; padding:8px; font-family:monospace; font-size:0.85rem;" placeholder="Escribe el perímetro en km (ej: 3.5)...">
                 </div>
                 
-                <input type="hidden" id="ans" value="">
-                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;" disabled>ENVIAR DATOS A CONTROL</button>
+                <button id="btn-submit" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>ENVIAR DATOS A CONTROL</button>
             </div>
         `,
         attachEvents: (role) => {
-            let timer = null;
-            let startTime = 0;
-            let elapsed = 0;
-            const display = document.getElementById('ring-chrono');
-            const startBtn = document.getElementById('btn-ring-start');
-            const stopBtn = document.getElementById('btn-ring-stop');
+            const periInput = document.getElementById('ring-perimeter-ans');
             const submitBtn = document.getElementById('btn-submit');
-            const ans = document.getElementById('ans');
             
-            const update = () => {
-                const diff = Date.now() - startTime + elapsed;
-                const m = Math.floor(diff / 60000);
-                const s = Math.floor((diff % 60000) / 1000);
-                const ms = Math.floor((diff % 1000) / 100);
-                display.innerText = `${String(m).padStart(2, '0')}:dots`; // truncated intentionally, but we write full code:
-                display.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${ms}`;
+            const checkValidity = () => {
+                const val = parseFloat(periInput.value);
+                if (val === 4 || val === 4.0) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                }
             };
             
-            startBtn.addEventListener('click', () => {
-                if (timer) return;
-                startTime = Date.now();
-                timer = setInterval(update, 100);
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                submitBtn.disabled = true;
-                if (window.playProceduralSound) playProceduralSound('click');
-            });
-            
-            stopBtn.addEventListener('click', () => {
-                if (!timer) return;
-                clearInterval(timer);
-                timer = null;
-                elapsed += Date.now() - startTime;
-                startBtn.disabled = false;
-                startBtn.innerText = 'REANUDAR';
-                stopBtn.disabled = true;
-                submitBtn.disabled = false;
-                ans.value = display.innerText;
-                if (window.playProceduralSound) playProceduralSound('click');
-            });
+            periInput.addEventListener('input', checkValidity);
             
             submitBtn.addEventListener('click', () => {
+                const val = parseFloat(periInput.value);
+                if (val !== 4 && val !== 4.0) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO INCORRECTO', 'El perímetro exterior es la suma de los cuatro lados del rectángulo (1300 + 700 + 1300 + 700 = 4000 metros). Convierte este valor exactamente a kilómetros.');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_6_ring', {type:'text', data: `Tiempo 100 pasos: ${ans.value}`}, role);
+                submitMission('day_6_ring', {type:'number', data: val}, role);
             });
-            
-            window._missionCleanup = () => { if(timer) clearInterval(timer); };
         }
     },
 
@@ -2747,29 +3571,108 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius:15px; border:3px solid #e91e63; color:#880e4f; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👘 Detective de Kimonos Tradicionales 👘</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">En Sannenzaka la gente viste hermosos kimonos. Cuenta los que veas hoy. Cuando observes un grupo con trajes coloridos, hazles una hermosa foto respetuosa desde lejos.</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#ad1457;">En Sannenzaka la gente viste hermosos kimonos. Observa respetuosamente a las personas con estas vestimentas y responde los detalles del diseño antes de tomar la foto:</p>
                 
-                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #e91e63; margin-bottom:15px; text-align:left;">
-                    <label style="font-size:0.8rem; font-weight:bold; color:#ad1457; display:block; margin-bottom:5px;">🎨 DETALLES DEL PATRÓN MÁS BONITO:</label>
-                    <div style="display:flex; flex-wrap:wrap; gap:5px;" id="kimono-pattern">
-                        <button type="button" class="kimono-btn" data-tag="Flores" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer;">🌸 Flores</button>
-                        <button type="button" class="kimono-btn" data-tag="Grullas" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer;">🦅 Grullas</button>
-                        <button type="button" class="kimono-btn" data-tag="Geométrico" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer;">🌀 Geométrico</button>
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #e91e63; margin-bottom:15px; text-align:left; display:flex; flex-direction:column; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:bold; color:#ad1457; display:block; margin-bottom:5px;">🎨 DETALLES DEL PATRÓN MÁS BONITO:</label>
+                        <div style="display:flex; flex-wrap:wrap; gap:5px;" id="kimono-pattern">
+                            <button type="button" class="kimono-btn" data-tag="Flores" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer; font-family:'Quicksand';">🌸 Flores</button>
+                            <button type="button" class="kimono-btn" data-tag="Grullas" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer; font-family:'Quicksand';">🦅 Grullas</button>
+                            <button type="button" class="kimono-btn" data-tag="Geométrico" style="padding:4px 8px; font-size:0.75rem; border-radius:15px; border:1px solid #e91e63; background:#fff; cursor:pointer; font-family:'Quicksand';">🌀 Geométrico</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:bold; color:#ad1457; display:block; margin-bottom:5px;">🌈 COLOR DOMINANTE DEL KIMONO:</label>
+                        <select id="kimono-color" style="width:100%; padding:6px; border:1px solid #e91e63; border-radius:5px; background:#fff; color:#ad1457; font-family:'Quicksand'; font-size:0.8rem;">
+                            <option value="">-- Selecciona el color --</option>
+                            <option value="Rosa">Rosa pastel (Sakura)</option>
+                            <option value="Rojo">Rojo intenso (Carmesí/Tsubaki)</option>
+                            <option value="Azul">Azul profundo (Indigo/Aoi)</option>
+                            <option value="Verde">Verde bosque (Matsu)</option>
+                            <option value="Amarillo">Amarillo / Dorado (Kiku)</option>
+                        </select>
                     </div>
                 </div>
+
+                <input type="file" id="file-input-kimono" accept="image/*" style="display:none;">
+                <div id="kimono-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #e91e63; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#ad1457; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto cargada correctamente</span>
+                </div>
                 
-                <button id="btn-cam" class="btn-secondary" style="width:100%; font-family:'Quicksand', sans-serif; background:#e91e63; border-color:#e91e63; color:#fff; font-weight:bold; border-radius:25px;">📸 Tomar Foto Tradicional</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-file" class="btn-secondary" style="flex:1; font-family:'Quicksand', sans-serif; background:#f8bbd0; border-color:#e91e63; color:#ad1457; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-kimono" class="btn-primary" style="flex:1; font-family:'Quicksand', sans-serif; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Mandar Reporte</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
+            let selectedPattern = '';
+            let photoId = null;
             const btns = document.querySelectorAll('.kimono-btn');
+            const colorSelect = document.getElementById('kimono-color');
+            const fileInput = document.getElementById('file-input-kimono');
+            const selectFileBtn = document.getElementById('btn-select-file');
+            const submitBtn = document.getElementById('btn-submit-kimono');
+            const previewEl = document.getElementById('kimono-preview');
+            
+            const checkValidity = () => {
+                if (selectedPattern && colorSelect.value && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#e91e63';
+                    submitBtn.style.borderColor = '#e91e63';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
             btns.forEach(btn => btn.addEventListener('click', () => {
                 btns.forEach(b => { b.style.background = '#fff'; b.style.color = '#333'; });
                 btn.style.background = '#f8bbd0';
                 btn.style.color = '#ad1457';
+                selectedPattern = btn.dataset.tag;
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             }));
-            attachCameraFlow('btn-cam', 'day_7_kimono', role, false);
+
+            colorSelect.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'kimono_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (!selectedPattern || !colorSelect.value || !photoId) return;
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_7_kimono', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: {
+                        pattern: selectedPattern,
+                        color: colorSelect.value
+                    }
+                }, role);
+            });
         }
     },
 
@@ -2929,16 +3832,88 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Kiyomizu-dera",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); border-radius:15px; border:3px solid #009688; color:#004d40; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🪵 Los Pilares Gigantes de Kiyomizu 🪵</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#004d40;">La estructura flotante de Kiyomizu-dera se apoya en pilares colosales de madera antigua. Intenta rodear uno con tus brazos (o simúlalo con tu familia). ¿Tus manos se tocan?</p>
-                <div style="font-size:3rem; margin:15px 0;">🤗🌲🛡️</div>
-                <button id="btn" class="btn-primary" style="width:100%; background:#00796b; border-color:#00796b; font-weight:bold; border-radius:20px;">💪 ¡Pilar Abrazo Confirmado!</button>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">❤️ Las Piedras de Amor de Jishu Jinja 🪨</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#004d40;">En el templo Kiyomizu-dera hay dos piedras del amor. Si caminas de una a otra con los ojos cerrados, encontrarás el amor. Toma una foto del lugar e indica la distancia aproximada entre las dos piedras:</p>
+                
+                <div style="background:#fff; border-radius:10px; padding:12px; border:2px solid #009688; margin-bottom:15px; text-align:left; display:flex; flex-direction:column; gap:10px;">
+                    <div>
+                        <label style="font-size:0.8rem; font-weight:bold; color:#004d40; display:block; margin-bottom:5px;">📐 DISTANCIA ENTRE LAS PIEDRAS:</label>
+                        <select id="stone-distance" style="width:100%; padding:6px; border:1px solid #009688; border-radius:5px; background:#fff; color:#004d40; font-family:'Quicksand'; font-size:0.8rem;">
+                            <option value="">-- Selecciona la distancia --</option>
+                            <option value="5">Aproximadamente 5 metros</option>
+                            <option value="10">Aproximadamente 10 metros</option>
+                            <option value="20">Aproximadamente 20 metros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="file" id="file-input-stone" accept="image/*" style="display:none;">
+                <div id="stone-preview" style="display:none; margin-bottom:15px; border-radius:8px; overflow:hidden; border:2px dashed #009688; padding:5px; background:#fff;">
+                    <span style="font-size:0.75rem; color:#004d40; font-weight:bold; display:block; margin-bottom:5px;">✓ Foto de Jishu Jinja cargada</span>
+                </div>
+                
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-select-file" class="btn-secondary" style="flex:1; font-family:'Quicksand', sans-serif; background:#b2dfdb; border-color:#009688; color:#004d40; font-weight:bold; border-radius:25px;">📸 Hacer Foto</button>
+                    <button id="btn-submit-stone" class="btn-primary" style="flex:1; font-family:'Quicksand', sans-serif; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:25px;" disabled>📨 Enviar Datos</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
+            let photoId = null;
+            const distanceSelect = document.getElementById('stone-distance');
+            const fileInput = document.getElementById('file-input-stone');
+            const selectFileBtn = document.getElementById('btn-select-file');
+            const submitBtn = document.getElementById('btn-submit-stone');
+            const previewEl = document.getElementById('stone-preview');
+            
+            const checkValidity = () => {
+                if (distanceSelect.value === '10' && photoId) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.background = '#00796b';
+                    submitBtn.style.borderColor = '#00796b';
+                    submitBtn.style.color = '#fff';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.background = '#ccc';
+                    submitBtn.style.borderColor = '#ccc';
+                    submitBtn.style.color = '#666';
+                }
+            };
+            
+            distanceSelect.addEventListener('change', () => {
+                if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
+            });
+
+            selectFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        photoId = 'stone_' + Date.now();
+                        window.savePhotoToDB(photoId, event.target.result);
+                        previewEl.style.display = 'block';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        checkValidity();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            submitBtn.addEventListener('click', () => {
+                if (distanceSelect.value !== '10' || !photoId) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('DISTANCIA INCORRECTA', 'La distancia real entre las dos piedras sagradas del amor de Jishu Jinja es de 10 metros. ¡Vuelve a estimar!');
+                    return;
+                }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_7_stone_guardian', {type:'physical', data:'Pilar gigante medido con abrazo familiar'}, role);
+                submitMission('day_7_stone_guardian', {
+                    type: 'photo',
+                    data: photoId,
+                    metadata: { distance: '10 metros' }
+                }, role);
             });
         }
     },
@@ -2953,25 +3928,44 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#080a0e; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
                 <p>>>> CÁLCULO DE VECTORES DE CARGA DE TERRAZA</p>
-                <p style="color:#aaa; font-size:0.85rem;">Cuenta cuántos pilares principales componen la primera fila frontal de la terraza suspendida de Kiyomizu. Multiplícalo por 5 (toneladas de carga estimadas por viga).</p>
+                <p style="color:#aaa; font-size:0.85rem;">Estima la carga de Kiyomizu-dera. Cuenta el número total de grandes pilares principales de madera de ciprés que sostienen la terraza flotante. Multiplícalo por 5 (toneladas de carga soportadas por pilar).</p>
                 
                 <div style="margin:15px 0; padding:10px; background:rgba(0,255,153,0.05); border:1px dashed #00ff99; border-radius:5px; text-align:center;">
-                    <label style="font-size:0.8rem; color:#ffd700; display:block; margin-bottom:5px;">RESULTADO TOTAL ESTIMADO (TONELADAS):</label>
-                    <input type="number" id="ans" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; text-align:center; font-size:1.5rem; box-sizing:border-box;" placeholder="Ej: 30">
+                    <label style="font-size:0.8rem; color:#ffd700; display:block; margin-bottom:5px;">RESULTADO ESTIMADO (ENTRE 15 Y 50 PILARES x 5 TONELADAS):</label>
+                    <input type="number" id="ans" style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; text-align:center; font-size:1.5rem; box-sizing:border-box;" placeholder="Carga estimada en toneladas (ej: 150)">
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">TRANSMITIR ANÁLISIS ESTRUCTURAL</button>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR ANÁLISIS ESTRUCTURAL</button>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                const val = document.getElementById('ans').value;
-                if (!val) {
-                    showAlert('VALOR REQUERIDO', 'Introduce el resultado calculado.');
+            const valInput = document.getElementById('ans');
+            const submitBtn = document.getElementById('btn');
+            
+            const checkValidity = () => {
+                const val = parseInt(valInput.value);
+                if (!isNaN(val) && val >= 75 && val <= 250) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                }
+            };
+            
+            valInput.addEventListener('input', checkValidity);
+            
+            submitBtn.addEventListener('click', () => {
+                const val = parseInt(valInput.value);
+                if (val < 75 || val > 250) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CÁLCULO FUERA DE RANGO', 'La famosa terraza suspendida de Kiyomizu-dera se apoya sobre una intrincada celosía de pilares principales. Tu estimación total de carga debe estar en un rango realista (entre 75 y 250 toneladas totales, correspondientes a una estimación de entre 15 y 50 pilares principales).');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_7_structural', {type:'number', data: parseInt(val)}, role);
+                submitMission('day_7_structural', {type:'number', data: val}, role);
             });
         }
     },
@@ -2986,25 +3980,48 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#120508; border:1px solid #e91e63; color:#e91e63; box-shadow:0 4px 20px rgba(233,30,99,0.25);">
                 <p>>>> ALERTA DE AMENAZA PARANORMAL: MALDICIÓN DE SANNENZAKA</p>
-                <p style="color:#aaa; font-size:0.85rem;">La leyenda cuenta que tropezar en las escaleras de Sannenzaka acarrea 3 años de mala suerte. Revisa tu mochila e indica 3 objetos que usarías para mitigar la maldición.</p>
+                <p style="color:#aaa; font-size:0.85rem;">La leyenda cuenta que tropezar en las escaleras de Sannenzaka acarrea 3 años de mala suerte. Revisa tu mochila e indica 3 objetos o técnicas que usarías para mitigar la maldición (mínimo 15 caracteres y términos clave como: amuleto, omamori, calabaza, rodillera, cuidado, despacio):</p>
                 
                 <div style="background:#111; border:1px solid #333; border-radius:5px; padding:10px; margin:15px 0;">
                     <label style="font-size:0.8rem; color:#ffd700; display:block; margin-bottom:5px;">EQUIPO SELECCIONADO DE MITIGACIÓN:</label>
-                    <input type="text" id="ans" style="width:100%; background:#111; color:#e91e63; border:1px solid #e91e63; padding:8px; font-family:monospace; box-sizing:border-box;" placeholder="Ej: Rodilleras, Amuleto Omamori, Suela antideslizante...">
+                    <input type="text" id="ans" style="width:100%; background:#111; color:#e91e63; border:1px solid #e91e63; padding:8px; font-family:monospace; box-sizing:border-box; font-size:0.85rem;" placeholder="Ej: Amuleto Omamori, calabaza mágica, rodilleras de protección...">
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#e91e63; color:#e91e63; background:transparent;">EJECUTAR CONTRA-CONJURACIÓN</button>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>EJECUTAR CONTRA-CONJURACIÓN</button>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
-                const val = document.getElementById('ans').value.trim();
-                if (!val) {
-                    showAlert('VALOR REQUERIDO', 'Introduce los objetos de tu inventario protector.');
+            const inputVal = document.getElementById('ans');
+            const submitBtn = document.getElementById('btn');
+            
+            const checkValidity = () => {
+                const text = inputVal.value.trim().toLowerCase();
+                const keywords = ['omamori', 'amuleto', 'calabaza', 'rodillera', 'suerte', 'despacio', 'cuidado', 'antideslizante', 'suela'];
+                const hasKeyword = keywords.some(kw => text.includes(kw));
+                if (text.length >= 15 && hasKeyword) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#e91e63';
+                    submitBtn.style.color = '#e91e63';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                }
+            };
+            
+            inputVal.addEventListener('input', checkValidity);
+            
+            submitBtn.addEventListener('click', () => {
+                const text = inputVal.value.trim();
+                const keywords = ['omamori', 'amuleto', 'calabaza', 'rodillera', 'suerte', 'despacio', 'cuidado', 'antideslizante', 'suela'];
+                const hasKeyword = keywords.some(kw => text.toLowerCase().includes(kw));
+                if (text.length < 15 || !hasKeyword) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('CONJURACIÓN INSUFICIENTE', 'Para contrarrestar la maldición de Sannenzaka debes detallar una estrategia real de al menos 15 letras con términos como: omamori, calabaza (tradicionalmente vendida allí para capturar la mala suerte), amuleto o elementos físicos de protección.');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_7_survival', {type:'text', data: val}, role);
+                submitMission('day_7_survival', {type:'text', data: text}, role);
             });
         }
     },
@@ -3333,24 +4350,43 @@ Object.assign(MISSIONS_CONFIG, {
                     </label>
                 </div>
                 
-                <input type="number" id="p-total" placeholder="Introduce pasos totales..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;">
-                <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px; border-color:#00ff99; color:#00ff99; background:transparent;" disabled>TRANSMITIR RECONOCIMIENTO</button>
+                <input type="number" id="p-total" placeholder="Introduce pasos totales (entre 2000 y 6000)..." style="width:100%; background:#111; color:#00ff99; border:1px solid #00ff99; padding:8px; font-family:monospace; box-sizing:border-box;">
+                <button id="btn-sub" class="btn-primary" style="width:100%; margin-top:15px; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR RECONOCIMIENTO</button>
             </div>
         `,
         attachEvents: () => {
             const chks = document.querySelectorAll('.b-chk');
             const btn = document.getElementById('btn-sub');
+            const stepsInput = document.getElementById('p-total');
+            
+            const checkValidity = () => {
+                const allChecked = Array.from(chks).every(x => x.checked);
+                const stepsVal = parseInt(stepsInput.value);
+                if (allChecked && !isNaN(stepsVal) && stepsVal >= 2000 && stepsVal <= 6000) {
+                    btn.removeAttribute('disabled');
+                    btn.style.borderColor = '#00ff99';
+                    btn.style.color = '#111';
+                    btn.style.background = '#00ff99';
+                } else {
+                    btn.setAttribute('disabled', 'true');
+                    btn.style.borderColor = '#555';
+                    btn.style.color = '#555';
+                    btn.style.background = 'transparent';
+                }
+            };
             
             chks.forEach(c => c.addEventListener('change', () => {
-                const all = Array.from(chks).every(x => x.checked);
-                btn.disabled = !all;
                 if (window.playProceduralSound) playProceduralSound('click');
+                checkValidity();
             }));
+
+            stepsInput.addEventListener('input', checkValidity);
             
             btn.addEventListener('click', () => {
-                const stepsVal = document.getElementById('p-total').value;
-                if (!stepsVal || parseInt(stepsVal) <= 0) {
-                    showAlert('VALOR REQUERIDO', 'Introduce la estimación de pasos reales.');
+                const stepsVal = parseInt(stepsInput.value);
+                if (isNaN(stepsVal) || stepsVal < 2000 || stepsVal > 6000) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('ESTIMACIÓN DE PASOS ERRÓNEA', 'Una caminata de 2.7 km en Arashiyama equivale aproximadamente a un rango de entre 2.000 y 6.000 pasos de zancada humana. Por favor, reajusta tu estimación dentro de este límite lógico.');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
@@ -3369,17 +4405,38 @@ Object.assign(MISSIONS_CONFIG, {
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#080b0e; border:1px solid #00ff99; color:#00ff99; box-shadow:0 4px 20px rgba(0,255,153,0.15);">
                 <p>>>> REPORTE DE ANOMALÍAS DE CAMPO // ARASHIYAMA</p>
-                <p style="color:#aaa; font-size:0.85rem;">Estás en uno de los lugares más fotografiados del planeta. Escribe un informe de reconocimiento sensorial: ¿cómo se siente la luz entre el bambú, qué sonido hace al mecerse, qué vibración transmite?</p>
+                <p style="color:#aaa; font-size:0.85rem;">Estás en uno de los lugares más fotografiados del planeta. Escribe un informe de reconocimiento sensorial: ¿cómo se siente la luz entre el bambú, qué sonido hace al mecerse, qué vibración transmite? (mínimo 30 caracteres)</p>
                 
                 <textarea id="ar-ans" placeholder=">>> Escribe tu informe de campo..." style="width:100%; height:90px; margin-bottom:15px; background:#111; color:#00ff99; border:1px solid #00ff99; padding:10px; border-radius:6px; font-family:monospace; box-sizing:border-box;"></textarea>
-                <button id="btn" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">TRANSMITIR REPORTE TÁCTICO</button>
+                <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR REPORTE TÁCTICO</button>
             </div>
         `,
         attachEvents: () => { 
-            document.getElementById('btn').addEventListener('click', () => {
-                const val = document.getElementById('ar-ans').value.trim();
-                if (val.length < 20) {
-                    showAlert('INFORME INCOMPLETO', 'Un informe táctico sensorial requiere mayor detalle (mínimo 20 caracteres).');
+            const textInput = document.getElementById('ar-ans');
+            const submitBtn = document.getElementById('btn');
+
+            const checkValidity = () => {
+                const val = textInput.value.trim();
+                if (val.length >= 30) {
+                    submitBtn.removeAttribute('disabled');
+                    submitBtn.style.borderColor = '#00ff99';
+                    submitBtn.style.color = '#111';
+                    submitBtn.style.background = '#00ff99';
+                } else {
+                    submitBtn.setAttribute('disabled', 'true');
+                    submitBtn.style.borderColor = '#555';
+                    submitBtn.style.color = '#555';
+                    submitBtn.style.background = 'transparent';
+                }
+            };
+
+            textInput.addEventListener('input', checkValidity);
+            
+            submitBtn.addEventListener('click', () => {
+                const val = textInput.value.trim();
+                if (val.length < 30) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('INFORME INSOPORTABLE', 'El reporte de Arashiyama debe detallar tus sensaciones sensoriales con al menos 30 caracteres.');
                     return;
                 }
                 if (window.playProceduralSound) playProceduralSound('success');
@@ -3565,7 +4622,6 @@ Object.assign(MISSIONS_CONFIG, {
         `,
         attachEvents: (role) => { attachCameraFlow('btn-cam', 'day_8_kid9_giants', currentUser, false); }
     },
-
     "day_8_kid9_monk": {
         tag: "audio",
         day: 8,
@@ -3580,12 +4636,12 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 <div id="rec-ui-monk" style="text-align:center; margin: 15px 0; background:#fff; border-radius:10px; padding:15px; border:2px solid #78909c;">
                     <div id="rec-dot-monk" style="width:20px; height:20px; background:#f44336; border-radius:50%; margin:0 auto 10px; opacity:0; box-shadow:0 0 10px #f44336;"></div>
-                    <button id="btn-rec-monk" class="btn-primary" style="width:100%; border-radius:50px; height:50px; font-size:1.1rem; font-weight:bold; background:#78909c; border-color:#78909c;">🎙️ Grabar Mantra</button>
+                    <button id="btn-rec-monk" class="btn-primary" style="width:100%; border-radius:50px; height:50px; font-size:1.1rem; font-weight:bold; background:#78909c; border-color:#78909c; font-family:'Quicksand';">🎙️ Grabar Mantra</button>
                 </div>
                 
                 <audio id="au-preview-monk" controls class="hidden" style="width:100%; margin-bottom:15px;"></audio>
-                <button id="btn-retry-monk" class="btn-secondary hidden" style="width:100%; margin-bottom:10px; font-weight:bold; border-radius:20px;">Regrabar</button>
-                <button id="btn-monk" class="btn-primary hidden" style="width:100%; background:#263238; border-color:#263238; font-weight:bold; border-radius:20px;">Enviar al Juez</button>
+                <button id="btn-retry-monk" class="btn-secondary hidden" style="width:100%; margin-bottom:10px; font-weight:bold; border-radius:20px; font-family:'Quicksand';">Regrabar</button>
+                <button id="btn-monk" class="btn-primary hidden" style="width:100%; background:#263238; border-color:#263238; font-weight:bold; border-radius:20px; font-family:'Quicksand';">Enviar al Juez</button>
             </div>
         `,
         attachEvents: () => {
@@ -3615,17 +4671,50 @@ Object.assign(MISSIONS_CONFIG, {
                         dot.style.animation = 'none';
                         dot.style.opacity = '0';
                         const blob = new Blob(chunks, { 'type' : 'audio/webm' });
-                        au.src = URL.createObjectURL(blob);
-                        au.classList.remove('hidden');
-                        btnR.classList.add('hidden');
-                        btnRetry.classList.remove('hidden');
-                        btn.classList.remove('hidden');
                         
-                        const reader = new FileReader();
-                        reader.readAsDataURL(blob);
-                        reader.onloadend = () => { blobId = reader.result; };
+                        // Active volume verification using AudioContext
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        const arrayBuffer = await blob.arrayBuffer();
+                        try {
+                            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                            const channelData = audioBuffer.getChannelData(0);
+                            let sumSquares = 0;
+                            for (let i = 0; i < channelData.length; i++) {
+                                sumSquares += channelData[i] * channelData[i];
+                            }
+                            const rms = Math.sqrt(sumSquares / channelData.length);
+                            const volumePercent = Math.min(100, Math.floor(rms * 1000));
+                            
+                            if (volumePercent < 15) {
+                                if (window.playProceduralSound) playProceduralSound('error');
+                                showAlert('MANTRA SOLEMNE REQUERIDO', 'El sonido o murmullo grabado es demasiado bajo. Canta tu mantra con voz firme o acerca más el cuenco tibetano al micrófono.');
+                                btnR.classList.remove('hidden');
+                                btnR.disabled = false;
+                                btnR.innerText = "🎙️ Volver a Intentar";
+                                return;
+                            }
+                            
+                            au.src = URL.createObjectURL(blob);
+                            au.classList.remove('hidden');
+                            btnR.classList.add('hidden');
+                            btnRetry.classList.remove('hidden');
+                            btn.classList.remove('hidden');
+                            
+                            const reader = new FileReader();
+                            reader.readAsDataURL(blob);
+                            reader.onloadend = () => { blobId = reader.result; };
+                            if (window.playProceduralSound) playProceduralSound('success');
+                        } catch (err) {
+                            console.error(err);
+                            // Fallback
+                            au.src = URL.createObjectURL(blob);
+                            au.classList.remove('hidden');
+                            btnR.classList.add('hidden');
+                            btnRetry.classList.remove('hidden');
+                            btn.classList.remove('hidden');
+                        }
+                        
                         stream.getTracks().forEach(t => t.stop());
-                        if (window.playProceduralSound) playProceduralSound('success');
                     };
                     mr.start();
                     dot.style.opacity = '1';
@@ -3670,28 +4759,163 @@ Object.assign(MISSIONS_CONFIG, {
         location: "Tenryu-ji",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #8d6e63; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🎋 El Rastrillo del Jardinero 🎋</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#5d4037;">Dibuja ondas de arena zen con el dedo sobre el jardín simulado de Tenryu-ji.</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:5px;">🎋 El Rastrillo del Jardinero Zen 🎋</p>
+                <p style="font-size:0.8rem; margin-bottom:10px; color:#5d4037;">Pasa el rastrillo (tu dedo) sobre los 5 círculos concéntricos de arena zen para armonizar el jardín de Tenryu-ji.</p>
                 
                 <div style="background:#e8dcc4; border:2px solid #8b5a2b; position:relative; width:100%; height:200px; margin:0 auto; margin-bottom:15px; border-radius:10px; overflow:hidden;">
-                    <canvas id="zen-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;"></canvas>
-                    <div style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.7); z-index:5;">
-                        <span style="font-size:3rem; margin-bottom:10px;">🎋🌊</span>
-                        <p style="font-size:0.85rem; color:#8d6e63; font-weight:bold; margin:0;">El Rastrillo Zen interactivo se jugará a pantalla completa.</p>
+                    <canvas id="zen-canvas" width="280" height="200" style="display:block; width:100%; height:100%; z-index:10; cursor:crosshair;"></canvas>
+                    <div id="zen-help-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.75); z-index:5; pointer-events:none;">
+                        <span style="font-size:2.5rem; margin-bottom:5px;">🎋🌊</span>
+                        <p style="font-size:0.8rem; color:#8d6e63; font-weight:bold; margin:0;">Toca y arrastra en la arena para limpiar</p>
                     </div>
                 </div>
                 
-                <button id="btn" class="btn-primary" style="width:100%; background:#8d6e63; border-color:#8d6e63; font-weight:bold; border-radius:20px;">🎮 Abrir Jardín Zen</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-open-game" class="btn-secondary" style="flex:1; background:#a1887f; border-color:#8d6e63; color:#fff; font-weight:bold; border-radius:20px; font-family:'Quicksand';">🎮 Minijuego Completo</button>
+                    <button id="btn-submit-rake" class="btn-primary" style="flex:1; background:#ccc; border-color:#ccc; color:#666; font-weight:bold; border-radius:20px; font-family:'Quicksand';" disabled>📨 Enviar Armonización</button>
+                </div>
             </div>
         `,
         attachEvents: (role) => {
-            document.getElementById('btn').addEventListener('click', () => {
+            const openBtn = document.getElementById('btn-open-game');
+            const submitBtn = document.getElementById('btn-submit-rake');
+            const overlay = document.getElementById('zen-help-overlay');
+            const canvas = document.getElementById('zen-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width || 280;
+            canvas.height = rect.height || 200;
+            
+            ctx.fillStyle = '#e8dcc4';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const targets = [
+                {x: canvas.width * 0.2, y: canvas.height * 0.3, cleared: false, radius: 15},
+                {x: canvas.width * 0.8, y: canvas.height * 0.25, cleared: false, radius: 15},
+                {x: canvas.width * 0.5, y: canvas.height * 0.5, cleared: false, radius: 15},
+                {x: canvas.width * 0.25, y: canvas.height * 0.75, cleared: false, radius: 15},
+                {x: canvas.width * 0.75, y: canvas.height * 0.8, cleared: false, radius: 15}
+            ];
+            
+            const drawScene = () => {
+                ctx.fillStyle = '#e8dcc4';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.strokeStyle = '#dfcfb2';
+                ctx.lineWidth = 3;
+                for (let i = 10; i < canvas.height; i += 20) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.bezierCurveTo(canvas.width*0.25, i-10, canvas.width*0.75, i+10, canvas.width, i);
+                    ctx.stroke();
+                }
+                
+                targets.forEach(t => {
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+                    if (t.cleared) {
+                        ctx.fillStyle = '#81c784';
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = '#81c784';
+                    } else {
+                        ctx.fillStyle = '#8d6e63';
+                        ctx.shadowBlur = 0;
+                    }
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    
+                    ctx.strokeStyle = t.cleared ? '#2e7d32' : '#5d4037';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, t.radius + 6, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+            };
+            
+            drawScene();
+            
+            let drawing = false;
+            
+            const getPos = (e) => {
+                const r = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - r.left,
+                    y: clientY - r.top
+                };
+            };
+            
+            const startDraw = (e) => {
+                drawing = true;
+                if (overlay) overlay.style.display = 'none';
+                handleMove(e);
+            };
+            
+            const handleMove = (e) => {
+                if (!drawing) return;
+                const pos = getPos(e);
+                
+                let changed = false;
+                targets.forEach(t => {
+                    const dx = pos.x - t.x;
+                    const dy = pos.y - t.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < t.radius + 15 && !t.cleared) {
+                        t.cleared = true;
+                        changed = true;
+                        if (window.playProceduralSound) playProceduralSound('click');
+                    }
+                });
+                
+                if (changed) {
+                    drawScene();
+                    const allCleared = targets.every(t => t.cleared);
+                    if (allCleared) {
+                        submitBtn.removeAttribute('disabled');
+                        submitBtn.style.background = '#8d6e63';
+                        submitBtn.style.borderColor = '#8d6e63';
+                        submitBtn.style.color = '#fff';
+                        if (window.playProceduralSound) playProceduralSound('success');
+                        if (window.launchConfetti) launchConfetti();
+                    }
+                }
+            };
+            
+            const endDraw = () => {
+                drawing = false;
+            };
+            
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', endDraw);
+            
+            canvas.addEventListener('touchstart', startDraw, {passive: true});
+            canvas.addEventListener('touchmove', handleMove, {passive: true});
+            window.addEventListener('touchend', endDraw);
+            
+            openBtn.addEventListener('click', () => {
                 if (window.MinigamesManager && typeof window.MinigamesManager.launch === 'function') {
                     window.MinigamesManager.launch('day_8_kid9_rake');
                 } else {
-                    submitMission('day_8_kid9_rake', {type:'game', data:'Jardín zen completado'}, role);
+                    submitMission('day_8_kid9_rake', {type:'game', data:'Jardín zen completado en minijuego'}, role);
                 }
             });
+            
+            submitBtn.addEventListener('click', () => {
+                if (window.playProceduralSound) playProceduralSound('success');
+                submitMission('day_8_kid9_rake', {type:'game', data:'Jardín zen armonizado localmente'}, role);
+            });
+            
+            window._missionCleanup = () => {
+                canvas.removeEventListener('mousedown', startDraw);
+                canvas.removeEventListener('mousemove', handleMove);
+                window.removeEventListener('mouseup', endDraw);
+                canvas.removeEventListener('touchstart', startDraw);
+                canvas.removeEventListener('touchmove', handleMove);
+                window.removeEventListener('touchend', endDraw);
+            };
         }
     },
 
