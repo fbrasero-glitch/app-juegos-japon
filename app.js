@@ -281,22 +281,51 @@ const ALBUM_CONFIG = {
 function loadState() {
     const saved = localStorage.getItem('japanMissionsState');
     if (saved) {
-        gameState = JSON.parse(saved);
-        // Migración de datos para usuarios antiguos
-        ['kid9', 'kid14'].forEach(kid => {
-            if (gameState[kid].level === 1 && gameState[kid].xp === 0) gameState[kid].level = 0; // Ajustar a nivel 0 (0-9)
-            if (!gameState[kid].badges) gameState[kid].badges = [];
-            if (!gameState[kid].counters) gameState[kid].counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
-            if (!gameState[kid].album) gameState[kid].album = {};
-            if (!gameState[kid].rewards) gameState[kid].rewards = {};
-            if (gameState[kid].wallet === undefined) {
-                gameState[kid].wallet = (gameState[kid].xp || 0) * 5;
-            }
-        });
+        try {
+            gameState = JSON.parse(saved);
+            // Migración de datos para usuarios antiguos
+            ['kid9', 'kid14'].forEach(kid => {
+                if (gameState[kid].level === 1 && gameState[kid].xp === 0) gameState[kid].level = 0; // Ajustar a nivel 0 (0-9)
+                if (!gameState[kid].badges) gameState[kid].badges = [];
+                if (!gameState[kid].counters) gameState[kid].counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
+                if (!gameState[kid].album) gameState[kid].album = {};
+                if (!gameState[kid].rewards) gameState[kid].rewards = {};
+                if (gameState[kid].wallet === undefined) {
+                    gameState[kid].wallet = (gameState[kid].xp || 0) * 5;
+                }
+            });
+        } catch (e) {
+            console.error("Error parseando estado local. Usando por defecto.", e);
+            gameState = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        }
     } else {
         gameState = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        saveState();
     }
+    
+    // Inicializar proactivamente todas las misiones en memoria para asegurar sincronización completa
+    ensureAllMissionsInitialized();
+    saveState();
+}
+
+function ensureAllMissionsInitialized() {
+    if (!gameState || typeof MISSIONS_CONFIG === 'undefined') return;
+    ['kid9', 'kid14'].forEach(kid => {
+        if (!gameState[kid].missions) gameState[kid].missions = {};
+        Object.keys(MISSIONS_CONFIG).forEach(mId => {
+            const config = MISSIONS_CONFIG[mId];
+            if (config) {
+                if (config.role === kid || config.role === 'both') {
+                    if (!gameState[kid].missions[mId]) {
+                        gameState[kid].missions[mId] = {
+                            status: "unlocked",
+                            submission: null,
+                            day: `day_${config.day}`
+                        };
+                    }
+                }
+            }
+        });
+    });
 }
 
 function saveState() {
