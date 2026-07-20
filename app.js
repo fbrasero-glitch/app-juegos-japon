@@ -901,6 +901,16 @@ function switchView(viewId, showHeader = true, headerTitle = "Misiones") {
         header.classList.add('hidden');
     }
 
+    // Mostrar candado en cabecera en todos los perfiles, ocultarlo solo en modo Juez
+    const btnLock = document.getElementById('btn-header-lock');
+    if (btnLock) {
+        if (viewId === 'view-judge') {
+            btnLock.classList.add('hidden');
+        } else {
+            btnLock.classList.remove('hidden');
+        }
+    }
+
     // Lógica Bottom Nav y Botón Volver Dinámicos para Perfiles Fijos
     const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
     const isLockedKid = (deviceRole === 'kid9' || deviceRole === 'kid14');
@@ -3264,11 +3274,6 @@ window.onload = async () => {
     
     if (deviceRole === 'kid9' || deviceRole === 'kid14') {
         currentUser = deviceRole;
-        
-        // Mostrar botón de candado en header
-        const lockBtn = document.getElementById('btn-header-lock');
-        if (lockBtn) lockBtn.classList.remove('hidden');
-        
         renderDaysList(currentUser);
     } else {
         switchView('view-home', false);
