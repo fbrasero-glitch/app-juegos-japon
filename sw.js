@@ -1,4 +1,4 @@
-const CACHE_NAME = 'japan-missions-v11';
+const CACHE_NAME = 'japan-missions-v12';
 const ASSETS = [
     './',
     './index.html',
@@ -9,6 +9,9 @@ const ASSETS = [
     './missions_days_1_8.js',
     './missions_days_9_16.js',
     './missions_days_17_24.js',
+    './firebase-app-compat.js',
+    './firebase-firestore-compat.js',
+    './firebase-sync.js',
     './app.js',
     './manifest.json',
     './icon-192.png',

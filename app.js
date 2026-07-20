@@ -47,6 +47,181 @@ let currentDayMissions = []; // Misiones del día actual
 let currentJudgeTab = 'pending'; // Pestaña activa del juez ('pending' | 'approved')
 let judgeListenersBound = false;
 
+// ==========================================
+// CONFIGURACIÓN DE BLOQUEO DE FECHAS (JAPÓN)
+// ==========================================
+const ENABLE_DATE_LOCK = false; // INACTIVO por defecto durante las pruebas
+const TRIP_START_DATE = new Date(2026, 6, 27); // 27 de Julio de 2026 (Mes 6 = Julio)
+
+function isDayLocked(dayNum) {
+    if (!ENABLE_DATE_LOCK) return false;
+    const japanDate = getJapanCurrentDate();
+    const targetDate = new Date(TRIP_START_DATE.getTime());
+    targetDate.setDate(TRIP_START_DATE.getDate() + (dayNum - 1));
+    return japanDate < targetDate;
+}
+
+function getJapanCurrentDate() {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+    });
+    const parts = formatter.formatToParts(now);
+    let year, month, day;
+    parts.forEach(p => {
+        if (p.type === 'year') year = parseInt(p.value, 10);
+        if (p.type === 'month') month = parseInt(p.value, 10) - 1; // constructor de Date usa meses 0-11
+        if (p.type === 'day') day = parseInt(p.value, 10);
+    });
+    return new Date(year, month, day);
+}
+window.getJapanCurrentDate = getJapanCurrentDate;
+
+function getDayDateString(dayNum) {
+    const targetDate = new Date(TRIP_START_DATE.getTime());
+    targetDate.setDate(TRIP_START_DATE.getDate() + (dayNum - 1));
+    const day = targetDate.getDate();
+    const month = targetDate.getMonth() === 6 ? "Julio" : "Agosto";
+    return `${day} de ${month}`;
+}
+
+function getCurrentTripDay() {
+    const japanDate = getJapanCurrentDate();
+    const diffTime = japanDate.getTime() - TRIP_START_DATE.getTime();
+    if (diffTime < 0) return 0;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+}
+
+function updateSpecialEventsBanner(role) {
+    const banner = document.getElementById('special-events-banner');
+    if (!banner) return;
+
+    if (!role || role === 'judge') {
+        banner.classList.add('hidden');
+        return;
+    }
+
+    // 1. Obtener todos los eventos especiales para este explorador
+    const specialEvents = Object.keys(MISSIONS_CONFIG)
+        .filter(k => MISSIONS_CONFIG[k].tag === 'special' && (MISSIONS_CONFIG[k].role === role || MISSIONS_CONFIG[k].role === 'both'))
+        .map(k => ({ id: k, ...MISSIONS_CONFIG[k] }))
+        .sort((a, b) => {
+            if (a.day !== b.day) return a.day - b.day;
+            return a.startTime.localeCompare(b.startTime);
+        });
+
+    // 2. Encontrar el primer evento que no esté aprobado
+    let activeEvent = null;
+    for (let ev of specialEvents) {
+        const state = gameState[role].missions[ev.id];
+        if (state && state.status !== 'approved') {
+            activeEvent = ev;
+            break;
+        }
+    }
+
+    if (!activeEvent) {
+        banner.innerHTML = `<span>🎉 ¡Felicidades! Has completado todos los eventos especiales del viaje.</span>`;
+        banner.style.background = 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)';
+        banner.style.border = '2px solid #81c784';
+        banner.style.color = '#1b5e20';
+        banner.classList.remove('hidden');
+        return;
+    }
+
+    // 3. Determinar el estado temporal del evento seleccionado
+    const now = new Date();
+    const currentTripDay = getCurrentTripDay();
+    const eventDateStr = getDayDateString(activeEvent.day);
+    
+    const startParts = activeEvent.startTime.split(':');
+    const endParts = activeEvent.endTime.split(':');
+    const startHour = parseInt(startParts[0], 10);
+    const startMin = parseInt(startParts[1], 10);
+    const endHour = parseInt(endParts[0], 10);
+    const endMin = parseInt(endParts[1], 10);
+
+    const isToday = activeEvent.day === currentTripDay || (!ENABLE_DATE_LOCK && activeEvent.day === 1);
+    
+    let statusText = '';
+    let badgeText = '📅 PRÓXIMO EVENTO';
+    let pulseStyle = '';
+    let bgColor = 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)';
+    let borderColor = '#ffb74d';
+    let textColor = '#5d4037';
+    let badgeBg = '#ffe082';
+    let badgeColor = '#b77900';
+
+    if (isToday) {
+        const currentHourMin = now.getHours() * 100 + now.getMinutes();
+        const startVal = startHour * 100 + startMin;
+        const endVal = endHour * 100 + endMin;
+
+        if (currentHourMin < startVal) {
+            badgeText = '⏰ HOY MÁS TARDE';
+            statusText = `<b>${activeEvent.title}</b> de <b>${activeEvent.startTime} a ${activeEvent.endTime}</b> (${activeEvent.location}). Prepárate para el aviso del juez.`;
+        } else if (currentHourMin >= startVal && currentHourMin <= endVal) {
+            badgeText = '🔥 ¡ACTIVO AHORA!';
+            statusText = `<b>${activeEvent.title}</b>. Tienes hasta las <b>${activeEvent.endTime}</b> para entregar tu prueba. ¡Haz clic para abrirla!`;
+            pulseStyle = 'animation: pulse-banner 2s infinite;';
+            bgColor = 'linear-gradient(135deg, #fff9c4 0%, #fff59d 100%)';
+            borderColor = '#fbc02d';
+            textColor = '#f57f17';
+            badgeBg = '#f57f17';
+            badgeColor = '#ffffff';
+        } else {
+            badgeText = '⏱️ HOY (FUERA DE HORA)';
+            statusText = `<b>${activeEvent.title}</b> finalizó a las <b>${activeEvent.endTime}</b>. Esperando reprogramación o nueva oportunidad.`;
+            bgColor = 'linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%)';
+            borderColor = '#ffb74d';
+            textColor = '#e65100';
+        }
+    } else {
+        let whenText = `${eventDateStr} (Día ${activeEvent.day})`;
+        if (currentTripDay > 0 && activeEvent.day === currentTripDay + 1) {
+            whenText = `Mañana (${eventDateStr})`;
+        }
+        statusText = `<b>${activeEvent.title}</b> programado para el <b>${whenText}</b> a las <b>${activeEvent.startTime}</b> (${activeEvent.location}).`;
+    }
+
+    if (!document.getElementById('pulse-banner-style')) {
+        const style = document.createElement('style');
+        style.id = 'pulse-banner-style';
+        style.innerHTML = `
+            @keyframes pulse-banner {
+                0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 152, 0, 0.15); }
+                50% { transform: scale(1.02); box-shadow: 0 4px 20px rgba(255, 152, 0, 0.35); }
+                100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 152, 0, 0.15); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    banner.style.background = bgColor;
+    banner.style.border = `2px solid ${borderColor}`;
+    banner.style.color = textColor;
+    banner.style.cssText += pulseStyle;
+
+    banner.innerHTML = `
+        <div style="display: flex; flex-direction: column; width: 100%; gap: 6px;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span class="status-badge" style="margin-top:0; font-size:0.75rem; background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 6px;">${badgeText}</span>
+                <span style="font-weight: bold; font-size: 0.8rem; color: ${borderColor};">💰 +${activeEvent.xp} XP</span>
+            </div>
+            <div style="line-height: 1.4;">${statusText}</div>
+        </div>
+    `;
+    
+    banner.onclick = () => {
+        renderMissionDetail(activeEvent.id, role);
+    };
+    banner.style.cursor = 'pointer';
+    banner.classList.remove('hidden');
+}
+
 
 // ==========================================
 // CONFIGURACIÓN DEL ÁLBUM DEL COLECCIONISTA
@@ -125,7 +300,25 @@ function loadState() {
 }
 
 function saveState() {
+    if (gameState) {
+        if (currentUser === 'kid9' || currentUser === 'kid14') {
+            gameState[currentUser].lastUpdated = Date.now();
+        } else if (currentUser === 'judge') {
+            if (gameState.kid9) gameState.kid9.lastUpdated = Date.now();
+            if (gameState.kid14) gameState.kid14.lastUpdated = Date.now();
+        }
+    }
     localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
+    
+    // Sincronizar remotamente
+    if (window.FirebaseSync && window.FirebaseSync.isConnected() && gameState) {
+        if (currentUser === 'kid9' || currentUser === 'kid14') {
+            window.FirebaseSync.syncProfile(currentUser, gameState[currentUser]);
+        } else if (currentUser === 'judge') {
+            window.FirebaseSync.syncProfile('kid9', gameState.kid9);
+            window.FirebaseSync.syncProfile('kid14', gameState.kid14);
+        }
+    }
 }
 
 // Inicializar misiones vacías si no existen
@@ -141,9 +334,47 @@ function initMissionsForDay(dayStr, missionIds) {
 }
 
 // IndexedDB: funciones provistas por dbHelper.js (savePhotoToDB, getMedia, saveMedia, initIndexedDB)
-// getPhotoFromDB es un alias de getMedia para compatibilidad con el panel del juez
-function getPhotoFromDB(id) {
-    return window.getMedia ? window.getMedia(id) : Promise.resolve(null);
+
+// Interceptador para subir fotos a Firebase además de guardarlas en IndexedDB local
+setTimeout(() => {
+    const originalSavePhotoToDB = window.savePhotoToDB;
+    window.savePhotoToDB = async function(id, dataUrl) {
+        if (originalSavePhotoToDB) {
+            await originalSavePhotoToDB(id, dataUrl);
+        } else if (window.saveMedia) {
+            await window.saveMedia(id, dataUrl);
+        }
+        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+            window.FirebaseSync.syncPhoto(id, dataUrl);
+        }
+    };
+}, 100);
+
+// getPhotoFromDB con Caché Híbrida local/nube
+async function getPhotoFromDB(id) {
+    let localData = null;
+    if (window.getMedia) {
+        localData = await window.getMedia(id);
+    }
+    if (localData) {
+        return localData;
+    }
+    
+    // Descarga desde la nube bajo demanda
+    if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+        const remoteData = await window.FirebaseSync.fetchPhoto(id);
+        if (remoteData) {
+            if (window.saveMedia) {
+                // Desactivar temporalmente la auto-descarga a la galería del dispositivo
+                const oldTrigger = window.triggerDeviceDownload;
+                window.triggerDeviceDownload = () => {};
+                await window.saveMedia(id, remoteData);
+                window.triggerDeviceDownload = oldTrigger;
+            }
+            return remoteData;
+        }
+    }
+    return null;
 }
 
 // ==========================================
@@ -153,7 +384,7 @@ function getPhotoFromDB(id) {
 const TAG_ICONS = {
     photo: '📸', video: '🎬', audio: '🎙️', writing: '✍️',
     expert: '⚡', economy: '💰', sensors: '📡', physical: '🏃',
-    game: '🎮', culture: '🏯', mixed: '🔀'
+    game: '🎮', culture: '🏯', mixed: '🔀', special: '🌟'
 };
 
 
@@ -259,8 +490,7 @@ function checkLevelUp(kidId) {
 }
 
 function checkBadges(kidId, missionId) {
-    const config = MISSIONS_CONFIG[missionId];
-    if (!config) return [];
+    const config = missionId ? MISSIONS_CONFIG[missionId] : null;
     
     const counters = gameState[kidId].counters || { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
     gameState[kidId].counters = counters; // asegura que existe
@@ -268,52 +498,314 @@ function checkBadges(kidId, missionId) {
     gameState[kidId].badges = badges;
     
     let newBadges = [];
-
-    // medalla_olimpica (5 físicas aprobadas)
-    if (config.tag === 'physical') {
-        counters.physicalStreak++;
-        if (counters.physicalStreak >= 5 && !badges.includes('medalla_olimpica')) {
-            badges.push('medalla_olimpica');
-            newBadges.push({id: 'medalla_olimpica', title: 'Medalla Olímpica', icon: '🥇'});
-        }
-    }
-
-    // bateria_inagotable (3 enviadas en horario extremo)
-    const hour = new Date().getHours();
-    if (hour < 8 || hour >= 22) {
-        counters.earlyLateSubmissions++;
-        if (counters.earlyLateSubmissions >= 3 && !badges.includes('bateria_inagotable')) {
-            badges.push('bateria_inagotable');
-            newBadges.push({id: 'bateria_inagotable', title: 'Batería Inagotable', icon: '🔋'});
-        }
-    }
-
-    // sincronizacion_perfecta
-    if (config.role === 'both') {
-        counters.perfectJointMissions++;
-        if (counters.perfectJointMissions >= 5 && !badges.includes('sincronizacion_perfecta')) {
-            badges.push('sincronizacion_perfecta');
-            newBadges.push({id: 'sincronizacion_perfecta', title: 'Sincronización Perfecta', icon: '🤝'});
-        }
-    }
     
-    // estomago_acero (comida rara)
-    const titleLower = config.title.toLowerCase();
-    if (titleLower.includes('takoyaki') || titleLower.includes('vending') || titleLower.includes('bento') || titleLower.includes('mochi')) {
-        counters.foodMissions = (counters.foodMissions || 0) + 1;
-        if (counters.foodMissions >= 3 && !badges.includes('estomago_acero')) {
-            badges.push('estomago_acero');
-            newBadges.push({id: 'estomago_acero', title: 'Estómago de Acero', icon: '🍜'});
+    // Auxiliares calculados dinámicamente:
+    // 1. Misiones aprobadas
+    const approvedMissions = [];
+    Object.keys(gameState[kidId].missions).forEach(mId => {
+        if (gameState[kidId].missions[mId] && gameState[kidId].missions[mId].status === 'approved') {
+            const conf = MISSIONS_CONFIG[mId];
+            if (conf) {
+                approvedMissions.push({ id: mId, config: conf, state: gameState[kidId].missions[mId] });
+            }
+        }
+    });
+    
+    const countApproved = approvedMissions.length;
+    
+    // 2. Fotos/audios en el álbum
+    let totalPhotos = 0;
+    const albumCategoriesWithAtLeast3 = [];
+    if (gameState[kidId].album) {
+        Object.keys(gameState[kidId].album).forEach(catId => {
+            const arr = gameState[kidId].album[catId];
+            if (Array.isArray(arr)) {
+                totalPhotos += arr.length;
+                if (arr.length >= 3) {
+                    albumCategoriesWithAtLeast3.push(catId);
+                }
+            }
+        });
+    }
+
+    // Un helper para añadir insignias si no las tiene ya
+    const unlockBadge = (id) => {
+        if (!badges.includes(id) && BADGES_CONFIG[id]) {
+            badges.push(id);
+            newBadges.push({ id: id, title: BADGES_CONFIG[id].title, icon: BADGES_CONFIG[id].icon });
+        }
+    };
+
+    // --- CRITERIOS DE LOGROS ---
+
+    // 1. medalla_olimpica: 5 físicas aprobadas seguidas sin fallar (usamos streak existente)
+    if (config && config.tag === 'physical') {
+        counters.physicalStreak = (counters.physicalStreak || 0) + 1;
+        if (counters.physicalStreak >= 5) {
+            unlockBadge('medalla_olimpica');
         }
     }
-    
-    // criptografo_elite
-    if (config.tag === 'expert' || titleLower.includes('código') || titleLower.includes('terminal')) {
-        counters.expertMissions = (counters.expertMissions || 0) + 1;
-        if (counters.expertMissions >= 3 && !badges.includes('criptografo_elite') && counters.cryptoSolvedFirstTry) {
-            badges.push('criptografo_elite');
-            newBadges.push({id: 'criptografo_elite', title: 'Criptógrafo de Élite', icon: '🔐'});
+
+    // 2. bateria_inagotable: 3 enviadas en horario extremo (usamos earlyLateSubmissions existente)
+    if (config) {
+        const hour = new Date().getHours();
+        if (hour < 8 || hour >= 22) {
+            counters.earlyLateSubmissions = (counters.earlyLateSubmissions || 0) + 1;
+            if (counters.earlyLateSubmissions >= 3) {
+                unlockBadge('bateria_inagotable');
+            }
         }
+    }
+
+    // 3. sincronizacion_perfecta: 5 misiones conjuntas aprobadas
+    if (config && config.role === 'both') {
+        counters.perfectJointMissions = (counters.perfectJointMissions || 0) + 1;
+        if (counters.perfectJointMissions >= 5) {
+            unlockBadge('sincronizacion_perfecta');
+        }
+    }
+
+    // 4. estomago_acero: 3 misiones de comida
+    if (config) {
+        const titleLower = config.title.toLowerCase();
+        if (titleLower.includes('takoyaki') || titleLower.includes('vending') || titleLower.includes('bento') || titleLower.includes('mochi')) {
+            counters.foodMissions = (counters.foodMissions || 0) + 1;
+            if (counters.foodMissions >= 3) {
+                unlockBadge('estomago_acero');
+            }
+        }
+    }
+
+    // 5. criptografo_elite: 3 misiones tipo expert/terminal al primer intento
+    if (config) {
+        const titleLower = config.title.toLowerCase();
+        if (config.tag === 'expert' || titleLower.includes('código') || titleLower.includes('terminal')) {
+            counters.expertMissions = (counters.expertMissions || 0) + 1;
+            if (counters.expertMissions >= 3 && counters.cryptoSolvedFirstTry !== false) {
+                unlockBadge('criptografo_elite');
+            }
+        }
+    }
+
+    // 6. primer_paso: Completa tu primera misión
+    if (countApproved >= 1) {
+        unlockBadge('primer_paso');
+    }
+
+    // 7. explorador_novato: Completa 10 misiones
+    if (countApproved >= 10) {
+        unlockBadge('explorador_novato');
+    }
+
+    // 8. veterano_tokio: Completa 25 misiones
+    if (countApproved >= 25) {
+        unlockBadge('veterano_tokio');
+    }
+
+    // 9. leyenda_viaje: Completa 50 misiones
+    if (countApproved >= 50) {
+        unlockBadge('leyenda_viaje');
+    }
+
+    // 10. cazador_recuerdos: 5 elementos en el album
+    if (totalPhotos >= 5) {
+        unlockBadge('cazador_recuerdos');
+    }
+
+    // 11. coleccionista_supremo: 3 categorías con >= 3 fotos cada una
+    if (albumCategoriesWithAtLeast3.length >= 3) {
+        unlockBadge('coleccionista_supremo');
+    }
+
+    // 12. amigo_animales: 3 misiones de animales
+    const animalMissionsCount = approvedMissions.filter(m => {
+        const title = m.config.title.toLowerCase();
+        const loc = (m.config.location || '').toLowerCase();
+        return title.includes('ciervo') || title.includes('zorro') || title.includes('gato') || 
+               title.includes('mono') || title.includes('animal') || title.includes('kitsune') || 
+               loc.includes('nara') || loc.includes('nikko') || title.includes('fauna');
+    }).length;
+    if (animalMissionsCount >= 3) {
+        unlockBadge('amigo_animales');
+    }
+
+    // 13. maestro_palillos: 3 misiones gastronómicas
+    const foodMissionsCount = approvedMissions.filter(m => {
+        const title = m.config.title.toLowerCase();
+        return title.includes('comida') || title.includes('plato') || title.includes('cena') || 
+               title.includes('restaurante') || title.includes('probar') || title.includes('snack') || 
+               title.includes('bento') || title.includes('mochi') || title.includes('sushi') || 
+               title.includes('ramen') || title.includes('dulce') || title.includes('comer') || 
+               title.includes('takoyaki') || title.includes('bebida') || title.includes('gastronom');
+    }).length;
+    if (foodMissionsCount >= 3) {
+        unlockBadge('maestro_palillos');
+    }
+
+    // 14. hacker_neon: 5 misiones en Akihabara, Odaiba, Shinjuku, Shibuya
+    const neonMissionsCount = approvedMissions.filter(m => {
+        const loc = (m.config.location || '').toLowerCase();
+        const title = m.config.title.toLowerCase();
+        return loc.includes('akihabara') || loc.includes('odaiba') || loc.includes('shinjuku') || 
+               loc.includes('shibuya') || title.includes('neón') || title.includes('neon') || 
+               title.includes('hacker') || title.includes('arcade') || title.includes('retro');
+    }).length;
+    if (neonMissionsCount >= 5) {
+        unlockBadge('hacker_neon');
+    }
+
+    // 15. espiritu_shinto: 3 misiones en templos o santuarios
+    const shintoMissionsCount = approvedMissions.filter(m => {
+        const title = m.config.title.toLowerCase();
+        const loc = (m.config.location || '').toLowerCase();
+        return title.includes('templo') || title.includes('santuario') || title.includes('torii') || 
+               title.includes('monje') || title.includes('jizo') || title.includes('amuleto') || 
+               title.includes('deseo') || title.includes('ema') || title.includes('omikuji') || 
+               title.includes('omamori') || loc.includes('templo') || loc.includes('santuario') || 
+               loc.includes('senso') || loc.includes('fushimi') || loc.includes('meiji') || 
+               loc.includes('kamakura');
+    }).length;
+    if (shintoMissionsCount >= 3) {
+        unlockBadge('espiritu_shinto');
+    }
+
+    // 16. usuario_frecuente_jr: 3 misiones en trenes o estaciones
+    const jrMissionsCount = approvedMissions.filter(m => {
+        const title = m.config.title.toLowerCase();
+        const loc = (m.config.location || '').toLowerCase();
+        return title.includes('tren') || title.includes('estación') || title.includes('estacion') || 
+               title.includes('metro') || title.includes('shinkansen') || title.includes('monorriel') || 
+               title.includes('andén') || title.includes('anden') || title.includes('viaje') ||
+               loc.includes('estación') || loc.includes('estacion') || loc.includes('tren') || 
+               loc.includes('metro') || loc.includes('shinkansen');
+    }).length;
+    if (jrMissionsCount >= 3) {
+        unlockBadge('usuario_frecuente_jr');
+    }
+
+    // 17. bilingue_expres: 3 misiones de escritura o audio
+    const bilingueMissionsCount = approvedMissions.filter(m => {
+        return m.config.tag === 'writing' || m.config.tag === 'audio';
+    }).length;
+    if (bilingueMissionsCount >= 3) {
+        unlockBadge('bilingue_expres');
+    }
+
+    // 18. ahorrador_inteligente: 1000 yenes en el monedero
+    if ((gameState[kidId].wallet || 0) >= 1000) {
+        unlockBadge('ahorrador_inteligente');
+    }
+
+    // 19. comprador_compulsivo: al menos un upgrade comprado
+    if (counters.upgradesBought >= 1) {
+        unlockBadge('comprador_compulsivo');
+    }
+
+    // 20. rango_madrugador: Envía misión antes de las 7:00 AM hora local
+    if (config) {
+        const hour = new Date().getHours();
+        if (hour < 7) {
+            unlockBadge('rango_madrugador');
+        }
+    }
+
+    // 21. lechuza_nocturna: Envía misión después de las 23:00 PM hora local
+    if (config) {
+        const hour = new Date().getHours();
+        if (hour >= 23) {
+            unlockBadge('lechuza_nocturna');
+        }
+    }
+
+    // 22. super_cooperativo: 10 misiones conjuntas completadas
+    const jointApprovedCount = approvedMissions.filter(m => m.config.role === 'both').length;
+    if (jointApprovedCount >= 10) {
+        unlockBadge('super_cooperativo');
+    }
+
+    // 23. nivel_ascendente: Alcanza el Nivel 3
+    if ((gameState[kidId].level || 0) >= 3) {
+        unlockBadge('nivel_ascendente');
+    }
+
+    // 24. casi_maestro: Alcanza el Nivel 6
+    if ((gameState[kidId].level || 0) >= 6) {
+        unlockBadge('casi_maestro');
+    }
+
+    // 25. avatar_supremo: Alcanza el Nivel 10
+    if ((gameState[kidId].level || 0) >= 9) {
+        unlockBadge('avatar_supremo');
+    }
+
+    // --- RACHAS DIARIAS ---
+    const dailyActivity = counters.dailyActivity || {};
+    
+    // 26. racha_misiones_dia: Completa todas las misiones de un día en su fecha correspondiente
+    let rachaMisionesDiaUnlocked = false;
+    for (let dayNum = 1; dayNum <= 24; dayNum++) {
+        const targetDate = new Date(TRIP_START_DATE.getTime());
+        targetDate.setDate(TRIP_START_DATE.getDate() + (dayNum - 1));
+        const targetDateStr = targetDate.toDateString();
+        
+        const dayMissions = Object.keys(MISSIONS_CONFIG).filter(k => 
+            MISSIONS_CONFIG[k].day === dayNum && 
+            (MISSIONS_CONFIG[k].role === kidId || MISSIONS_CONFIG[k].role === 'both')
+        );
+        
+        if (dayMissions.length > 0) {
+            let allApprovedOnDay = true;
+            for (let mId of dayMissions) {
+                const state = gameState[kidId].missions[mId];
+                if (!state || state.status !== 'approved' || state.approvedDateStr !== targetDateStr) {
+                    allApprovedOnDay = false;
+                    break;
+                }
+            }
+            if (allApprovedOnDay) {
+                rachaMisionesDiaUnlocked = true;
+                break;
+            }
+        }
+    }
+    if (rachaMisionesDiaUnlocked) {
+        unlockBadge('racha_misiones_dia');
+    }
+
+    // 27. racha_minijuegos_dia: Juega 10 minijuegos en un solo día
+    let maxMinigamesInSingleDay = 0;
+    Object.keys(dailyActivity).forEach(dateStr => {
+        maxMinigamesInSingleDay = Math.max(maxMinigamesInSingleDay, dailyActivity[dateStr].minigamesPlayed || 0);
+    });
+    if (maxMinigamesInSingleDay >= 10) {
+        unlockBadge('racha_minijuegos_dia');
+    }
+
+    // 28. racha_fotos_dia: Sube 3 fotos o sonidos en un solo día
+    let maxPhotosInSingleDay = 0;
+    Object.keys(dailyActivity).forEach(dateStr => {
+        maxPhotosInSingleDay = Math.max(maxPhotosInSingleDay, dailyActivity[dateStr].photosAdded || 0);
+    });
+    if (maxPhotosInSingleDay >= 3) {
+        unlockBadge('racha_fotos_dia');
+    }
+
+    // 29. racha_ejercicio_dia: Al menos 2 misiones físicas aprobadas en un mismo día
+    let maxPhysicalInSingleDay = 0;
+    Object.keys(dailyActivity).forEach(dateStr => {
+        maxPhysicalInSingleDay = Math.max(maxPhysicalInSingleDay, dailyActivity[dateStr].physicalCompleted || 0);
+    });
+    if (maxPhysicalInSingleDay >= 2) {
+        unlockBadge('racha_ejercicio_dia');
+    }
+
+    // 30. racha_idioma_dia: Al menos 2 misiones de idioma aprobadas en un mismo día
+    let maxLanguageInSingleDay = 0;
+    Object.keys(dailyActivity).forEach(dateStr => {
+        maxLanguageInSingleDay = Math.max(maxLanguageInSingleDay, dailyActivity[dateStr].languageCompleted || 0);
+    });
+    if (maxLanguageInSingleDay >= 2) {
+        unlockBadge('racha_idioma_dia');
     }
 
     saveState();
@@ -409,10 +901,34 @@ function switchView(viewId, showHeader = true, headerTitle = "Misiones") {
         header.classList.add('hidden');
     }
 
-    // Lógica Bottom Nav
+    // Lógica Bottom Nav y Botón Volver Dinámicos para Perfiles Fijos
+    const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+    const isLockedKid = (deviceRole === 'kid9' || deviceRole === 'kid14');
+    
+    // Ocultar botón Volver si estamos en el selector de días de un niño con perfil fijo
+    const btnBack = document.getElementById('btn-back');
+    if (btnBack) {
+        if (viewId === 'view-days' && currentDay === null && isLockedKid) {
+            btnBack.classList.add('hidden');
+        } else {
+            btnBack.classList.remove('hidden');
+        }
+    }
+
     const bottomNav = document.getElementById('bottom-nav');
     if (viewId === 'view-days' || viewId === 'view-passport' || viewId === 'view-album' || viewId === 'view-album-category') {
         bottomNav.classList.remove('hidden');
+        
+        // Ocultar pestaña Inicio si el perfil está fijo
+        const navHome = document.getElementById('nav-btn-home');
+        if (navHome) {
+            if (isLockedKid) {
+                navHome.classList.add('hidden');
+            } else {
+                navHome.classList.remove('hidden');
+            }
+        }
+
         // Actualizar tabs activas
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if (viewId === 'view-days') document.getElementById('nav-btn-missions').classList.add('active');
@@ -435,7 +951,7 @@ function renderDaysList(role) {
     // Configurar visibilidad de la tienda hacker y actualizar cartera
     const shopBtn = document.getElementById('btn-open-shop');
     if (shopBtn) {
-        if (role === 'kid9') {
+        if (role === 'kid9' || role === 'kid14') {
             shopBtn.classList.remove('hidden');
         } else {
             shopBtn.classList.add('hidden');
@@ -498,20 +1014,24 @@ function renderDaysList(role) {
             if (m.status === 'pending') anyPending = true;
         });
 
-        const isLocked = false;
-        
         const card = document.createElement('div');
         card.className = 'card';
+        
+        const titleHtml = `Día ${dayNum} ${allApproved ? '✅' : '🚀'} <span style="font-size:0.8rem; font-weight:normal; opacity:0.75; float:right;">${getDayDateString(dayNum)}</span>`;
+        
         card.innerHTML = `
-            <div class="card-title">Día ${dayNum} ${allApproved ? '✅' : '🚀'}</div>
+            <div class="card-title">${titleHtml}</div>
             <p style="font-size:0.9rem; color:var(--color-gray-dark)">${mKeys.length} misiones</p>
         `;
-        card.addEventListener('click', () => renderDayMissions(role, dayNum, mKeys));
+        card.addEventListener('click', () => {
+            renderDayMissions(role, dayNum, mKeys);
+        });
         list.appendChild(card);
 
         prevDayApproved = allApproved; // Para el día siguiente
     });
 
+    updateSpecialEventsBanner(role);
     switchView('view-days', true, gameState[role].name);
 }
 
@@ -576,6 +1096,12 @@ function renderDayMissions(role, dayNum, missionKeys) {
         const card = document.createElement('div');
         card.className = 'card';
         
+        if (conf.tag === 'special') {
+            card.style.border = '2px solid #ff9800';
+            card.style.background = 'linear-gradient(135deg, var(--color-card-bg) 70%, rgba(255, 152, 0, 0.08) 100%)';
+            card.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.12)';
+        }
+        
         let statusHtml = '';
         if (state.status === 'pending') statusHtml = `<span class="status-badge status-pending">⏳ Esperando Juez</span>`;
         else if (state.status === 'approved') statusHtml = `<span class="status-badge status-approved">✅ Completada</span>`;
@@ -593,20 +1119,22 @@ function renderDayMissions(role, dayNum, missionKeys) {
         const tagLabel = conf.tag ? conf.tag.charAt(0).toUpperCase() + conf.tag.slice(1) : 'Misión';
         const tagHtml = conf.tag ? `<div class="mission-tag tag-${conf.tag}">${tagIcon} ${tagLabel}</div>` : '';
 
+        let timeHtml = '';
+        if (conf.tag === 'special' && conf.startTime && conf.endTime) {
+            timeHtml = `<div style="font-size:0.8rem; color:#e65100; font-weight:bold; margin-top:4px; margin-bottom:5px; display:flex; align-items:center; gap:4px;">⏱️ Rango: ${conf.startTime} - ${conf.endTime}</div>`;
+        }
+
         card.innerHTML = `
             ${tagHtml}
             <div class="card-title">${conf.title} <span style="font-size:0.8rem; color:var(--color-accent)">+${conf.xp}XP</span></div>
             <div style="font-size:0.8rem; color:var(--color-gray-dark); margin-bottom:5px;">📍 ${conf.location || 'Cualquier lugar'}</div>
+            ${timeHtml}
             ${statusHtml}
             ${feedbackHtml}
         `;
         
         card.addEventListener('click', () => {
-            if (state.status === 'pending') {
-                showAlert('En revisión', 'El Juez Supremo está evaluando tu entrega. Esta prueba estará bloqueada hasta que el juez la analice.');
-            } else {
-                renderMissionDetail(k, role);
-            }
+            renderMissionDetail(k, role);
         });
         
         list.appendChild(card);
@@ -629,7 +1157,58 @@ function renderMissionDetail(missionId, role) {
     
     const state = gameState[role].missions[missionId];
     let warningHtml = '';
-    if (state && state.status === 'approved') {
+    const isPending = state && state.status === 'pending';
+    const isLocked = isDayLocked(conf.day);
+    
+    let isTimeLocked = false;
+    let timeLockMessage = '';
+    
+    if (conf.tag === 'special' && conf.startTime && conf.endTime) {
+        const now = new Date();
+        const currentHourMin = now.getHours() * 100 + now.getMinutes();
+        
+        const startParts = conf.startTime.split(':');
+        const endParts = conf.endTime.split(':');
+        const startVal = parseInt(startParts[0], 10) * 100 + parseInt(startParts[1], 10);
+        const endVal = parseInt(endParts[0], 10) * 100 + parseInt(endParts[1], 10);
+        
+        if (currentHourMin < startVal || currentHourMin > endVal) {
+            isTimeLocked = true;
+            timeLockMessage = `Este evento especial solo se puede realizar en el rango de horas de <b>${conf.startTime}</b> a <b>${conf.endTime}</b> (hora local). Actualmente son las <b>${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}</b> y la entrega de pruebas está bloqueada fuera de este horario.`;
+        }
+    }
+    
+    if (isLocked) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(156, 39, 176, 0.1); border: 2px solid #9c27b0; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">🔒</span>
+                <div>
+                    <strong style="color: #9c27b0; font-size: 1.05rem;">Prueba Bloqueada Temporalmente</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">Esta misión corresponde al día de viaje programado (${getDayDateString(conf.day)}). No se puede realizar ni enviar la prueba antes de esa fecha, pero puedes jugar al minijuego para practicar.</p>
+                </div>
+            </div>
+        `;
+    } else if (isTimeLocked) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(244, 67, 54, 0.1); border: 2px solid #f44336; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⏰</span>
+                <div>
+                    <strong style="color: #f44336; font-size: 1.05rem;">Fuera de Horario Permitido</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">${timeLockMessage}</p>
+                </div>
+            </div>
+        `;
+    } else if (isPending) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(33, 150, 243, 0.1); border: 2px solid #2196f3; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⏳</span>
+                <div>
+                    <strong style="color: #2196f3; font-size: 1.05rem;">Prueba en Revisión</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">El Juez Supremo está evaluando tu entrega. No puedes realizar la prueba de nuevo en este momento, pero puedes jugar al minijuego para practicar.</p>
+                </div>
+            </div>
+        `;
+    } else if (state && state.status === 'approved') {
         warningHtml = `
             <div class="mission-warning-card" style="background: rgba(255, 193, 7, 0.1); border: 2px solid #ffc107; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
                 <span style="font-size: 2rem;">⚠️</span>
@@ -646,7 +1225,7 @@ function renderMissionDetail(missionId, role) {
             <div class="mission-warning-card" style="background: rgba(239, 68, 68, 0.08); border: 2px solid #ef4444; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: left; display: flex; align-items: flex-start; gap: 10px; flex-direction: row; box-shadow: var(--shadow-soft);">
                 <span style="font-size: 1.8rem; line-height: 1;">❌</span>
                 <div>
-                    <strong style="color: #b91c1c; font-size: 1.05rem;">Prueba Rechazada por el Juez</strong>
+                    <strong style="color: #b91c1c; font-size: 1.05rem;">Prueba Con Feedback</strong>
                     <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: #7f1d1d;"><strong>Motivo:</strong> "${state.feedback}"</p>
                 </div>
             </div>
@@ -718,22 +1297,111 @@ function renderMissionDetail(missionId, role) {
 
     let minigameButtonHtml = '';
     if (isMinigameMission) {
+        let descText = 'Al finalizar esta prueba jugarás automáticamente. O practica ahora haciendo clic aquí:';
+        if (isLocked) {
+            descText = 'Esta misión está bloqueada temporalmente para su entrega. Sin embargo, puedes practicar el minijuego aquí:';
+        }
         minigameButtonHtml = `
             <div class="minigame-promo-card" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, rgba(255, 123, 84, 0.15) 0%, rgba(255, 154, 158, 0.05) 100%); border: 2px solid var(--color-primary); border-radius: var(--radius-main); text-align: center; box-shadow: var(--shadow-soft);">
-                <span style="font-size: 1.6rem; display: block; margin-bottom: 5px;">🎮 ¡Bonus de Juego!</span>
-                <p style="margin: 0 0 12px 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">Al finalizar esta prueba jugarás automáticamente. O practica ahora haciendo clic aquí:</p>
+                <span style="font-size: 1.6rem; display: block; margin-bottom: 5px;">🎮 Minijuego de Entrenamiento</span>
+                <p style="margin: 0 0 12px 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">${descText}</p>
                 <button id="btn-replay-minigame-direct" class="btn-secondary" style="width:100%; background: #ff7b54; border-color: #ff7b54; color: white; font-weight: bold; border-radius: 20px; box-shadow: 0 4px 10px rgba(255,123,84,0.25); cursor:pointer;">🎮 Jugar Minijuego (Entrenamiento)</button>
             </div>
         `;
     }
 
+    let locationTimeSub = `📍 ${conf.location || 'Cualquier lugar'}`;
+    if (conf.tag === 'special' && conf.startTime && conf.endTime) {
+        locationTimeSub += ` | ⏱️ Horario: ${conf.startTime} - ${conf.endTime}`;
+    }
+
     container.innerHTML = `
         <h2 class="mission-title">${conf.title}</h2>
-        <div style="text-align:center; color:var(--color-accent); margin-bottom:15px; font-weight:bold;">📍 ${conf.location || 'Cualquier lugar'}</div>
+        <div style="text-align:center; color:var(--color-accent); margin-bottom:15px; font-weight:bold;">${locationTimeSub}</div>
         ${warningHtml}
+        <div id="mission-submitted-photo-container"></div>
         ${minigameButtonHtml}
-        ${conf.render(role)}
+        <div id="mission-form-wrapper" style="${isPending || isLocked || isTimeLocked ? 'display: none;' : ''}">
+            ${conf.render(role)}
+        </div>
     `;
+    switchView('view-mission', true, "Misión");
+    conf.attachEvents(role);
+
+    // Si la misión tiene una foto en su entrega, recuperarla y mostrarla en la previsualización
+    if (state && state.submission) {
+        const submission = state.submission;
+        const photoContainer = document.getElementById('mission-submitted-photo-container');
+        
+        (async () => {
+            try {
+                let photoHtml = '';
+                if (submission.type === 'photo') {
+                    const photoData = await getPhotoFromDB(submission.data);
+                    if (photoData) {
+                        photoHtml = `
+                            <div style="margin: 15px 0; text-align: center; border: 1px solid var(--color-gray-dark); padding: 8px; background: var(--color-card-bg); border-radius: var(--radius-main); box-shadow: var(--shadow-soft);">
+                                <strong style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--color-primary);">📸 Tu foto entregada:</strong>
+                                <img src="${photoData}" alt="Evidencia entregada" style="width:100%; max-height:250px; object-fit:contain; border-radius:8px; background:#eaeaea;">
+                            </div>
+                        `;
+                    }
+                } else if (submission.type === 'photo_choice' && submission.data && submission.data.photoId) {
+                    const photoData = await getPhotoFromDB(submission.data.photoId);
+                    if (photoData) {
+                        photoHtml = `
+                            <div style="margin: 15px 0; text-align: center; border: 1px solid var(--color-gray-dark); padding: 8px; background: var(--color-card-bg); border-radius: var(--radius-main); box-shadow: var(--shadow-soft);">
+                                <strong style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--color-primary);">📸 Tu foto entregada:</strong>
+                                <img src="${photoData}" alt="Evidencia entregada" style="width:100%; max-height:250px; object-fit:contain; border-radius:8px; background:#eaeaea;">
+                                <div style="margin-top:6px; font-size:0.85rem; font-weight:bold;">Elección: ${submission.data.choice}</div>
+                            </div>
+                        `;
+                    }
+                } else if (submission.type === 'photos' && Array.isArray(submission.data)) {
+                    let imgHtml = '';
+                    for (let i = 0; i < submission.data.length; i++) {
+                        const photoId = submission.data[i];
+                        if (photoId) {
+                            const photoData = await getPhotoFromDB(photoId);
+                            if (photoData) {
+                                imgHtml += `<img src="${photoData}" alt="Evidencia ${i+1}" style="flex:1; min-width:80px; max-width:120px; height:80px; object-fit:cover; border-radius:6px; margin:4px; background:#eaeaea;">`;
+                            }
+                        }
+                    }
+                    if (imgHtml) {
+                        photoHtml = `
+                            <div style="margin: 15px 0; text-align: center; border: 1px solid var(--color-gray-dark); padding: 8px; background: var(--color-card-bg); border-radius: var(--radius-main); box-shadow: var(--shadow-soft);">
+                                <strong style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--color-primary);">📸 Fotos entregadas:</strong>
+                                <div style="display:flex; flex-wrap:wrap; justify-content:center;">${imgHtml}</div>
+                            </div>
+                        `;
+                    }
+                } else if (submission.type === 'mixed' && typeof submission.data === 'string') {
+                    let parts = submission.data.split('. Foto ID: ');
+                    if (parts.length === 1) parts = submission.data.split('. Foto: ');
+                    if (parts.length > 1) {
+                        const photoData = await getPhotoFromDB(parts[parts.length - 1]);
+                        const textData = parts.slice(0, -1).join('. ');
+                        if (photoData) {
+                            photoHtml = `
+                                <div style="margin: 15px 0; text-align: center; border: 1px solid var(--color-gray-dark); padding: 8px; background: var(--color-card-bg); border-radius: var(--radius-main); box-shadow: var(--shadow-soft);">
+                                    <strong style="display:block; margin-bottom:8px; font-size:0.9rem; color:var(--color-primary);">📸 Foto entregada:</strong>
+                                    <img src="${photoData}" alt="Evidencia entregada" style="width:100%; max-height:250px; object-fit:contain; border-radius:8px; background:#eaeaea; margin-bottom:6px;">
+                                    <div style="font-size:0.85rem; font-weight:bold;">${textData}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+                
+                if (photoContainer && photoHtml) {
+                    photoContainer.innerHTML = photoHtml;
+                }
+            } catch (err) {
+                console.error("Error al cargar la foto de la entrega:", err);
+            }
+        })();
+    }
     switchView('view-mission', true, "Misión");
     conf.attachEvents(role);
 
@@ -751,6 +1419,11 @@ function renderMissionDetail(missionId, role) {
 }
 
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false, bypassMinigame = false) {
+    const conf = MISSIONS_CONFIG[missionId];
+    if (conf && isDayLocked(conf.day)) {
+        showAlert('Prueba Bloqueada', `No puedes enviar la prueba de esta misión hasta el día del viaje correspondiente (${getDayDateString(conf.day)}).`);
+        return;
+    }
     const mState = gameState[role].missions[missionId];
         const day3MissionsLaura = ['day_3_glico', 'day_3_ninja', 'day_3_bridge', 'day_3_umeda', 'day_3_reflect'];
     const day3MissionsIvan = ['day_3_architect', 'day_3_neon', 'day_3_rush', 'day_3_flow', 'day_3_reflect'];
@@ -1019,36 +1692,78 @@ function initJudgeTabListeners() {
     
     const pendingTab = document.getElementById('btn-judge-tab-pending');
     const approvedTab = document.getElementById('btn-judge-tab-approved');
+    const settingsTab = document.getElementById('btn-judge-tab-settings');
     
-    if (pendingTab && approvedTab) {
-        pendingTab.addEventListener('click', () => {
-            currentJudgeTab = 'pending';
-            pendingTab.classList.add('active');
-            pendingTab.style.borderBottomColor = 'var(--color-primary)';
-            pendingTab.style.color = 'var(--color-primary)';
+    const selectAllTabs = () => [pendingTab, approvedTab, settingsTab];
+    const selectAllSections = () => [
+        document.getElementById('judge-pending-section'),
+        document.getElementById('judge-approved-section'),
+        document.getElementById('judge-settings-section')
+    ];
+    
+    if (pendingTab && approvedTab && settingsTab) {
+        const switchTab = (activeTab, activeSection, tabKey) => {
+            currentJudgeTab = tabKey;
+            selectAllTabs().forEach(t => {
+                if (t) {
+                    t.classList.remove('active');
+                    t.style.borderBottomColor = 'transparent';
+                    t.style.color = 'var(--color-gray-dark)';
+                }
+            });
+            activeTab.classList.add('active');
+            activeTab.style.borderBottomColor = 'var(--color-primary)';
+            activeTab.style.color = 'var(--color-primary)';
             
-            approvedTab.classList.remove('active');
-            approvedTab.style.borderBottomColor = 'transparent';
-            approvedTab.style.color = 'var(--color-gray-dark)';
+            selectAllSections().forEach(s => { if (s) s.classList.add('hidden'); });
+            activeSection.classList.remove('hidden');
             
-            document.getElementById('judge-pending-section').classList.remove('hidden');
-            document.getElementById('judge-approved-section').classList.add('hidden');
-            renderJudgePanel();
+            if (tabKey === 'settings') {
+                // Rellenar campos de configuración en el formulario
+                const selectRole = document.getElementById('select-device-role');
+                if (selectRole) selectRole.value = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+                
+                const firebaseInput = document.getElementById('firebase-config-input');
+                if (firebaseInput) {
+                    const savedConfig = localStorage.getItem('japanMissionsFirebaseConfig') || '';
+                    try {
+                        firebaseInput.value = savedConfig ? JSON.stringify(JSON.parse(savedConfig), null, 2) : '';
+                    } catch (e) {
+                        firebaseInput.value = savedConfig;
+                    }
+                }
+            } else {
+                renderJudgePanel();
+            }
+        };
+        
+        pendingTab.addEventListener('click', () => switchTab(pendingTab, document.getElementById('judge-pending-section'), 'pending'));
+        approvedTab.addEventListener('click', () => switchTab(approvedTab, document.getElementById('judge-approved-section'), 'approved'));
+        settingsTab.addEventListener('click', () => switchTab(settingsTab, document.getElementById('judge-settings-section'), 'settings'));
+        
+        // Configurar botones del formulario de configuración de ajustes de juez (sólo una vez)
+        document.getElementById('btn-save-device-role').addEventListener('click', () => {
+            const selected = document.getElementById('select-device-role').value;
+            localStorage.setItem('japanMissionsDeviceRole', selected);
+            alert("Perfil de dispositivo fijado con éxito. La aplicación se recargará para aplicar.");
+            location.reload();
         });
         
-        approvedTab.addEventListener('click', () => {
-            currentJudgeTab = 'approved';
-            approvedTab.classList.add('active');
-            approvedTab.style.borderBottomColor = 'var(--color-primary)';
-            approvedTab.style.color = 'var(--color-primary)';
-            
-            pendingTab.classList.remove('active');
-            pendingTab.style.borderBottomColor = 'transparent';
-            pendingTab.style.color = 'var(--color-gray-dark)';
-            
-            document.getElementById('judge-pending-section').classList.add('hidden');
-            document.getElementById('judge-approved-section').classList.remove('hidden');
-            renderJudgePanel();
+        document.getElementById('btn-save-firebase-config').addEventListener('click', () => {
+            const configText = document.getElementById('firebase-config-input').value.trim();
+            if (!configText) {
+                alert("Por favor, introduce el JSON de configuración.");
+                return;
+            }
+            if (window.FirebaseSync) {
+                window.FirebaseSync.saveFirebaseConfig(configText);
+            }
+        });
+        
+        document.getElementById('btn-disconnect-firebase').addEventListener('click', () => {
+            if (window.FirebaseSync) {
+                window.FirebaseSync.disconnect();
+            }
         });
         
         judgeListenersBound = true;
@@ -1345,12 +2060,39 @@ async function renderJudgePanel() {
     switchView('view-judge', true, "Panel del Juez");
 }
 
+function recordDailyActivityAndMetadata(kid, missionId) {
+    const todayStr = getJapanCurrentDate().toDateString();
+    if (!gameState[kid].counters) gameState[kid].counters = {};
+    if (!gameState[kid].counters.dailyActivity) gameState[kid].counters.dailyActivity = {};
+    if (!gameState[kid].counters.dailyActivity[todayStr]) {
+        gameState[kid].counters.dailyActivity[todayStr] = { minigamesPlayed: 0, photosAdded: 0, physicalCompleted: 0, languageCompleted: 0 };
+    }
+    
+    const config = MISSIONS_CONFIG[missionId];
+    if (config) {
+        if (config.tag === 'physical') {
+            gameState[kid].counters.dailyActivity[todayStr].physicalCompleted = (gameState[kid].counters.dailyActivity[todayStr].physicalCompleted || 0) + 1;
+        }
+        if (config.tag === 'writing' || config.tag === 'audio') {
+            gameState[kid].counters.dailyActivity[todayStr].languageCompleted = (gameState[kid].counters.dailyActivity[todayStr].languageCompleted || 0) + 1;
+        }
+    }
+    
+    // Almacenamos el día en que se aprobó para racha_misiones_dia
+    if (gameState[kid].missions[missionId]) {
+        gameState[kid].missions[missionId].approvedDateStr = todayStr;
+    }
+}
+
 window.approveMission = (kid, missionId, xp, isFamily) => {
     let leveledUp = false;
     let newBadges = [];
 
     let yenEarned = xp * 5;
     if (isFamily) {
+        recordDailyActivityAndMetadata('kid9', missionId);
+        recordDailyActivityAndMetadata('kid14', missionId);
+
         gameState['kid9'].missions[missionId].status = 'approved';
         gameState['kid14'].missions[missionId].status = 'approved';
         gameState['kid9'].missions[missionId].awardedXP = xp;
@@ -1370,6 +2112,8 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
         if(b2.length) newBadges.push(...b2);
 
     } else {
+        recordDailyActivityAndMetadata(kid, missionId);
+
         gameState[kid].missions[missionId].status = 'approved';
         gameState[kid].missions[missionId].awardedXP = xp;
         gameState[kid].xp += xp;
@@ -1483,10 +2227,21 @@ window.undoApproveMission = (kid, missionId) => {
 // 6. EVENT LISTENERS Y ARRANQUE
 // ==========================================
 
-document.getElementById('btn-judge-secret').addEventListener('click', () => {
+const showJudgePINModal = () => {
     document.getElementById('judge-modal').classList.remove('hidden');
     document.getElementById('judge-pin-input').value = '';
-});
+    setTimeout(() => {
+        const inp = document.getElementById('judge-pin-input');
+        if (inp) inp.focus();
+    }, 100);
+};
+
+document.getElementById('btn-judge-secret').addEventListener('click', showJudgePINModal);
+
+const btnHeaderLock = document.getElementById('btn-header-lock');
+if (btnHeaderLock) {
+    btnHeaderLock.addEventListener('click', showJudgePINModal);
+}
 
 document.getElementById('btn-judge-cancel').addEventListener('click', () => {
     document.getElementById('judge-modal').classList.add('hidden');
@@ -1503,9 +2258,10 @@ document.getElementById('btn-judge-login').addEventListener('click', () => {
 });
 
 document.getElementById('btn-judge-reset-all').addEventListener('click', () => {
-    if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. Esta acción es irreversible.")) {
+    if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. También se restablecerá el dispositivo a multiusuario. Esta acción es irreversible.")) {
         // 1. Limpiar localStorage
         localStorage.removeItem('japanMissionsState');
+        localStorage.removeItem('japanMissionsDeviceRole');
         
         // 2. Limpiar base de datos IndexedDB de multimedia
         if (window.indexedDB) {
@@ -1557,8 +2313,18 @@ document.getElementById('btn-back').addEventListener('click', () => {
     // Limpiar recursos de misión activa al navegar atrás
     if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
     
+    const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+    const isLockedKid = (deviceRole === 'kid9' || deviceRole === 'kid14');
+    
     if (currentUser === 'judge') {
-        switchView('view-home', false);
+        if (isLockedKid) {
+            // Si el dispositivo está bloqueado a un niño, volver a su perfil de días
+            currentUser = deviceRole;
+            renderDaysList(deviceRole);
+        } else {
+            switchView('view-home', false);
+            currentUser = null;
+        }
     } else if (currentUser) {
         const isMissionView = !document.getElementById('view-mission').classList.contains('hidden');
         const isPassportView = !document.getElementById('view-passport').classList.contains('hidden');
@@ -1567,22 +2333,23 @@ document.getElementById('btn-back').addEventListener('click', () => {
         const isAlbumCatView = !document.getElementById('view-album-category').classList.contains('hidden');
         
         if (isMissionView) {
-            // Estábamos en una prueba -> volver al día
             renderDayMissions(currentUser, currentDay, currentDayMissions);
         } else if (isPassportView || isShopView || isAlbumView) {
-            // Estábamos en el pasaporte, tienda o álbum -> volver a la lista de días
             renderDaysList(currentUser);
         } else if (isAlbumCatView) {
             switchView('view-album', true, "Álbum del Coleccionista");
         } else {
             // Estamos en view-days
             if (currentDay !== null) {
-                // Estábamos en un día concreto -> volver a elección de día
                 renderDaysList(currentUser);
             } else {
-                // Estábamos en elección de día -> volver al menú inicial
-                switchView('view-home', false);
-                currentUser = null;
+                if (isLockedKid) {
+                    // Si el perfil está fijo, no dejamos salir al menú inicial
+                    renderDaysList(currentUser);
+                } else {
+                    switchView('view-home', false);
+                    currentUser = null;
+                }
             }
         }
     } else {
@@ -1596,41 +2363,122 @@ document.getElementById('btn-back').addEventListener('click', () => {
 // ==========================================
 
 const BADGES_CONFIG = {
-    'medalla_olimpica': { title: 'Medalla Olímpica', icon: '🥇', points: 150, desc: 'Completa 5 desafíos físicos (misión con 🏃) seguidos sin fallar.' },
+    'medalla_olimpica': { title: 'Medalla Olímpica', icon: '🥇', points: 150, desc: 'Completa 5 desafíos físicos (🏃) seguidos.' },
     'bateria_inagotable': { title: 'Batería Inagotable', icon: '🔋', points: 100, desc: 'Envía 3 pruebas al Juez antes de las 8:00 o después de las 22:00.' },
     'sincronizacion_perfecta': { title: 'Sincronización Perfecta', icon: '🤝', points: 150, desc: 'Completa 5 misiones conjuntas aprobadas.' },
-    'estomago_acero': { title: 'Estómago de Acero', icon: '🍜', points: 100, desc: 'Completa 3 misiones de probar platos extraños, snacks raros o takoyaki.' },
-    'criptografo_elite': { title: 'Criptógrafo de Élite', icon: '🔐', points: 200, desc: 'Supera 3 misiones tipo "Terminal" al primer intento.' }
+    'estomago_acero': { title: 'Estómago de Acero', icon: '🍜', points: 100, desc: 'Completa 3 misiones de probar platos extraños, snacks o bento.' },
+    'criptografo_elite': { title: 'Criptógrafo de Élite', icon: '🔐', points: 200, desc: 'Supera 3 misiones de código/Terminal al primer intento.' },
+    'primer_paso': { title: 'Primer Paso', icon: '🚶', points: 50, desc: 'Completa tu primera misión en tierras niponas.' },
+    'explorador_novato': { title: 'Explorador Novato', icon: '🗺️', points: 100, desc: 'Ten 10 misiones aprobadas en total.' },
+    'veterano_tokio': { title: 'Veterano de Tokio', icon: '🗼', points: 200, desc: 'Ten 25 misiones aprobadas en total.' },
+    'leyenda_viaje': { title: 'Leyenda del Viaje', icon: '✈️', points: 350, desc: 'Ten 50 misiones aprobadas en total.' },
+    'cazador_recuerdos': { title: 'Cazador de Recuerdos', icon: '📸', points: 150, desc: 'Guarda 5 fotos o sonidos en el Álbum del Coleccionista.' },
+    'coleccionista_supremo': { title: 'Coleccionista Supremo', icon: '🗂️', points: 250, desc: 'Completa 3 categorías del álbum con al menos 3 elementos.' },
+    'amigo_animales': { title: 'Amigo de los Animales', icon: '🦌', points: 100, desc: 'Completa 3 misiones de ciervos, zorros, gatos o monos.' },
+    'maestro_palillos': { title: 'Maestro de los Palillos', icon: '🥢', points: 100, desc: 'Completa 3 misiones gastronómicas japonesas.' },
+    'hacker_neon': { title: 'Hacker del Neón', icon: '💾', points: 150, desc: 'Supera 5 misiones en Akihabara, Odaiba, Shibuya o Shinjuku.' },
+    'espiritu_shinto': { title: 'Espíritu Shinto', icon: '⛩️', points: 150, desc: 'Completa 3 misiones en templos o santuarios.' },
+    'usuario_frecuente_jr': { title: 'Usuario Frecuente JR', icon: '🚄', points: 150, desc: 'Completa 3 misiones en trenes o estaciones.' },
+    'bilingue_expres': { title: 'Bilingüe Express', icon: '🗣️', points: 150, desc: 'Completa 3 misiones de escritura o hablar en japonés.' },
+    'ahorrador_inteligente': { title: 'Ahorrador Inteligente', icon: '👛', points: 100, desc: 'Acumula 1.000 ¥ en tu monedero a la vez.' },
+    'comprador_compulsivo': { title: 'Comprador de Akihabara', icon: '🛒', points: 100, desc: 'Compra tu primera mejora en la Tienda Hacker.' },
+    'rango_madrugador': { title: 'Rayo de Sol Naciente', icon: '🌅', points: 100, desc: 'Envía una misión aprobada antes de las 7:00 AM.' },
+    'lechuza_nocturna': { title: 'Lechuza de Shinjuku', icon: '🦉', points: 100, desc: 'Envía una misión aprobada después de las 23:00 PM.' },
+    'super_cooperativo': { title: 'Fuerza de Élite', icon: '🔥', points: 200, desc: 'Completa 10 misiones conjuntas.' },
+    'nivel_ascendente': { title: 'Poder Desbloqueado', icon: '⚡', points: 100, desc: 'Alcanza el Nivel 3.' },
+    'casi_maestro': { title: 'Camino de la Maestría', icon: '🔮', points: 200, desc: 'Alcanza el Nivel 6.' },
+    'avatar_supremo': { title: 'Avatar Supremo', icon: '👑', points: 350, desc: 'Alcanza el Nivel 10 (Rango máximo).' },
+    'racha_misiones_dia': { title: 'Perfeccionista de Calendario', icon: '📅', points: 200, desc: 'Completa todas las misiones de un día en su fecha correspondiente.' },
+    'racha_minijuegos_dia': { title: 'Maratón de Arcade', icon: '🕹️', points: 150, desc: 'Juega 10 minijuegos en un solo día.' },
+    'racha_fotos_dia': { title: 'Paparazzi de Tokio', icon: '📷', points: 150, desc: 'Sube 3 fotos o sonidos al Álbum en un solo día.' },
+    'racha_ejercicio_dia': { title: 'Espíritu Activo', icon: '🏃', points: 150, desc: 'Completa al menos 2 misiones físicas en un mismo día.' },
+    'racha_idioma_dia': { title: 'Estudioso Diario', icon: '✍️', points: 150, desc: 'Completa al menos 2 misiones de idioma japonés en un mismo día.' }
 };
 
 const REWARDS_CONFIG = {
     "combini_sweet": {
         id: "combini_sweet",
         title: "Dulce del Combini",
-        desc: "Elegir un helado o dulce en un Combini o máquina expendedora.",
-        pointsRequired: 100,
+        desc: "Elegir un helado o dulce en Lawson/FamilyMart/7-Eleven o máquina.",
+        pointsRequired: 250,
         icon: "🍦"
+    },
+    "refresco_raro": {
+        id: "refresco_raro",
+        title: "Refresco de Máquina",
+        desc: "Elegir una bebida misteriosa de una máquina expendedora japonesa.",
+        pointsRequired: 400,
+        icon: "🍹"
+    },
+    "musica_viaje": {
+        id: "musica_viaje",
+        title: "DJ del Viaje",
+        desc: "Tener el control de la música de los auriculares compartidos/coche por 2 horas.",
+        pointsRequired: 600,
+        icon: "🎵"
+    },
+    "desayuno_vip": {
+        id: "desayuno_vip",
+        title: "Desayuno de Reyes",
+        desc: "Que el Juez te traiga un desayuno premium o compre tu bollo favorito.",
+        pointsRequired: 800,
+        icon: "🥞"
     },
     "dinner_choice": {
         id: "dinner_choice",
         title: "Elección de Cena",
         desc: "Elegir el restaurante o plato para la cena de hoy.",
-        pointsRequired: 200,
+        pointsRequired: 1100,
         icon: "🍣"
+    },
+    "pase_salto_mision": {
+        id: "pase_salto_mision",
+        title: "Pase de Escape de Misión",
+        desc: "Auto-completar una misión difícil (hasta 15 XP) y recibir los puntos.",
+        pointsRequired: 1500,
+        icon: "🎫"
+    },
+    "tarde_libre": {
+        id: "tarde_libre",
+        title: "Siesta de Oro / Tarde Libre",
+        desc: "Descanso en el hotel jugando o leyendo en vez de una caminata opcional.",
+        pointsRequired: 2000,
+        icon: "🛌"
     },
     "gachapon_extra": {
         id: "gachapon_extra",
-        title: "Gachapon/Garra Extra",
-        desc: "Una tirada extra de gachapon o intento en máquina de garra arcade.",
-        pointsRequired: 350,
+        title: "Gachapon Extra",
+        desc: "Una tirada extra de gachapon (300-400 yenes) pagada por el Juez.",
+        pointsRequired: 2500,
         icon: "🧸"
+    },
+    "snacks_caja": {
+        id: "snacks_caja",
+        title: "Cofre de Snacks Japoneses",
+        desc: "Una caja variada de snacks dulces y salados de Don Quijote.",
+        pointsRequired: 3000,
+        icon: "🍿"
+    },
+    "maquina_garra": {
+        id: "maquina_garra",
+        title: "Intento de Gancho",
+        desc: "3 intentos extra en las máquinas de gancho (UFO Catcher) de un arcade.",
+        pointsRequired: 3400,
+        icon: "🕹️"
+    },
+    "souvenir_tienda": {
+        id: "souvenir_tienda",
+        title: "Capricho de Tienda",
+        desc: "Un recuerdo de hasta 500 yenes de cualquier templo, tienda o museo.",
+        pointsRequired: 3800,
+        icon: "⛩️"
     },
     "supreme_wish": {
         id: "supreme_wish",
         title: "Deseo Supremo",
         desc: "Un deseo especial concedido por el Juez Supremo (dentro de lo razonable).",
-        pointsRequired: 500,
-        icon: "⛩️"
+        pointsRequired: 4300,
+        icon: "👑"
     }
 };
 
@@ -1798,7 +2646,7 @@ function renderPassportView(viewedKidId) {
     
     const achievementsTitle = document.createElement('h3');
     achievementsTitle.className = 'passport-section-title';
-    achievementsTitle.innerText = `Logros (${kidData.badges.length} / 5)`;
+    achievementsTitle.innerText = `Logros (${kidData.badges.length} / ${Object.keys(BADGES_CONFIG).length})`;
     container.appendChild(achievementsTitle);
     
     const grid = document.createElement('div');
@@ -1826,6 +2674,31 @@ function renderPassportView(viewedKidId) {
             let currentProg = 0;
             let maxProg = 5;
             const counters = kidData.counters || {};
+            
+            // Auxiliares calculados dinámicamente para el progreso:
+            const approvedMissions = [];
+            Object.keys(kidData.missions || {}).forEach(mId => {
+                if (kidData.missions[mId] && kidData.missions[mId].status === 'approved') {
+                    const conf = MISSIONS_CONFIG[mId];
+                    if (conf) approvedMissions.push(conf);
+                }
+            });
+            const countApproved = approvedMissions.length;
+
+            let totalPhotos = 0;
+            const albumCategoriesWithAtLeast3 = [];
+            if (kidData.album) {
+                Object.keys(kidData.album).forEach(catId => {
+                    const arr = kidData.album[catId];
+                    if (Array.isArray(arr)) {
+                        totalPhotos += arr.length;
+                        if (arr.length >= 3) {
+                            albumCategoriesWithAtLeast3.push(catId);
+                        }
+                    }
+                });
+            }
+
             if (badgeId === 'medalla_olimpica') {
                 currentProg = counters.physicalStreak || 0;
                 maxProg = 5;
@@ -1844,6 +2717,137 @@ function renderPassportView(viewedKidId) {
                 if (counters.cryptoSolvedFirstTry === false) {
                     currentProg = 0;
                 }
+            } else if (badgeId === 'primer_paso') {
+                currentProg = countApproved;
+                maxProg = 1;
+            } else if (badgeId === 'explorador_novato') {
+                currentProg = countApproved;
+                maxProg = 10;
+            } else if (badgeId === 'veterano_tokio') {
+                currentProg = countApproved;
+                maxProg = 25;
+            } else if (badgeId === 'leyenda_viaje') {
+                currentProg = countApproved;
+                maxProg = 50;
+            } else if (badgeId === 'cazador_recuerdos') {
+                currentProg = totalPhotos;
+                maxProg = 5;
+            } else if (badgeId === 'coleccionista_supremo') {
+                currentProg = albumCategoriesWithAtLeast3.length;
+                maxProg = 3;
+            } else if (badgeId === 'amigo_animales') {
+                currentProg = approvedMissions.filter(m => {
+                    const title = m.title.toLowerCase();
+                    const loc = (m.location || '').toLowerCase();
+                    return title.includes('ciervo') || title.includes('zorro') || title.includes('gato') || 
+                           title.includes('mono') || title.includes('animal') || title.includes('kitsune') || 
+                           loc.includes('nara') || loc.includes('nikko') || title.includes('fauna');
+                }).length;
+                maxProg = 3;
+            } else if (badgeId === 'maestro_palillos') {
+                currentProg = approvedMissions.filter(m => {
+                    const title = m.title.toLowerCase();
+                    return title.includes('comida') || title.includes('plato') || title.includes('cena') || 
+                           title.includes('restaurante') || title.includes('probar') || title.includes('snack') || 
+                           title.includes('bento') || title.includes('mochi') || title.includes('sushi') || 
+                           title.includes('ramen') || title.includes('dulce') || title.includes('comer') || 
+                           title.includes('takoyaki') || title.includes('bebida') || title.includes('gastronom');
+                }).length;
+                maxProg = 3;
+            } else if (badgeId === 'hacker_neon') {
+                currentProg = approvedMissions.filter(m => {
+                    const loc = (m.location || '').toLowerCase();
+                    const title = m.title.toLowerCase();
+                    return loc.includes('akihabara') || loc.includes('odaiba') || loc.includes('shinjuku') || 
+                           loc.includes('shibuya') || title.includes('neón') || title.includes('neon') || 
+                           title.includes('hacker') || title.includes('arcade') || title.includes('retro');
+                }).length;
+                maxProg = 5;
+            } else if (badgeId === 'espiritu_shinto') {
+                currentProg = approvedMissions.filter(m => {
+                    const title = m.title.toLowerCase();
+                    const loc = (m.location || '').toLowerCase();
+                    return title.includes('templo') || title.includes('santuario') || title.includes('torii') || 
+                           title.includes('monje') || title.includes('jizo') || title.includes('amuleto') || 
+                           title.includes('deseo') || title.includes('ema') || title.includes('omikuji') || 
+                           title.includes('omamori') || loc.includes('templo') || loc.includes('santuario') || 
+                           loc.includes('senso') || loc.includes('fushimi') || loc.includes('meiji') || 
+                           loc.includes('kamakura');
+                }).length;
+                maxProg = 3;
+            } else if (badgeId === 'usuario_frecuente_jr') {
+                currentProg = approvedMissions.filter(m => {
+                    const title = m.title.toLowerCase();
+                    const loc = (m.location || '').toLowerCase();
+                    return title.includes('tren') || title.includes('estación') || title.includes('estacion') || 
+                           title.includes('metro') || title.includes('shinkansen') || title.includes('monorriel') || 
+                           title.includes('andén') || title.includes('anden') || title.includes('viaje') ||
+                           loc.includes('estación') || loc.includes('estacion') || loc.includes('tren') || 
+                           loc.includes('metro') || loc.includes('shinkansen');
+                }).length;
+                maxProg = 3;
+            } else if (badgeId === 'bilingue_expres') {
+                currentProg = approvedMissions.filter(m => m.tag === 'writing' || m.tag === 'audio').length;
+                maxProg = 3;
+            } else if (badgeId === 'ahorrador_inteligente') {
+                currentProg = kidData.wallet || 0;
+                maxProg = 1000;
+            } else if (badgeId === 'comprador_compulsivo') {
+                currentProg = counters.upgradesBought || 0;
+                maxProg = 1;
+            } else if (badgeId === 'rango_madrugador') {
+                currentProg = 0;
+                maxProg = 1;
+            } else if (badgeId === 'lechuza_nocturna') {
+                currentProg = 0;
+                maxProg = 1;
+            } else if (badgeId === 'super_cooperativo') {
+                currentProg = approvedMissions.filter(m => m.role === 'both').length;
+                maxProg = 10;
+            } else if (badgeId === 'nivel_ascendente') {
+                currentProg = kidData.level || 0;
+                maxProg = 3;
+            } else if (badgeId === 'casi_maestro') {
+                currentProg = kidData.level || 0;
+                maxProg = 6;
+            } else if (badgeId === 'avatar_supremo') {
+                currentProg = kidData.level || 0;
+                maxProg = 9;
+            } else if (badgeId === 'racha_misiones_dia') {
+                currentProg = 0;
+                maxProg = 1;
+            } else if (badgeId === 'racha_minijuegos_dia') {
+                const dailyActivity = counters.dailyActivity || {};
+                let maxMinigames = 0;
+                Object.keys(dailyActivity).forEach(dateStr => {
+                    maxMinigames = Math.max(maxMinigames, dailyActivity[dateStr].minigamesPlayed || 0);
+                });
+                currentProg = maxMinigames;
+                maxProg = 10;
+            } else if (badgeId === 'racha_fotos_dia') {
+                const dailyActivity = counters.dailyActivity || {};
+                let maxPhotos = 0;
+                Object.keys(dailyActivity).forEach(dateStr => {
+                    maxPhotos = Math.max(maxPhotos, dailyActivity[dateStr].photosAdded || 0);
+                });
+                currentProg = maxPhotos;
+                maxProg = 3;
+            } else if (badgeId === 'racha_ejercicio_dia') {
+                const dailyActivity = counters.dailyActivity || {};
+                let maxPhysical = 0;
+                Object.keys(dailyActivity).forEach(dateStr => {
+                    maxPhysical = Math.max(maxPhysical, dailyActivity[dateStr].physicalCompleted || 0);
+                });
+                currentProg = maxPhysical;
+                maxProg = 2;
+            } else if (badgeId === 'racha_idioma_dia') {
+                const dailyActivity = counters.dailyActivity || {};
+                let maxLanguage = 0;
+                Object.keys(dailyActivity).forEach(dateStr => {
+                    maxLanguage = Math.max(maxLanguage, dailyActivity[dateStr].languageCompleted || 0);
+                });
+                currentProg = maxLanguage;
+                maxProg = 2;
             }
             
             const percent = Math.min(100, Math.floor((currentProg / maxProg) * 100));
@@ -1974,11 +2978,301 @@ document.getElementById('btn-close-celebration').addEventListener('click', () =>
     switchView('view-home', false);
 });
 
-// Inicialización
 window.onload = async () => {
+    // Inyectar eventos especiales en el configurador de misiones
+    Object.assign(MISSIONS_CONFIG, {
+        'ev_conjunto_1': {
+            tag: 'special',
+            day: 1,
+            title: '🌟 EVENTO: El Abrazo de Despegue',
+            location: 'Aeropuerto (Salida)',
+            xp: 30,
+            role: 'both',
+            startTime: '14:00',
+            endTime: '15:00',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">✨ ¡Momento del Despegue! ✨</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Da un abrazo conjunto a toda la familia, desead a todos un viaje inolvidable, e inmortalizad el momento con una foto familiar.</p>
+                    <button id="btn-ev-1" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Abrazo</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-1', 'ev_conjunto_1', role, true);
+            }
+        },
+        'ev_ivan_1': {
+            tag: 'special',
+            day: 3,
+            title: '🌟 EVENTO: La Infiltración en el Castillo',
+            location: 'Castillo de Osaka',
+            xp: 30,
+            role: 'kid14',
+            startTime: '10:30',
+            endTime: '11:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🕵️‍♂️ ¡Misión de Infiltración! 🕵️‍♂️</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Juega a infiltrarte en el Castillo como un sigiloso ninja o ronin. Hazte una foto escondido detrás de un árbol o roca con el castillo de fondo.</p>
+                    <button id="btn-ev-2" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Infiltración</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-2', 'ev_ivan_1', role, false);
+            }
+        },
+        'ev_conjunto_2': {
+            tag: 'special',
+            day: 6,
+            title: '🌟 EVENTO: Los Vigilantes del Shinkansen',
+            location: 'Tren Bala (Osaka ➔ Kioto)',
+            xp: 30,
+            role: 'both',
+            startTime: '11:15',
+            endTime: '12:15',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🚄 ¡Vigilantes del Tren Bala! 🚄</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Disfrutad del trayecto rápido. A las 11:15 AM, tomaos una foto conjunta sosteniendo vuestros billetes junto a la ventana a toda velocidad.</p>
+                    <button id="btn-ev-3" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Billete y Viaje</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-3', 'ev_conjunto_2', role, true);
+            }
+        },
+        'ev_laura_1': {
+            tag: 'special',
+            day: 7,
+            title: '🌟 EVENTO: La Danza del Zorro Kitsune',
+            location: 'Santuario Fushimi Inari',
+            xp: 30,
+            role: 'kid9',
+            startTime: '10:30',
+            endTime: '11:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🦊 Pose del Kitsune 🦊</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Encuentra una estatua de zorro con un objeto en su hocico en Fushimi Inari e imita su pose mística para una foto divertida.</p>
+                    <button id="btn-ev-4" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Pose</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-4', 'ev_laura_1', role, false);
+            }
+        },
+        'ev_conjunto_3': {
+            tag: 'special',
+            day: 8,
+            title: '🌟 EVENTO: El Murmullo del Bosque de Bambú',
+            location: 'Arashiyama (Kioto)',
+            xp: 30,
+            role: 'both',
+            startTime: '09:30',
+            endTime: '10:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🍃 Conexión Zen en Arashiyama 🍃</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Buscad un rincón tranquilo, cerrad los ojos durante 1 minuto para escuchar el sonido del bambú y grabad un audio conjunto de 10 segundos en susurros.</p>
+                    <button id="btn-ev-5" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">🎙️ Registrar Audio (Voz)</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                const btn = document.getElementById('btn-ev-5');
+                if (btn) {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'audio/*,video/*';
+                    input.className = 'hidden-camera-input';
+                    input.style.display = 'none';
+                    btn.parentNode.insertBefore(input, btn.nextSibling);
+                    input.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        btn.innerText = '⏳ Procesando...';
+                        btn.disabled = true;
+                        try {
+                            const reader = new FileReader();
+                            reader.onload = async (re) => {
+                                const audioId = 'audio_' + Date.now();
+                                await savePhotoToDB(audioId, re.target.result);
+                                submitMission('ev_conjunto_3', {type: 'audio', data: audioId}, role, true);
+                            };
+                            reader.readAsDataURL(file);
+                        } catch (err) {
+                            showAlert('Error', 'Inténtalo de nuevo.');
+                            btn.innerText = '🎙️ Registrar Audio (Voz)';
+                            btn.disabled = false;
+                        }
+                    });
+                    btn.addEventListener('click', () => input.click());
+                }
+            }
+        },
+        'ev_conjunto_4': {
+            tag: 'special',
+            day: 11,
+            title: '🌟 EVENTO: La Ofrenda de Deseos del Ryokan',
+            location: 'Ryokan (Alpes)',
+            xp: 30,
+            role: 'both',
+            startTime: '20:30',
+            endTime: '21:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🏮 Ceremonia de los Deseos 🏮</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Vestidos con la Yukata tradicional, escribid en papel vuestros deseos de viaje. Haced una foto del sobre o de vosotros entregándoselo al Juez Supreme tras hacer una reverencia de 30°.</p>
+                    <button id="btn-ev-6" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Ofrenda</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-6', 'ev_conjunto_4', role, true);
+            }
+        },
+        'ev_conjunto_5': {
+            tag: 'special',
+            day: 14,
+            title: '🌟 EVENTO: El Saludo al Gigante Sagrado',
+            location: 'Kawaguchiko (Fuji)',
+            xp: 30,
+            role: 'both',
+            startTime: '08:30',
+            endTime: '09:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🗻 El Triángulo del Fuji 🗻</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Imitad la forma clásica del Monte Fuji con vuestras manos sobre la cabeza en forma de pico, con el Fuji real de fondo, y haced una foto.</p>
+                    <button id="btn-ev-7" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Pose Fuji</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-7', 'ev_conjunto_5', role, true);
+            }
+        },
+        'ev_laura_2': {
+            tag: 'special',
+            day: 17,
+            title: '🌟 EVENTO: El Amuleto Protector de Asakusa',
+            location: 'Templo Senso-ji (Asakusa)',
+            xp: 30,
+            role: 'kid9',
+            startTime: '11:30',
+            endTime: '12:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🙏 Humo Sagrado e Incienso 🙏</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Dirígete al gran incensario (Jokoro), abanícate el humo curativo hacia tu cabeza y tómate una foto sosteniendo un amuleto Omamori del templo.</p>
+                    <button id="btn-ev-8" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Amuleto</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-8', 'ev_laura_2', role, false);
+            }
+        },
+        'ev_ivan_2': {
+            tag: 'special',
+            day: 17,
+            title: '🌟 EVENTO: La Captura Tecnológica de Akihabara',
+            location: 'Akihabara Town',
+            xp: 30,
+            role: 'kid14',
+            startTime: '17:30',
+            endTime: '18:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🔋 ¡Curiosidad de Akiba! 🔋</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Encuentra una máquina expendedora que venda algo que no sea bebida (o un escaparate de videojuegos retro de neón) y hazte una foto con expresión cibernética de asombro.</p>
+                    <button id="btn-ev-9" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Captura</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-9', 'ev_ivan_2', role, false);
+            }
+        },
+        'ev_laura_3': {
+            tag: 'special',
+            day: 18,
+            title: '🌟 EVENTO: La Pose Kawaii de Harajuku',
+            location: 'Takeshita Street',
+            xp: 30,
+            role: 'kid9',
+            startTime: '15:30',
+            endTime: '16:30',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🍭 Estilo Harajuku 🍭</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Con tu crepe gigante o algodón de azúcar colorido en la mano, hazte una foto posando de manera divertida "kawaii" en la calle Takeshita antes del primer bocado.</p>
+                    <button id="btn-ev-10" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Crepe Kawaii</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-10', 'ev_laura_3', role, false);
+            }
+        },
+        'ev_ivan_3': {
+            tag: 'special',
+            day: 22,
+            title: '🌟 EVENTO: El Despertar del Mecha Gigante',
+            location: 'DiverCity Odaiba',
+            xp: 30,
+            role: 'kid14',
+            startTime: '14:00',
+            endTime: '15:00',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🤖 ¡Saludo de Piloto de Mecha! 🤖</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Sitúate frente al Gundam Unicornio Gigante a las 14:00 PM (hora de transformación). Hazte una foto haciendo una pose solemne de piloto o saludo militar.</p>
+                    <button id="btn-ev-11" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Saludo Gundam</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-11', 'ev_ivan_3', role, false);
+            }
+        },
+        'ev_conjunto_6': {
+            tag: 'special',
+            day: 23,
+            title: '🌟 EVENTO: La Ceremonia del Sayonara',
+            location: 'Aeropuerto (Regreso)',
+            xp: 30,
+            role: 'both',
+            startTime: '18:00',
+            endTime: '19:00',
+            render: (role) => `
+                <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
+                    <p style="font-weight: bold; margin-bottom: 8px;">🌸 Sayonara, Nihon! 🌸</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Haced un recuento en familia. Compartid vuestro recuerdo favorito y agradeced en voz alta algo especial a cada uno. Subid una foto final abrazando a toda la familia.</p>
+                    <button id="btn-ev-12" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Ceremonia Final</button>
+                </div>
+            `,
+            attachEvents: (role) => {
+                attachCameraFlow('btn-ev-12', 'ev_conjunto_6', role, true);
+            }
+        }
+    });
+
     loadState();
     if (window.initIndexedDB) await window.initIndexedDB();
-    switchView('view-home', false);
+    
+    // Inicializar Sincronización Firebase
+    if (window.FirebaseSync) {
+        window.FirebaseSync.init();
+    }
+    
+    // Leer el rol fijado del dispositivo
+    const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+    
+    if (deviceRole === 'kid9' || deviceRole === 'kid14') {
+        currentUser = deviceRole;
+        
+        // Mostrar botón de candado en header
+        const lockBtn = document.getElementById('btn-header-lock');
+        if (lockBtn) lockBtn.classList.remove('hidden');
+        
+        renderDaysList(currentUser);
+    } else {
+        switchView('view-home', false);
+    }
     
     // Comprobación de versión automática al iniciar la app
     setTimeout(() => {
@@ -2001,9 +3295,16 @@ function renderShop() {
     document.getElementById('shop-wallet-amount').innerText = userWallet;
     
     let purchases = {};
-    try {
-        purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
-    } catch(e) {}
+    if (gameState[currentUser] && gameState[currentUser].purchases) {
+        purchases = gameState[currentUser].purchases;
+    } else {
+        try {
+            purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
+        } catch(e) {}
+        if (gameState[currentUser]) {
+            gameState[currentUser].purchases = purchases;
+        }
+    }
     
     // Botón de galletas
     const btnCookie = document.getElementById('btn-buy-cookie');
@@ -2045,8 +3346,8 @@ function renderShop() {
 }
 
 window.buyUpgrade = (itemKey, cost) => {
-    if (!currentUser || currentUser !== 'kid9') {
-        alert("Solo Laura puede adquirir estas modificaciones tecnológicas.");
+    if (!currentUser || (currentUser !== 'kid9' && currentUser !== 'kid14')) {
+        alert("Solo Laura e Iván pueden adquirir estas modificaciones tecnológicas.");
         return;
     }
     
@@ -2058,15 +3359,24 @@ window.buyUpgrade = (itemKey, cost) => {
     
     // Deducir dinero de la cartera
     gameState[currentUser].wallet = wallet - cost;
+    
+    // Incrementar contador de mejoras compradas
+    if (!gameState[currentUser].counters) gameState[currentUser].counters = {};
+    gameState[currentUser].counters.upgradesBought = (gameState[currentUser].counters.upgradesBought || 0) + 1;
+    
     saveState();
     
-    // Registrar compra en localStorage
-    let purchases = {};
-    try {
-        purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
-    } catch(e) {}
-    purchases[itemKey] = true;
-    localStorage.setItem('minigames_shop_purchases', JSON.stringify(purchases));
+    // Registrar compra en gameState y localStorage
+    if (!gameState[currentUser].purchases) gameState[currentUser].purchases = {};
+    gameState[currentUser].purchases[itemKey] = true;
+    saveState();
+    localStorage.setItem('minigames_shop_purchases', JSON.stringify(gameState[currentUser].purchases));
+    
+    // Comprobar logros
+    const newBadges = checkBadges(currentUser, null);
+    if (newBadges && newBadges.length > 0) {
+        showNewBadges(newBadges);
+    }
     
     // Reproducir sonido si está disponible
     if (window.playProceduralSound) window.playProceduralSound('success');
@@ -2229,6 +3539,22 @@ async function renderAlbumCategory(categoryId) {
                     const file = e.target.files[0];
                     if (!file) return;
                     
+                    const recordAlbumUploadAndCheck = () => {
+                        const todayStr = getJapanCurrentDate().toDateString();
+                        if (!gameState[currentUser].counters) gameState[currentUser].counters = {};
+                        if (!gameState[currentUser].counters.dailyActivity) gameState[currentUser].counters.dailyActivity = {};
+                        if (!gameState[currentUser].counters.dailyActivity[todayStr]) {
+                            gameState[currentUser].counters.dailyActivity[todayStr] = { minigamesPlayed: 0, photosAdded: 0, physicalCompleted: 0, languageCompleted: 0 };
+                        }
+                        gameState[currentUser].counters.dailyActivity[todayStr].photosAdded = (gameState[currentUser].counters.dailyActivity[todayStr].photosAdded || 0) + 1;
+                        saveState();
+                        
+                        const newBadges = checkBadges(currentUser, null);
+                        if (newBadges && newBadges.length > 0) {
+                            showNewBadges(newBadges);
+                        }
+                    };
+                    
                     try {
                         let resultDataUrl = "";
                         if (file.type.startsWith('audio/')) {
@@ -2236,7 +3562,7 @@ async function renderAlbumCategory(categoryId) {
                             reader.onload = async (re) => {
                                 await window.saveMedia(slotId, re.target.result);
                                 if (!savedIndexes.includes(i)) savedIndexes.push(i);
-                                saveState();
+                                recordAlbumUploadAndCheck();
                                 renderAlbumCategory(categoryId);
                             };
                             reader.readAsDataURL(file);
@@ -2256,7 +3582,7 @@ async function renderAlbumCategory(categoryId) {
                             
                             await window.saveMedia(slotId, resultDataUrl);
                             if (!savedIndexes.includes(i)) savedIndexes.push(i);
-                            saveState();
+                            recordAlbumUploadAndCheck();
                             renderAlbumCategory(categoryId);
                         }
                     } catch (err) {

@@ -59,9 +59,10 @@
     </div>
 
     <!-- HEADER GLOBAL (Para las demás vistas) -->
-    <header id="main-header" class="hidden">
+    <header id="main-header" class="hidden" style="position: relative;">
         <button id="btn-back" class="btn-icon">⬅️ Volver</button>
         <h2 id="header-title">Misiones</h2>
+        <button id="btn-header-lock" class="btn-icon hidden" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; background: transparent; border: none; cursor: pointer; padding: 5px;" aria-label="Acceso Juez">🔒</button>
     </header>
 
     <!-- LISTA DE DÍAS (NIÑOS) -->
@@ -85,6 +86,9 @@
             <button id="btn-open-shop" class="btn-secondary hidden" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, #4a148c, #8e24aa); color: white; border: 1px solid #ea80fc;">
                 🛠️ Tienda Hacker
             </button>
+        </div>
+        <div id="special-events-banner" class="hidden" style="margin: 0 16px 16px 16px; padding: 12px 15px; border-radius: 12px; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border: 2px solid #ffb74d; box-shadow: 0 4px 10px rgba(255, 152, 0, 0.15); display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #5d4037;">
+            <!-- Se inyecta la información del evento especial activo o próximo -->
         </div>
         <div id="days-list" class="list-container">
             <!-- Los días se inyectan dinámicamente aquí -->
@@ -171,9 +175,10 @@
         </div>
         
         <!-- Pestañas Juez -->
-        <div class="passport-tabs" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 10px;">
-            <button id="btn-judge-tab-pending" class="passport-tab active" style="border-bottom: 3px solid var(--color-primary); color: var(--color-primary); border-radius: 0;">⏳ Pendientes</button>
-            <button id="btn-judge-tab-approved" class="passport-tab" style="border-bottom: 3px solid transparent; color: var(--color-gray-dark); border-radius: 0;">✅ Aprobadas</button>
+        <div class="passport-tabs" style="border-bottom: 2px solid #e2e8f0; margin-bottom: 10px; display: flex;">
+            <button id="btn-judge-tab-pending" class="passport-tab active" style="flex: 1; border-bottom: 3px solid var(--color-primary); color: var(--color-primary); border-radius: 0;">⏳ Pendientes</button>
+            <button id="btn-judge-tab-approved" class="passport-tab" style="flex: 1; border-bottom: 3px solid transparent; color: var(--color-gray-dark); border-radius: 0;">✅ Aprobadas</button>
+            <button id="btn-judge-tab-settings" class="passport-tab" style="flex: 1; border-bottom: 3px solid transparent; color: var(--color-gray-dark); border-radius: 0;">⚙️ Ajustes</button>
         </div>
 
         <!-- Sección de Pendientes -->
@@ -194,6 +199,38 @@
             <h3 class="judge-section-title" style="padding: 16px 16px 0 16px; margin: 10px 0 0 0; font-size: 1.2rem; color: var(--color-primary);">📜 Historial de Aprobadas</h3>
             <div id="approved-missions-list" class="list-container" style="margin-top: 10px; padding-bottom: 50px;">
                 <!-- Misiones aprobadas se inyectan aquí -->
+            </div>
+        </div>
+
+        <!-- Sección de Configuración -->
+        <div id="judge-settings-section" class="hidden" style="padding: 16px; padding-bottom: 80px;">
+            <!-- Configuración del dispositivo -->
+            <div class="card" style="margin-bottom: 20px; padding: 20px; border-radius: 12px; border: 1px solid var(--color-gray); background: var(--color-card-bg);">
+                <h3 style="margin-top: 0; color: var(--color-primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">📱 Perfil de este Dispositivo</h3>
+                <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px; line-height: 1.4;">Elige el perfil fijo para este móvil. Si fijas a un niño, se iniciará automáticamente en su pantalla y se ocultará el menú de inicio.</p>
+                <select id="select-device-role" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--color-gray); background: var(--color-bg); color: var(--color-text); margin-bottom: 15px; font-size: 0.95rem; font-family: inherit;">
+                    <option value="all">Todos los Perfiles (Multiusuario)</option>
+                    <option value="kid9">Laura (Perfil Fijo)</option>
+                    <option value="kid14">Iván (Perfil Fijo)</option>
+                </select>
+                <button id="btn-save-device-role" class="btn-primary" style="width: 100%; border-radius: 8px; padding: 12px; font-weight: bold;">Fijar Perfil de Dispositivo</button>
+            </div>
+            
+            <!-- Configuración de Firebase Cloud Sync -->
+            <div class="card" style="padding: 20px; border-radius: 12px; border: 1px solid var(--color-gray); background: var(--color-card-bg);">
+                <h3 style="margin-top: 0; color: var(--color-primary); font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">☁️ Sincronización en la Nube</h3>
+                <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 15px; line-height: 1.4;">Conecta los dispositivos de la familia sincronizando el progreso y fotos a través de Firebase Firestore.</p>
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 6px; color: var(--color-text);">Configuración Firebase (JSON):</label>
+                    <textarea id="firebase-config-input" rows="6" style="width: 100%; font-family: monospace; font-size: 0.8rem; padding: 10px; border-radius: 8px; border: 1px solid var(--color-gray); background: var(--color-bg); color: var(--color-text); line-height: 1.3;" placeholder='{\n  "apiKey": "...",\n  "authDomain": "...",\n  "projectId": "...",\n  "storageBucket": "...",\n  "messagingSenderId": "...",\n  "appId": "..."\n}'></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-save-firebase-config" class="btn-primary" style="flex: 1; border-radius: 8px; padding: 12px; font-weight: bold;">Conectar</button>
+                    <button id="btn-disconnect-firebase" class="btn-secondary" style="flex: 1; border-radius: 8px; padding: 12px; font-weight: bold; border-color: #e53935; color: #e53935;">Desconectar</button>
+                </div>
+                <div id="firebase-status-label" style="font-size: 0.9rem; margin-top: 15px; font-weight: bold; text-align: center; color: var(--color-text);">
+                    Estado: Desconectado 🔴
+                </div>
             </div>
         </div>
     </div>
@@ -340,6 +377,11 @@
             });
         }
     </script>
+    <!-- Firebase Compat SDKs -->
+    <script src="firebase-app-compat.js"></script>
+    <script src="firebase-firestore-compat.js"></script>
+    <script src="firebase-sync.js?v=11"></script>
+
     <script src="dbHelper.js?v=11"></script>
     <script src="games.js?v=11"></script>
     <script src="missions.js?v=11"></script>
