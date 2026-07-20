@@ -3781,54 +3781,35 @@ async function checkAppUpdates(isManual = false) {
 }
 
 async function triggerSWUpdate() {
-    if ('serviceWorker' in navigator) {
-        const updateBtn = document.getElementById('btn-update-now');
-        if (updateBtn) {
-            updateBtn.disabled = true;
-            updateBtn.innerText = 'Actualizando...';
-        }
-        try {
-            // Escuchar el cambio de controlador para recargar cuando el nuevo SW tome control
-            let reloading = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (reloading) return;
-                reloading = true;
-                console.log('Nuevo Service Worker activo. Recargando...');
-                window.location.reload();
-            });
-
-            const reg = await navigator.serviceWorker.ready;
-            await reg.update();
-            console.log('Actualización del Service Worker solicitada.');
-
-            // Si hay un SW esperando (waiting), decirle que se active
-            const waitingSW = reg.waiting || reg.installing;
-            if (waitingSW) {
-                waitingSW.addEventListener('statechange', (e) => {
-                    if (e.target.state === 'installed') {
-                        // El nuevo SW está instalado pero esperando; forzar activación
-                        if (reg.waiting) {
-                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-                        }
-                    }
-                });
-                if (waitingSW.state === 'installed') {
-                    waitingSW.postMessage({ type: 'SKIP_WAITING' });
-                }
+    const updateBtn = document.getElementById('btn-update-now');
+    if (updateBtn) {
+        updateBtn.disabled = true;
+        updateBtn.innerText = 'Actualizando...';
+    }
+    try {
+        // 1. Desregistrar TODOS los Service Workers
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const reg of registrations) {
+                await reg.unregister();
+                console.log('Service Worker desregistrado.');
             }
-
-            // Timeout de seguridad: si después de 8 segundos no se activó, recargar de todos modos
-            setTimeout(() => {
-                if (!reloading) {
-                    console.log('Timeout de seguridad: recargando la página.');
-                    window.location.reload();
-                }
-            }, 8000);
-        } catch (err) {
-            console.error('Error al actualizar Service Worker:', err);
-            showAlert('Error', 'No se pudo completar la actualización. Recargando...');
-            setTimeout(() => window.location.reload(), 2000);
         }
+        // 2. Borrar TODAS las cachés
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            for (const key of keys) {
+                await caches.delete(key);
+                console.log('Caché borrada:', key);
+            }
+        }
+        // 3. Recargar forzando descarga desde servidor
+        console.log('Recargando desde servidor...');
+        window.location.reload(true);
+    } catch (err) {
+        console.error('Error durante actualización:', err);
+        // Fallback: recargar de todos modos
+        window.location.reload(true);
     }
 }
 
