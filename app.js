@@ -1880,9 +1880,51 @@ async function renderJudgePanel() {
 
     if (currentJudgeTab === 'pending') {
         const list = document.getElementById('pending-missions-list');
-        list.innerHTML = '';
+        list.innerHTML = '<p style="text-align:center; padding:20px;">⏳ Descargando datos de la nube...</p>';
+
+        // FORZAR descarga desde Firebase antes de renderizar
+        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+            try {
+                await window.FirebaseSync.forceDownloadFromCloud();
+            } catch(e) {
+                console.warn("[JudgePanel] Error en descarga forzada:", e);
+            }
+        }
 
         const pendings = getPendingMissions();
+        list.innerHTML = '';
+
+        // Banner de diagnóstico de sincronización
+        const fbConnected = window.FirebaseSync && window.FirebaseSync.isConnected();
+        const k9Pending = Object.values((gameState.kid9 && gameState.kid9.missions) || {}).filter(m => m.status === 'pending').length;
+        const k14Pending = Object.values((gameState.kid14 && gameState.kid14.missions) || {}).filter(m => m.status === 'pending').length;
+        const diagColor = fbConnected ? '#4caf50' : '#e53935';
+        const diagIcon = fbConnected ? '🟢' : '🔴';
+        
+        const diagHtml = `
+            <div style="background: rgba(0,0,0,0.03); border: 1px solid ${diagColor}; border-radius: 10px; padding: 10px 14px; margin-bottom: 15px; font-size: 0.8rem; line-height: 1.5;">
+                <div>${diagIcon} Firebase: <b>${fbConnected ? 'Conectado' : 'Desconectado'}</b> | Laura: <b>${k9Pending}</b> pendientes | Iván: <b>${k14Pending}</b> pendientes</div>
+                <div style="margin-top:6px;">
+                    <button id="btn-judge-force-sync" style="background:${diagColor}; color:white; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:bold; cursor:pointer;">🔄 Forzar sincronización</button>
+                </div>
+            </div>
+        `;
+        list.insertAdjacentHTML('beforebegin', diagHtml);
+        
+        // Eliminar banner anterior si existe
+        const oldDiag = document.querySelectorAll('#btn-judge-force-sync');
+        if (oldDiag.length > 1) {
+            oldDiag[0].closest('div').parentElement.removeChild(oldDiag[0].closest('div'));
+        }
+
+        document.getElementById('btn-judge-force-sync')?.addEventListener('click', async () => {
+            if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+                await window.FirebaseSync.forceDownloadFromCloud();
+                renderJudgePanel();
+            } else {
+                alert('Firebase no está conectado. Asegúrate de tener conexión a internet.');
+            }
+        });
         
         if (pendings.length === 0) {
             list.innerHTML = '<p style="text-align:center; padding:20px;">No hay misiones pendientes.</p>';
