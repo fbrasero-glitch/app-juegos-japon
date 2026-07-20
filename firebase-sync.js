@@ -68,10 +68,20 @@ const FirebaseSync = {
             // Iniciar escucha en tiempo real
             this.setupListeners();
 
-            // Subir estado local inicial para sincronizar la nube con progreso previo
-            setTimeout(() => {
-                this.uploadLocalStateToCloud();
-            }, 1000);
+            // SOLO subir estado local si el dispositivo es de un niño específico.
+            // El Juez / modo 'all' NUNCA sube automáticamente para no machacar datos de los niños.
+            const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+            if (deviceRole === 'kid9' || deviceRole === 'kid14') {
+                setTimeout(() => {
+                    this.uploadLocalStateToCloud();
+                }, 1500);
+            } else {
+                // Para Juez / all: descargar forzosamente desde la nube en vez de subir
+                console.log("[FirebaseSync] Dispositivo en modo Juez/all: descargando datos desde la nube (sin subir).");
+                setTimeout(() => {
+                    this.forceDownloadFromCloud();
+                }, 500);
+            }
         } catch (e) {
             console.error("[FirebaseSync] Error al parsear o inicializar Firebase:", e);
             this.updateStatusLabel("Error de conexión ⚠️");
@@ -94,7 +104,10 @@ const FirebaseSync = {
                 }
                 if (doc.exists) {
                     const data = doc.data();
+                    console.log(`[FirebaseSync] onSnapshot recibido para ${kidId}. Fuente: ${doc.metadata.fromCache ? 'CACHE' : 'SERVIDOR'}`);
                     this.handleRemoteUpdate(kidId, data);
+                } else {
+                    console.log(`[FirebaseSync] El documento ${kidId} no existe en la nube aún.`);
                 }
             }, err => {
                 console.error(`[FirebaseSync] Error escuchando perfil ${kidId}:`, err);
@@ -113,10 +126,11 @@ const FirebaseSync = {
 
         const isActiveUser = (window.currentUser === kidId);
         const isJudge = (window.currentUser === 'judge');
-        const shouldApply = isJudge || !isActiveUser || (remoteTime > localTime);
+        // SIEMPRE aplicar datos remotos. No hay razón para rechazarlos.
+        const shouldApply = true;
 
         if (shouldApply) {
-            console.log(`[FirebaseSync] Novedades remotas aplicadas para ${kidId} (remoto: ${remoteTime}, local: ${localTime})`);
+            console.log(`[FirebaseSync] Aplicando datos remotos para ${kidId} (remoto: ${remoteTime}, local: ${localTime}, user: ${window.currentUser})`);
 
             const isKid = (kidId === 'kid9' || kidId === 'kid14');
 
@@ -150,7 +164,7 @@ const FirebaseSync = {
                 const oldLevel = localKid.level || 0;
                 const newLevel = remoteData.level || 0;
 
-                // 4. Copiar y guardar estado localmente
+                // 4. Copiar y guardar estado localmente (SIN subir a Firebase para evitar bucles)
                 window.gameState[kidId] = remoteData;
                 localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
 
@@ -185,6 +199,7 @@ const FirebaseSync = {
                 }
             } else {
                 // Si es el perfil del hermano o es el Juez, simplemente aplicamos el estado remoto completo
+                // NO subir de vuelta a Firebase para evitar bucle de escritura
                 window.gameState[kidId] = remoteData;
                 localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
             }
@@ -266,29 +281,72 @@ const FirebaseSync = {
         }, 100);
     },
 
+    // Solo para dispositivos de niños: sube su perfil específico a la nube
     uploadLocalStateToCloud: function() {
         if (!this.active || !this.db || !window.gameState) return;
         
-        console.log("[FirebaseSync] Subiendo estado local inicial a la nube...");
         const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
         
+        // SOLO subir si el dispositivo está asignado a un niño específico
         if (deviceRole === 'kid9' || deviceRole === 'kid14') {
             if (window.gameState[deviceRole]) {
+                console.log(`[FirebaseSync] Subiendo estado local del perfil ${deviceRole} a la nube...`);
                 if (!window.gameState[deviceRole].lastUpdated) {
                     window.gameState[deviceRole].lastUpdated = Date.now();
                 }
                 this.syncProfile(deviceRole, window.gameState[deviceRole]);
             }
         } else {
-            if (window.gameState.kid9) {
-                if (!window.gameState.kid9.lastUpdated) window.gameState.kid9.lastUpdated = Date.now();
-                this.syncProfile('kid9', window.gameState.kid9);
-            }
-            if (window.gameState.kid14) {
-                if (!window.gameState.kid14.lastUpdated) window.gameState.kid14.lastUpdated = Date.now();
-                this.syncProfile('kid14', window.gameState.kid14);
-            }
+            // Juez / all: NO subir automáticamente. Solo descargar.
+            console.log("[FirebaseSync] Dispositivo Juez/all: omitiendo subida automática.");
         }
+    },
+
+    // Descarga forzada desde Firestore (para el Juez / dispositivos en modo all)
+    forceDownloadFromCloud: function() {
+        if (!this.active || !this.db) return Promise.resolve();
+
+        console.log("[FirebaseSync] Descarga forzada desde la nube...");
+        
+        const promises = ['kid9', 'kid14'].map(kidId => {
+            return this.db.collection('profiles').doc(kidId).get({ source: 'server' })
+                .then(doc => {
+                    if (doc.exists) {
+                        const remoteData = doc.data();
+                        console.log(`[FirebaseSync] Descarga forzada: ${kidId} obtenido del SERVIDOR. lastUpdated: ${remoteData.lastUpdated}`);
+                        if (window.gameState) {
+                            window.gameState[kidId] = remoteData;
+                        }
+                    } else {
+                        console.log(`[FirebaseSync] Descarga forzada: ${kidId} no existe en servidor.`);
+                    }
+                })
+                .catch(err => {
+                    console.warn(`[FirebaseSync] Descarga forzada fallida para ${kidId} (puede estar offline):`, err);
+                    // Fallback: intentar desde cache
+                    return this.db.collection('profiles').doc(kidId).get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const remoteData = doc.data();
+                                console.log(`[FirebaseSync] Descarga fallback (cache) para ${kidId}.`);
+                                if (window.gameState) {
+                                    window.gameState[kidId] = remoteData;
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                });
+        });
+
+        return Promise.all(promises).then(() => {
+            if (window.gameState) {
+                localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
+                console.log("[FirebaseSync] Estado local actualizado con datos de la nube.");
+                if (typeof window.refreshCurrentView === 'function') {
+                    window.refreshCurrentView();
+                }
+            }
+        });
     }
 };
 

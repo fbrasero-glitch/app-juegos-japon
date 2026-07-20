@@ -304,7 +304,8 @@ function loadState() {
     
     // Inicializar proactivamente todas las misiones en memoria para asegurar sincronización completa
     ensureAllMissionsInitialized();
-    saveState();
+    // Guardar SOLO localmente (sin subir a Firebase) para no machacar datos remotos al arrancar
+    localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
 }
 
 function ensureAllMissionsInitialized() {
