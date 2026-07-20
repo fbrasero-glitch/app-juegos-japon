@@ -76,74 +76,94 @@ body.theme-laura .xp-fill {
    TEMA IVÁN (Cyberpunk / Terminal)
    ========================================= */
 body.theme-ivan {
-    --color-bg: #0b0c10; /* Negro profundo */
-    --color-primary: #00f0ff; /* Cian Neón */
-    --color-primary-dark: #00a0b0;
-    --color-text: #c5c6c7; /* Gris claro */
-    --color-text-invert: #0b0c10;
-    --color-accent: #00FF41; /* Verde Hacker */
-    --color-card-bg: rgba(11, 12, 16, 0.9);
-    --color-gray: #1f2833;
-    --color-gray-dark: #45a29e;
+    --color-bg: #0d0e1c; /* Midnight Cyber Blue */
+    --color-primary: #00f0ff; /* Neon Cyan */
+    --color-primary-dark: #00a8b5;
+    --color-text: #e2e4f0; /* Silver White */
+    --color-text-invert: #0d0e1c;
+    --color-accent: #ff007f; /* Neon Hot Pink */
+    --color-card-bg: rgba(20, 22, 43, 0.85); /* Premium Glassmorphism */
+    --color-gray: #232545;
+    --color-gray-dark: #8c90c1;
     
     --font-main: 'Space Mono', 'VT323', monospace;
     
-    --shadow-soft: 0 0 10px rgba(0, 240, 255, 0.1);
-    --shadow-hover: 0 0 20px rgba(0, 240, 255, 0.25);
+    --shadow-soft: 0 8px 32px rgba(0, 240, 255, 0.08), 0 0 15px rgba(0, 240, 255, 0.05);
+    --shadow-hover: 0 12px 40px rgba(0, 240, 255, 0.18), 0 0 25px rgba(255, 0, 127, 0.15);
     
-    --radius-main: 0px; /* Bordes rectos */
-    --radius-btn: 2px;
-    --card-border: 1px solid var(--color-primary);
+    --radius-main: 16px; /* Curved lines */
+    --radius-btn: 12px; /* Curved button */
+    --card-border: 1px solid rgba(0, 240, 255, 0.25);
     
+    /* Premium background: dark radial gradients representing distant neon city glow + tech grid overlay */
+    background-color: var(--color-bg);
     background-image: 
-        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
+        radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.06) 0%, transparent 40%),
+        linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 25px 25px, 25px 25px;
     background-position: center center;
     background-attachment: fixed;
 }
 
 body.theme-ivan .card {
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    clip-path: none; /* Quitamos bordes rectos poligonales */
+    border-radius: var(--radius-main);
+    border: var(--card-border);
+    background-color: var(--color-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-soft);
+    transition: all var(--transition-speed) ease;
     position: relative;
 }
 
+body.theme-ivan .card:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: rgba(255, 0, 127, 0.4);
+    transform: translateY(-2px);
+}
+
 body.theme-ivan .btn-primary {
-    background-color: transparent;
-    border: 2px solid var(--color-primary);
-    color: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0077ff 100%);
+    border: none;
+    color: var(--color-text-invert);
     text-transform: uppercase;
     letter-spacing: 1px;
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+    border-radius: var(--radius-btn);
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3), 0 0 10px rgba(0, 240, 255, 0.2);
+    font-weight: 700;
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.theme-ivan .btn-primary:hover,
 body.theme-ivan .btn-primary:active {
-    background-color: var(--color-primary);
-    color: var(--color-bg);
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.5);
+    background: linear-gradient(135deg, var(--color-accent) 0%, #bd00ff 100%);
+    color: white;
+    box-shadow: 0 6px 20px rgba(255, 0, 127, 0.4), 0 0 15px rgba(255, 0, 127, 0.3);
+    transform: translateY(-2px) scale(1.02);
 }
 
 body.theme-ivan .card-title, 
 body.theme-ivan #header-title {
-    text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6), 0 0 2px rgba(0, 240, 255, 0.3);
+    letter-spacing: 0.5px;
 }
 
 body.theme-ivan .xp-bar {
-    background-color: var(--color-gray);
-    border-radius: 0;
-    border: 1px solid var(--color-primary);
+    background-color: rgba(35, 37, 69, 0.6);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 body.theme-ivan .xp-fill {
-    background: repeating-linear-gradient(
-        -45deg,
-        var(--color-primary),
-        var(--color-primary) 5px,
-        var(--color-accent) 5px,
-        var(--color-accent) 10px
-    );
-    border-radius: 0;
+    background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    border-radius: 20px;
+    box-shadow: 0 0 10px var(--color-primary);
 }
 
 /* =========================================
@@ -281,7 +301,7 @@ body {
 
 body.theme-ivan .nav-item.active {
     color: var(--color-primary);
-    text-shadow: 0 0 5px var(--color-primary);
+    text-shadow: 0 0 8px var(--color-primary);
 }
 
 /* =========================================
@@ -506,12 +526,16 @@ input:focus, select:focus, textarea:focus {
 }
 
 body.theme-ivan input, body.theme-ivan textarea {
-    background-color: rgba(0,240,255,0.05);
-    border-color: var(--color-gray-dark);
+    background-color: rgba(20, 22, 43, 0.6);
+    border-color: rgba(0, 240, 255, 0.3);
+    border-radius: 10px;
+    color: var(--color-text);
+    transition: all 0.3s ease;
 }
 body.theme-ivan input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 10px rgba(0,240,255,0.2);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+    background-color: rgba(20, 22, 43, 0.85);
 }
 
 /* =========================================
@@ -596,6 +620,11 @@ body.theme-ivan input:focus {
     text-transform: uppercase;
     margin-bottom: 8px;
     background: rgba(128, 128, 128, 0.1);
+}
+.mission-tag.tag-special {
+    background: rgba(255, 152, 0, 0.15);
+    color: #e65100;
+    border: 1px solid rgba(255, 152, 0, 0.3);
 }
 
 .status-badge {
@@ -692,13 +721,15 @@ body.theme-ivan input:focus {
 }
 
 body.theme-ivan .album-slot {
-    border-radius: 0;
-    border-color: var(--color-primary);
+    border-radius: 12px;
+    border-color: rgba(0, 240, 255, 0.4);
+    background: rgba(20, 22, 43, 0.5);
+    transition: all 0.3s ease;
 }
 
 body.theme-ivan .album-slot img {
-    border-radius: 0;
-    filter: contrast(1.2) saturate(0.8);
+    border-radius: 10px;
+    filter: saturate(1.1) contrast(1.1);
 }
 
 /* =========================================
@@ -745,16 +776,18 @@ body.theme-laura .passport-tab.active {
 
 /* Iván's tab styling */
 body.theme-ivan .passport-tab {
-    border-radius: 0;
-    border: 1px solid var(--color-gray);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
     color: var(--color-gray-dark);
+    background: rgba(20, 22, 43, 0.4);
+    transition: all 0.2s ease;
 }
 body.theme-ivan .passport-tab.active {
-    background: transparent;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0077ff 100%);
     border-color: var(--color-primary);
-    color: var(--color-primary);
-    text-shadow: 0 0 5px var(--color-primary);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    color: var(--color-text-invert);
+    text-shadow: none;
+    box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3);
 }
 
 .passport-container {
@@ -803,10 +836,11 @@ body.theme-laura .hero-gamerscore {
 }
 
 body.theme-ivan .hero-gamerscore {
-    background: transparent;
-    border: 1px solid var(--color-accent);
+    background: linear-gradient(135deg, rgba(255, 0, 127, 0.15) 0%, rgba(189, 0, 255, 0.1) 100%);
+    border: 1.5px solid var(--color-accent);
     color: var(--color-accent);
-    box-shadow: 0 0 8px var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+    border-radius: 12px;
 }
 
 .gs-icon {
@@ -828,7 +862,8 @@ body.theme-laura .gs-icon {
 
 body.theme-ivan .gs-icon {
     background: var(--color-accent);
-    color: var(--color-bg);
+    color: #ffffff;
+    border-radius: 50%;
 }
 
 .passport-section-title {
@@ -843,7 +878,7 @@ body.theme-ivan .gs-icon {
 
 body.theme-ivan .passport-section-title {
     border-bottom-color: var(--color-primary);
-    text-shadow: 0 0 5px var(--color-primary);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
 }
 
 /* Achievements grid & cards */
@@ -884,8 +919,8 @@ body.theme-laura .badge-icon-wrapper {
     border-radius: 18px;
 }
 body.theme-ivan .badge-icon-wrapper {
-    border-radius: 0;
-    border: 1px solid var(--color-primary);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 240, 255, 0.3);
 }
 
 .badge-card.unlocked .badge-icon-wrapper {
@@ -900,9 +935,9 @@ body.theme-laura .badge-card.unlocked {
 }
 
 body.theme-ivan .badge-card.unlocked {
-    background: rgba(0, 240, 255, 0.05);
-    border: 1px solid var(--color-accent);
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.15);
+    background: rgba(255, 0, 127, 0.05);
+    border: 1.5px solid var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 0, 127, 0.15);
 }
 
 .badge-info {
@@ -955,8 +990,9 @@ body.theme-ivan .badge-points {
 }
 
 body.theme-ivan .badge-progress-bar {
-    border-radius: 0;
-    border: 1px solid var(--color-primary);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    background: rgba(35, 37, 69, 0.5);
 }
 
 .badge-progress-fill {
@@ -971,7 +1007,8 @@ body.theme-laura .badge-progress-fill {
 }
 
 body.theme-ivan .badge-progress-fill {
-    background: var(--color-primary);
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    border-radius: 6px;
 }
 
 .badge-progress-text {
@@ -1032,6 +1069,7 @@ body.theme-ivan .badge-progress-fill {
 
 body.theme-ivan .reward-cost {
     color: var(--color-primary);
+    font-weight: 900;
 }
 
 .reward-desc {
@@ -1056,7 +1094,7 @@ body.theme-ivan .reward-cost {
 }
 
 body.theme-ivan .reward-status-label {
-    border-radius: 0;
+    border-radius: 8px;
 }
 
 .reward-locked-label {
@@ -1091,7 +1129,8 @@ body.theme-laura .reward-card.reward-unlocked {
     box-shadow: 0 4px 15px rgba(255, 154, 158, 0.15);
 }
 body.theme-ivan .reward-card.reward-unlocked {
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.3);
 }
 
 .reward-card.reward-requested {
@@ -1338,25 +1377,26 @@ body.theme-laura .btn-primary-small {
 
 /* --- ADAPTACIÓN AL TEMA CYBERPUNK (IVÁN) --- */
 body.theme-ivan .update-toast {
-    background: rgba(11, 12, 16, 0.96);
-    border: 2px solid var(--color-primary);
-    border-radius: 0px;
-    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    background: rgba(20, 22, 43, 0.95);
+    border: 1px solid var(--color-primary);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 240, 255, 0.2);
 }
 
 body.theme-ivan .btn-primary-small {
-    background-color: transparent;
-    border: 1px solid var(--color-primary);
-    color: var(--color-primary);
-    border-radius: 0;
-    box-shadow: 0 0 6px rgba(0, 240, 255, 0.2);
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0077ff 100%);
+    border: none;
+    color: var(--color-text-invert);
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 240, 255, 0.2);
+    font-weight: 700;
     text-transform: uppercase;
 }
 
 body.theme-ivan .btn-primary-small:hover {
-    background-color: var(--color-primary);
-    color: var(--color-bg);
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    background: linear-gradient(135deg, var(--color-accent) 0%, #bd00ff 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 0, 127, 0.4);
 }
 
 body.theme-ivan .update-toast-emoji {
@@ -1632,7 +1672,7 @@ body.theme-ivan .decor-cyber {
     display: block;
 }
 body.theme-ivan #view-minigame {
-    background: radial-gradient(circle at center, #080d1a 0%, #020306 100%) !important;
+    background: radial-gradient(circle at center, #141733 0%, #070814 100%) !important;
 }
 /* Filtro de saturación fuerte para tonos Cyberpunk vibrantes */
 body.theme-ivan #minigame-canvas {

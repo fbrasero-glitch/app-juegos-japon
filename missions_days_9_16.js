@@ -3084,9 +3084,9 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_14_rock": {
-        tag: "photo", day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Hakone",
+        tag: "photo", day: 14, title: "Aliento de Volcán", role: "kid9", xp: 15, location: "Monte Fuji (5ª Estación)",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌋 Las rocas volcánicas de Hakone huelen a azufre y tienen colores extraños: amarillo, naranja, gris... Encuentra la roca más rara y fotografíala de cerca. ¡Cuidado, huele fatal!</p>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🌋 Las rocas volcánicas del Monte Fuji huelen a azufre y tienen colores extraños: amarillo, naranja, gris... Encuentra la roca más rara y fotografíala de cerca. ¡Cuidado, huele fatal!</p>
         <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B0000,#ff6b35,#f7c948); border-radius:15px;">
             <p style="font-size:3rem;">🌋🪨💨</p>
             <p style="color:#fff; font-weight:bold;">¡Huele a huevo podrido!</p>
@@ -3240,7 +3240,7 @@ Object.assign(MISSIONS_CONFIG, {
         title: "Guardián del Bosque",
         role: "kid9",
         xp: 15,
-        location: "Hakone",
+        location: "Bosque Aokigahara",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #2e7d32; color:#1b5e20; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🌳 El Guardián del Bosque Volcánico 🌳</p>
@@ -3921,9 +3921,9 @@ Object.assign(MISSIONS_CONFIG, {
     },
 
 "day_15_thatch": {
-        tag: "photo", day: 15, title: "La Aldea de Paja", role: "kid9", xp: 15, location: "Shirakawa-go",
+        tag: "photo", day: 15, title: "La Aldea de Paja", role: "kid9", xp: 15, location: "Iyashi no Sato",
         render: () => `
-        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏠 Las casas de Shirakawa-go tienen techos de paja tan gruesos que parecen sombreros gigantes. Algunos tienen más de 60cm de grosor. ¡Fotografía el techo más impresionante!</p>
+        <p class="mission-desc" style="font-size:1.1rem; line-height:1.6;">🏠 Las casas de Iyashi no Sato tienen techos de paja tan gruesos que parecen sombreros gigantes. Algunos tienen más de 60cm de grosor. ¡Fotografía el techo más impresionante!</p>
         <div style="text-align:center; margin:15px 0; padding:20px; background:linear-gradient(135deg,#8B7355,#D2B48C,#F5DEB3); border-radius:15px;">
             <p style="font-size:3rem;">🏠❄️🌾</p>
             <p style="color:#5a3e1b; font-weight:bold;">Casas que resisten 2 metros de nieve</p>
@@ -4054,7 +4054,7 @@ Object.assign(MISSIONS_CONFIG, {
         title: "El Trono del Shogun",
         role: "kid9",
         xp: 15,
-        location: "Takayama",
+        location: "Iyashi no Sato",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #efebe9 0%, #d7ccc8 100%); border-radius:15px; border:3px solid #795548; color:#4e342e; font-family:'Quicksand', sans-serif; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
                 <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">👑 El Trono del Shōgun 👑</p>

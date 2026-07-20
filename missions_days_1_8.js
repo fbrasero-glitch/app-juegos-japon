@@ -161,19 +161,19 @@ Object.assign(MISSIONS_CONFIG, {
                 <p style="font-size:0.8rem; margin-bottom:15px; color:#795548;">Busca y toca cada uno en la realidad. También debes tomar al menos una foto de prueba.</p>
                 <div class="bingo-grid" id="b-grid" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:15px;">
                     <div class="bingo-card" data-val="av" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        🈯️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Letrero Kanji</span>
+                        ✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Letrero VLC</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="pi" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        👾<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Cartel Pokémon</span>
+                        👨‍✈️<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Piloto</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="ma" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        🥫<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Café Boss en lata</span>
+                        🧳<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Maleta Roja</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                     <div class="bingo-card" data-val="pa" style="padding:15px; background:#fff; border:2px dashed #ffb74d; border-radius:10px; cursor:pointer; font-size:2rem; transition:all 0.3s ease; position:relative;">
-                        🎌<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Bandera Empleado</span>
+                        🛂<br><span style="font-size:0.8rem; font-weight:bold; color:#795548;">Pasaporte</span>
                         <div class="sticker-sparkle" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,215,0,0.15); border-radius:8px; opacity:0; pointer-events:none;"></div>
                     </div>
                 </div>
@@ -780,14 +780,14 @@ Object.assign(MISSIONS_CONFIG, {
     "day_2_maze": {
         tag: "expert",
         day: 2,
-        title: "Mapeo del Laberinto",
+        title: "Infiltración en la Terminal",
         role: "kid14",
         xp: 20,
-        location: "Metro",
+        location: "Aeropuerto KIX",
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
-                <p>>>> INFILTRACIÓN SUBTERRÁNEA - CRONÓMETRO DE ESCAPE</p>
-                <p style="color:#aaa;">Inicia el cronómetro cuando pongas un pie fuera del vagón y deténlo cuando salgas a la calle.</p>
+                <p>>>> OPERATIVO DE ATERRIZAJE - TIEMPO DE DESEMBARQUE</p>
+                <p style="color:#aaa;">Inicia el cronómetro cuando pongas un pie fuera del avión y deténlo cuando salgas a la calle tras recoger maletas y pasar inmigración.</p>
                 <div id="chrono-container" style="margin:20px 0;"></div>
                 <input type="hidden" id="ans" value="">
                 <button id="btn-maze" class="btn-primary" style="width:100%; border-color:#00ff99; color:#00ff99; background:transparent;">ENVIAR REPORTE TÁCTICO</button>
@@ -818,7 +818,7 @@ Object.assign(MISSIONS_CONFIG, {
         title: "Kanjis de Emergencia",
         role: "kid14",
         xp: 15,
-        location: "Metro",
+        location: "Aeropuerto / Hotel",
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0a0e12; border:1px solid #00ff99; color:#00ff99;">
                 <p>>>> PROTOCOLO DE ORIENTACIÓN: SEÑALES DE EVACUACIÓN</p>
@@ -1088,7 +1088,7 @@ Object.assign(MISSIONS_CONFIG, {
         title: "Equilibrio Silencioso",
         role: "kid9",
         xp: 20,
-        location: "Metro",
+        location: "Hotel",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #81c784; color:#1b5e20; font-family:'Quicksand', sans-serif;">
                 <p class="mission-desc" style="font-weight:bold;">🦊 El Jardín del Silencio Kitsune 🌸</p>
@@ -1256,14 +1256,14 @@ Object.assign(MISSIONS_CONFIG, {
     "day_2_melody": {
         tag: "audio",
         day: 2,
-        title: "Melodía Subterránea",
+        title: "Melodía del Konbini",
         role: "kid9",
         xp: 20,
-        location: "Metro",
+        location: "Konbini",
         render: () => `
             <div style="text-align:center; padding:15px; background:linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius:15px; border:3px solid #4caf50; color:#1b5e20; font-family:'Quicksand', sans-serif;">
-                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🎵 Melodía Subterránea 🎵</p>
-                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Cuando suene la música alegre de la estación (Hassha Melody) al anunciar la salida del tren, graba 5 segundos y clasifícala:</p>
+                <p class="mission-desc" style="font-weight:bold; font-size:1.1rem; margin-bottom:10px;">🏪 Melodía del Konbini 🎵</p>
+                <p style="font-size:0.85rem; margin-bottom:15px; color:#2e7d32;">Cuando entres a un konbini (como FamilyMart) y suene el famoso timbre musical de bienvenida, graba 5 segundos y clasifícalo:</p>
                 
                 <div style="margin-bottom:15px;">
                     <button type="button" id="btn-record-melody" class="btn-primary" style="width:100%; border-radius:25px; background:#4caf50; border-color:#4caf50; font-weight:bold; font-family:'Quicksand';">🎤 Grabar Melodía (5s)</button>
@@ -1397,7 +1397,7 @@ Object.assign(MISSIONS_CONFIG, {
         title: "Coleccionista de Eki-Stamps",
         role: "both",
         xp: 15,
-        location: "Estaciones",
+        location: "Aeropuerto KIX (Estación)",
         render: () => `<p class="mission-desc">Las estaciones tienen sellos únicos (Eki-Stamps). Buscad la mesa de sellado y fotografiad el primer sello impreso en vuestra libreta.</p>
                        <button id="btn-cam" class="btn-secondary">📸 Tomar Foto</button>`,
         attachEvents: (role) => attachCameraFlow('btn-cam', 'day_2_ekistamp', role, false, true)
@@ -3494,11 +3494,11 @@ Object.assign(MISSIONS_CONFIG, {
         title: "Viaje en el Tiempo",
         role: "kid14",
         xp: 15,
-        location: "Sannenzaka",
+        location: "Castillo de Nijo",
         render: () => `
             <div class="ui-terminal" style="padding:15px; border-radius:8px; font-family:monospace; background:#0c0812; border:1px solid #d500f9; color:#d500f9; box-shadow:0 4px 20px rgba(213,0,249,0.25);">
                 <p>>>> TOMA FOTOGRÁFICA CRONOLÓGICA // ERA EDO</p>
-                <p style="color:#00f0ff; font-size:0.85rem;">Encuentra una vista en Sannenzaka que emule el año 1600. Toma una foto intentando evitar elementos modernos (turistas con móvil, cables de luz, carteles plásticos).</p>
+                <p style="color:#00f0ff; font-size:0.85rem;">Encuentra una vista en el Castillo de Nijo que emule la época medieval. Toma una foto intentando evitar elementos modernos (turistas con móvil, cables de luz, carteles plásticos).</p>
                 <div style="margin:15px 0; padding:10px; background:rgba(213,0,249,0.05); border:1px dashed #d500f9; border-radius:5px; text-align:center; font-size:0.8rem; color:#fff;">
                     ⚡ REQUISITO TÁCTICO: Ángulo limpio sin contaminación tecnológica.
                 </div>

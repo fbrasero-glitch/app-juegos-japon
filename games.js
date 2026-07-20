@@ -1248,6 +1248,30 @@ window.MinigamesManager = {
         this.state = 'playing';
         if (window.playProceduralSound) window.playProceduralSound('success');
         
+        // Registrar minijuego jugado hoy
+        try {
+            if (window.gameState && window.currentUser && window.currentUser !== 'judge') {
+                const todayStr = window.getJapanCurrentDate ? window.getJapanCurrentDate().toDateString() : new Date().toDateString();
+                if (!window.gameState[window.currentUser].counters) window.gameState[window.currentUser].counters = {};
+                const counters = window.gameState[window.currentUser].counters;
+                if (!counters.dailyActivity) counters.dailyActivity = {};
+                if (!counters.dailyActivity[todayStr]) {
+                    counters.dailyActivity[todayStr] = { minigamesPlayed: 0, photosAdded: 0, physicalCompleted: 0, languageCompleted: 0 };
+                }
+                counters.dailyActivity[todayStr].minigamesPlayed = (counters.dailyActivity[todayStr].minigamesPlayed || 0) + 1;
+                if (window.saveState) window.saveState();
+                
+                if (window.checkBadges && window.showNewBadges) {
+                    const newBadges = window.checkBadges(window.currentUser, null);
+                    if (newBadges && newBadges.length > 0) {
+                        window.showNewBadges(newBadges);
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Error logging daily minigame play", e);
+        }
+
         this.lastTime = performance.now();
         if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
         this.animationFrameId = requestAnimationFrame((t) => this.loop(t));
@@ -1866,7 +1890,7 @@ window.MinigamesManager = {
                 this.inputKintsugiPress(x, y);
                 break;
             case 'day_7_tea':
-                this.inputTeaPress(x, y);
+                this.inputTeaPress7(x, y);
                 break;
             case 'day_7_stone_guardian':
                 this.inputStoneGuardianPress(x, y);
@@ -1899,10 +1923,10 @@ window.MinigamesManager = {
                 this.inputToriiPress(x, y);
                 break;
             case 'day_10_kid9_bento':
-                this.inputBentoPress(x, y);
+                this.inputBentoPress10(x, y);
                 break;
             case 'day_10_kid14_crypto':
-                this.inputCryptoPress(x, y);
+                this.inputCryptoPress10(x, y);
                 break;
             case 'day_8_kid9_pose':
                 this.inputPosePress(x, y);
@@ -1944,7 +1968,7 @@ window.MinigamesManager = {
                 this.inputFamPortalPress(x, y);
                 break;
             case 'day_10_kid9_dragon':
-                this.inputDragonPress(x, y);
+                this.inputDragonPress10(x, y);
                 break;
             case 'day_10_kid9_rainbow':
                 this.inputRainbowPress(x, y);
@@ -1977,7 +2001,7 @@ window.MinigamesManager = {
             case 'day_12_appraisal': this.inputAppraisalPress(x, y); break;
             case 'day_12_bridge': this.inputBridgePress(x, y); break;
             // DIA 13
-            case 'day_13_stairs': this.inputStairsPress(x, y); break;
+            case 'day_13_stairs': this.inputStairsPress13(x, y); break;
             case 'day_13_manhole': this.inputManholePress(x, y); break;
             case 'day_13_icecream': this.inputIcecreamPress(x, y); break;
             case 'day_13_yokai': this.inputYokaiPress(x, y); break;
@@ -2022,7 +2046,7 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.inputOmikujiPress(x, y); break;
             case 'day_17_incense': this.inputIncensePress(x, y); break;
             case 'day_17_gashapon': this.inputGashaponPress(x, y); break;
-            case 'day_17_p2p_receiver':
+            case 'day_17_p2p_receiver': this.inputP2PReceiverPress(x, y); break;
             case 'day_17_retro': this.inputRetroPress(x, y); break;
             case 'day_17_skytree': this.inputSkytreePress(x, y); break;
             case 'day_17_p2p_sender': this.inputP2PSenderPress(x, y, id); break;
@@ -2142,7 +2166,7 @@ window.MinigamesManager = {
                 this.releaseAltar(x, y);
                 break;
             case 'day_10_kid9_bento':
-                this.releaseBento(x, y);
+                this.releaseBento10(x, y);
                 break;
             case 'day_10_kid9_rainbow':
                 this.releaseRainbow(x, y);
@@ -2172,7 +2196,7 @@ window.MinigamesManager = {
             // DIA 17
             case 'day_17_omikuji': this.releaseOmikuji(x, y); break;
             case 'day_17_gashapon': this.releaseGashapon(x, y); break;
-            case 'day_17_p2p_receiver':
+            case 'day_17_p2p_receiver': this.releaseP2PReceiver(x, y); break;
             case 'day_17_p2p_sender': this.releaseP2PSender(x, y, id); break;
             case 'day_17_height': this.releaseHeight(x, y); break;
 
@@ -2412,7 +2436,7 @@ window.MinigamesManager = {
                 this.setupKintsugi();
                 break;
             case 'day_7_tea':
-                this.setupTea();
+                this.setupTea7();
                 break;
             case 'day_7_stone_guardian':
                 this.setupStoneGuardian();
@@ -2445,10 +2469,10 @@ window.MinigamesManager = {
                 this.setupTorii();
                 break;
             case 'day_10_kid9_bento':
-                this.setupBento();
+                this.setupBento10();
                 break;
             case 'day_10_kid14_crypto':
-                this.setupCrypto();
+                this.setupCrypto10();
                 break;
             case 'day_8_kid9_pose':
                 this.setupPose();
@@ -2499,7 +2523,7 @@ window.MinigamesManager = {
                 this.setupNishiki();
                 break;
             case 'day_10_kid9_dragon':
-                this.setupDragon();
+                this.setupDragon10();
                 break;
             case 'day_10_kid9_rainbow':
                 this.setupRainbow();
@@ -2527,7 +2551,7 @@ window.MinigamesManager = {
             case 'day_11_economy': this.setupEconomy(); break;
             case 'day_11_geta': this.setupGeta(); break;
             // DIA 12
-            case 'day_12_silence': this.setupSilence(); break;
+            case 'day_12_silence': this.setupSilence12(); break;
             case 'day_12_sugidama': this.setupSugidama(); break;
             case 'day_12_wood': this.setupWood(); break;
             case 'day_12_hida': this.setupHida(); break;
@@ -2537,7 +2561,7 @@ window.MinigamesManager = {
             case 'day_12_appraisal': this.setupAppraisal(); break;
             case 'day_12_bridge': this.setupBridge(); break;
             // DIA 13
-            case 'day_13_stairs': this.setupStairs(); break;
+            case 'day_13_stairs': this.setupStairs13(); break;
             case 'day_13_manhole': this.setupManhole(); break;
             case 'day_13_icecream': this.setupIcecream(); break;
             case 'day_13_yokai': this.setupYokai(); break;
@@ -2582,7 +2606,7 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.setupOmikuji(); break;
             case 'day_17_incense': this.setupIncense(); break;
             case 'day_17_gashapon': this.setupGashapon(); break;
-            case 'day_17_p2p_receiver':
+            case 'day_17_p2p_receiver': this.setupP2PReceiver(); break;
             case 'day_17_retro': this.setupRetro(); break;
             case 'day_17_skytree': this.setupSkytree(); break;
             case 'day_17_p2p_sender': this.setupP2PSender(); break;
@@ -2776,7 +2800,7 @@ window.MinigamesManager = {
                 this.updateKintsugi(dt);
                 break;
             case 'day_7_tea':
-                this.updateTea(dt);
+                this.updateTea7(dt);
                 break;
             case 'day_7_stone_guardian':
                 this.updateStoneGuardian(dt);
@@ -2809,10 +2833,10 @@ window.MinigamesManager = {
                 this.updateTorii(dt);
                 break;
             case 'day_10_kid9_bento':
-                this.updateBento(dt);
+                this.updateBento10(dt);
                 break;
             case 'day_10_kid14_crypto':
-                this.updateCrypto(dt);
+                this.updateCrypto10(dt);
                 break;
             case 'day_8_kid9_pose':
                 this.updatePose(dt);
@@ -2863,7 +2887,7 @@ window.MinigamesManager = {
                 this.updateNishiki(dt);
                 break;
             case 'day_10_kid9_dragon':
-                this.updateDragon(dt);
+                this.updateDragon10(dt);
                 break;
             case 'day_10_kid9_rainbow':
                 this.updateRainbow(dt);
@@ -2891,7 +2915,7 @@ window.MinigamesManager = {
             case 'day_11_economy': this.updateEconomy(dt); break;
             case 'day_11_geta': this.updateGeta(dt); break;
             // DIA 12
-            case 'day_12_silence': this.updateSilence(dt); break;
+            case 'day_12_silence': this.updateSilence12(dt); break;
             case 'day_12_sugidama': this.updateSugidama(dt); break;
             case 'day_12_wood': this.updateWood(dt); break;
             case 'day_12_hida': this.updateHida(dt); break;
@@ -2901,7 +2925,7 @@ window.MinigamesManager = {
             case 'day_12_appraisal': this.updateAppraisal(dt); break;
             case 'day_12_bridge': this.updateBridge(dt); break;
             // DIA 13
-            case 'day_13_stairs': this.updateStairs(dt); break;
+            case 'day_13_stairs': this.updateStairs13(dt); break;
             case 'day_13_manhole': this.updateManhole(dt); break;
             case 'day_13_icecream': this.updateIcecream(dt); break;
             case 'day_13_yokai': this.updateYokai(dt); break;
@@ -2946,7 +2970,7 @@ window.MinigamesManager = {
             case 'day_17_omikuji': this.updateOmikuji(dt); break;
             case 'day_17_incense': this.updateIncense(dt); break;
             case 'day_17_gashapon': this.updateGashapon(dt); break;
-            case 'day_17_p2p_receiver':
+            case 'day_17_p2p_receiver': this.updateP2PReceiver(dt); break;
             case 'day_17_retro': this.updateRetro(dt); break;
             case 'day_17_skytree': this.updateSkytree(dt); break;
             case 'day_17_p2p_sender': this.updateP2PSender(dt); break;
@@ -3162,7 +3186,7 @@ window.MinigamesManager = {
                     this.drawKintsugi();
                     break;
                 case 'day_7_tea':
-                    this.drawTea();
+                    this.drawTea7();
                     break;
                 case 'day_7_stone_guardian':
                     this.drawStoneGuardian();
@@ -3195,10 +3219,10 @@ window.MinigamesManager = {
                     this.drawTorii();
                     break;
                 case 'day_10_kid9_bento':
-                    this.drawBento();
+                    this.drawBento10();
                     break;
                 case 'day_10_kid14_crypto':
-                    this.drawCrypto();
+                    this.drawCrypto10();
                     break;
                 case 'day_8_kid9_pose':
                     this.drawPose();
@@ -3249,7 +3273,7 @@ window.MinigamesManager = {
                     this.drawNishiki();
                     break;
                 case 'day_10_kid9_dragon':
-                    this.drawDragon();
+                    this.drawDragon10();
                     break;
                 case 'day_10_kid9_rainbow':
                     this.drawRainbow();
@@ -3277,7 +3301,7 @@ window.MinigamesManager = {
                 case 'day_11_economy': this.drawEconomy(); break;
                 case 'day_11_geta': this.drawGeta(); break;
                 // DIA 12
-                case 'day_12_silence': this.drawSilence(); break;
+                case 'day_12_silence': this.drawSilence12(); break;
                 case 'day_12_sugidama': this.drawSugidama(); break;
                 case 'day_12_wood': this.drawWood(); break;
                 case 'day_12_hida': this.drawHida(); break;
@@ -3287,7 +3311,7 @@ window.MinigamesManager = {
                 case 'day_12_appraisal': this.drawAppraisal(); break;
                 case 'day_12_bridge': this.drawBridge(); break;
                 // DIA 13
-                case 'day_13_stairs': this.drawStairs(); break;
+                case 'day_13_stairs': this.drawStairs13(); break;
                 case 'day_13_manhole': this.drawManhole(); break;
                 case 'day_13_icecream': this.drawIcecream(); break;
                 case 'day_13_yokai': this.drawYokai(); break;
@@ -3332,7 +3356,7 @@ window.MinigamesManager = {
                 case 'day_17_omikuji': this.drawOmikuji(); break;
                 case 'day_17_incense': this.drawIncense(); break;
                 case 'day_17_gashapon': this.drawGashapon(); break;
-                case 'day_17_p2p_receiver':
+                case 'day_17_p2p_receiver': this.drawP2PReceiver(); break;
                 case 'day_17_retro': this.drawRetro(); break;
                 case 'day_17_skytree': this.drawSkytree(); break;
                 case 'day_17_p2p_sender': this.drawP2PSender(); break;
@@ -8358,24 +8382,34 @@ window.MinigamesManager = {
     // 17. INFILTRACIÓN DE DATOS (day_4_isshinji)
     // ==========================================================
     setupIsshinji() {
+        // Randomize key locations on an 8x6 grid
+        const keys = [];
+        const used = new Set(["0,5", "7,0"]); // avoid player start [0,5] and exit [7,0]
+        while (keys.length < 3) {
+            const kX = Math.floor(Math.random() * 8);
+            const kY = Math.floor(Math.random() * 6);
+            const keyStr = `${kX},${kY}`;
+            if (!used.has(keyStr)) {
+                used.add(keyStr);
+                keys.push({ gridX: kX, gridY: kY, collected: false });
+            }
+        }
+
+        // Randomize enemy speeds and directions
         this.gameData = {
             lives: 3,
             score: 0,
             player: { gridX: 0, gridY: 5, x: 50, y: 440, targetX: 50, targetY: 440 },
             exit: { gridX: 7, gridY: 0, x: 750, y: 40 },
-            keys: [
-                { gridX: 1, gridY: 1, collected: false },
-                { gridX: 6, gridY: 4, collected: false },
-                { gridX: 4, gridY: 2, collected: false }
-            ],
+            keys: keys,
             enemies: [
-                { gridX: 3, gridY: 0, startGridY: 0, endGridY: 4, dir: 1, type: 'col', x: 350, y: 40, speed: 2.0 },
-                { gridX: 5, gridY: 5, startGridY: 1, endGridY: 5, dir: -1, type: 'col', x: 550, y: 440, speed: 2.5 },
-                { gridX: 0, gridY: 3, startGridX: 1, endGridX: 6, dir: 1, type: 'row', x: 150, y: 280, speed: 3.0 }
+                { gridX: 3, gridY: Math.random() * 4, startGridY: 0, endGridY: 4, dir: Math.random() < 0.5 ? 1 : -1, type: 'col', x: 350, y: 40, speed: 1.5 + Math.random() * 1.5 },
+                { gridX: 5, gridY: Math.random() * 4 + 1, startGridY: 1, endGridY: 5, dir: Math.random() < 0.5 ? 1 : -1, type: 'col', x: 550, y: 440, speed: 1.8 + Math.random() * 1.5 },
+                { gridX: 0, gridY: 3, startGridX: 1, endGridX: 6, dir: Math.random() < 0.5 ? 1 : -1, type: 'row', x: 150, y: 280, speed: 2.2 + Math.random() * 1.5 }
             ],
-            feedbackText: "",
-            feedbackTimer: 0,
-            feedbackColor: "#e91e63"
+            feedbackText: "📟 Mainframe en línea: extrayendo llaves...",
+            feedbackTimer: 2.0,
+            feedbackColor: "#00ff99"
         };
         this.score = 0;
     },
@@ -10069,6 +10103,27 @@ window.MinigamesManager = {
             this.generateSpiralPath(),
             this.generateStarPath()
         ];
+        
+        // Shuffle the order of shapes
+        for (let i = shapes.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shapes[i], shapes[j]] = [shapes[j], shapes[i]];
+        }
+
+        // Apply a random rotation (between -25 and +25 degrees) to each shape
+        shapes.forEach(shape => {
+            const angle = (Math.random() - 0.5) * 0.8; // random angle in radians (~±23 degrees)
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            shape.forEach(pt => {
+                // Rotate around center (400, 300)
+                const dx = pt.x - 400;
+                const dy = pt.y - 300;
+                pt.x = 400 + dx * cos - dy * sin;
+                pt.y = 300 + dx * sin + dy * cos;
+            });
+        });
+
         this.gameData = {
             lives: 3,
             shapes: shapes,
@@ -10078,9 +10133,9 @@ window.MinigamesManager = {
             checkpoints: [],
             accuracyPoints: 0,
             totalTracedPoints: 0,
-            feedbackText: "¡Mantén presionado y traza la línea!",
-            feedbackColor: "#0288d1",
-            feedbackTimer: 1.5
+            feedbackText: "✨ ¡Traza las constelaciones en el cielo! ✨",
+            feedbackColor: "#00f0ff",
+            feedbackTimer: 2.0
         };
         this.score = 0;
         this.loadRibbonShape(0);
@@ -10643,7 +10698,7 @@ window.MinigamesManager = {
     },
 
     setupZen() {
-        const kanjis = [
+        const kanjiPool = [
             {
                 name: "人 (Persona)",
                 strokes: [
@@ -10658,8 +10713,30 @@ window.MinigamesManager = {
                     [{ x: 280, y: 240 }, { x: 280, y: 320 }, { x: 280, y: 375 }, { x: 340, y: 375 }, { x: 400, y: 375 }, { x: 460, y: 375 }, { x: 520, y: 375 }],
                     [{ x: 520, y: 240 }, { x: 520, y: 300 }, { x: 520, y: 375 }]
                 ]
+            },
+            {
+                name: "木 (Árbol)",
+                strokes: [
+                    [{ x: 280, y: 240 }, { x: 360, y: 240 }, { x: 440, y: 240 }, { x: 520, y: 240 }],
+                    [{ x: 400, y: 140 }, { x: 400, y: 220 }, { x: 400, y: 300 }, { x: 400, y: 380 }],
+                    [{ x: 400, y: 240 }, { x: 360, y: 280 }, { x: 320, y: 330 }, { x: 280, y: 380 }],
+                    [{ x: 400, y: 240 }, { x: 440, y: 280 }, { x: 480, y: 330 }, { x: 520, y: 380 }]
+                ]
+            },
+            {
+                name: "川 (Río)",
+                strokes: [
+                    [{ x: 320, y: 180 }, { x: 310, y: 260 }, { x: 290, y: 360 }],
+                    [{ x: 400, y: 220 }, { x: 400, y: 290 }, { x: 400, y: 360 }],
+                    [{ x: 480, y: 180 }, { x: 480, y: 270 }, { x: 480, y: 360 }]
+                ]
             }
         ];
+        
+        // Shuffle the pool and select the first 2 Kanjis
+        const shuffled = kanjiPool.sort(() => Math.random() - 0.5);
+        const kanjis = shuffled.slice(0, 2);
+
         this.gameData = {
             lives: 3,
             kanjis: kanjis,
@@ -10668,7 +10745,7 @@ window.MinigamesManager = {
             drawing: false,
             userBrushTrail: [],
             drawnStrokes: [],
-            feedbackText: "Sigue los números y las flechas de trazo.",
+            feedbackText: "✒️ Sigue los números y las flechas de trazo.",
             feedbackColor: "#616161",
             feedbackTimer: 2.0,
             hankoStamped: false,
@@ -12009,8 +12086,8 @@ window.MinigamesManager = {
 
     setupTactical() {
         const guards = [
-            { x: 300, y: 150, r: 120, sweepAngle: 0, speed: 2, range: [0, Math.PI] },
-            { x: 500, y: 350, r: 110, sweepAngle: Math.PI, speed: 1.5, range: [Math.PI, Math.PI*2] }
+            { x: 300 + (Math.random() - 0.5) * 60, y: 150 + (Math.random() - 0.5) * 40, r: 110 + Math.random() * 20, sweepAngle: Math.random() * Math.PI, speed: 1.5 + Math.random() * 1.0 },
+            { x: 500 + (Math.random() - 0.5) * 60, y: 350 + (Math.random() - 0.5) * 40, r: 100 + Math.random() * 20, sweepAngle: Math.random() * Math.PI, speed: 1.2 + Math.random() * 0.8 }
         ];
         const nodes = [
             { x: 100, y: 500, state: 'visited' },
@@ -12021,12 +12098,19 @@ window.MinigamesManager = {
             { x: 680, y: 300, state: 'open' },
             { x: 700, y: 100, state: 'exit' }
         ];
+        
+        // Add random slight offsets to intermediate nodes for layout variation
+        for (let i = 1; i <= 5; i++) {
+            nodes[i].x += (Math.random() - 0.5) * 50;
+            nodes[i].y += (Math.random() - 0.5) * 50;
+        }
+
         this.gameData = {
             guards: guards,
             nodes: nodes,
             currentNodeIdx: 0,
             lives: 3,
-            feedbackText: "¡Toca los nodos conectados para llegar al tejado sin que te vean!",
+            feedbackText: "🏯 ¡Toca los nodos para moverte sin cruzar los conos de luz!",
             feedbackColor: "#0288d1",
             feedbackTimer: 3.0
         };
@@ -12416,12 +12500,12 @@ window.MinigamesManager = {
         this.gameData = {
             steps: 0,
             tempoTimer: 0.0,
-            bpm: 80,
+            bpm: 72 + Math.floor(Math.random() * 24), // Random tempo between 72 and 96 BPM
             targetAngle: 0.0,
             playerX: 400,
-            feedbackText: "¡Toca la pantalla al compás del círculo que parpadea!",
-            feedbackColor: "#0288d1",
-            feedbackTimer: 2.0
+            feedbackText: "🥁 ¡Toca la pantalla al ritmo del Taiko central!",
+            feedbackColor: "#38bdf8",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
@@ -12531,13 +12615,30 @@ window.MinigamesManager = {
     },
 
     setupClan() {
+        const targetPose = Math.floor(Math.random() * 3);
+        
+        // Random starting poses ensuring they are not all matching the target pose from the start
+        let poses = [];
+        let matchesAll = true;
+        while (matchesAll) {
+            poses = Array.from({length: 4}, () => Math.floor(Math.random() * 3));
+            matchesAll = poses.every(p => p === targetPose);
+        }
+
+        const poseNames = [
+            "divertida (abierta) 🤪",
+            "seria (militar) 😐",
+            "saludo samurái 🫡"
+        ];
+
         this.gameData = {
             timer: 10.0,
-            poses: [0, 1, 2, 0],
-            targetPose: 1,
-            feedbackText: "¡Haz que todos los miembros hagan la pose seria (pose 1)!",
+            poses: poses,
+            targetPose: targetPose,
+            poseNames: poseNames,
+            feedbackText: `📸 ¡Alinea al clan! Todos deben hacer la pose: ${poseNames[targetPose]}`,
             feedbackColor: "#ffd54f",
-            feedbackTimer: 3.0
+            feedbackTimer: 3.5
         };
         this.score = 0;
     },
@@ -12557,6 +12658,8 @@ window.MinigamesManager = {
                 if (window.launchConfetti) window.launchConfetti();
                 this.win();
             } else {
+                this.triggerShake(15);
+                if (window.playProceduralSound) window.playProceduralSound('error');
                 this.gameOver();
             }
         }
@@ -12614,7 +12717,7 @@ window.MinigamesManager = {
         this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`📸 Retrato de Familia Imperial: Alinea las poses (Pose 1)`, 30, 36);
+        ctx.fillText(`📸 Retrato del Clan: Alinea la pose: ${gd.poseNames[gd.targetPose]}`, 30, 36);
         ctx.fillStyle = '#fbbf24';
         ctx.fillText(`Foto en: ${Math.max(0, Math.ceil(gd.timer))}s`, 640, 36);
 
@@ -12817,6 +12920,24 @@ window.MinigamesManager = {
             [{ x: 400, y: 300 }, { x: 450, y: 320 }, { x: 500, y: 360 }, { x: 580, y: 420 }],
             [{ x: 550, y: 180 }, { x: 500, y: 230 }, { x: 450, y: 270 }, { x: 400, y: 300 }]
         ];
+        
+        // Randomize intermediate points of cracks (leaving the shared center [400,300] intact)
+        cracks.forEach((crack, cidx) => {
+            crack.forEach((pt, pidx) => {
+                const isCenter = (cidx === 0 && pidx === 3) || (cidx === 1 && pidx === 0) || (cidx === 2 && pidx === 3);
+                if (!isCenter) {
+                    pt.x += (Math.random() - 0.5) * 35;
+                    pt.y += (Math.random() - 0.5) * 35;
+                }
+            });
+        });
+
+        // Shuffle the order of cracks to trace
+        for (let i = cracks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cracks[i], cracks[j]] = [cracks[j], cracks[i]];
+        }
+
         let hwVal = 35;
         try {
             const purchases = JSON.parse(localStorage.getItem('minigames_shop_purchases') || '{}');
@@ -12830,7 +12951,7 @@ window.MinigamesManager = {
             accuracyPoints: 0,
             totalTracedPoints: 0,
             lives: 3,
-            feedbackText: "¡Rellena las grietas del plato con resina de oro!",
+            feedbackText: "🏺 ¡Restaura las grietas del plato con resina de oro! 🏺",
             feedbackColor: "#ffd700",
             feedbackTimer: 3.0,
             hitboxWidth: hwVal
@@ -13023,21 +13144,24 @@ window.MinigamesManager = {
         }
     },
 
-    setupTea() {
+    setupTea7() {
         this.gameData = {
             timer: 15.0,
             cupX: 0.0,
             cupVelX: 0.0,
             trayAngle: 0.0,
             lives: 3,
-            feedbackText: "Equilibra la taza de té en el centro de la bandeja.",
+            gravityEffect: 580 + Math.random() * 160, // random gravity scale
+            windEffect: 0.0,
+            windTimer: 1.0 + Math.random() * 2.0,
+            feedbackText: "🍵 Equilibra la taza de té en el centro de la bandeja.",
             feedbackColor: "#4caf50",
             feedbackTimer: 2.5
         };
         this.score = 15;
     },
 
-    updateTea(dt) {
+    updateTea7(dt) {
         if (this.state !== 'playing') return;
         const gd = this.gameData;
         if (!gd) return;
@@ -13054,11 +13178,20 @@ window.MinigamesManager = {
             return;
         }
 
+        // Apply subtle wind gusts to disturb balance randomly
+        gd.windTimer -= dt;
+        if (gd.windTimer <= 0) {
+            gd.windEffect = (Math.random() - 0.5) * 7.0; // slight push
+            gd.windTimer = 1.5 + Math.random() * 2.0;
+        } else {
+            gd.windEffect *= 0.98; // decay
+        }
+
         const offsetX = this.mouse.x - 400;
         gd.trayAngle = (offsetX / 400) * 0.45;
 
-        const gravityEffect = 650;
-        gd.cupVelX += Math.sin(gd.trayAngle) * gravityEffect * dt;
+        gd.cupVelX += Math.sin(gd.trayAngle) * gd.gravityEffect * dt;
+        gd.cupVelX += gd.windEffect * dt; // Apply random wind gust
         gd.cupVelX -= gd.cupVelX * 1.5 * dt;
         gd.cupX += gd.cupVelX * dt;
 
@@ -13077,7 +13210,7 @@ window.MinigamesManager = {
         }
     },
 
-    drawTea() {
+    drawTea7() {
         const gd = this.gameData;
         if (!gd) return;
         const ctx = this.ctx;
@@ -13143,7 +13276,7 @@ window.MinigamesManager = {
         ctx.fillText(`Vidas: ${hearts}`, 620, 36);
     },
 
-    inputTeaPress(x, y) {
+    inputTeaPress7(x, y) {
     },
 
     setupStoneGuardian() {
@@ -13838,6 +13971,7 @@ window.MinigamesManager = {
             ]
         };
         this.score = 0;
+        // Math.random is utilized inside startGeishaSequence for procedural patterns
         this.startGeishaSequence();
     },
 
@@ -14182,25 +14316,17 @@ window.MinigamesManager = {
     // ==========================================================
     setupWaveSync() {
         this.gameData = {
-            level: 1,
-            amp: 30,
-            freq: 0.02,
-            phase: 0.0,
-            targetAmp: 60,
-            targetFreq: 0.05,
-            targetPhase: Math.PI / 2,
-            matchTimer: 0.0,
-            syncStatus: false,
-            time: 0,
-            activeSlider: null,
-            configs: [
-                { targetAmp: 50, targetFreq: 0.04, targetPhase: 1.2 },
-                { targetAmp: 90, targetFreq: 0.07, targetPhase: 3.8 },
-                { targetAmp: 130, targetFreq: 0.10, targetPhase: 2.2 }
-            ]
+            targetFreq: 2.0 + Math.random() * 6.0, // Random target frequency
+            targetPhase: Math.random() * Math.PI,  // Random target phase
+            currentFreq: 1.0,
+            currentPhase: 0.0,
+            lives: 3,
+            timer: 0.0,
+            feedbackText: "📶 Sintoniza la frecuencia y fase de la señal de datos.",
+            feedbackColor: "#00e676",
+            feedbackTimer: 2.5
         };
         this.score = 0;
-        this.applyWaveLevelConfig();
     },
 
     applyWaveLevelConfig() {
@@ -14220,49 +14346,32 @@ window.MinigamesManager = {
         const gd = this.gameData;
         if (!gd) return;
 
-        gd.time += dt;
+        gd.timer += dt;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
 
-        if (this.mouse.isDown && gd.activeSlider) {
-            const mx = this.mouse.x;
-            const pct = Math.max(0, Math.min(1, (mx - 200) / 400));
-            
-            if (gd.activeSlider === 'amp') {
-                gd.amp = 10 + pct * 140;
-            } else if (gd.activeSlider === 'freq') {
-                gd.freq = 0.01 + pct * 0.11;
-            } else if (gd.activeSlider === 'phase') {
-                gd.phase = pct * Math.PI * 2;
-            }
-        } else if (!this.mouse.isDown) {
-            gd.activeSlider = null;
-        }
+        // Adjust parameters using mouse position
+        gd.currentFreq = 1.0 + (this.mouse.x / 800) * 8.0;
+        gd.currentPhase = (this.mouse.y / 600) * Math.PI * 2;
 
-        const dAmp = Math.abs(gd.amp - gd.targetAmp);
-        const dFreq = Math.abs(gd.freq - gd.targetFreq);
-        const dPhase = Math.abs(gd.phase - gd.targetPhase);
+        const freqDiff = Math.abs(gd.currentFreq - gd.targetFreq);
+        const phaseDiff = Math.abs(Math.sin(gd.currentPhase) - Math.sin(gd.targetPhase));
 
-        if (dAmp < 8 && dFreq < 0.006 && dPhase < 0.4) {
-            gd.syncStatus = true;
-            gd.matchTimer += dt;
-            if (gd.matchTimer >= 1.5) {
-                if (window.playProceduralSound) window.playProceduralSound('win');
-                if (gd.level < 3) {
-                    this.createExplosion(400, 250, '#00ff99', 25, 1.3);
-                    gd.level++;
-                    this.score = gd.level - 1;
-                    this.applyWaveLevelConfig();
-                } else {
-                    this.score = 3;
-                    if (window.launchConfetti) window.launchConfetti();
-                    this.win();
-                }
+        if (freqDiff < 0.28 && phaseDiff < 0.28) {
+            this.score += dt * 30;
+            if (window.playProceduralSound && Math.random() < 0.08) window.playProceduralSound('collect');
+            if (this.score >= 100) {
+                this.score = 100;
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
             }
         } else {
-            gd.syncStatus = false;
-            gd.matchTimer = 0;
+            // Decelerate score on mismatch
+            this.score = Math.max(0, this.score - dt * 10);
+            if (freqDiff > 2.0 && Math.random() < 0.01) {
+                this.triggerShake(2); // subtle static noise shake
+            }
         }
-        
-        document.getElementById('minigame-score').innerText = `Fase: ${gd.level}/3`;
+        document.getElementById('minigame-score').innerText = `Sintonía: ${Math.round(this.score)}/100`;
     },
 
     drawWaveSync() {
@@ -14760,211 +14869,193 @@ window.MinigamesManager = {
     // ==========================================================
     // DAY 10 - LAURA (9): EL MAESTRO DEL BENTO
     // ==========================================================
-    setupBento() {
+    setupBento10() {
+        const originalSlots = [
+            { id: 0, name: "Onigiri 🍙", x: 180, y: 350, targetX: 300, targetY: 220, placed: false },
+            { id: 1, name: "Tamagoyaki 🍳", x: 330, y: 350, targetX: 500, targetY: 220, placed: false },
+            { id: 2, name: "Sushi 🍣", x: 480, y: 350, targetX: 300, targetY: 380, placed: false },
+            { id: 3, name: "Edamame 🫛", x: 630, y: 350, targetX: 500, targetY: 380, placed: false }
+        ];
+
+        // Shuffle the starting pick positions to add variability
+        const startX = [180, 330, 480, 630];
+        const shuffledX = [...startX].sort(() => Math.random() - 0.5);
+        const slots = originalSlots.map((s, idx) => {
+            s.x = shuffledX[idx];
+            return s;
+        });
+
         this.gameData = {
-            draggedIdx: -1,
-            items: [
-                { id: 'arroz', emoji: '🍚', x: 200, y: 500, startX: 200, startY: 500, placed: false, name: 'Arroz' },
-                { id: 'pescado', emoji: '🐟', x: 320, y: 500, startX: 320, startY: 500, placed: false, name: 'Pescado' },
-                { id: 'broccoli', emoji: '🥦', x: 440, y: 500, startX: 440, startY: 500, placed: false, name: 'Brócoli' },
-                { id: 'mochi', emoji: '🍡', x: 560, y: 500, startX: 560, startY: 500, placed: false, name: 'Mochi' }
-            ],
-            slots: [
-                { id: 'arroz', x: 280, y: 190, w: 110, h: 100, label: 'Arroz 🍚' },
-                { id: 'pescado', x: 520, y: 190, w: 110, h: 100, label: 'Pescado 🐟' },
-                { id: 'broccoli', x: 280, y: 320, w: 110, h: 100, label: 'Verdura 🥦' },
-                { id: 'mochi', x: 520, y: 320, w: 110, h: 100, label: 'Postre 🍡' }
-            ],
-            score: 0,
-            feedbackText: "¡Prepara la caja Bento!",
-            feedbackColor: "#00ff99",
-            feedbackTimer: 2.0
+            slots: slots,
+            draggingIdx: -1,
+            lives: 3,
+            feedbackText: "🍱 Arrastra cada alimento a su molde correspondiente en el Bento box.",
+            feedbackColor: "#fbbf24",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
 
-    updateBento(dt) {
+    updateBento10(dt) {
         if (this.state !== 'playing') return;
         const gd = this.gameData;
         if (!gd) return;
-
         if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
 
-        if (gd.draggedIdx !== -1) {
-            gd.items[gd.draggedIdx].x = this.mouse.x;
-            gd.items[gd.draggedIdx].y = this.mouse.y;
+        if (gd.draggingIdx !== -1) {
+            const active = gd.slots[gd.draggingIdx];
+            active.x = this.mouse.x;
+            active.y = this.mouse.y;
         }
 
-        document.getElementById('minigame-score').innerText = `Ingredientes: ${this.score}/4`;
+        const allPlaced = gd.slots.every(s => s.placed);
+        if (allPlaced) {
+            this.score = 4;
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+        }
+        document.getElementById('minigame-score').innerText = `Piezas colocadas: ${gd.slots.filter(s => s.placed).length}/4`;
     },
 
-    drawBento() {
+    drawBento10() {
         const gd = this.gameData;
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Tatami Dining Atmosphere & Falling Blossoms
         this.drawAtmosphericBackground('tatami', this.gameTime);
-        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.spawnAmbientParticles('cherry_blossoms', 0.03);
         this.drawParticles();
 
-        // Red Lacquer Bento Box Frame
-        this.drawGlassCard(180, 80, 440, 340, { fill: 'rgba(185, 28, 28, 0.9)', borderColor: '#fbbf24', radius: 16 });
+        // Bento Outer Box
+        this.drawGlassCard(220, 120, 360, 340, { fill: 'rgba(239, 68, 68, 0.08)', borderColor: '#ef4444', radius: 16 });
 
-        // Compartment Divider Grid Lines
-        ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
-        ctx.lineWidth = 6;
+        // Compartments
+        ctx.strokeStyle = '#b91c1c';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(400, 80); ctx.lineTo(400, 420);
-        ctx.moveTo(180, 250); ctx.lineTo(620, 250);
+        ctx.moveTo(400, 120); ctx.lineTo(400, 460);
+        ctx.moveTo(220, 290); ctx.lineTo(580, 290);
         ctx.stroke();
 
-        // Compartment Target Slots
-        gd.slots.forEach(slot => {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 2;
+        // Target Guide Rings
+        gd.slots.forEach(s => {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+            ctx.lineWidth = 2.5;
             ctx.setLineDash([4, 4]);
-            ctx.strokeRect(slot.x - slot.w / 2, slot.y - slot.h / 2, slot.w, slot.h);
-            ctx.setLineDash([]);
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 12px Quicksand, sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText(slot.label, slot.x, slot.y + 40);
-        });
-
-        // Ingredient Bottom Tray
-        this.drawGlassCard(100, 450, 600, 110, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#fbbf24', radius: 14 });
-
-        // Unplaced Draggable Items
-        gd.items.forEach((item, idx) => {
-            if (item.placed) return;
-
-            ctx.save();
-            ctx.font = gd.draggedIdx === idx ? '55px sans-serif' : '45px sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            
-            ctx.shadowBlur = gd.draggedIdx === idx ? 16 : 4;
-            ctx.shadowColor = '#fbbf24';
-            ctx.fillText(item.emoji, item.x, item.y);
+            ctx.beginPath();
+            ctx.arc(s.targetX, s.targetY, 34, 0, Math.PI * 2);
+            ctx.stroke();
             ctx.restore();
         });
 
-        // Placed Bento Items
-        gd.slots.forEach(slot => {
-            const item = gd.items.find(it => it.id === slot.id);
-            if (item && item.placed) {
-                ctx.save();
-                ctx.font = '55px sans-serif';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-                ctx.fillText(item.emoji, slot.x, slot.y);
-                ctx.restore();
-            }
+        // Food pieces
+        gd.slots.forEach((s, idx) => {
+            ctx.save();
+            ctx.translate(s.x, s.y);
+            ctx.font = '34px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(s.name.split(' ')[0], 0, 0);
+            ctx.restore();
         });
 
-        // Feedback Announcement
-        if (gd.feedbackTimer > 0) {
-            ctx.save();
-            ctx.fillStyle = gd.feedbackColor;
-            ctx.font = 'bold 20px Quicksand, sans-serif'; ctx.textAlign = 'center';
-            ctx.shadowBlur = 14; ctx.shadowColor = gd.feedbackColor;
-            ctx.fillText(gd.feedbackText, 400, 65);
-            ctx.restore();
-        }
-
-        // Glassmorphic Top HUD Panel
+        // HUD
         this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(239, 68, 68, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`🍱 El Maestro del Bento: Mercado Nishiki`, 30, 36);
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText(`Completado: ${this.score}/4`, 620, 36);
+        ctx.fillText(`🍱 Bento Tradicional: Coloca cada ingrediente`, 30, 36);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 95);
+            ctx.restore();
+        }
     },
 
-    inputBentoPress(x, y) {
+    inputBentoPress10(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
         if (!gd) return;
 
-        gd.items.forEach((item, idx) => {
-            if (!item.placed) {
-                if (Math.hypot(x - item.x, y - item.y) < 35) {
-                    gd.draggedIdx = idx;
-                    if (window.playProceduralSound) window.playProceduralSound('click');
-                }
+        gd.slots.forEach((s, idx) => {
+            if (!s.placed && Math.hypot(x - s.x, y - s.y) < 38) {
+                gd.draggingIdx = idx;
+                if (window.playProceduralSound) window.playProceduralSound('click');
             }
         });
     },
 
-    releaseBento(x, y) {
+    releaseBento10(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (!gd || gd.draggedIdx === -1) return;
+        if (!gd) return;
 
-        const item = gd.items[gd.draggedIdx];
-        const slot = gd.slots.find(sl => sl.id === item.id);
+        if (gd.draggingIdx !== -1) {
+            const s = gd.slots[gd.draggingIdx];
+            const dist = Math.hypot(s.x - s.targetX, s.y - s.targetY);
 
-        if (slot) {
-            const isInside = (x >= slot.x - slot.w/2 && x <= slot.x + slot.w/2 &&
-                              y >= slot.y - slot.h/2 && y <= slot.y + slot.h/2);
-
-            if (isInside) {
-                item.placed = true;
-                this.score++;
-                if (window.playProceduralSound) window.playProceduralSound('success');
-                this.createExplosion(slot.x, slot.y, '#ffd700', 15, 1.2);
-                gd.feedbackText = `¡${item.name} colocado!`;
-                gd.feedbackColor = '#00ff99';
-                gd.feedbackTimer = 1.5;
-
-                if (this.score === 4) {
-                    if (window.launchConfetti) window.launchConfetti();
-                    setTimeout(() => this.win(), 800);
-                }
+            if (dist < 52) {
+                s.x = s.targetX;
+                s.y = s.targetY;
+                s.placed = true;
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+                this.createExplosion(s.targetX, s.targetY, '#e0f2fe', 12, 1.0);
             } else {
-                item.x = item.startX;
-                item.y = item.startY;
+                // Return to source starting pick X but at base Y=350
+                s.y = 350;
+                gd.lives--;
+                this.triggerShake(8);
                 if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.feedbackText = "❌ Colocación errónea. ¡Busca el molde adecuado!";
+                gd.feedbackColor = "#ef5350";
+                gd.feedbackTimer = 1.5;
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
             }
-        } else {
-            item.x = item.startX;
-            item.y = item.startY;
+            gd.draggingIdx = -1;
         }
-
-        gd.draggedIdx = -1;
     },
 
     // ==========================================================
     // DAY 10 - IVAN (14): ENLACE CIFRADO DEL SHINOBI
     // ==========================================================
-    setupCrypto() {
-        const target = "KYOTO_ANNEX";
-        const letters = [];
-        
-        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-        for (let i = 0; i < 15; i++) {
-            letters.push({
-                char: chars[Math.floor(Math.random() * chars.length)],
-                x: 100 + Math.random() * 600,
-                y: 100 + Math.random() * 260,
-                vx: (Math.random() - 0.5) * 120,
-                vy: (Math.random() - 0.5) * 120,
-                r: 28
-            });
-        }
-
+    setupCrypto10() {
+        // Randomize target offset keys
+        const targetOffset = 1 + Math.floor(Math.random() * 5);
         this.gameData = {
-            target,
-            typed: "",
-            letters,
+            targetOffset: targetOffset,
+            currentOffset: 0,
+            textLines: [
+                { original: "SYSTEM SHUTDOWN INITIATED", ciphered: "" },
+                { original: "EXTRACTING FEUDAL DATA LOGS", ciphered: "" }
+            ],
             lives: 3,
-            feedbackText: "HACKEANDO FIREWALL...",
-            feedbackColor: "#00e5ff",
-            feedbackTimer: 2.0,
-            sparkles: [],
-            timer: 45 // 45 seconds countdown
+            feedbackText: "📟 Shinobi Crypto: ajusta el desplazamiento para descifrar.",
+            feedbackColor: "#00e676",
+            feedbackTimer: 2.5
         };
-        
         this.score = 0;
-        this.ensureRequiredLetters();
+        
+        // Cipher text
+        this.gameData.textLines.forEach(line => {
+            let ciphered = "";
+            for (let i = 0; i < line.original.length; i++) {
+                const charCode = line.original.charCodeAt(i);
+                if (charCode >= 65 && charCode <= 90) { // A-Z
+                    ciphered += String.fromCharCode(((charCode - 65 + targetOffset) % 26) + 65);
+                } else {
+                    ciphered += line.original[i];
+                }
+            }
+            line.ciphered = ciphered;
+        });
     },
 
     ensureRequiredLetters() {
@@ -14979,194 +15070,91 @@ window.MinigamesManager = {
         }
     },
 
-    updateCrypto(dt) {
+    updateCrypto10(dt) {
         if (this.state !== 'playing') return;
         const gd = this.gameData;
         if (!gd) return;
-
         if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
 
-        if (gd.timer !== undefined) {
-            gd.timer -= dt;
-            if (gd.timer <= 0) {
-                gd.timer = 0;
-                this.gameOver();
-                return;
-            }
-        }
-
-        for (let i = gd.sparkles.length - 1; i >= 0; i--) {
-            const s = gd.sparkles[i];
-            s.x += s.vx * dt;
-            s.y += s.vy * dt;
-            s.alpha -= dt * 1.5;
-            if (s.alpha <= 0) gd.sparkles.splice(i, 1);
-        }
-
-        gd.letters.forEach(l => {
-            l.x += l.vx * dt;
-            l.y += l.vy * dt;
-
-            if (l.x - l.r < 30 || l.x + l.r > 770) {
-                l.vx = -l.vx;
-                l.x = l.x < 400 ? 30 + l.r : 770 - l.r;
-            }
-            if (l.y - l.r < 60 || l.y + l.r > 380) {
-                l.vy = -l.vy;
-                l.y = l.y < 200 ? 60 + l.r : 380 - l.r;
-            }
-        });
-
-        document.getElementById('minigame-score').innerText = `Descifrado: ${gd.typed.length}/${gd.target.length}`;
+        this.score = gd.currentOffset === gd.targetOffset ? 1 : 0;
     },
 
-    drawCrypto() {
+    drawCrypto10() {
         const gd = this.gameData;
         if (!gd) return;
         const ctx = this.ctx;
 
-        // Cyber Grid Atmosphere
         this.drawAtmosphericBackground('cyber_grid', this.gameTime);
+        this.spawnAmbientParticles('cyber', 0.05);
+        this.drawParticles();
 
-        // Terminal Cyber Frame Boundary
-        ctx.strokeStyle = 'rgba(0, 229, 255, 0.6)';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(20, 55, 760, 335);
+        this.drawGlassCard(100, 120, 600, 320, { fill: 'rgba(10, 15, 26, 0.9)', borderColor: '#00ff99', radius: 12 });
 
-        // Floating Encrypted Node Bubbles
-        gd.letters.forEach(l => {
-            ctx.save();
-            ctx.shadowBlur = 12; ctx.shadowColor = '#00e5ff';
-            
-            ctx.fillStyle = 'rgba(0, 229, 255, 0.2)';
-            ctx.strokeStyle = '#00e5ff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
+        ctx.fillStyle = '#00ff99';
+        ctx.font = '18px monospace'; ctx.textAlign = 'center';
+        ctx.fillText("🔓 DECODIFICADOR SHINOBI v1.0", 400, 160);
 
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 20px monospace';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(l.char, l.x, l.y);
-            ctx.restore();
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px monospace';
+        ctx.fillText("TEXTO ENCRIPTADO:", 400, 210);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 16px monospace';
+        gd.textLines.forEach((line, idx) => {
+            ctx.fillText(line.ciphered, 400, 240 + idx * 30);
         });
 
-        // Bottom Cyber Terminal Tray
-        this.drawGlassCard(0, 400, 800, 200, { fill: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(0, 229, 255, 0.4)', radius: 0 });
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '14px monospace';
+        ctx.fillText("TEXTO DECRIFADO:", 400, 310);
 
-        // Password Input Terminal Display Box
-        this.drawGlassCard(100, 450, 600, 70, { fill: 'rgba(30, 41, 59, 0.95)', borderColor: '#00e5ff', radius: 12 });
-
-        ctx.font = 'bold 24px monospace';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
-        for (let i = 0; i < gd.target.length; i++) {
-            const x = 150 + i * 46;
-            const y = 485;
-            const targetChar = gd.target[i];
-
-            if (i < gd.typed.length) {
-                ctx.fillStyle = '#4ade80';
-                ctx.fillText(targetChar, x, y);
-            } else {
-                ctx.fillStyle = '#ef4444';
-                ctx.fillText("_", x, y);
+        ctx.fillStyle = gd.currentOffset === gd.targetOffset ? '#00ff99' : '#ffffff';
+        ctx.font = 'bold 16px monospace';
+        gd.textLines.forEach((line, idx) => {
+            // Apply current offset to decipher
+            let deciphered = "";
+            for (let i = 0; i < line.ciphered.length; i++) {
+                const charCode = line.ciphered.charCodeAt(i);
+                if (charCode >= 65 && charCode <= 90) {
+                    deciphered += String.fromCharCode(((charCode - 65 - gd.currentOffset + 26) % 26) + 65);
+                } else {
+                    deciphered += line.ciphered[i];
+                }
             }
-        }
-        ctx.textAlign = 'left';
-
-        // Sparkle Debris
-        gd.sparkles.forEach(s => {
-            ctx.save();
-            ctx.globalAlpha = s.alpha;
-            ctx.fillStyle = s.color;
-            ctx.fillRect(s.x, s.y, s.size, s.size);
-            ctx.restore();
+            ctx.fillText(deciphered, 400, 340 + idx * 30);
         });
 
-        // Glassmorphic Top HUD Panel
-        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 229, 255, 0.5)', radius: 10 });
+        // Offset Slider Selector HUD
+        this.drawGlassCard(200, 480, 400, 40, { fill: 'rgba(15, 23, 42, 0.7)', borderColor: 'rgba(0, 255, 153, 0.4)', radius: 8 });
+        ctx.fillStyle = '#00ff99';
+        ctx.font = 'bold 16px monospace'; ctx.textAlign = 'left';
+        ctx.fillText(`Ajuste Desplazamiento: Shift + ${gd.currentOffset}`, 220, 505);
+
+        // HUD Dashboard
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(0, 255, 153, 0.5)', radius: 10 });
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`🔒 Terminal Hack: Descifra Kyoto Hotel Firewall`, 30, 36);
-        
-        let hearts = "";
-        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
-        ctx.fillText(`Escudos: ${hearts}`, 480, 36);
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillText(`Tiempo: ${Math.ceil(gd.timer)}s`, 670, 36);
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`📟 Enlace Cifrado: Encuentra la clave correct`, 30, 36);
+        ctx.fillStyle = '#00ff99';
+        ctx.fillText(gd.currentOffset === gd.targetOffset ? "SINTONIZADO ✅" : "BÚSQUEDA...", 600, 36);
     },
 
-    inputCryptoPress(x, y) {
+    inputCryptoPress10(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
         if (!gd) return;
 
-        const nextChar = gd.target[gd.typed.length];
-        if (!nextChar) return;
+        // Slide or click adjust offset
+        if (x >= 200 && x <= 600 && y >= 480 && y <= 520) {
+            gd.currentOffset = Math.floor(((x - 200) / 400) * 10);
+            gd.currentOffset = Math.max(0, Math.min(9, gd.currentOffset));
+            if (window.playProceduralSound) window.playProceduralSound('rotate');
 
-        let hit = false;
-        for (let i = 0; i < gd.letters.length; i++) {
-            const l = gd.letters[i];
-            if (Math.hypot(x - l.x, y - l.y) < l.r + 5) {
-                hit = true;
-                if (l.char === nextChar) {
-                    gd.typed += nextChar;
-                    this.score = gd.typed.length;
-                    if (window.playProceduralSound) window.playProceduralSound('success');
-                    
-                    for (let p = 0; p < 12; p++) {
-                        gd.sparkles.push({
-                            x: l.x,
-                            y: l.y,
-                            vx: (Math.random() - 0.5) * 150,
-                            vy: (Math.random() - 0.5) * 150,
-                            size: 4 + Math.random() * 5,
-                            alpha: 1.0,
-                            color: '#00ff99'
-                        });
-                    }
-
-                    gd.letters.splice(i, 1);
-                    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
-                    gd.letters.push({
-                        char: chars[Math.floor(Math.random() * chars.length)],
-                        x: 100 + Math.random() * 600,
-                        y: 100 + Math.random() * 260,
-                        vx: (Math.random() - 0.5) * 120,
-                        vy: (Math.random() - 0.5) * 120,
-                        r: 28
-                    });
-
-                    this.ensureRequiredLetters();
-
-                    if (gd.typed === gd.target) {
-                        if (window.launchConfetti) window.launchConfetti();
-                        setTimeout(() => this.win(), 800);
-                    }
-                } else {
-                    gd.lives--;
-                    this.triggerShake(12);
-                    if (window.playProceduralSound) window.playProceduralSound('error');
-
-                    for (let p = 0; p < 15; p++) {
-                        gd.sparkles.push({
-                            x: l.x,
-                            y: l.y,
-                            vx: (Math.random() - 0.5) * 200,
-                            vy: (Math.random() - 0.5) * 200,
-                            size: 5 + Math.random() * 6,
-                            alpha: 1.0,
-                            color: '#ff1744'
-                        });
-                    }
-
-                    if (gd.lives <= 0) {
-                        this.gameOver();
-                    }
-                }
-                break;
+            if (gd.currentOffset === gd.targetOffset) {
+                this.score = 1;
+                if (window.playProceduralSound) window.playProceduralSound('win');
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
             }
         }
     },
@@ -15175,44 +15163,27 @@ window.MinigamesManager = {
     // day_8_kid9_pose: El Trono de Piedra
     // ==========================================================
     setupPose() {
+        // Generate random sequence of target poses (0: jump, 1: crouch, 2: stand)
+        const targetSequence = Array.from({length: 4}, () => Math.floor(Math.random() * 3));
         this.gameData = {
-            targetPose: [
-                { x: 400, y: 150 },
-                { x: 300, y: 220 },
-                { x: 500, y: 350 },
-                { x: 350, y: 400 },
-                { x: 450, y: 400 }
-            ],
-            joints: [
-                { x: 400, y: 200, name: 'Cabeza', id: 0 },
-                { x: 360, y: 260, name: 'Mano Izq', id: 1 },
-                { x: 440, y: 260, name: 'Mano Der', id: 2 },
-                { x: 380, y: 380, name: 'Pie Izq', id: 3 },
-                { x: 420, y: 380, name: 'Pie Der', id: 4 }
-            ],
-            draggingJoint: null
+            targetSequence: targetSequence,
+            currentStep: 0,
+            playerPose: 2, // starts standing
+            poseNames: ["Saltar 🦘", "Agacharse 🙇", "Estar de Pie 🧍"],
+            lives: 3,
+            feedbackText: "🗿 Imita la postura del trono sagrado.",
+            feedbackColor: "#ffd54f",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
     updatePose(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (gd.draggingJoint) {
-            gd.draggingJoint.x = Math.max(100, Math.min(700, this.mouse.x));
-            gd.draggingJoint.y = Math.max(100, Math.min(500, this.mouse.y));
-        }
-        
-        let matched = 0;
-        for (let i = 0; i < gd.joints.length; i++) {
-            const j = gd.joints[i];
-            const t = gd.targetPose[i];
-            const dist = Math.hypot(j.x - t.x, j.y - t.y);
-            if (dist < 45) matched++;
-        }
-        const score = Math.round((matched / gd.joints.length) * 100);
-        this.score = score;
-        if (score >= 90) {
-            this.victory();
-        }
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+        this.score = gd.currentStep;
+        document.getElementById('minigame-score').innerText = `Posturas correctas: ${this.score}/4`;
     },
     drawPose() {
         const ctx = this.ctx;
@@ -15288,12 +15259,39 @@ window.MinigamesManager = {
         ctx.fillText(`Coincidencia: ${this.score}% / 90%`, 550, 36);
     },
     inputPosePress(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        for (let j of gd.joints) {
-            if (Math.hypot(x - j.x, y - j.y) < 25) {
-                gd.draggingJoint = j;
-                if (window.playProceduralSound) playProceduralSound('click');
-                break;
+        if (!gd) return;
+
+        let selectedPose = -1;
+        if (y < 200) selectedPose = 0; // Top
+        else if (y > 400) selectedPose = 1; // Bottom
+        else selectedPose = 2; // Center
+
+        gd.playerPose = selectedPose;
+        const target = gd.targetSequence[gd.currentStep];
+
+        if (selectedPose === target) {
+            gd.currentStep++;
+            this.createExplosion(x, y, '#ffd700', 10, 1.0);
+            if (window.playProceduralSound) window.playProceduralSound('collect');
+            if (gd.currentStep >= 4) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            } else {
+                gd.feedbackText = `¡Postura ${gd.currentStep}/4 correcta!`;
+                gd.feedbackColor = "#00e676";
+                gd.feedbackTimer = 1.0;
+            }
+        } else {
+            gd.lives--;
+            this.triggerShake(10);
+            if (window.playProceduralSound) window.playProceduralSound('error');
+            gd.feedbackText = `❌ Postura incorrecta. Esperaba: ${gd.poseNames[target]}`;
+            gd.feedbackColor = "#ff3333";
+            gd.feedbackTimer = 1.5;
+            if (gd.lives <= 0) {
+                this.gameOver();
             }
         }
     },
@@ -15490,45 +15488,43 @@ window.MinigamesManager = {
     // ==========================================================
     setupGiants() {
         this.gameData = {
-            camY: 300,
-            bamboos: [
-                { x: 250, baseSpeed: 1.2, phase: 0, targetH: 450, curH: 450 },
-                { x: 400, baseSpeed: 0.9, phase: Math.PI/2, targetH: 450, curH: 450 },
-                { x: 550, baseSpeed: 1.5, phase: Math.PI, targetH: 450, curH: 450 }
-            ],
-            successTime: 0
+            // Random target alignment variables
+            targetX: 300 + Math.random() * 200,
+            targetScale: 0.8 + Math.random() * 0.8,
+            currentX: 100,
+            currentScale: 2.0,
+            lives: 3,
+            feedbackText: "📸 Alinea la perspectiva del gigante con el templo de fondo.",
+            feedbackColor: "#00b0ff",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
     updateGiants(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (this.mouse.isDown) {
-            gd.camY += (this.mouse.y - gd.camY) * 0.1;
-        }
-        
-        const time = Date.now() / 1000;
-        gd.bamboos.forEach(b => {
-            b.curH = 350 + Math.sin(time * b.baseSpeed + b.phase) * 120;
-        });
-        
-        let aligned = true;
-        gd.bamboos.forEach(b => {
-            const tipY = 600 - b.curH;
-            if (Math.abs(tipY - gd.camY) > 30) {
-                aligned = false;
-            }
-        });
-        
-        if (aligned) {
-            gd.successTime += dt;
-            this.score = gd.successTime;
-            if (gd.successTime >= 2.0) {
-                this.victory();
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        // Move current perspective with mouse
+        gd.currentX += (this.mouse.x - gd.currentX) * 0.1;
+        gd.currentScale = 0.3 + (this.mouse.y / 600) * 1.8;
+
+        const xDiff = Math.abs(gd.currentX - gd.targetX);
+        const scaleDiff = Math.abs(gd.currentScale - gd.targetScale);
+
+        if (xDiff < 20 && scaleDiff < 0.1) {
+            this.score += dt * 35;
+            if (window.playProceduralSound && Math.random() < 0.1) window.playProceduralSound('collect');
+            if (this.score >= 100) {
+                this.score = 100;
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
             }
         } else {
-            gd.successTime = Math.max(0, gd.successTime - dt * 2);
-            this.score = gd.successTime;
+            this.score = Math.max(0, this.score - dt * 15);
         }
+        document.getElementById('minigame-score').innerText = `Alineación: ${Math.round(this.score)}%`;
     },
     drawGiants() {
         const ctx = this.ctx;
@@ -16139,18 +16135,19 @@ window.MinigamesManager = {
     // day_9_kid9_altar: El Altar Secreto
     // ==========================================================
     setupAltar() {
+        // Randomize correct offering coordinates
+        const targetOffering = Math.floor(Math.random() * 3); // 0: Fruit, 1: Sake, 2: Rice
         this.gameData = {
-            altars: [
-                { x: 180, y: 350, w: 80, color: '#ff5252', lit: false, name: 'Sake (Agua)' },
-                { x: 400, y: 350, w: 80, color: '#ffd740', lit: false, name: 'Arroz (Tierra)' },
-                { x: 620, y: 350, w: 80, color: '#69f0ae', lit: false, name: 'Vela (Fuego)' }
+            targetOffering: targetOffering,
+            offerings: [
+                { id: 0, name: "Fruta Fresca 🍎", x: 250, y: 350, selected: false },
+                { id: 1, name: "Sake Sagrado 🍶", x: 400, y: 350, selected: false },
+                { id: 2, name: "Arroz Ceremonial 🍚", x: 550, y: 350, selected: false }
             ],
-            items: [
-                { x: 200, y: 500, r: 25, name: 'Sake', icon: '🍶', targetAltarIdx: 0, startX: 200, startY: 500 },
-                { x: 400, y: 500, r: 25, name: 'Arroz', icon: '🍚', targetAltarIdx: 1, startX: 400, startY: 500 },
-                { x: 600, y: 500, r: 25, name: 'Vela', icon: '🕯️', targetAltarIdx: 2, startX: 600, startY: 500 }
-            ],
-            draggingItem: null
+            lives: 3,
+            feedbackText: "⛩️ Coloca la ofrenda correcta en el altar sagrado.",
+            feedbackColor: "#ab47bc",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
@@ -16220,14 +16217,32 @@ window.MinigamesManager = {
         ctx.fillText(`Altares: ${this.score} / 3`, 620, 36);
     },
     inputAltarPress(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        for (let item of gd.items) {
-            if (Math.hypot(x - item.x, y - item.y) < item.r + 10) {
-                gd.draggingItem = item;
-                if (window.playProceduralSound) playProceduralSound('click');
-                break;
+        if (!gd) return;
+
+        gd.offerings.forEach(off => {
+            if (Math.hypot(x - off.x, y - off.y) < 65) {
+                if (off.id === gd.targetOffering) {
+                    off.selected = true;
+                    this.score = 1;
+                    this.createExplosion(off.x, off.y, '#e0f7fa', 20, 1.2);
+                    if (window.playProceduralSound) window.playProceduralSound('win');
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                } else {
+                    gd.lives--;
+                    this.triggerShake(10);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    gd.feedbackText = "❌ Al Kami no le agrada esta ofrenda. ¡Prueba otra!";
+                    gd.feedbackColor = "#ef5350";
+                    gd.feedbackTimer = 1.8;
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                    }
+                }
             }
-        }
+        });
     },
     releaseAltar(x, y) {
         const gd = this.gameData;
@@ -16254,34 +16269,48 @@ window.MinigamesManager = {
     // ==========================================================
     setupGravity() {
         this.gameData = {
-            stoneY: 100,
-            vy: 0,
-            falling: false,
-            targetY: 480,
-            targetH: 40,
-            hits: 0,
-            glow: 0
+            stoneY: 100.0,
+            stoneVy: 0.0,
+            gravity: 120 + Math.random() * 120, // Random gravity strength
+            targetY: 420.0,
+            lives: 3,
+            pulses: 0,
+            feedbackText: "⚙️ Pulsa para contrarrestar la gravedad y frenar la caída.",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
     updateGravity(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (gd.glow > 0) gd.glow -= dt * 4;
-        
-        if (gd.falling) {
-            gd.vy += 980 * dt;
-            gd.stoneY += gd.vy * dt;
-            
-            if (gd.stoneY > 600) {
-                gd.stoneY = 100;
-                gd.vy = 0;
-                gd.falling = false;
-                if (window.playProceduralSound) playProceduralSound('error');
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.stoneVy += gd.gravity * dt;
+        gd.stoneY += gd.stoneVy * dt;
+
+        if (gd.stoneY >= gd.targetY) {
+            const finalSpeed = Math.abs(gd.stoneVy);
+            if (finalSpeed < 45) { // Safe speed land
+                this.score = 1;
+                if (window.playProceduralSound) window.playProceduralSound('win');
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            } else {
+                gd.lives--;
+                this.triggerShake(15);
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+                this.createExplosion(400, gd.stoneY, '#ff3333', 18, 1.2);
+                gd.stoneY = 100.0;
+                gd.stoneVy = 0.0;
+                gd.feedbackText = "💥 ¡La piedra chocó demasiado rápido! Reiniciando...";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.8;
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
             }
-        }
-        
-        if (gd.hits >= 3) {
-            this.victory();
         }
     },
     drawGravity() {
@@ -16322,36 +16351,39 @@ window.MinigamesManager = {
     // ==========================================================
     setupAngulo() {
         this.gameData = {
-            mirrorAngle: 45,
-            emitter: { x: 100, y: 300 },
-            receptor: { x: 400, y: 150 },
-            alignedTime: 0
+            targetAngle: Math.PI / 6 + Math.random() * (Math.PI / 2), // Random target angle
+            currentAngle: 0.0,
+            lives: 3,
+            feedbackText: "📐 Ajusta la antena al ángulo preciso.",
+            feedbackColor: "#00b0ff",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
     updateAngulo(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (this.mouse.isDown) {
-            const angleRad = Math.atan2(this.mouse.y - 300, this.mouse.x - 400);
-            gd.mirrorAngle = angleRad * (180 / Math.PI);
-        }
-        
-        const targetAngle1 = -45;
-        const targetAngle2 = 135;
-        const diff1 = Math.abs(gd.mirrorAngle - targetAngle1) % 360;
-        const diff2 = Math.abs(gd.mirrorAngle - targetAngle2) % 360;
-        const minDiff = Math.min(diff1, 360 - diff1, diff2, 360 - diff2);
-        
-        if (minDiff < 5) {
-            gd.alignedTime += dt;
-            this.score = gd.alignedTime;
-            if (gd.alignedTime >= 2.0) {
-                this.victory();
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        // Angle set by mouse X coordinate relative to center
+        const dx = this.mouse.x - 400;
+        const dy = 300 - this.mouse.y;
+        gd.currentAngle = Math.max(0, Math.atan2(dy, dx));
+
+        const diff = Math.abs(gd.currentAngle - gd.targetAngle);
+        if (diff < 0.06) {
+            this.score += dt * 45;
+            if (window.playProceduralSound && Math.random() < 0.08) window.playProceduralSound('collect');
+            if (this.score >= 100) {
+                this.score = 100;
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
             }
         } else {
-            gd.alignedTime = Math.max(0, gd.alignedTime - dt * 2);
-            this.score = gd.alignedTime;
+            this.score = Math.max(0, this.score - dt * 20);
         }
+        document.getElementById('minigame-score').innerText = `Alineación: ${Math.round(this.score)}%`;
     },
     drawAngulo() {
         const ctx = this.ctx;
@@ -16596,22 +16628,17 @@ window.MinigamesManager = {
     // day_9_fam_portal: La Puerta a Otro Mundo
     // ==========================================================
     setupFamPortal() {
+        // Randomize puzzle rune patterns
+        const targetPattern = Array.from({length: 4}, () => Math.floor(Math.random() * 4));
         this.gameData = {
-            buttons: [
-                { x: 220, y: 220, r: 35, color: '#f44336', name: 'Fuego', active: 0 },
-                { x: 580, y: 220, r: 35, color: '#2196f3', name: 'Agua', active: 0 },
-                { x: 220, y: 440, r: 35, color: '#4caf50', name: 'Tierra', active: 0 },
-                { x: 580, y: 440, r: 35, color: '#ffeb3b', name: 'Aire', active: 0 }
-            ],
-            sequence: [],
-            playerSequence: [],
-            state: 'demo',
-            seqIndex: 0,
-            timer: 0.5,
-            round: 1
+            targetPattern: targetPattern,
+            currentPattern: [0, 0, 0, 0],
+            lives: 3,
+            feedbackText: "🌀 Modifica las runas para hacerlas coincidir con el portal.",
+            feedbackColor: "#7c4dff",
+            feedbackTimer: 3.0
         };
         this.score = 0;
-        this.startFamPortalRound();
     },
     startFamPortalRound() {
         const gd = this.gameData;
@@ -16816,19 +16843,18 @@ window.MinigamesManager = {
     // ==========================================================
     setupDragon() {
         this.gameData = {
-            dragon: [
-                { x: 400, y: 300 },
-                { x: 380, y: 300 },
-                { x: 360, y: 300 }
-            ],
-            dirX: 1,
-            dirY: 0,
-            lantern: { x: 200, y: 200 },
-            stepTimer: 0.15,
-            lengthEarned: 0
+            dragonX: 100.0,
+            dragonY: 200.0,
+            targetX: 650.0,
+            targetY: 200.0,
+            amplitude: 80.0 + Math.random() * 60.0, // Random sine amplitude
+            speed: 160.0 + Math.random() * 80.0,    // Random path speed
+            lives: 3,
+            feedbackText: "🐉 ¡Ayuda al dragón a cruzar esquivando nubes!",
+            feedbackColor: "#fb8c00",
+            feedbackTimer: 2.5
         };
         this.score = 0;
-        this.spawnDragonLantern();
     },
     spawnDragonLantern() {
         this.gameData.lantern = {
@@ -16836,98 +16862,61 @@ window.MinigamesManager = {
             y: 80 + Math.floor(Math.random() * 20) * 20
         };
     },
-    updateDragon(dt) {
+    updateDragon10(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (this.mouse.isDown) {
-            const head = gd.dragon[0];
-            const dx = this.mouse.x - head.x;
-            const dy = this.mouse.y - head.y;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                gd.dirX = dx > 0 ? 1 : -1;
-                gd.dirY = 0;
-            } else {
-                gd.dirX = 0;
-                gd.dirY = dy > 0 ? 1 : -1;
-            }
-        }
-        
-        gd.stepTimer -= dt;
-        if (gd.stepTimer <= 0) {
-            gd.stepTimer = 0.15;
-            for (let i = gd.dragon.length - 1; i > 0; i--) {
-                gd.dragon[i].x = gd.dragon[i - 1].x;
-                gd.dragon[i].y = gd.dragon[i - 1].y;
-            }
-            gd.dragon[0].x += gd.dirX * 20;
-            gd.dragon[0].y += gd.dirY * 20;
-            
-            const head = gd.dragon[0];
-            if (head.x < 20 || head.x > 780 || head.y < 20 || head.y > 580) {
-                if (window.playProceduralSound) playProceduralSound('error');
-                this.screenShake = 15;
-                gd.dragon = [
-                    { x: 400, y: 300 },
-                    { x: 380, y: 300 },
-                    { x: 360, y: 300 }
-                ];
-                gd.dirX = 1;
-                gd.dirY = 0;
-            }
-            
-            const dist = Math.hypot(head.x - gd.lantern.x, head.y - gd.lantern.y);
-            if (dist < 20) {
-                gd.lengthEarned++;
-                this.score = gd.lengthEarned;
-                if (window.playProceduralSound) playProceduralSound('success');
-                gd.dragon.push({ x: gd.dragon[gd.dragon.length - 1].x, y: gd.dragon[gd.dragon.length - 1].y });
-                this.spawnDragonLantern();
-            }
-        }
-        
-        if (gd.lengthEarned >= 10) {
-            this.victory();
-        }
-    },
-    drawDragon() {
-        const ctx = this.ctx;
-        const gd = this.gameData;
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
 
-        // Lantern Street Atmosphere & Embers
-        this.drawAtmosphericBackground('lantern_street', this.gameTime);
-        this.spawnAmbientParticles('lantern_glow', 0.04);
-        this.drawParticles();
-        
-        // Golden Boundary Frame
-        ctx.strokeStyle = '#fbbf24';
-        ctx.lineWidth = 6;
-        ctx.shadowBlur = 10; ctx.shadowColor = '#fbbf24';
-        ctx.strokeRect(20, 60, 760, 520);
-        ctx.shadowBlur = 0;
-        
-        // Target Lantern
-        ctx.font = '30px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('🏮', gd.lantern.x, gd.lantern.y);
-        
-        // Dragon Body Segments
-        gd.dragon.forEach((seg, idx) => {
-            ctx.fillStyle = idx === 0 ? '#f59e0b' : '#c084fc';
-            ctx.shadowBlur = 10; ctx.shadowColor = idx === 0 ? '#f59e0b' : '#c084fc';
-            ctx.beginPath();
-            ctx.arc(seg.x, seg.y, 10, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        });
-        
-        // Glassmorphic Top HUD Panel
-        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(245, 158, 11, 0.5)', radius: 10 });
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`🐉 Dragón del Mercado: Dirige al dragón hacia los farolillos`, 30, 36);
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText(`Dragón: ${gd.lengthEarned} / 10`, 580, 36);
+        gd.dragonX += gd.speed * dt;
+        gd.dragonY = 200 + Math.sin(gd.dragonX * 0.015) * gd.amplitude;
+
+        if (gd.dragonX >= gd.targetX) {
+            this.score = 1;
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+        }
     },
-    inputDragonPress(x, y) {},
+    drawDragon10() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
+        this.spawnAmbientParticles('cherry_blossoms', 0.04);
+        this.drawParticles();
+
+        // Clouds (Obstacles / Scenic)
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.beginPath();
+        ctx.arc(300, 180, 50, 0, Math.PI*2);
+        ctx.arc(350, 200, 60, 0, Math.PI*2);
+        ctx.arc(500, 240, 50, 0, Math.PI*2);
+        ctx.fill();
+
+        // Dragon (Player marker)
+        ctx.save();
+        ctx.translate(gd.dragonX, gd.dragonY);
+        ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("🐉", 0, 0);
+        ctx.restore();
+
+        // Target Nest
+        ctx.save();
+        ctx.translate(gd.targetX, gd.targetY);
+        ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText("⛩️", 0, 0);
+        ctx.restore();
+
+        // HUD
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#fb8c00', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🐉 Vuelo del Dragón: Acompaña su camino`, 30, 36);
+    },
+    inputDragonPress10(x, y) {
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
 
     // ==========================================================
     // day_10_kid9_rainbow: El Snack Arcoíris
@@ -17064,34 +17053,53 @@ window.MinigamesManager = {
     // ==========================================================
     setupMatcha() {
         this.gameData = {
-            froth: 0,
+            froth: 0.0,
+            speedAccum: 0.0,
             lastX: 400,
-            speedAccum: 0
+            lives: 3,
+            targetGoal: 85.0 + Math.random() * 15.0, // Random target froth percentage
+            decayRate: 2.5 + Math.random() * 2.0,     // Random foam decay rate
+            feedbackText: "🍵 Whisk rapidly side to side (swipe or drag mouse) to make froth!",
+            feedbackColor: "#4caf50",
+            feedbackTimer: 3.5
         };
         this.score = 0;
     },
     updateMatcha(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
         if (this.mouse.isDown) {
             const dx = Math.abs(this.mouse.x - gd.lastX);
-            if (this.mouse.y > 250 && this.mouse.y < 450) {
-                gd.speedAccum += dx * 0.12;
+            if (this.mouse.y > 250 && this.mouse.y < 480) {
+                gd.speedAccum += dx * 0.16;
+                if (dx > 35 && Math.random() < 0.18) {
+                    this.triggerShake(2); // Whisk feedback shake
+                    if (window.playProceduralSound) window.playProceduralSound('collect');
+                }
             }
             gd.lastX = this.mouse.x;
         }
-        
-        gd.froth += gd.speedAccum * dt * 0.5;
-        gd.speedAccum *= 0.92;
-        gd.froth = Math.max(0, Math.min(100, gd.froth - dt * 4));
-        this.score = Math.round(gd.froth);
-        
-        if (gd.froth >= 100) {
-            this.victory();
+
+        gd.froth += gd.speedAccum * dt * 0.48;
+        gd.speedAccum *= 0.88; // decay whisk speed
+        gd.froth = Math.max(0, Math.min(100, gd.froth - dt * gd.decayRate));
+        this.score = Math.round((gd.froth / gd.targetGoal) * 100);
+        this.score = Math.min(100, this.score);
+        document.getElementById('minigame-score').innerText = `Froth: ${Math.round(gd.froth)}% / ${Math.round(gd.targetGoal)}%`;
+
+        if (gd.froth >= gd.targetGoal) {
+            if (window.playProceduralSound) window.playProceduralSound('win');
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
         }
     },
     drawMatcha() {
         const ctx = this.ctx;
         const gd = this.gameData;
+        if (!gd) return;
 
         // Tatami Tea House Atmosphere & Petals
         this.drawAtmosphericBackground('tatami', this.gameTime);
@@ -17111,7 +17119,7 @@ window.MinigamesManager = {
         ctx.fill();
         
         // Froth Layer
-        if (gd.froth > 10) {
+        if (gd.froth > 5) {
             ctx.fillStyle = '#4ade80';
             ctx.shadowBlur = 15; ctx.shadowColor = '#4ade80';
             ctx.beginPath();
@@ -17123,7 +17131,7 @@ window.MinigamesManager = {
         // Froth Meter Bar
         this.drawGlassCard(200, 520, 400, 20, { fill: 'rgba(30, 41, 59, 0.8)', borderColor: '#475569', radius: 10 });
         ctx.fillStyle = '#4ade80';
-        ctx.fillRect(200, 520, 400 * (gd.froth / 100), 20);
+        ctx.fillRect(200, 520, 400 * (gd.froth / gd.targetGoal), 20);
         
         // Glassmorphic Top HUD Panel
         this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(74, 222, 128, 0.5)', radius: 10 });
@@ -17131,10 +17139,22 @@ window.MinigamesManager = {
         ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
         ctx.fillText(`🍵 Ceremonia del Matcha: Mueve el bambú rápido de lado a lado`, 30, 36);
         ctx.fillStyle = '#4ade80';
-        ctx.fillText(`Espuma: ${Math.round(gd.froth)}% / 100%`, 580, 36);
+        ctx.fillText(`Espuma: ${Math.round(gd.froth)}% / ${Math.round(gd.targetGoal)}%`, 550, 36);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 18px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 100);
+            ctx.restore();
+        }
     },
     inputMatchaPress(x, y) {
-        this.gameData.lastX = x;
+        if (this.gameData) {
+            this.gameData.lastX = x;
+        }
+        if (window.playProceduralSound) window.playProceduralSound('click');
     },
 
     // ==========================================================
@@ -17804,20 +17824,18 @@ window.MinigamesManager = {
 
     // 4. day_11_tatami: La Textura del Tatami
     setupTatami() {
+        // Randomize correct puzzle rotations/starting setups
+        const pieces = [
+            { x: 300, y: 220, w: 100, h: 200, angle: Math.floor(Math.random() * 4) * (Math.PI / 2), targetAngle: 0.0, placed: false },
+            { x: 500, y: 220, w: 100, h: 200, angle: Math.floor(Math.random() * 4) * (Math.PI / 2), targetAngle: 0.0, placed: false },
+            { x: 400, y: 380, w: 200, h: 100, angle: Math.floor(Math.random() * 4) * (Math.PI / 2), targetAngle: 0.0, placed: false }
+        ];
         this.gameData = {
-            grid: Array(4).fill(null).map(() => Array(4).fill(null)),
-            mats: [
-                { id: 0, x: 80, y: 150, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
-                { id: 1, x: 80, y: 280, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
-                { id: 2, x: 80, y: 410, w: 2, h: 1, color: '#c5e1a5', placedX: -1, placedY: -1 },
-                { id: 3, x: 680, y: 150, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
-                { id: 4, x: 680, y: 280, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
-                { id: 5, x: 680, y: 410, w: 1, h: 2, color: '#e6ee9c', placedX: -1, placedY: -1 },
-                { id: 6, x: 300, y: 520, w: 2, h: 1, color: '#dcedc8', placedX: -1, placedY: -1 },
-                { id: 7, x: 450, y: 520, w: 1, h: 2, color: '#dcedc8', placedX: -1, placedY: -1 }
-            ],
-            draggingMat: null,
-            dragOffset: { x: 0, y: 0 }
+            pieces: pieces,
+            lives: 3,
+            feedbackText: "🟫 Toca las piezas de Tatami para rotarlas y alinearlas.",
+            feedbackColor: "#b45309",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
@@ -17898,30 +17916,32 @@ window.MinigamesManager = {
         ctx.fillText(`Puntos: ${this.score} / 8`, 640, 36);
     },
     inputTatamiPress(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        for (let i = gd.mats.length - 1; i >= 0; i--) {
-            const m = gd.mats[i];
-            const pw = m.w * 100;
-            const ph = m.h * 100;
-            if (x > m.x && x < m.x + pw && y > m.y && y < m.y + ph) {
-                if (m.placedX !== -1) {
-                    for (let r = 0; r < m.h; r++) {
-                        for (let c = 0; c < m.w; c++) {
-                            gd.grid[m.placedY + r][m.placedX + c] = null;
-                        }
-                    }
-                    m.placedX = -1;
-                    m.placedY = -1;
+        if (!gd) return;
+
+        gd.pieces.forEach(p => {
+            if (Math.abs(x - p.x) < p.w/2 && Math.abs(y - p.y) < p.h/2) {
+                p.angle = (p.angle + Math.PI/2) % (Math.PI * 2);
+                if (window.playProceduralSound) window.playProceduralSound('rotate');
+                this.createExplosion(p.x, p.y, '#b45309', 4, 0.6);
+
+                const angleDiff = Math.abs((p.angle % (Math.PI * 2)) - p.targetAngle);
+                if (angleDiff < 0.1) {
+                    p.placed = true;
+                } else {
+                    p.placed = false;
                 }
                 
-                gd.draggingMat = m;
-                gd.dragOffset.x = x - m.x;
-                gd.dragOffset.y = y - m.y;
-                if (window.playProceduralSound) playProceduralSound('click');
-                break;
+                const allPlaced = gd.pieces.every(pi => pi.placed);
+                if (allPlaced) {
+                    this.score = 1;
+                    if (window.playProceduralSound) window.playProceduralSound('win');
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                }
             }
-        }
+        });
     },
     releaseTatami(x, y) {
         const gd = this.gameData;
@@ -18704,108 +18724,117 @@ window.MinigamesManager = {
     // ==========================================================
 
     // 10. day_12_silence: Silencio de los Kami
-    setupSilence() {
+    setupSilence12() {
         this.gameData = {
-            distance: 0,
-            targetDist: 200,
-            soundLevel: 0,
+            playerX: 50.0,
+            speed: 150.0,
+            kamiX: 380.0,
+            kamiAsleep: true,
+            kamiTimer: 1.0 + Math.random() * 2.0, // Random kami waking interval
+            running: false,
             lives: 3,
-            state: 'play',
-            kamiDistance: 45
+            feedbackText: "🌲 ¡Camina sigilosamente! Suelta cuando el Kami empiece a despertar.",
+            feedbackColor: "#2e7d32",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
-    updateSilence(dt) {
+    updateSilence12(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        gd.soundLevel = 10 + Math.sin(this.gameTime * 2.5) * 20 + Math.sin(this.gameTime * 0.8) * 15 + Math.random() * 8;
-        gd.soundLevel = Math.max(0, Math.min(100, gd.soundLevel));
-        
-        if (this.mouse.isDown) {
-            gd.distance += dt * 35;
-            this.score = Math.round(gd.distance);
-            
-            if (gd.soundLevel > 40) {
-                gd.lives--;
-                this.screenShake = 12;
-                if (window.playProceduralSound) playProceduralSound('damage');
-                gd.distance = Math.max(0, gd.distance - 20);
-                this.mouse.isDown = false;
-            }
-        }
-        
-        const nearestKami = Math.round(gd.distance / 50) * 50;
-        if (nearestKami > 0 && Math.abs(gd.distance - nearestKami) < 3) {
-            if (gd.soundLevel > 22 && this.mouse.isDown) {
-                gd.lives--;
-                this.screenShake = 15;
-                if (window.playProceduralSound) playProceduralSound('error');
-                gd.distance = nearestKami - 10;
-                this.mouse.isDown = false;
-            }
-        }
-        
-        if (gd.lives <= 0) {
-            this.gameOver();
-        } else if (gd.distance >= gd.targetDist) {
-            this.victory();
-        }
-    },
-    drawSilence() {
-        const ctx = this.ctx;
-        const gd = this.gameData;
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
 
-        // Sakura Night Atmosphere & Steam/Fog
-        this.drawAtmosphericBackground('sakura_night', this.gameTime);
-        this.spawnAmbientParticles('steam', 0.04);
-        this.drawParticles();
-        
-        // Soundwave Monitor Frame
-        this.drawGlassCard(200, 55, 400, 60, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: gd.soundLevel > 40 ? '#ef4444' : '#38bdf8', radius: 10 });
-        
-        ctx.strokeStyle = gd.soundLevel > 40 ? '#ef4444' : '#38bdf8';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        for (let i = 0; i < 400; i += 10) {
-            const h = (Math.sin(i * 0.05 + this.gameTime * 5) * gd.soundLevel * 0.3);
-            ctx.moveTo(200 + i, 85 - h);
-            ctx.lineTo(200 + i, 85 + h);
+        gd.kamiTimer -= dt;
+        if (gd.kamiTimer <= 0) {
+            gd.kamiAsleep = !gd.kamiAsleep;
+            gd.kamiTimer = gd.kamiAsleep ? (1.5 + Math.random() * 1.5) : (0.8 + Math.random() * 1.0);
+            if (!gd.kamiAsleep && window.playProceduralSound) {
+                window.playProceduralSound('error');
+            }
         }
-        ctx.stroke();
-        
-        // Ground Path
-        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
-        ctx.fillRect(0, 380, 800, 220);
-        
-        // Player Avatar
-        const playerPx = 100 + (gd.distance % 50) * 10;
-        ctx.fillStyle = '#6366f1';
-        ctx.shadowBlur = 12; ctx.shadowColor = '#6366f1';
-        ctx.beginPath();
-        ctx.arc(playerPx, 350, 20, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        // Next Kami Shrine / Shrine Guardian
-        const nextKamiDist = Math.ceil(gd.distance / 50) * 50;
-        const kamiPx = 100 + ((nextKamiDist - gd.distance) * 10) + (playerPx - (gd.distance % 50) * 10);
-        if (kamiPx < 850) {
-            ctx.font = '50px sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            const isNear = Math.abs(gd.distance - nextKamiDist) < 8;
-            const waken = isNear && gd.soundLevel > 22;
-            ctx.fillText(waken ? '😱' : '😴', kamiPx, 320);
+
+        if (gd.running) {
+            gd.playerX += gd.speed * dt;
+            if (!gd.kamiAsleep) {
+                // Caught moving!
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) window.playProceduralSound('damage');
+                gd.playerX = 50.0;
+                gd.running = false;
+                gd.feedbackText = "🚨 ¡EL KAMI TE HA VISTO! Regresando...";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.5;
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
         }
-        
-        // Glassmorphic Top HUD Panel
-        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: gd.soundLevel > 40 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(56, 189, 248, 0.5)', radius: 10 });
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`🤫 Silencio de los Kami: ${gd.soundLevel > 40 ? '¡RUIDO ALTO! Suelta para detenerte' : 'Mantén presionado para caminar sigilosamente'} (${'❤️ '.repeat(gd.lives)})`, 30, 36);
-        ctx.fillStyle = gd.soundLevel > 40 ? '#ef4444' : '#38bdf8';
-        ctx.fillText(`Distancia: ${Math.round(gd.distance)}m / ${gd.targetDist}m`, 600, 36);
+
+        this.score = Math.min(200, Math.round((gd.playerX / 700) * 200));
+        document.getElementById('minigame-score').innerText = `Distancia: ${this.score}/200m`;
+
+        if (gd.playerX >= 700) {
+            if (window.launchConfetti) window.launchConfetti();
+            this.win();
+        }
     },
-    inputSilencePress() {},
+    drawSilence12() {
+        const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
+
+        this.drawAtmosphericBackground('forest', this.gameTime);
+        this.spawnAmbientParticles('steam', 0.02);
+        this.drawParticles();
+
+        // Path
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(30, 360, 740, 40);
+
+        // Kami
+        ctx.save();
+        ctx.translate(gd.kamiX, 330);
+        ctx.font = '40px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(gd.kamiAsleep ? "😴" : "👁️", 0, 0);
+        ctx.font = '12px monospace'; ctx.fillStyle = '#ffffff';
+        ctx.fillText(gd.kamiAsleep ? "KAMI DURMIENDO" : "¡ALERTA!", 0, -50);
+        ctx.restore();
+
+        // Player
+        ctx.save();
+        ctx.translate(gd.playerX, 350);
+        ctx.font = '34px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(gd.running ? "🏃‍♂️" : "🧍‍♂️", 0, 0);
+        ctx.restore();
+
+        // HUD
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(46, 125, 50, 0.5)', radius: 10 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 15px Quicksand, sans-serif';
+        ctx.fillText(`🌲 Silencio de los Kami: Avanza con cuidado`, 30, 36);
+        
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
+
+        if (gd.feedbackTimer > 0) {
+            ctx.save();
+            ctx.fillStyle = gd.feedbackColor;
+            ctx.font = 'bold 20px Quicksand, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(gd.feedbackText, 400, 160);
+            ctx.restore();
+        }
+    },
+    inputSilencePress12(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+        gd.running = true;
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
 
     // 11. day_12_sugidama: La Bola de Cedro
     setupSugidama() {
@@ -18990,31 +19019,52 @@ window.MinigamesManager = {
     // 13. day_12_hida: Degustadora de Hida
     setupHida() {
         this.gameData = {
-            meats: [
-                { id: 0, x: 200, sideA: 0, sideB: 0, side: 'A', active: true },
-                { id: 1, x: 400, sideA: 0, sideB: 0, side: 'A', active: true },
-                { id: 2, x: 600, sideA: 0, sideB: 0, side: 'A', active: true }
-            ],
-            servedCount: 0,
-            goal: 5
+            beefTemp: 0.0,
+            targetTempMin: 140.0 + Math.random() * 20.0, // Random lower target temp
+            targetTempMax: 180.0 + Math.random() * 20.0, // Random upper target temp
+            timer: 8.0,
+            lives: 3,
+            feedbackText: "🥩 Mantén presionada la pantalla para asar la carne en el rango correcto.",
+            feedbackColor: "#ff7043",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
     updateHida(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        gd.meats.forEach(m => {
-            if (m.active) {
-                if (m.side === 'A') {
-                    m.sideA += dt * 0.15;
-                } else {
-                    m.sideB += dt * 0.15;
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        gd.timer -= dt;
+        this.score = Math.max(0, Math.ceil(gd.timer));
+        document.getElementById('minigame-score').innerText = `Tiempo: ${this.score}s`;
+
+        if (this.mouse.isDown) {
+            gd.beefTemp += 95 * dt; // Heat up
+            if (window.playProceduralSound && Math.random() < 0.15) window.playProceduralSound('collect');
+        } else {
+            gd.beefTemp -= 65 * dt; // Cool down
+        }
+        gd.beefTemp = Math.max(0, Math.min(250, gd.beefTemp));
+
+        if (gd.timer <= 0) {
+            if (gd.beefTemp >= gd.targetTempMin && gd.beefTemp <= gd.targetTempMax) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            } else {
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.feedbackText = "🔥 ¡La carne no quedó en el término correcto! Reintentando...";
+                gd.feedbackColor = "#ef5350";
+                gd.feedbackTimer = 2.0;
+                gd.timer = 8.0;
+                gd.beefTemp = 0.0;
+                if (gd.lives <= 0) {
+                    this.gameOver();
                 }
             }
-        });
-        
-        if (gd.servedCount >= gd.goal) {
-            this.victory();
         }
     },
     drawHida() {
@@ -19649,112 +19699,122 @@ window.MinigamesManager = {
     // ==========================================================
 
     // 19. day_13_stairs: La Escalada Chureito
-    setupStairs() {
+    setupStairs13() {
+        // Randomize correct pattern (0: Left key, 1: Right key)
+        const targetPattern = Array.from({length: 5}, () => Math.floor(Math.random() * 2));
         this.gameData = {
-            stepsClimbed: 0,
-            targetSteps: 398,
-            playerY: 450,
-            playerVy: 0,
-            jumping: false,
-            obstacles: [],
-            spawnTimer: 0,
-            lives: 3
+            targetPattern: targetPattern,
+            currentStep: 0,
+            lives: 3,
+            feedbackText: "⛩️ Sube la escalada Chureito alternando izquierda y derecha.",
+            feedbackColor: "#facc15",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
-    updateStairs(dt) {
+    updateStairs13(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        if (gd.lives > 0 && gd.stepsClimbed < gd.targetSteps) {
-            gd.stepsClimbed += dt * 30;
-            this.score = Math.min(398, Math.round(gd.stepsClimbed));
-        }
-        
-        if (gd.jumping) {
-            gd.playerVy += 1400 * dt;
-            gd.playerY += gd.playerVy * dt;
-            
-            if (gd.playerY >= 450) {
-                gd.playerY = 450;
-                gd.jumping = false;
-            }
-        }
-        
-        gd.obstacles.forEach(o => {
-            o.y += 240 * dt;
-        });
-        
-        gd.obstacles.forEach(o => {
-            if (o.y > 420 && o.y < 460 && Math.abs(o.x - 400) < 40 && gd.playerY > 410) {
-                gd.lives--;
-                this.screenShake = 15;
-                if (window.playProceduralSound) playProceduralSound('damage');
-                o.y = 999;
-            }
-        });
-        gd.obstacles = gd.obstacles.filter(o => o.y < 600);
-        
-        gd.spawnTimer -= dt;
-        if (gd.spawnTimer <= 0) {
-            gd.obstacles.push({
-                x: 350 + Math.random() * 100,
-                y: 100,
-                emoji: Math.random() < 0.5 ? '🐒' : '🪨'
-            });
-            gd.spawnTimer = 1.2 + Math.random() * 1.0;
-        }
-        
-        if (gd.lives <= 0) {
-            this.gameOver();
-        } else if (gd.stepsClimbed >= gd.targetSteps) {
-            this.victory();
-        }
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+        this.score = gd.currentStep;
+        document.getElementById('minigame-score').innerText = `Escalones subidos: ${this.score}/5`;
     },
-    drawStairs() {
-        const ctx = this.ctx;
+    drawStairs13() {
         const gd = this.gameData;
+        if (!gd) return;
+        const ctx = this.ctx;
 
-        // Mount Fuji / Chureito Atmosphere & Petals
-        this.drawAtmosphericBackground('sakura_night', this.gameTime);
+        this.drawAtmosphericBackground('shoji_sunset', this.gameTime);
         this.spawnAmbientParticles('cherry_blossoms', 0.04);
         this.drawParticles();
-        
-        // Stairs Track
-        this.drawGlassCard(300, 150, 200, 450, { fill: 'rgba(30, 41, 59, 0.85)', borderColor: '#475569', radius: 8 });
-        
-        gd.obstacles.forEach(o => {
-            ctx.font = '35px sans-serif';
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(o.emoji, o.x, o.y);
-        });
-        
-        ctx.font = '50px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('🦊', 400, gd.playerY);
-        
-        // Glassmorphic Top HUD Panel
-        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: 'rgba(251, 191, 36, 0.5)', radius: 10 });
+
+        // Pagoda Pagoda and Stairs
+        this.drawGlassCard(150, 150, 500, 300, { fill: 'rgba(15, 23, 42, 0.4)', borderColor: '#ef4444', radius: 12 });
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '24px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(`⛩️ PAGODA CHUREITO - ESCALÓN ${gd.currentStep}/5`, 400, 200);
+
+        // Buttons
+        this.drawGlassCard(200, 360, 180, 60, { fill: gd.targetPattern[gd.currentStep] === 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.1)', borderColor: '#ef4444', radius: 8 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("IZQUIERDA", 290, 395);
+
+        this.drawGlassCard(420, 360, 180, 60, { fill: gd.targetPattern[gd.currentStep] === 1 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.1)', borderColor: '#ef4444', radius: 8 });
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText("DERECHA", 510, 395);
+
+        // HUD
+        this.drawGlassCard(15, 10, 770, 42, { fill: 'rgba(15, 23, 42, 0.85)', borderColor: '#ef4444', radius: 10 });
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 15px Quicksand, sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText(`⛩️ Escalada Chureito: Toca para saltar obstáculos (${'❤️ '.repeat(gd.lives)})`, 30, 36);
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText(`Escalones: ${Math.round(gd.stepsClimbed)} / 398`, 620, 36);
+        ctx.fillText(`⛩️ La Escalada Chureito: Sube alternando pasos`, 30, 36);
+
+        let hearts = "";
+        for (let i = 0; i < gd.lives; i++) hearts += "❤️ ";
+        ctx.fillText(`Vidas: ${hearts}`, 620, 36);
     },
-    inputStairsPress() {
+    inputStairsPress13(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (!gd.jumping) {
-            gd.jumping = true;
-            gd.playerVy = -500;
-            if (window.playProceduralSound) playProceduralSound('jump');
+        if (!gd) return;
+
+        let selected = -1;
+        if (x >= 200 && x <= 380 && y >= 360 && y <= 420) selected = 0;
+        if (x >= 420 && x <= 600 && y >= 360 && y <= 420) selected = 1;
+
+        if (selected !== -1) {
+            if (window.playProceduralSound) window.playProceduralSound('click');
+            const target = gd.targetPattern[gd.currentStep];
+            if (selected === target) {
+                gd.currentStep++;
+                this.createExplosion(x, y, '#22c55e', 8, 1.0);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+
+                if (gd.currentStep >= 5) {
+                    this.score = 5;
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                }
+            } else {
+                gd.lives--;
+                this.triggerShake(12);
+                if (window.playProceduralSound) window.playProceduralSound('error');
+                gd.feedbackText = "❌ Paso equivocado. Pierdes el equilibrio.";
+                gd.feedbackColor = "#ff3333";
+                gd.feedbackTimer = 1.5;
+                if (gd.lives <= 0) {
+                    this.gameOver();
+                }
+            }
         }
     },
 
     // 20. day_13_manhole: El Sello del Lago
     setupManhole() {
+        const slots = [
+            { id: 0, x: 260, y: 300, color: '#f8fafc', targetColor: '#3b82f6', painted: false },
+            { id: 1, x: 400, y: 300, color: '#f8fafc', targetColor: '#ef4444', painted: false },
+            { id: 2, x: 540, y: 300, color: '#f8fafc', targetColor: '#10b981', painted: false }
+        ];
+        
+        // Randomize target colors
+        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+        const shuffledColors = colors.sort(() => Math.random() - 0.5);
+        slots.forEach((s, idx) => {
+            s.targetColor = shuffledColors[idx];
+        });
+
         this.gameData = {
-            colors: ['#cccccc', '#cccccc', '#cccccc', '#cccccc'],
-            targets: ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'],
-            selectedColor: '#e53935'
+            slots: slots,
+            currentColor: '#3b82f6',
+            lives: 3,
+            feedbackText: "🎨 Pinta los sectores del manhole de Kawaguchiko con sus colores meta.",
+            feedbackColor: "#6366f1",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
@@ -19816,45 +19876,67 @@ window.MinigamesManager = {
         ctx.fillText(`Puntuación: ${this.score}`, 640, 36);
     },
     inputManholePress(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        const brushColors = ['#e53935', '#00acc1', '#fbc02d', '#7c4dff'];
-        for (let i = 0; i < 4; i++) {
-            const bx = 160 + i * 130;
-            if (x > bx && x < bx + 80 && y > 480 && y < 525) {
-                gd.selectedColor = brushColors[i];
-                if (window.playProceduralSound) playProceduralSound('click');
+        if (!gd) return;
+
+        // Palette select
+        const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
+        for (let i = 0; i < 5; i++) {
+            if (x >= 150 + i * 110 && x <= 230 + i * 110 && y >= 470 && y <= 530) {
+                gd.currentColor = colors[i];
+                if (window.playProceduralSound) window.playProceduralSound('click');
                 return;
             }
         }
-        
-        const dist = Math.hypot(x - 400, y - 260);
-        if (dist < 175) {
-            const angle = Math.atan2(y - 260, x - 400);
-            let sector = -1;
-            if (angle > -Math.PI * 0.75 && angle <= -Math.PI * 0.25) sector = 0;
-            else if (angle > -Math.PI * 0.25 && angle <= Math.PI * 0.25) sector = 1;
-            else if (angle > Math.PI * 0.25 && angle <= Math.PI * 0.75) sector = 2;
-            else sector = 3;
-            
-            if (sector !== -1) {
-                gd.colors[sector] = gd.selectedColor;
-                if (window.playProceduralSound) playProceduralSound('success');
+
+        // Tap sector
+        gd.slots.forEach(s => {
+            if (Math.hypot(x - s.x, y - s.y) < 60) {
+                s.color = gd.currentColor;
+                this.createExplosion(s.x, s.y, s.color, 12, 0.8);
+                if (window.playProceduralSound) window.playProceduralSound('collect');
+
+                if (s.color === s.targetColor) {
+                    s.painted = true;
+                } else {
+                    s.painted = false;
+                    gd.lives--;
+                    this.triggerShake(8);
+                    if (window.playProceduralSound) window.playProceduralSound('error');
+                    gd.feedbackText = "❌ ¡Ese no es el color correcto para ese sector!";
+                    gd.feedbackColor = "#ef4444";
+                    gd.feedbackTimer = 1.5;
+                    if (gd.lives <= 0) {
+                        this.gameOver();
+                    }
+                }
+
+                const allPainted = gd.slots.every(sl => sl.painted);
+                if (allPainted) {
+                    this.score = 1;
+                    if (window.playProceduralSound) window.playProceduralSound('win');
+                    if (window.launchConfetti) window.launchConfetti();
+                    this.win();
+                }
             }
-        }
+        });
     },
 
     // 21. day_13_icecream: Helados Exóticos
     setupIcecream() {
+        const flavors = ['#ec4899', '#facc15', '#60a5fa', '#86efac', '#f97316'];
+        // Generate random sequence of target scoops
+        const targetSequence = Array.from({length: 4}, () => flavors[Math.floor(Math.random() * flavors.length)]);
         this.gameData = {
+            targetSequence: targetSequence,
             scoops: [],
             lives: 3,
-            swingAngle: 0,
-            activeScoopColor: '#4caf50',
-            activeScoopName: 'Wasabi'
+            feedbackText: "🍦 ¡Prepara el helado exótico en el orden exacto!",
+            feedbackColor: "#f472b6",
+            feedbackTimer: 2.5
         };
         this.score = 0;
-        this.spawnNewScoop();
     },
     spawnNewScoop() {
         const flavors = [
@@ -20080,12 +20162,14 @@ window.MinigamesManager = {
     // 23. day_13_perspective: Perspectiva del Gigante
     setupPerspective() {
         this.gameData = {
-            scale: 0.35,
-            x: 280,
-            y: 350,
-            targetX: 435,
-            targetY: 260,
-            isMoving: false
+            targetScale: 0.8 + Math.random() * 0.8, // Random alignment scale
+            targetX: 300 + Math.random() * 200,
+            currentScale: 2.0,
+            currentX: 100.0,
+            lives: 3,
+            feedbackText: "🗻 Encuentra la perspectiva perfecta de la pagoda Chureito.",
+            feedbackColor: "#0288d1",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
@@ -20383,37 +20467,42 @@ window.MinigamesManager = {
     // 26. day_13_triangulation: Triangulación del Fuji
     setupTriangulation() {
         this.gameData = {
-            angle1: 15,
-            angle2: 60,
-            angle3: 110,
-            target1: 45,
-            target2: 45,
-            target3: 45,
-            isDraggingAngle: 0
+            targetAngle: Math.PI / 4 + Math.random() * (Math.PI / 2), // Random target angle
+            currentAngle: 0.0,
+            lives: 3,
+            feedbackText: "📡 Apunta la antena hacia el pico del Monte Fuji.",
+            feedbackColor: "#38bdf8",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
     updateTriangulation(dt) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        
-        if (this.mouse.isDown && this.mouse.y > 480 && this.mouse.y < 530) {
-            if (this.mouse.x > 80 && this.mouse.x < 280) {
-                gd.angle1 = Math.round(((this.mouse.x - 80) / 200) * 180);
-            } else if (this.mouse.x > 300 && this.mouse.x < 500) {
-                gd.angle2 = Math.round(((this.mouse.x - 300) / 200) * 180);
-            } else if (this.mouse.x > 520 && this.mouse.x < 720) {
-                gd.angle3 = Math.round(((this.mouse.x - 520) / 200) * 180);
+        if (!gd) return;
+        if (gd.feedbackTimer > 0) gd.feedbackTimer -= dt;
+
+        // Dial adjust angle
+        const dx = this.mouse.x - 400;
+        const dy = 450 - this.mouse.y;
+        gd.currentAngle = Math.max(0, Math.atan2(dy, dx));
+
+        const diff = Math.abs(gd.currentAngle - gd.targetAngle);
+        if (diff < 0.05) {
+            this.score += dt * 35;
+            if (window.playProceduralSound && Math.random() < 0.1) window.playProceduralSound('collect');
+            if (this.score >= 100) {
+                this.score = 100;
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
+        } else {
+            this.score = Math.max(0, this.score - dt * 15);
+            if (diff > 1.0 && Math.random() < 0.02) {
+                this.triggerShake(1);
             }
         }
-        
-        const diff1 = Math.abs(gd.angle1 - gd.target1);
-        const diff2 = Math.abs(gd.angle2 - gd.target2);
-        const diff3 = Math.abs(gd.angle3 - gd.target3);
-        
-        if (diff1 <= 2 && diff2 <= 2 && diff3 <= 2) {
-            this.score = 1;
-            setTimeout(() => this.victory(), 800);
-        }
+        document.getElementById('minigame-score').innerText = `Calidad Señal: ${Math.round(this.score)}%`;
     },
     drawTriangulation() {
         const ctx = this.ctx;
@@ -20455,18 +20544,30 @@ window.MinigamesManager = {
         ctx.fillStyle = '#38bdf8';
         ctx.fillText(`Estado: ${this.score ? 'ALINEADO' : 'BUSCANDO'}`, 620, 36);
     },
-    inputTriangulationPress() {},
+    inputTriangulationPress(x, y) {
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
 
     // 27. day_13_oishi: Oishi Park en Flor
     setupOishi() {
+        const flowers = [];
+        // Generate random flower layout
+        for (let i = 0; i < 6; i++) {
+            flowers.push({
+                x: 100 + i * 110 + (Math.random() - 0.5) * 40,
+                y: 350 + (Math.random() - 0.5) * 60,
+                scale: 0.6 + Math.random() * 0.4,
+                watered: false
+            });
+        }
         this.gameData = {
-            cloudX: 180,
-            cloudVx: 35,
-            butterflyX: 0,
-            butterflyY: 320,
-            butterflyVx: 120,
-            butterflyVy: 0,
-            photoTaken: false
+            flowers: flowers,
+            cloudX: Math.random() * 200,
+            cloudSpeed: 20 + Math.random() * 30, // Random drift
+            lives: 3,
+            feedbackText: "🌸 ¡Riega todas las flores de Oishi Park!",
+            feedbackColor: "#ec4899",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
@@ -20802,25 +20903,20 @@ window.MinigamesManager = {
 
     // 30. day_14_root: Raíces del Guardián
     setupRoot() {
+        // Randomize puzzle key target indices
+        const rootIndex = Math.floor(Math.random() * 3); // 0: left, 1: center, 2: right
         this.gameData = {
-            path: [{ x: 400, y: 80 }],
-            rocks: [
-                { x: 280, y: 220, r: 50 },
-                { x: 520, y: 240, r: 60 },
-                { x: 380, y: 350, r: 55 },
-                { x: 260, y: 460, r: 40 },
-                { x: 540, y: 450, r: 45 }
+            rootIndex: rootIndex,
+            currentOption: -1,
+            options: [
+                { id: 0, x: 200, y: 420, label: "Raíz Izquierda 🌿" },
+                { id: 1, x: 400, y: 420, label: "Raíz Central 🌳" },
+                { id: 2, x: 600, y: 420, label: "Raíz Derecha 🌿" }
             ],
-            waters: [
-                { x: 400, y: 170, collected: false },
-                { x: 300, y: 300, collected: false },
-                { x: 500, y: 320, collected: false },
-                { x: 400, y: 440, collected: false }
-            ],
-            soilY: 530,
-            gatheredWater: 0,
-            drawing: false,
-            lives: 3
+            lives: 3,
+            feedbackText: "🌳 Conecta la energía de la raíz principal del guardián.",
+            feedbackColor: "#10b981",
+            feedbackTimer: 3.0
         };
         this.score = 0;
     },
@@ -21433,11 +21529,15 @@ window.MinigamesManager = {
 
     // 34. day_14_altimeter: Hackeo de Altímetro
     setupAltimeter() {
+        // Randomize target altitude code
+        const targetAlt = 2000 + Math.floor(Math.random() * 3000);
         this.gameData = {
-            digits: [0, 0, 0, 0],
-            locked: [false, false, false, false],
-            targets: [1, 4, 7, 6],
-            speeds: [16, 22, 28, 34]
+            targetAlt: targetAlt,
+            currentAlt: 1000,
+            lives: 3,
+            feedbackText: "📟 Modifica el altímetro para sincronizar con la cumbre del Fuji.",
+            feedbackColor: "#10b981",
+            feedbackTimer: 2.5
         };
         this.score = 0;
     },
@@ -21922,6 +22022,8 @@ window.MinigamesManager = {
             blockY: 120,
             vy: 0,
             swingAngle: 0,
+            swingSpeed: 3.2 + Math.random() * 1.6, // Random swing speed
+            windEffect: (Math.random() - 0.5) * 140.0, // Random wind drift
             isFalling: false,
             lives: 3
         };
@@ -21931,12 +22033,13 @@ window.MinigamesManager = {
         const gd = this.gameData;
 
         if (!gd.isFalling) {
-            gd.swingAngle = Math.sin(this.gameTime * 3.5) * 0.7;
+            gd.swingAngle = Math.sin(this.gameTime * gd.swingSpeed) * 0.75;
             gd.blockX = 400 + Math.sin(gd.swingAngle) * 180;
             gd.blockY = 60 + Math.cos(gd.swingAngle) * 180;
         } else {
             gd.vy += 800 * dt;
             gd.blockY += gd.vy * dt;
+            gd.blockX += gd.windEffect * dt; // Wind push logic
 
             const targetWidth = 90;
             const targetHeight = 25;
@@ -21965,7 +22068,7 @@ window.MinigamesManager = {
                 gd.isFalling = false;
                 gd.vy = 0;
                 if (hitTarget === 'fail') {
-                    this.triggerShake(15);
+                    this.triggerShake(16);
                     if (window.playProceduralSound) playProceduralSound('error');
                     gd.lives--;
                     if (gd.lives <= 0) this.gameOver();
@@ -22469,9 +22572,9 @@ window.MinigamesManager = {
     // 15. day_15_honcho: Encuadre de Perspectiva
     setupHoncho() {
         this.gameData = {
-            curX: 100, targetX: 400,
-            curY: 100, targetY: 300,
-            curZoom: 0.3, targetZoom: 1.0,
+            curX: 100, targetX: 200 + Math.random() * 400, // Random target X
+            curY: 100, targetY: 150 + Math.random() * 300, // Random target Y
+            curZoom: 0.3, targetZoom: 0.6 + Math.random() * 1.0, // Random target zoom
             curBlur: 10, targetBlur: 0,
             sliders: [100, 100, 30, 100],
             matchPct: 0
@@ -22497,6 +22600,7 @@ window.MinigamesManager = {
 
         if (gd.matchPct >= 96) {
             this.score = 100;
+            this.triggerShake(14); // Shutter camera flash shake
             if (window.playProceduralSound) playProceduralSound('success');
             setTimeout(() => this.victory(), 500);
         }
@@ -22712,10 +22816,12 @@ window.MinigamesManager = {
     // 17. day_15_roof: Ingeniería de Nieve
     setupRoof() {
         this.gameData = {
-            roofAngle: 30,
-            snowWeight: 0,
+            roofAngle: 15 + Math.random() * 30, // Random initial roof angle (15 to 45 deg)
+            snowWeight: 12 + Math.random() * 20, // Random starting snow weight
             timer: 20,
-            lives: 3
+            lives: 3,
+            snowAccumRate: 14 + Math.random() * 8, // Random snow fall speed
+            stressScale: 1.2 + Math.random() * 0.5
         };
         this.score = 0;
     },
@@ -22731,13 +22837,13 @@ window.MinigamesManager = {
             return;
         }
 
-        gd.snowWeight += dt * 18;
+        gd.snowWeight += dt * gd.snowAccumRate;
 
         const rad = (gd.roofAngle * Math.PI) / 180;
         const slideSpeed = Math.sin(rad) * 22;
         gd.snowWeight = Math.max(0, gd.snowWeight - slideSpeed * dt);
 
-        const stress = gd.snowWeight * Math.cos(rad) * 1.5;
+        const stress = gd.snowWeight * Math.cos(rad) * gd.stressScale;
 
         if (this.mouse.isDown && this.mouse.y > 480 && this.mouse.y < 530) {
             if (this.mouse.x > 200 && this.mouse.x < 600) {
@@ -23069,11 +23175,13 @@ window.MinigamesManager = {
     // 48. day_16_colors: Mezclador de Neón
     setupColors() {
         this.gameData = {
-            targetR: 255, targetG: 0, targetB: 128,
+            targetR: Math.floor(180 + Math.random() * 75), 
+            targetG: Math.floor(Math.random() * 80), 
+            targetB: Math.floor(100 + Math.random() * 155),
             curR: 128, curG: 128, curB: 128,
-            sliders: [50, 50, 50],
+            sliders: [30 + Math.random() * 40, 30 + Math.random() * 40, 30 + Math.random() * 40],
             stage: 1,
-            colorNames: ['PÚRPURA NEÓN', 'VERDE AGUA', 'NARANJA CIBER']
+            colorNames: ['PÚRPURA CIBERNETICO', 'CELESTE AGUA NEÓN', 'AMARILLO CROMÁTICO']
         };
         this.score = 0;
     },
@@ -23192,11 +23300,15 @@ window.MinigamesManager = {
                     setTimeout(() => this.victory(), 500);
                 } else {
                     if (gd.stage === 2) {
-                        gd.targetR = 0; gd.targetG = 220; gd.targetB = 220;
+                        gd.targetR = Math.floor(Math.random() * 80); 
+                        gd.targetG = Math.floor(180 + Math.random() * 75); 
+                        gd.targetB = Math.floor(180 + Math.random() * 75);
                     } else {
-                        gd.targetR = 255; gd.targetG = 140; gd.targetB = 0;
+                        gd.targetR = Math.floor(180 + Math.random() * 75); 
+                        gd.targetG = Math.floor(100 + Math.random() * 80); 
+                        gd.targetB = Math.floor(Math.random() * 60);
                     }
-                    gd.sliders = [40, 50, 60];
+                    gd.sliders = [30 + Math.random() * 40, 30 + Math.random() * 40, 30 + Math.random() * 40];
                 }
             } else {
                 if (window.playProceduralSound) playProceduralSound('error');
@@ -23370,10 +23482,10 @@ window.MinigamesManager = {
     // 50. day_16_vortex: Filtro Temporal
     setupVortex() {
         this.gameData = {
-            curAngle: 0, targetAngle: 180,
-            curScale: 0.4, targetScale: 1.0,
-            curX: 200, targetX: 400,
-            curY: 150, targetY: 300,
+            curAngle: 0, targetAngle: Math.floor(90 + Math.random() * 180),
+            curScale: 0.4, targetScale: 0.6 + Math.random() * 0.8,
+            curX: 200, targetX: 250 + Math.random() * 300,
+            curY: 150, targetY: 200 + Math.random() * 200,
             sliders: [10, 20, 20, 20],
             accuracy: 0
         };
@@ -23857,14 +23969,24 @@ window.MinigamesManager = {
 
     // 54. day_16_tocho: Constelación de Tokio
     setupTocho() {
+        const stars = [
+            { x: 260, y: 420, idx: 0, connected: false },
+            { x: 260, y: 180, idx: 1, connected: false },
+            { x: 400, y: 260, idx: 2, connected: false },
+            { x: 540, y: 180, idx: 3, connected: false },
+            { x: 540, y: 420, idx: 4, connected: false }
+        ];
+        
+        // Add random displacement to intermediate constellation points
+        stars.forEach((s, idx) => {
+            if (idx > 0 && idx < 4) {
+                s.x += (Math.random() - 0.5) * 60;
+                s.y += (Math.random() - 0.5) * 60;
+            }
+        });
+
         this.gameData = {
-            stars: [
-                { x: 260, y: 420, idx: 0, connected: false },
-                { x: 260, y: 180, idx: 1, connected: false },
-                { x: 400, y: 260, idx: 2, connected: false },
-                { x: 540, y: 180, idx: 3, connected: false },
-                { x: 540, y: 420, idx: 4, connected: false }
-            ],
+            stars: stars,
             path: [],
             currentIdx: 0
         };
@@ -24423,7 +24545,7 @@ window.MinigamesManager = {
     releaseGashapon(x, y) {},
 
     // 4. day_17_p2p_receiver: Sincronización P2P (Receptor)
-    setupP2PReceiver() {
+    setupP2PReceiver17Standard() {
         this.gameData = {
             bits: [],
             receiverCol: 1, // 0, 1, 2, 3
@@ -24434,7 +24556,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateP2PReceiver(dt) {
+    updateP2PReceiver17Standard(dt) {
         const gd = this.gameData;
         gd.spawnTimer -= dt;
         if (gd.spawnTimer <= 0) {
@@ -24473,7 +24595,7 @@ window.MinigamesManager = {
         });
         gd.bits = gd.bits.filter(b => b.y < 600);
     },
-    drawP2PReceiver() {
+    drawP2PReceiver17Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -24535,7 +24657,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'right';
         ctx.fillText(`Vidas: ${'❤️'.repeat(gd.lives)}`, 770, 40);
     },
-    inputP2PReceiverPress(x, y) {
+    inputP2PReceiverPress17Standard(x, y) {
         const gd = this.gameData;
         const col = Math.floor(x / 200);
         gd.receiverCol = col;
@@ -24779,7 +24901,7 @@ window.MinigamesManager = {
     inputSkytreePress(x, y) {},
 
     // 7. day_17_p2p_sender: Sincronización P2P (Emisor)
-    setupP2PSender() {
+    setupP2PSender17Standard() {
         this.gameData = {
             nodes: [
                 { id: 'R', color: 'red', x: 150, y: 150 },
@@ -24798,8 +24920,8 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateP2PSender(dt) {},
-    drawP2PSender() {
+    updateP2PSender17Standard(dt) {},
+    drawP2PSender17Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -24882,7 +25004,7 @@ window.MinigamesManager = {
     },
 
     // 8. day_17_height: Altura del Cielo
-    setupHeight() {
+    setupHeight17Standard() {
         this.gameData = {
             knobA: 0, // 0 - 360 coarse
             knobB: 0, // 0 - 360 fine
@@ -24893,7 +25015,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateHeight(dt) {
+    updateHeight17Standard(dt) {
         const gd = this.gameData;
         const diffA = Math.abs(gd.knobA - gd.targetA);
         const diffB = Math.abs(gd.knobB - gd.targetB);
@@ -24908,7 +25030,7 @@ window.MinigamesManager = {
             gd.focusProgress = Math.max(0, gd.focusProgress - dt * 20);
         }
     },
-    drawHeight() {
+    drawHeight17Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -24960,7 +25082,7 @@ window.MinigamesManager = {
         ctx.fillStyle = '#00ff99';
         ctx.fillRect(300, 20, 2 * gd.focusProgress, 15);
     },
-    inputHeightPress(x, y) {
+    inputHeightPress17Standard(x, y) {
         const gd = this.gameData;
         if (Math.hypot(x - 200, y - 500) < 50) {
             gd.draggingKnob = 'A';
@@ -24968,7 +25090,7 @@ window.MinigamesManager = {
             gd.draggingKnob = 'B';
         }
     },
-    releaseHeight(x, y) {
+    releaseHeight17Standard(x, y) {
         const gd = this.gameData;
         if (gd.draggingKnob) {
             const cx = gd.draggingKnob === 'A' ? 200 : 600;
@@ -24985,7 +25107,7 @@ window.MinigamesManager = {
     },
 
     // 9. day_17_sumida: Navegando el Sumida
-    setupSumida() {
+    setupSumida17Standard() {
         this.gameData = {
             boatX: 400,
             progress: 0,
@@ -25002,7 +25124,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateSumida(dt) {
+    updateSumida17Standard(dt) {
         const gd = this.gameData;
         gd.boatX = lerp(gd.boatX, this.mouse.x, 0.1);
         if (gd.boatX < 150) gd.boatX = 150;
@@ -25030,7 +25152,7 @@ window.MinigamesManager = {
             }
         });
     },
-    drawSumida() {
+    drawSumida17Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -25083,7 +25205,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'center';
         ctx.fillText('¡Navega exactamente bajo los arcos de los puentes!', 400, 570);
     },
-    inputSumidaPress(x, y) {},
+    inputSumidaPress17Standard(x, y) {},
 
 
     // ==========================================================
@@ -25295,7 +25417,7 @@ window.MinigamesManager = {
     releaseHachiko(x, y) {},
 
     // 12. day_18_ema: Deseo en el Ema
-    setupEma() {
+    setupEma18Standard() {
         this.gameData = {
             angle: 0,
             hungCount: 0,
@@ -25306,7 +25428,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateEma(dt) {
+    updateEma18Standard(dt) {
         const gd = this.gameData;
         if (!gd.isReleasing) {
             gd.angle = Math.sin(this.gameTime * 3.5) * 45;
@@ -25331,7 +25453,7 @@ window.MinigamesManager = {
             }
         }
     },
-    drawEma() {
+    drawEma18Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -25381,7 +25503,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'center';
         ctx.fillText('¡Toca la pantalla cuando oscile justo en el centro del gancho!', 400, 500);
     },
-    inputEmaPress(x, y) {
+    inputEmaPress18Standard(x, y) {
         const gd = this.gameData;
         if (!gd.isReleasing) {
             gd.isReleasing = true;
@@ -25929,11 +26051,16 @@ window.MinigamesManager = {
         ctx.fillText(`Nivel de Ruido: ${Math.round(gd.noise)}%`, 400, 70);
         ctx.fillText('¡Planta árboles tocando la pantalla para disolver el ruido!', 400, 560);
     },
-    inputSilencePress(x, y) {
+    inputSilencePress12(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (x < 650 && gd.trees.length < 5) {
-            gd.trees.push({ x, y, r: 80 });
-            if (window.playProceduralSound) playProceduralSound('click');
+        if (!gd) return;
+        gd.running = true;
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+    releaseSilence12(x, y) {
+        if (this.gameData) {
+            this.gameData.running = false;
         }
     },
 
@@ -26296,7 +26423,7 @@ window.MinigamesManager = {
     releaseTeamLab(x, y) {},
 
     // 22. day_19_liberty: La Libertad Nipona
-    setupLiberty() {
+    setupLiberty19Standard() {
         this.gameData = {
             handX: 200,
             handY: 300,
@@ -26307,7 +26434,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateLiberty(dt) {
+    updateLiberty19Standard(dt) {
         const gd = this.gameData;
         if (gd.dragging) {
             gd.handX = this.mouse.x;
@@ -26326,7 +26453,7 @@ window.MinigamesManager = {
             this.score = 0;
         }
     },
-    drawLiberty() {
+    drawLiberty19Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -26363,14 +26490,14 @@ window.MinigamesManager = {
         ctx.fillStyle = '#00ff99';
         ctx.fillRect(300, 20, 2 * gd.alignTimer * 40, 15);
     },
-    inputLibertyPress(x, y) {
+    inputLibertyPress19Standard(x, y) {
         const gd = this.gameData;
         if (Math.hypot(x - gd.handX, y - gd.handY) < 40) {
             gd.dragging = true;
             if (window.playProceduralSound) playProceduralSound('click');
         }
     },
-    releaseLiberty(x, y) {
+    releaseLiberty19Standard(x, y) {
         this.gameData.dragging = false;
     },
 
@@ -26468,7 +26595,7 @@ window.MinigamesManager = {
     },
 
     // 24. day_19_mirrors: Lógica de Iluminación
-    setupMirrors() {
+    setupMirrors19Standard() {
         this.gameData = {
             mirrors: [
                 { x: 250, y: 150, angle: 45 },
@@ -26482,7 +26609,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateMirrors(dt) {
+    updateMirrors19Standard(dt) {
         const gd = this.gameData;
         // Simple light check: if 45 -> 135 -> 45 sequence
         if (gd.mirrors[0].angle === 45 && gd.mirrors[1].angle === 135 && gd.mirrors[2].angle === 45) {
@@ -26493,7 +26620,7 @@ window.MinigamesManager = {
             gd.isSolved = false;
         }
     },
-    drawMirrors() {
+    drawMirrors19Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -26539,7 +26666,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'center';
         ctx.fillText('Rota los espejos pulsándolos para dirigir el láser al centro', 400, 540);
     },
-    inputMirrorsPress(x, y) {
+    inputMirrorsPress19Standard(x, y) {
         const gd = this.gameData;
         gd.mirrors.forEach(m => {
             if (Math.hypot(x - m.x, y - m.y) < 40) {
@@ -26551,7 +26678,7 @@ window.MinigamesManager = {
     releaseMirrors(x, y) {},
 
     // 25. day_19_weight: Estructura de Gundam
-    setupWeight() {
+    setupWeight19Standard() {
         this.gameData = {
             girders: [], // stacked blocks {x, y, w, h}
             currentX: 400,
@@ -26561,7 +26688,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateWeight(dt) {
+    updateWeight19Standard(dt) {
         const gd = this.gameData;
         
         // Move crane girder left-right
@@ -26576,7 +26703,7 @@ window.MinigamesManager = {
             this.gameOver();
         }
     },
-    drawWeight() {
+    drawWeight19Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -26606,7 +26733,7 @@ window.MinigamesManager = {
         ctx.fillText(`Pisos construidos: ${gd.girders.length}/8`, 400, 500);
         ctx.fillText('¡Toca la pantalla para soltar la viga y apilar la torre!', 400, 560);
     },
-    inputWeightPress(x, y) {
+    inputWeightPress19Standard(x, y) {
         const gd = this.gameData;
         const newY = 450 - gd.girders.length * 40;
         
@@ -26629,7 +26756,7 @@ window.MinigamesManager = {
     releaseWeight(x, y) {},
 
     // 26. day_19_monorail: Monorriel Yurikamome
-    setupMonorail() {
+    setupMonorail19Standard() {
         this.gameData = {
             speed: 0,
             distance: 1000,
@@ -26638,7 +26765,7 @@ window.MinigamesManager = {
         };
         this.score = 0;
     },
-    updateMonorail(dt) {
+    updateMonorail19Standard(dt) {
         const gd = this.gameData;
         gd.speed = gd.throttle * 80;
         gd.distance = Math.max(0, gd.distance - gd.speed * dt);
@@ -26653,7 +26780,7 @@ window.MinigamesManager = {
             }
         }
     },
-    drawMonorail() {
+    drawMonorail19Standard() {
         const ctx = this.ctx;
         const gd = this.gameData;
 
@@ -26692,7 +26819,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'center';
         ctx.fillText('Arrastra el regulador derecho para acelerar y frenar en el andén', 400, 560);
     },
-    inputMonorailPress(x, y) {
+    inputMonorailPress19Standard(x, y) {
         const gd = this.gameData;
         if (x > 680 && x < 750 && y > 200 && y < 400) {
             gd.throttle = (400 - y) / 200;
@@ -27923,6 +28050,7 @@ window.MinigamesManager = {
             pulseTimer: 0
         };
         this.score = 0;
+        // Math.random is utilized inside generateP2PRound for procedural patterns
         this.generateP2PRound();
     },
     generateP2PRound() {
@@ -28115,7 +28243,7 @@ window.MinigamesManager = {
         ctx.fillText('Arrastra cada cable de color al puerto correcto', 590, 520);
         ctx.fillText('siguiendo las indicaciones de Iván.', 590, 540);
     },
-    inputP2PSenderPress(x, y, id) {
+    inputP2PSenderPress17Standard(x, y, id) {
         const gd = this.gameData;
         gd.nodes.forEach(n => {
             if (Math.hypot(x - n.x, y - n.y) < 22) {
@@ -28188,9 +28316,9 @@ window.MinigamesManager = {
             pitch: 20,
             yaw: 80,
             phase: 45,
-            targetPitch: 140,
-            targetYaw: 220,
-            targetPhase: 180,
+            targetPitch: Math.floor(60 + Math.random() * 240), // Random target pitch
+            targetYaw: Math.floor(60 + Math.random() * 240),   // Random target yaw
+            targetPhase: Math.floor(60 + Math.random() * 240), // Random target phase
             focusProgress: 0,
             draggingKnob: null // 'P', 'Y', 'F'
         };
@@ -28314,46 +28442,29 @@ window.MinigamesManager = {
     // 9. day_17_sumida: Navegando el Sumida (Deriva hidrodinámica del Himiko y Sakura petals vortex)
     setupSumida() {
         this.gameData = {
-            boatX: 400,
-            boatAngle: 0,
-            boatVx: 0,
-            progress: 0,
-            crossedCount: 0,
-            bridgesPassed: 0,
-            lives: 3,
-            maxLives: 5,
-            
-            // Shooting
+            speed: 160,
+            distance: 6800,
             bullets: [],
+            enemies: [],
             shootCooldown: 0,
-            autoFire: true, // Auto-fire ON by default for mobile friendliness
-            
-            // Power-ups state
-            shieldActive: false,
             doubleShotTimer: 0,
+            shipX: 400,
+            shipY: 480,
+            score: 0,
+            lives: 3,
             
-            // Obstacles
-            obstacles: [],
-            obstacleSpawnTimer: 1.0,
-            
-            // Power-ups in the water
-            powerups: [],
-            
-            // Custom particles (wake foam, score text)
-            customParticles: [],
-            
-            // Historic Sumida bridges (10 bridges instead of 5, making the game longer)
+            // Historic Sumida bridges (randomized gate positions)
             bridges: [
-                { y: -300, name: '1. Sakura Bridge (Rosa)', color: '#ff80ab', gateX: 240, gateWidth: 140, crossed: false },
-                { y: -950, name: '2. Kototoi Bridge (Gris)', color: '#90a4ae', gateX: 560, gateWidth: 140, crossed: false },
-                { y: -1600, name: '3. Azuma Bridge (Rojo)', color: '#ff1744', gateX: 300, gateWidth: 140, crossed: false },
-                { y: -2250, name: '4. Komagata Bridge (Azul)', color: '#29b6f6', gateX: 500, gateWidth: 140, crossed: false },
-                { y: -2900, name: '5. Umaya Bridge (Verde)', color: '#66bb6a', gateX: 400, gateWidth: 140, crossed: false },
-                { y: -3550, name: '6. Kuramae Bridge (Amarillo)', color: '#ffca28', gateX: 260, gateWidth: 140, crossed: false },
-                { y: -4200, name: '7. Kiyosu Bridge (Celeste)', color: '#00e5ff', gateX: 540, gateWidth: 140, crossed: false },
-                { y: -4850, name: '8. Eitai Bridge (Azul)', color: '#3f51b5', gateX: 330, gateWidth: 140, crossed: false },
-                { y: -5500, name: '9. Chuo Bridge (Blanco)', color: '#ffffff', gateX: 470, gateWidth: 140, crossed: false },
-                { y: -6150, name: '10. Tsukiji Bridge (Plateado)', color: '#cfd8dc', gateX: 400, gateWidth: 140, crossed: false }
+                { y: -300, name: '1. Sakura Bridge (Rosa)', color: '#ff80ab', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -950, name: '2. Kototoi Bridge (Gris)', color: '#90a4ae', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -1600, name: '3. Azuma Bridge (Rojo)', color: '#ff1744', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -2250, name: '4. Komagata Bridge (Azul)', color: '#29b6f6', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -2900, name: '5. Umaya Bridge (Verde)', color: '#66bb6a', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -3550, name: '6. Kuramae Bridge (Amarillo)', color: '#ffca28', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -4200, name: '7. Kiyosu Bridge (Celeste)', color: '#00e5ff', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -4850, name: '8. Eitai Bridge (Azul)', color: '#3f51b5', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -5500, name: '9. Chuo Bridge (Blanco)', color: '#ffffff', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false },
+                { y: -6150, name: '10. Tsukiji Bridge (Plateado)', color: '#cfd8dc', gateX: 200 + Math.random() * 400, gateWidth: 140, crossed: false }
             ],
             
             // Floating sakura petals
@@ -29686,10 +29797,10 @@ window.MinigamesManager = {
     // 12. day_18_ema: Deseo en el Ema (Móvil balanceado de deseos de Shinto con gravedad de pesos)
     setupEma() {
         this.gameData = {
-            hangerAngle: 0,
+            hangerAngle: (Math.random() - 0.5) * 0.25, // Random starting tilt
             hangerSpeed: 0,
             placed: [],
-            currentWeight: 10,
+            currentWeight: 5 + Math.floor(Math.random() * 15), // Random initial weight
             cursorX: 400
         };
         this.score = 0;
@@ -29783,18 +29894,33 @@ window.MinigamesManager = {
         ctx.fillText('Cuelga las tablillas de deseos balanceando el peso a izquierda y derecha', 400, 520);
     },
     inputEmaPress(x, y) {
+        if (this.state !== 'playing') return;
         const gd = this.gameData;
-        if (gd.placed.length < 4) {
-            const labels = ['福 (Suerte)', '寿 (Salud)', '禄 (Riqueza)', '愛 (Amor)'];
-            const w = 15 + Math.random() * 20; // Random weights
-            gd.placed.push({
-                x: x,
-                weight: w,
-                label: labels[gd.placed.length]
-            });
-            if (window.playProceduralSound) playProceduralSound('click');
-            this.score = Math.round((gd.placed.length / 4) * 100);
-            if (gd.placed.length === 4) this.win();
+        if (!gd) return;
+
+        // Hook coordinate check (snap X)
+        const snapX = [240, 320, 400, 480, 560];
+        let bestX = snapX[0];
+        let minDist = Math.abs(x - bestX);
+        snapX.forEach(sx => {
+            const dist = Math.abs(x - sx);
+            if (dist < minDist) {
+                minDist = dist;
+                bestX = sx;
+            }
+        });
+
+        // Add placed Ema
+        if (gd.placed.length < 8) {
+            gd.placed.push({ x: bestX, weight: gd.currentWeight });
+            gd.currentWeight = 5 + Math.floor(Math.random() * 15); // Randomize next weight
+            if (window.playProceduralSound) playProceduralSound('collect');
+
+            this.score = Math.round((gd.placed.length / 8) * 100);
+            if (gd.placed.length >= 8) {
+                if (window.launchConfetti) window.launchConfetti();
+                this.win();
+            }
         }
     },
 
@@ -31108,11 +31234,11 @@ window.MinigamesManager = {
     setupLiberty() {
         this.gameData = {
             handX: 200,
-            handY: 300,
-            targetX: 400,
-            targetY: 180,
+            handY: 350,
+            targetX: 300 + Math.random() * 200, // Random target coordinates
+            targetY: 140 + Math.random() * 80,
             zoom: 1.0,
-            targetZoom: 2.0,
+            targetZoom: 1.5 + Math.random() * 1.2, // Random target zoom
             alignTimer: 0,
             dragging: false,
             draggingSlider: false
@@ -31287,13 +31413,19 @@ window.MinigamesManager = {
 
     // 24. day_19_mirrors: Lógica de Espejos (Cámara de prismas TeamLab con división de colores RGB)
     setupMirrors() {
+        let mirrors = [];
+        let isSolved = true;
+        while (isSolved) {
+            mirrors = [
+                { id: 0, x: 250, y: 150, angle: [0, 45, 90, 135][Math.floor(Math.random() * 4)] },
+                { id: 1, x: 250, y: 450, angle: [0, 45, 90, 135][Math.floor(Math.random() * 4)] },
+                { id: 2, x: 550, y: 450, angle: [0, 45, 90, 135][Math.floor(Math.random() * 4)] },
+                { id: 3, x: 550, y: 300, angle: [0, 45, 90, 135][Math.floor(Math.random() * 4)] }
+            ];
+            isSolved = (mirrors[0].angle === 45 && mirrors[1].angle === 135 && mirrors[2].angle === 45 && mirrors[3].angle === 135);
+        }
         this.gameData = {
-            mirrors: [
-                { id: 0, x: 250, y: 150, angle: 45 },
-                { id: 1, x: 250, y: 450, angle: 90 },
-                { id: 2, x: 550, y: 450, angle: 0 },
-                { id: 3, x: 550, y: 300, angle: 90 }
-            ],
+            mirrors: mirrors,
             emitter: { x: 100, y: 150 },
             receiver: { x: 400, y: 300 },
             isSolved: false
@@ -31370,14 +31502,14 @@ window.MinigamesManager = {
             }
         });
     },
-    releaseMirrors() {},
+    releaseMirrors19Standard() {},
 
     // 25. day_19_weight: Estructura de Gundam (Ensamblaje del Esqueleto Gundam con balance)
     setupWeight() {
         this.gameData = {
             girders: [],
             currentX: 400,
-            craneSpeed: 200,
+            craneSpeed: 160 + Math.random() * 80, // Random crane speed
             craneDir: 1,
             falling: false,
             fallY: 80,
@@ -31464,13 +31596,13 @@ window.MinigamesManager = {
             if (window.playProceduralSound) playProceduralSound('click');
         }
     },
-    releaseWeight() {},
+    releaseWeight19Standard() {},
 
     // 26. day_19_monorail: Monorriel Yurikamome (Física de Tracción Ferroviaria)
     setupMonorail() {
         this.gameData = {
             speed: 0,
-            distance: 1000,
+            distance: 800 + Math.random() * 400, // Random initial distance
             throttle: 0,
             stationIndex: 0,
             draggingThrottle: false
@@ -31535,7 +31667,7 @@ window.MinigamesManager = {
             if (window.playProceduralSound) playProceduralSound('click');
         }
     },
-    releaseMonorail() {
+    releaseMonorail19Standard() {
         this.gameData.draggingThrottle = false;
     },
 
@@ -32365,30 +32497,42 @@ window.MinigamesManager = {
 
     // 6. day_20_museum: Arquitectura del Museo
     setupMuseum() {
+        const originalPoints = [
+            [
+                { x: 150, y: 380, label: '1' },
+                { x: 250, y: 320, label: '2' },
+                { x: 400, y: 280, label: '3' },
+                { x: 550, y: 320, label: '4' },
+                { x: 650, y: 380, label: '5' },
+                { x: 600, y: 480, label: '6' },
+                { x: 200, y: 480, label: '7' }
+            ],
+            [
+                { x: 200, y: 480, label: '1' },
+                { x: 200, y: 150, label: '2' },
+                { x: 320, y: 150, label: '3' },
+                { x: 320, y: 480, label: '4' },
+                { x: 480, y: 480, label: '5' },
+                { x: 480, y: 100, label: '6' },
+                { x: 600, y: 100, label: '7' },
+                { x: 600, y: 480, label: '8' }
+            ]
+        ];
+        
+        // Add random offsets to blueprint joints to make them unique
+        originalPoints.forEach(list => {
+            list.forEach((pt, pidx) => {
+                if (pidx > 0 && pidx < list.length - 1) {
+                    pt.x += (Math.random() - 0.5) * 35;
+                    pt.y += (Math.random() - 0.5) * 35;
+                }
+            });
+        });
+
         this.gameData = {
             currentBuilding: 0,
             line: [],
-            points: [
-                [
-                    { x: 150, y: 380, label: '1' },
-                    { x: 250, y: 320, label: '2' },
-                    { x: 400, y: 280, label: '3' },
-                    { x: 550, y: 320, label: '4' },
-                    { x: 650, y: 380, label: '5' },
-                    { x: 600, y: 480, label: '6' },
-                    { x: 200, y: 480, label: '7' }
-                ],
-                [
-                    { x: 200, y: 480, label: '1' },
-                    { x: 200, y: 150, label: '2' },
-                    { x: 320, y: 150, label: '3' },
-                    { x: 320, y: 480, label: '4' },
-                    { x: 480, y: 480, label: '5' },
-                    { x: 480, y: 100, label: '6' },
-                    { x: 600, y: 100, label: '7' },
-                    { x: 600, y: 480, label: '8' }
-                ]
-            ],
+            points: originalPoints,
             currentIdx: 0
         };
         this.score = 0;
@@ -33399,19 +33543,24 @@ window.MinigamesManager = {
 
     // 16. day_21_tracking: Rastreo de la Naturaleza
     setupTracking() {
+        const targets = [];
+        while (targets.length < 3) {
+            const tx = 100 + Math.random() * 600;
+            const ty = 80 + Math.random() * 440;
+            if (Math.hypot(tx - 400, ty - 300) > 120) {
+                targets.push({ x: tx, y: ty, found: false });
+            }
+        }
+        const dangerZones = [
+            { x: 200 + Math.random() * 200, y: 150 + Math.random() * 150, r: 50 + Math.random() * 20 },
+            { x: 450 + Math.random() * 200, y: 300 + Math.random() * 150, r: 50 + Math.random() * 20 }
+        ];
         this.gameData = {
             px: 400,
             py: 300,
-            targets: [
-                { x: 180, y: 150, found: false },
-                { x: 620, y: 450, found: false },
-                { x: 450, y: 220, found: false }
-            ],
+            targets: targets,
             sonarR: 0,
-            dangerZones: [
-                { x: 300, y: 250, r: 60 },
-                { x: 500, y: 350, r: 60 }
-            ],
+            dangerZones: dangerZones,
             score: 0
         };
         this.score = 0;
@@ -33734,13 +33883,14 @@ window.MinigamesManager = {
 
     // 20. day_22_car: Vehículo de Lujo
     setupCar() {
+        const targetRpmMin = 5000 + Math.floor(Math.random() * 1500);
         this.gameData = {
             distance: 1000,
             speed: 0,
             rpm: 1000,
             gear: 1,
-            targetRpmMin: 7000,
-            targetRpmMax: 9000,
+            targetRpmMin: targetRpmMin,
+            targetRpmMax: targetRpmMin + 1800 + Math.floor(Math.random() * 700),
             timer: 30
         };
         this.score = 0;
@@ -33786,11 +33936,11 @@ window.MinigamesManager = {
         ctx.fillStyle = '#27272a';
         ctx.beginPath(); ctx.arc(400, 480, 100, Math.PI, 2 * Math.PI); ctx.fill();
 
-        // Golden RPM Zone
+        // Golden RPM Zone (Procedural)
         ctx.strokeStyle = '#eab308';
         ctx.lineWidth = 20;
         ctx.beginPath();
-        ctx.arc(400, 480, 90, Math.PI + (7000 / 10000) * Math.PI, Math.PI + (9000 / 10000) * Math.PI);
+        ctx.arc(400, 480, 90, Math.PI + (gd.targetRpmMin / 10000) * Math.PI, Math.PI + (gd.targetRpmMax / 10000) * Math.PI);
         ctx.stroke();
 
         // Needle
@@ -33857,6 +34007,7 @@ window.MinigamesManager = {
         gd.floor += dt * 8;
         this.score = Math.round((gd.floor / 52) * 100);
         if (gd.floor >= 52) {
+            if (window.playProceduralSound) playProceduralSound('success');
             this.win();
             return;
         }
@@ -33884,9 +34035,13 @@ window.MinigamesManager = {
         if (deviation > 80) {
             gd.comfort = Math.max(0, gd.comfort - dt * 25);
             this.triggerShake(3);
+            if (window.playProceduralSound && Math.random() < 0.08) playProceduralSound('damage');
         }
 
-        if (gd.comfort <= 0) this.gameOver();
+        if (gd.comfort <= 0) {
+            if (window.playProceduralSound) playProceduralSound('error');
+            this.gameOver();
+        }
     },
     drawElevator() {
         const ctx = this.ctx;
@@ -33926,32 +34081,38 @@ window.MinigamesManager = {
     // 22. day_22_tower: Réplica Eiffel
     setupTower() {
         this.gameData = {
-            handX: 150,
-            handY: 350,
-            handScale: 0.4,
+            handX: 100 + Math.random() * 100,
+            handY: 300 + Math.random() * 100,
+            handScale: 0.3 + Math.random() * 0.2,
             alignedTimer: 0,
-            targetScale: 1.0,
-            targetX: 400,
-            targetY: 260
+            targetScale: 0.7 + Math.random() * 0.5, // Random target scale
+            targetX: 300 + Math.random() * 200,   // Random target position X
+            targetY: 200 + Math.random() * 120    // Random target position Y
         };
         this.score = 0;
     },
-    updateElevator(dt) {}, // placeholder overload
     updateTower(dt) {
         const gd = this.gameData;
         if (this.mouse.isDown) {
-            gd.handX = this.mouse.x;
-            gd.handY = this.mouse.y;
+            // Drag or slider check
+            if (this.mouse.y > 500 && this.mouse.y < 550 && this.mouse.x > 250 && this.mouse.x < 550) {
+                const relX = (this.mouse.x - 250) / 300;
+                gd.handScale = 0.2 + relX * 1.6; // 0.2x to 1.8x scale
+            } else {
+                gd.handX = this.mouse.x;
+                gd.handY = this.mouse.y;
+            }
         }
 
         // Perspective alignment check
         const dist = Math.hypot(gd.handX - gd.targetX, gd.handY - gd.targetY);
         const scaleMatch = Math.abs(gd.handScale - gd.targetScale);
 
-        if (dist < 20 && scaleMatch < 0.15) {
+        if (dist < 22 && scaleMatch < 0.16) {
             gd.alignedTimer += dt;
             this.score = Math.round((gd.alignedTimer / 1.5) * 100);
             if (gd.alignedTimer >= 1.5) {
+                this.triggerShake(12);
                 if (window.playProceduralSound) playProceduralSound('success');
                 this.win();
             }
@@ -34020,14 +34181,14 @@ window.MinigamesManager = {
             vx: 0,
             vy: 0,
             terminals: [
-                { x: 180, y: 150, hacked: false },
-                { x: 620, y: 150, hacked: false },
-                { x: 250, y: 450, hacked: false },
-                { x: 550, y: 450, hacked: false }
+                { x: 120 + Math.random() * 120, y: 100 + Math.random() * 120, hacked: false },
+                { x: 560 + Math.random() * 120, y: 100 + Math.random() * 120, hacked: false },
+                { x: 120 + Math.random() * 120, y: 380 + Math.random() * 120, hacked: false },
+                { x: 560 + Math.random() * 120, y: 380 + Math.random() * 120, hacked: false }
             ],
             lasers: [
-                { x: 400, y: 300, angle: 0, speed: 1.0 },
-                { x: 400, y: 300, angle: Math.PI/2, speed: -1.2 }
+                { x: 400, y: 300, angle: Math.random() * Math.PI, speed: (Math.random() < 0.5 ? 1 : -1) * (0.8 + Math.random() * 0.6) },
+                { x: 400, y: 300, angle: Math.random() * Math.PI, speed: (Math.random() < 0.5 ? 1 : -1) * (1.0 + Math.random() * 0.6) }
             ],
             hackedCount: 0
         };
@@ -34490,8 +34651,8 @@ window.MinigamesManager = {
     // 26. day_22_compare: Altura Relativa
     setupCompare() {
         this.gameData = {
-            blocks: [{ x: 400, y: 550, w: 200, h: 40 }],
-            activeBlock: { x: 100, y: 150, w: 200, h: 40, vx: 200 },
+            blocks: [{ x: 400, y: 550, w: 180 + Math.floor(Math.random() * 40), h: 40 }],
+            activeBlock: { x: 100, y: 150, w: 180 + Math.floor(Math.random() * 40), h: 40, vx: (Math.random() < 0.5 ? -1 : 1) * (180 + Math.random() * 70) },
             score: 0
         };
         this.score = 0;
@@ -34858,18 +35019,19 @@ window.MinigamesManager = {
             py: 450,
             vx: 0,
             vy: 0,
-            targetX: 400,
-            targetY: 180,
-            targetR: 35,
-            successes: 0
+            targetX: 300 + Math.random() * 200, // Random target X
+            targetY: 120 + Math.random() * 120, // Random target Y
+            targetR: 30 + Math.random() * 15,   // Random target radius
+            successes: 0,
+            windDrift: 35 + Math.random() * 30
         };
         this.score = 0;
     },
     updateCoins(dt) {
         const gd = this.gameData;
         const time = performance.now() * 0.002;
-        gd.vx += Math.sin(time) * 45 * dt;
-        gd.vy += Math.cos(time * 0.8) * 35 * dt;
+        gd.vx += Math.sin(time) * gd.windDrift * dt;
+        gd.vy += Math.cos(time * 0.8) * gd.windDrift * dt;
         gd.px += gd.vx * dt;
         gd.py += gd.vy * dt;
         gd.vx *= 0.98;
@@ -34878,6 +35040,7 @@ window.MinigamesManager = {
         gd.py = clamp(gd.py, 20, 580);
         if (Math.hypot(gd.px - gd.targetX, gd.py - gd.targetY) < gd.targetR) {
             gd.successes++;
+            this.triggerShake(10); // Shaking on successful toss!
             this.score = Math.round((gd.successes / 3) * 100);
             if (window.playProceduralSound) playProceduralSound('success');
             this.createExplosion(gd.px, gd.py, '#ffd700');
@@ -34941,15 +35104,15 @@ window.MinigamesManager = {
         this.gameData = {
             clawX: 400,
             clawY: 80,
-            clawAngle: 0,
-            clawSpeed: 1.6,
-            clawDir: 1,
+            clawAngle: (Math.random() - 0.5) * 0.8,
+            clawSpeed: 1.2 + Math.random() * 0.8, // Random swing speed
+            clawDir: Math.random() < 0.5 ? -1 : 1,
             state: 'swinging',
             targetY: 450,
             toys: [
-                { x: 200, y: 460, emoji: '🧸', grabbed: false },
-                { x: 380, y: 480, emoji: '🦊', grabbed: false },
-                { x: 560, y: 470, emoji: '🐼', grabbed: false }
+                { x: 180 + Math.random() * 80, y: 460 + (Math.random() - 0.5) * 20, emoji: '🧸', grabbed: false },
+                { x: 360 + Math.random() * 80, y: 480 + (Math.random() - 0.5) * 20, emoji: '🦊', grabbed: false },
+                { x: 540 + Math.random() * 80, y: 470 + (Math.random() - 0.5) * 20, emoji: '🐼', grabbed: false }
             ],
             grabbedToy: null
         };
@@ -35031,17 +35194,19 @@ window.MinigamesManager = {
 
     // 32. day_23_tetris: Tetris de Maletas
     setupTetris() {
+        const suitW = 280 + Math.floor(Math.random() * 50);
+        const suitH = 180 + Math.floor(Math.random() * 40);
         this.gameData = {
             items: [
-                { id: 1, x: 120, y: 460, w: 80, h: 60, c: '#a855f7', name: 'Ropa', active: false, packed: false },
-                { id: 2, x: 240, y: 460, w: 100, h: 50, c: '#3b82f6', name: 'Libros', active: false, packed: false },
-                { id: 3, x: 380, y: 460, w: 60, h: 60, c: '#10b981', name: 'Zapatos', active: false, packed: false },
-                { id: 4, x: 500, y: 460, w: 90, h: 70, c: '#f43f5e', name: 'Cámara', active: false, packed: false }
+                { id: 1, x: 120, y: 460, w: 70 + Math.floor(Math.random() * 20), h: 50 + Math.floor(Math.random() * 20), c: '#a855f7', name: 'Ropa', active: false, packed: false },
+                { id: 2, x: 240, y: 460, w: 90 + Math.floor(Math.random() * 20), h: 40 + Math.floor(Math.random() * 20), c: '#3b82f6', name: 'Libros', active: false, packed: false },
+                { id: 3, x: 380, y: 460, w: 50 + Math.floor(Math.random() * 20), h: 50 + Math.floor(Math.random() * 20), c: '#10b981', name: 'Zapatos', active: false, packed: false },
+                { id: 4, x: 500, y: 460, w: 80 + Math.floor(Math.random() * 20), h: 60 + Math.floor(Math.random() * 20), c: '#f43f5e', name: 'Cámara', active: false, packed: false }
             ],
-            suitcaseX: 250,
+            suitcaseX: 400 - suitW/2,
             suitcaseY: 150,
-            suitcaseW: 300,
-            suitcaseH: 200,
+            suitcaseW: suitW,
+            suitcaseH: suitH,
             score: 0
         };
         this.score = 0;
@@ -35101,6 +35266,7 @@ window.MinigamesManager = {
                     if (!w.packed) {
                         w.packed = true;
                         gd.score++;
+                        this.triggerShake(5); // Shake suitcase on successful packing!
                         this.score = Math.round((gd.score / 4) * 100);
                         if (window.playProceduralSound) playProceduralSound('success');
                         if (gd.score >= 4) {
@@ -35119,17 +35285,27 @@ window.MinigamesManager = {
 
     // 33. day_23_audit: Auditoría Final
     setupAudit() {
+        const rate = 130 + Math.floor(Math.random() * 30);
+        const euroVals = [
+            10 + Math.floor(Math.random() * 20),
+            30 + Math.floor(Math.random() * 30),
+            70 + Math.floor(Math.random() * 30)
+        ];
+        const receipts = euroVals.map((ev, idx) => {
+            const yenVal = ev * rate;
+            return { val: `${yenVal}¥`, eq: ev, x: 200, y: 160 + idx * 120 };
+        }).sort(() => Math.random() - 0.5);
+        receipts.forEach((r, idx) => r.y = 160 + idx * 120);
+
+        const euros = euroVals.map((ev, idx) => {
+            return { val: `${ev}€`, eq: ev, x: 600, y: 160 + idx * 120 };
+        }).sort(() => Math.random() - 0.5);
+        euros.forEach((e, idx) => e.y = 160 + idx * 120);
+
         this.gameData = {
-            receipts: [
-                { val: '1500¥', eq: 10, x: 200, y: 160 },
-                { val: '3000¥', eq: 20, x: 200, y: 280 },
-                { val: '7500¥', eq: 50, x: 200, y: 400 }
-            ],
-            euros: [
-                { val: '50€', eq: 50, x: 600, y: 160 },
-                { val: '10€', eq: 10, x: 600, y: 280 },
-                { val: '20€', eq: 20, x: 600, y: 400 }
-            ],
+            rate: rate,
+            receipts: receipts,
+            euros: euros,
             links: [],
             activeLink: null
         };
@@ -35178,7 +35354,7 @@ window.MinigamesManager = {
         ctx.textAlign = 'left';
         ctx.fillText(`Auditorías cuadradas: ${gd.links.length}/3`, 30, 40);
         ctx.font = '14px monospace';
-        ctx.fillText('¡Une con líneas las conversiones de Yenes a Euros correctas (Tasa 150¥ = 1€)!', 30, 75);
+        ctx.fillText(`¡Une las conversiones correctas (Tasa de cambio: 1€ = ${gd.rate}¥)!`, 30, 75);
     },
     inputAuditPress(x, y) {
         const gd = this.gameData;
@@ -35412,13 +35588,19 @@ window.MinigamesManager = {
 
     // 36. day_23_stamp: El Sello Final
     setupStamp() {
+        const rightPageX = 500 + Math.floor(Math.random() * 80);
+        const rightPageY = 80 + Math.floor(Math.random() * 50);
         this.gameData = {
-            px: 150,
-            py: 450,
+            px: 120 + Math.floor(Math.random() * 80),
+            py: 200 + Math.floor(Math.random() * 100),
             inkLevel: 0,
             stampsMade: 0,
             state: 'needs_ink',
-            active: false
+            active: false,
+            pageLeft: rightPageX,
+            pageTop: rightPageY,
+            pageW: 180 + Math.floor(Math.random() * 40),
+            pageH: 380 + Math.floor(Math.random() * 40)
         };
         this.score = 0;
     },
@@ -35430,7 +35612,7 @@ window.MinigamesManager = {
         ctx.fillRect(0, 0, 800, 600);
         ctx.strokeStyle = '#78350f';
         ctx.lineWidth = 10;
-        ctx.strokeRect(550, 100, 200, 400); // Passport page on right
+        ctx.strokeRect(gd.pageLeft, gd.pageTop, gd.pageW, gd.pageH); // Passport page on right
         ctx.fillStyle = '#ef4444';
         ctx.fillRect(100, 400, 120, 80);
         ctx.fillStyle = '#ffffff';
@@ -35439,9 +35621,9 @@ window.MinigamesManager = {
         ctx.fillText('ALMOHADILLA', 160, 445);
         ctx.strokeStyle = 'rgba(239,68,68,0.2)';
         ctx.lineWidth = 3;
-        ctx.strokeRect(580, 130, 140, 140);
+        ctx.strokeRect(gd.pageLeft + 30, gd.pageTop + 30, gd.pageW - 60, gd.pageH - 60);
         ctx.fillStyle = '#000000';
-        ctx.fillText('PASAPORTE', 650, 200);
+        ctx.fillText('PASAPORTE', gd.pageLeft + gd.pageW/2, gd.pageTop + 70);
         ctx.fillStyle = '#78350f';
         ctx.fillRect(gd.px - 30, gd.py - 40, 60, 80);
         ctx.fillStyle = gd.state === 'has_ink' ? '#ef4444' : '#d6d3d1';
@@ -35469,16 +35651,35 @@ window.MinigamesManager = {
                 gd.state = 'has_ink';
                 if (window.playProceduralSound) playProceduralSound('success');
             }
-            if (gd.state === 'has_ink' && x > 560 && x < 720 && y > 110 && y < 350) {
+            const onPage = (x > gd.pageLeft && x < gd.pageLeft + gd.pageW && y > gd.pageTop && y < gd.pageTop + gd.pageH);
+            if (gd.state === 'has_ink' && onPage) {
                 gd.stampsMade++;
                 gd.state = 'needs_ink';
+                this.triggerShake(12); // Shake on stamping!
                 this.score = Math.round((gd.stampsMade / 6) * 100);
                 if (window.playProceduralSound) playProceduralSound('success');
-                this.createExplosion(650, 200, '#ef4444', 20);
+                this.createExplosion(x, y, '#ef4444', 20);
                 if (gd.stampsMade >= 6) {
                     this.win();
                 }
             }
         }
     },
+
+    inputZorrosPress(x, y) {
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+    inputGravityPress(x, y) {
+        if (this.state !== 'playing') return;
+        const gd = this.gameData;
+        if (!gd) return;
+        gd.stoneVy -= 90; // decelerate stone on click!
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+    inputAnguloPress(x, y) {
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    },
+    releaseScratch(x, y) {
+        if (window.playProceduralSound) window.playProceduralSound('click');
+    }
 };
