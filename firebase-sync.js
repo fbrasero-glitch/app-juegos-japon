@@ -342,9 +342,6 @@ const FirebaseSync = {
             if (window.gameState) {
                 localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
                 console.log("[FirebaseSync] Estado local actualizado con datos de la nube.");
-                if (typeof window.refreshCurrentView === 'function') {
-                    window.refreshCurrentView();
-                }
             }
         });
     }
