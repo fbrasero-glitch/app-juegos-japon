@@ -67,6 +67,11 @@ const FirebaseSync = {
             
             // Iniciar escucha en tiempo real
             this.setupListeners();
+
+            // Subir estado local inicial para sincronizar la nube con progreso previo
+            setTimeout(() => {
+                this.uploadLocalStateToCloud();
+            }, 1000);
         } catch (e) {
             console.error("[FirebaseSync] Error al parsear o inicializar Firebase:", e);
             this.updateStatusLabel("Error de conexión ⚠️");
@@ -259,6 +264,31 @@ const FirebaseSync = {
             const el = document.getElementById('firebase-status-label');
             if (el) el.innerHTML = `Estado: ${text}`;
         }, 100);
+    },
+
+    uploadLocalStateToCloud: function() {
+        if (!this.active || !this.db || !window.gameState) return;
+        
+        console.log("[FirebaseSync] Subiendo estado local inicial a la nube...");
+        const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+        
+        if (deviceRole === 'kid9' || deviceRole === 'kid14') {
+            if (window.gameState[deviceRole]) {
+                if (!window.gameState[deviceRole].lastUpdated) {
+                    window.gameState[deviceRole].lastUpdated = Date.now();
+                }
+                this.syncProfile(deviceRole, window.gameState[deviceRole]);
+            }
+        } else {
+            if (window.gameState.kid9) {
+                if (!window.gameState.kid9.lastUpdated) window.gameState.kid9.lastUpdated = Date.now();
+                this.syncProfile('kid9', window.gameState.kid9);
+            }
+            if (window.gameState.kid14) {
+                if (!window.gameState.kid14.lastUpdated) window.gameState.kid14.lastUpdated = Date.now();
+                this.syncProfile('kid14', window.gameState.kid14);
+            }
+        }
     }
 };
 
