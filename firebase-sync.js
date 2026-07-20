@@ -106,10 +106,13 @@ const FirebaseSync = {
         const remoteTime = remoteData.lastUpdated || 0;
         const localTime = localKid.lastUpdated || 0;
 
-        if (remoteTime > localTime) {
-            console.log(`[FirebaseSync] Novedades remotas para ${kidId} (${remoteTime} > ${localTime})`);
+        const isActiveUser = (window.currentUser === kidId);
+        const isJudge = (window.currentUser === 'judge');
+        const shouldApply = isJudge || !isActiveUser || (remoteTime > localTime);
 
-            const isActiveUser = (window.currentUser === kidId);
+        if (shouldApply) {
+            console.log(`[FirebaseSync] Novedades remotas aplicadas para ${kidId} (remoto: ${remoteTime}, local: ${localTime})`);
+
             const isKid = (kidId === 'kid9' || kidId === 'kid14');
 
             let newlyApprovedMissions = [];
