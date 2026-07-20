@@ -3788,19 +3788,46 @@ async function triggerSWUpdate() {
             updateBtn.innerText = 'Actualizando...';
         }
         try {
+            // Escuchar el cambio de controlador para recargar cuando el nuevo SW tome control
+            let reloading = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (reloading) return;
+                reloading = true;
+                console.log('Nuevo Service Worker activo. Recargando...');
+                window.location.reload();
+            });
+
             const reg = await navigator.serviceWorker.ready;
             await reg.update();
-            console.log('Actualización forzada en el Service Worker.');
+            console.log('Actualización del Service Worker solicitada.');
+
+            // Si hay un SW esperando (waiting), decirle que se active
+            const waitingSW = reg.waiting || reg.installing;
+            if (waitingSW) {
+                waitingSW.addEventListener('statechange', (e) => {
+                    if (e.target.state === 'installed') {
+                        // El nuevo SW está instalado pero esperando; forzar activación
+                        if (reg.waiting) {
+                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                    }
+                });
+                if (waitingSW.state === 'installed') {
+                    waitingSW.postMessage({ type: 'SKIP_WAITING' });
+                }
+            }
+
+            // Timeout de seguridad: si después de 8 segundos no se activó, recargar de todos modos
             setTimeout(() => {
-                window.location.reload();
-            }, 3000);
+                if (!reloading) {
+                    console.log('Timeout de seguridad: recargando la página.');
+                    window.location.reload();
+                }
+            }, 8000);
         } catch (err) {
             console.error('Error al actualizar Service Worker:', err);
-            showAlert('Error', 'No se pudo completar la actualización automática.');
-            if (updateBtn) {
-                updateBtn.disabled = false;
-                updateBtn.innerText = 'Actualizar';
-            }
+            showAlert('Error', 'No se pudo completar la actualización. Recargando...');
+            setTimeout(() => window.location.reload(), 2000);
         }
     }
 }
