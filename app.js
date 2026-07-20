@@ -350,6 +350,14 @@ function saveState() {
     }
 }
 
+window.refreshCurrentView = function() {
+    if (currentUser === 'judge') {
+        renderJudgePanel();
+    } else if (currentUser === 'kid9' || currentUser === 'kid14') {
+        renderDaysList(localStorage.getItem('japanMissionsDeviceRole') || 'all');
+    }
+};
+
 // Inicializar misiones vacías si no existen
 function initMissionsForDay(dayStr, missionIds) {
     ['kid9', 'kid14'].forEach(kid => {
