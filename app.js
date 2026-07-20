@@ -333,21 +333,28 @@ function saveState() {
     if (gameState) {
         if (currentUser === 'kid9' || currentUser === 'kid14') {
             gameState[currentUser].lastUpdated = Date.now();
-        } else if (currentUser === 'judge') {
-            if (gameState.kid9) gameState.kid9.lastUpdated = Date.now();
-            if (gameState.kid14) gameState.kid14.lastUpdated = Date.now();
         }
+        // NOTA: El Juez NO actualiza timestamps ni sube a Firebase aquí.
+        // Solo sube cuando aprueba/rechaza explícitamente via saveAndSyncJudgeDecision().
     }
     localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
     
-    // Sincronizar remotamente
+    // Sincronizar remotamente SOLO si es un niño activo
     if (window.FirebaseSync && window.FirebaseSync.isConnected() && gameState) {
         if (currentUser === 'kid9' || currentUser === 'kid14') {
             window.FirebaseSync.syncProfile(currentUser, gameState[currentUser]);
-        } else if (currentUser === 'judge') {
-            window.FirebaseSync.syncProfile('kid9', gameState.kid9);
-            window.FirebaseSync.syncProfile('kid14', gameState.kid14);
         }
+        // El juez NO sube automáticamente. Usa saveAndSyncJudgeDecision().
+    }
+}
+
+// Función exclusiva para cuando el Juez aprueba/rechaza una misión
+function saveAndSyncJudgeDecision(kidId) {
+    if (!gameState || !gameState[kidId]) return;
+    gameState[kidId].lastUpdated = Date.now();
+    localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
+    if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+        window.FirebaseSync.syncProfile(kidId, gameState[kidId]);
     }
 }
 
@@ -2212,7 +2219,12 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
         leveledUp = checkLevelUp(kid);
         newBadges = checkBadges(kid, missionId);
     }
-    saveState();
+    if (isFamily) {
+        saveAndSyncJudgeDecision('kid9');
+        saveAndSyncJudgeDecision('kid14');
+    } else {
+        saveAndSyncJudgeDecision(kid);
+    }
     
     if (newBadges.length > 0) {
         showNewBadges(newBadges);
@@ -2263,7 +2275,12 @@ window.rejectMission = (kid, missionId) => {
         }
     }
     
-    saveState();
+    if (isFamily) {
+        saveAndSyncJudgeDecision('kid9');
+        saveAndSyncJudgeDecision('kid14');
+    } else {
+        saveAndSyncJudgeDecision(kid);
+    }
     renderJudgePanel();
 };
 
@@ -2309,7 +2326,12 @@ window.undoApproveMission = (kid, missionId) => {
         showAlert('Deshecho', `Se ha devuelto la misión al estado pendiente y restado la experiencia a ${gameState[kid].name}.`);
     }
 
-    saveState();
+    if (isFamily) {
+        saveAndSyncJudgeDecision('kid9');
+        saveAndSyncJudgeDecision('kid14');
+    } else {
+        saveAndSyncJudgeDecision(kid);
+    }
     renderJudgePanel();
 };
 
