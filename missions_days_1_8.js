@@ -1703,7 +1703,7 @@ Object.assign(MISSIONS_CONFIG, {
             });
 
             const checkValidity = () => {
-                if (photoId && alphabetSelect.value === 'katakana') {
+                if (photoId && alphabetSelect.value !== '') {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.background = '#ff007f';
                     submitBtn.style.color = '#fff';
@@ -2318,7 +2318,7 @@ Object.assign(MISSIONS_CONFIG, {
             
             const checkValidity = () => {
                 const price = parseInt(priceInput.value);
-                if (count > 0 && price >= 1000 && price <= 5000) {
+                if (count > 0 && !isNaN(price)) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.borderColor = '#00ff99';
                     submitBtn.style.color = '#00ff99';
@@ -2454,7 +2454,7 @@ Object.assign(MISSIONS_CONFIG, {
             });
 
             const checkValidity = () => {
-                if (photoId && foodSelect.value === 'senbei') {
+                if (photoId && foodSelect.value !== '') {
                     submitBtn.removeAttribute('disabled');
                 } else {
                     submitBtn.setAttribute('disabled', 'true');

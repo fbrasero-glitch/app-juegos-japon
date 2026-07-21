@@ -566,51 +566,107 @@ function showAlert(title, message) {
         window._missionAttempts = currentFailedAttempt + 1;
         console.log(`Intento de misión fallido detectado. Intento fallido: ${currentFailedAttempt}. Siguiente intento: ${window._missionAttempts}`);
 
-        if (currentFailedAttempt === 1) {
-            // Primer fallo: mostrar alerta de error normal
-            document.getElementById('alert-title').innerText = title;
-            document.getElementById('alert-message').innerText = message;
-            document.getElementById('alert-modal').classList.remove('hidden');
-        } else if (currentFailedAttempt === 2) {
-            // Segundo fallo: mostrar error + pista
-            const missionId = window.activeMissionId;
-            const clue = getMissionClue(missionId);
-            document.getElementById('alert-title').innerText = title + ' (¡Pista disponible!)';
-            document.getElementById('alert-message').innerText = message + '\n\n💡 PISTA:\n' + clue;
-            document.getElementById('alert-modal').classList.remove('hidden');
-        } else if (currentFailedAttempt >= 3) {
-            // Tercer fallo: Auto-enviar al juez como fallida
-            const missionId = window.activeMissionId;
-            
-            // Recoger valores del formulario en el DOM
-            const inputs = document.querySelectorAll('#mission-form-wrapper input, #mission-form-wrapper textarea, #mission-form-wrapper select');
-            let dataVal = '';
-            if (inputs.length > 0) {
-                const vals = Array.from(inputs).map(input => {
-                    if (input.type === 'checkbox' || input.type === 'radio') {
-                        return input.checked ? (input.nextSibling?.textContent?.trim() || input.value || 'seleccionado') : '';
-                    }
-                    return input.value;
-                }).filter(Boolean);
-                dataVal = vals.join(', ') || 'Sin valor ingresado';
-            } else {
-                dataVal = 'Agotados los 3 intentos';
+        // Determinar dinámicamente si es opción múltiple con <= 3 opciones para limitar a 2 intentos
+        let maxAttempts = 3;
+        const wrapper = document.getElementById('mission-form-wrapper');
+        if (wrapper) {
+            const select = wrapper.querySelector('select');
+            if (select) {
+                const validOptions = Array.from(select.options).filter(opt => opt.value !== '');
+                if (validOptions.length > 0 && validOptions.length <= 3) {
+                    maxAttempts = 2;
+                }
             }
+            const radios = wrapper.querySelectorAll('input[type="radio"]');
+            if (radios.length > 0 && radios.length <= 3) {
+                maxAttempts = 2;
+            }
+        }
 
-            const submissionData = {
-                type: 'text',
-                data: `FALLIDA: Agotó los 3 intentos sin acertar. Último valor ingresado: "${dataVal}"`,
-                failed: true
-            };
+        if (maxAttempts === 2) {
+            if (currentFailedAttempt === 1) {
+                // Primer fallo (y único de gracia): mostrar error + pista de inmediato
+                const missionId = window.activeMissionId;
+                const clue = getMissionClue(missionId);
+                document.getElementById('alert-title').innerText = title + ' (¡Pista disponible!)';
+                document.getElementById('alert-message').innerText = message + '\n\n💡 PISTA:\n' + clue;
+                document.getElementById('alert-modal').classList.remove('hidden');
+            } else if (currentFailedAttempt >= 2) {
+                // Segundo fallo: Auto-enviar al juez como fallida
+                const missionId = window.activeMissionId;
+                
+                const inputs = document.querySelectorAll('#mission-form-wrapper input, #mission-form-wrapper textarea, #mission-form-wrapper select');
+                let dataVal = '';
+                if (inputs.length > 0) {
+                    const vals = Array.from(inputs).map(input => {
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            return input.checked ? (input.nextSibling?.textContent?.trim() || input.value || 'seleccionado') : '';
+                        }
+                        return input.value;
+                    }).filter(Boolean);
+                    dataVal = vals.join(', ') || 'Sin valor ingresado';
+                } else {
+                    dataVal = 'Agotados los 2 intentos';
+                }
 
-            // Forzar envío a submitMission
-            window._missionAttempts = 3;
-            submitMission(missionId, submissionData, currentUser, false, true);
+                const submissionData = {
+                    type: 'text',
+                    data: `FALLIDA: Agotó los 2 intentos sin acertar (opción múltiple). Último valor ingresado: "${dataVal}"`,
+                    failed: true
+                };
 
-            // Mostrar alerta de intentos agotados
-            document.getElementById('alert-title').innerText = 'Intentos Agotados';
-            document.getElementById('alert-message').innerText = 'Has agotado tus 3 intentos en esta prueba. La misión ha sido enviada automáticamente al Juez Supremo para su evaluación con el resultado final.';
-            document.getElementById('alert-modal').classList.remove('hidden');
+                window._missionAttempts = 2;
+                submitMission(missionId, submissionData, currentUser, false, true);
+
+                document.getElementById('alert-title').innerText = 'Intentos Agotados';
+                document.getElementById('alert-message').innerText = 'Has agotado tus 2 intentos en esta prueba de opciones (limitada para evitar adivinar por descarte). La misión ha sido enviada automáticamente al Juez Supremo.';
+                document.getElementById('alert-modal').classList.remove('hidden');
+            }
+        } else {
+            // Lógica por defecto de 3 intentos
+            if (currentFailedAttempt === 1) {
+                // Primer fallo: mostrar alerta de error normal
+                document.getElementById('alert-title').innerText = title;
+                document.getElementById('alert-message').innerText = message;
+                document.getElementById('alert-modal').classList.remove('hidden');
+            } else if (currentFailedAttempt === 2) {
+                // Segundo fallo: mostrar error + pista
+                const missionId = window.activeMissionId;
+                const clue = getMissionClue(missionId);
+                document.getElementById('alert-title').innerText = title + ' (¡Pista disponible!)';
+                document.getElementById('alert-message').innerText = message + '\n\n💡 PISTA:\n' + clue;
+                document.getElementById('alert-modal').classList.remove('hidden');
+            } else if (currentFailedAttempt >= 3) {
+                // Tercer fallo: Auto-enviar al juez como fallida
+                const missionId = window.activeMissionId;
+                
+                const inputs = document.querySelectorAll('#mission-form-wrapper input, #mission-form-wrapper textarea, #mission-form-wrapper select');
+                let dataVal = '';
+                if (inputs.length > 0) {
+                    const vals = Array.from(inputs).map(input => {
+                        if (input.type === 'checkbox' || input.type === 'radio') {
+                            return input.checked ? (input.nextSibling?.textContent?.trim() || input.value || 'seleccionado') : '';
+                        }
+                        return input.value;
+                    }).filter(Boolean);
+                    dataVal = vals.join(', ') || 'Sin valor ingresado';
+                } else {
+                    dataVal = 'Agotados los 3 intentos';
+                }
+
+                const submissionData = {
+                    type: 'text',
+                    data: `FALLIDA: Agotó los 3 intentos sin acertar. Último valor ingresado: "${dataVal}"`,
+                    failed: true
+                };
+
+                window._missionAttempts = 3;
+                submitMission(missionId, submissionData, currentUser, false, true);
+
+                document.getElementById('alert-title').innerText = 'Intentos Agotados';
+                document.getElementById('alert-message').innerText = 'Has agotado tus 3 intentos en esta prueba. La misión ha sido enviada automáticamente al Juez Supremo para su evaluación con el resultado final.';
+                document.getElementById('alert-modal').classList.remove('hidden');
+            }
         }
     } else {
         document.getElementById('alert-title').innerText = title;
@@ -2504,7 +2560,15 @@ async function renderJudgePanel() {
                 card.style.marginBottom = '20px';
                 card.style.position = 'relative';
 
+                const isFailed = p.data.submission.failed === true;
+                const failedBannerHtml = isFailed ? `
+                    <div style="background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; border-radius: 8px; padding: 10px 14px; font-size: 0.85rem; font-weight: bold; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-align: left;">
+                        <span>⚠️</span> <span>¡EL NIÑO AGOTÓ LOS INTENTOS Y LA MISIÓN FALLÓ! Evidencia enviada automáticamente.</span>
+                    </div>
+                ` : '';
+
                 card.innerHTML = `
+                    ${failedBannerHtml}
                     <!-- Cabecera de la Tarjeta -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px;">
                         <div>
