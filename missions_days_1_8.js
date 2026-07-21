@@ -1821,7 +1821,7 @@ Object.assign(MISSIONS_CONFIG, {
 
             const checkValidity = () => {
                 const moats = parseInt(moatsInput.value);
-                if (ansInput.value && ansInput.value !== '00:00.0' && moats === 2) {
+                if (ansInput.value && ansInput.value !== '00:00.0' && !isNaN(moats)) {
                     btnSubmit.removeAttribute('disabled');
                     btnSubmit.style.borderColor = '#00ff99';
                     btnSubmit.style.color = '#00ff99';
@@ -3038,8 +3038,8 @@ Object.assign(MISSIONS_CONFIG, {
             
             selectOption.addEventListener('change', () => {
                 const val = selectOption.value;
-                if (val === 'fosanasal') {
-                    emojiEl.innerText = '👃✨';
+                if (val !== '') {
+                    emojiEl.innerText = val === 'fosanasal' ? '👃✨' : '🪵';
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.borderColor = '#ff9800';
                     submitBtn.style.color = '#ff9800';
@@ -3381,7 +3381,7 @@ Object.assign(MISSIONS_CONFIG, {
                     </div>
                 </div>
                 
-                <textarea id="ans" style="width:100%; height:80px; background:#111; color:#00e5ff; border:1px solid #00e5ff; font-family:monospace; padding:8px; box-sizing:border-box; margin-bottom:10px;" placeholder=">>> Escribe tu informe de ruta táctica... (pared, foso, silencio, ruiseñor...)"></textarea>
+                <textarea id="ans" style="width:100%; height:80px; background:#111; color:#00e5ff; border:1px solid #00e5ff; font-family:monospace; padding:8px; box-sizing:border-box; margin-bottom:10px;" placeholder=">>> Escribe tu informe de ruta táctica..."></textarea>
                 <button id="btn" class="btn-primary" style="width:100%; border-color:#555; color:#555; background:transparent;" disabled>TRANSMITIR VECTOR DE ESCAPE</button>
             </div>
         `,
@@ -3390,10 +3390,8 @@ Object.assign(MISSIONS_CONFIG, {
             const textarea = document.getElementById('ans');
             
             const checkValidity = () => {
-                const text = textarea.value.trim().toLowerCase();
-                const keywords = ['pared', 'silencio', 'ruiseñor', 'sombra', 'jardín', 'jardin', 'foso', 'puente'];
-                const hasKeyword = keywords.some(kw => text.includes(kw));
-                if (text.length >= 15 && hasKeyword) {
+                const text = textarea.value.trim();
+                if (text.length > 0) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.borderColor = '#00e5ff';
                     submitBtn.style.color = '#111';
@@ -3437,7 +3435,7 @@ Object.assign(MISSIONS_CONFIG, {
                 
                 <div style="margin:15px 0; padding:12px; background:#fff; border-radius:6px; border:2px solid #ff1744; color:#222; text-align:center; position:relative; font-family:Georgia, serif;">
                     <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px;">📜 DECRETO REAL 📜</div>
-                    <textarea id="ans" style="width:100%; height:60px; border:1px dashed #ff1744; background:transparent; font-family:inherit; padding:5px; font-size:0.95rem; box-sizing:border-box;" placeholder="Todos los súbditos deberán caminar a la pata coja en el palacio... (mínimo 20 caracteres)"></textarea>
+                    <textarea id="ans" style="width:100%; height:60px; border:1px dashed #ff1744; background:transparent; font-family:inherit; padding:5px; font-size:0.95rem; box-sizing:border-box;" placeholder="Todos los súbditos deberán caminar a la pata coja en el palacio..."></textarea>
                     <div style="position:absolute; bottom:5px; right:10px; font-size:2rem; opacity:0.8;">💮</div>
                 </div>
                 
@@ -3450,7 +3448,7 @@ Object.assign(MISSIONS_CONFIG, {
 
             const checkValidity = () => {
                 const val = textarea.value.trim();
-                if (val.length >= 20) {
+                if (val.length > 0) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.borderColor = '#ff1744';
                     submitBtn.style.color = '#fff';
@@ -3525,7 +3523,7 @@ Object.assign(MISSIONS_CONFIG, {
             
             const checkValidity = () => {
                 const val = parseFloat(periInput.value);
-                if (val === 4 || val === 4.0) {
+                if (!isNaN(val)) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.borderColor = '#00ff99';
                     submitBtn.style.color = '#00ff99';
@@ -3857,7 +3855,7 @@ Object.assign(MISSIONS_CONFIG, {
             const previewEl = document.getElementById('stone-preview');
             
             const checkValidity = () => {
-                if (distanceSelect.value === '10' && photoId) {
+                if (distanceSelect.value !== '' && photoId) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.background = '#00796b';
                     submitBtn.style.borderColor = '#00796b';
@@ -4380,7 +4378,7 @@ Object.assign(MISSIONS_CONFIG, {
             const checkValidity = () => {
                 const allChecked = Array.from(chks).every(x => x.checked);
                 const stepsVal = parseInt(stepsInput.value);
-                if (allChecked && !isNaN(stepsVal) && stepsVal >= 2000 && stepsVal <= 6000) {
+                if (allChecked && !isNaN(stepsVal)) {
                     btn.removeAttribute('disabled');
                     btn.style.borderColor = '#00ff99';
                     btn.style.color = '#111';

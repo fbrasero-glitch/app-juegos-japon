@@ -3643,7 +3643,7 @@ Object.assign(MISSIONS_CONFIG, {
             const input = document.getElementById('echo-explanation');
             
             const checkValidity = () => {
-                if (input.value.trim().length >= 30) {
+                if (input.value.trim().length > 0) {
                     btn.removeAttribute('disabled');
                     btn.style.borderColor = '#00ff99';
                     btn.style.color = '#111';
@@ -3660,7 +3660,11 @@ Object.assign(MISSIONS_CONFIG, {
             
             btn.addEventListener('click', () => {
                 const txt = input.value.trim();
-                if (txt.length < 30) return;
+                if (txt.length < 30) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('INFORME INCOMPLETO', 'El informe sobre la absorción acústica debe detallar la física del lugar con al menos 30 caracteres.');
+                    return;
+                }
                 
                 if (window.playProceduralSound) playProceduralSound('success');
                 submitMission('day_14_kid14_echo', {type:'text', data: txt}, role);

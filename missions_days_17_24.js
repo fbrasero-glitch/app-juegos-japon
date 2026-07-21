@@ -4074,7 +4074,7 @@ Object.assign(MISSIONS_CONFIG, {
             
             const checkValidity = () => {
                 const txt = refInput.value.trim();
-                if (photoId && txt.length >= 10) {
+                if (photoId && txt.length > 0) {
                     submitBtn.removeAttribute('disabled');
                     submitBtn.style.background = '#ff9800';
                     submitBtn.style.borderColor = '#ff9800';
@@ -4107,7 +4107,11 @@ Object.assign(MISSIONS_CONFIG, {
             
             submitBtn.addEventListener('click', () => {
                 const txt = refInput.value.trim();
-                if (!photoId || txt.length < 10) return;
+                if (txt.length < 10) {
+                    if (window.playProceduralSound) playProceduralSound('error');
+                    showAlert('OBSERVACIÓN INCOMPLETA', 'El reporte sobre las nubes debe describir tu reflexión con al menos 10 caracteres.');
+                    return;
+                }
                 
                 if (window.playProceduralSound) playProceduralSound('success');
                 if (window.launchConfetti) launchConfetti();
