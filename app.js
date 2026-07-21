@@ -320,7 +320,8 @@ function ensureAllMissionsInitialized() {
                         gameState[kid].missions[mId] = {
                             status: "unlocked",
                             submission: null,
-                            day: `day_${config.day}`
+                            day: `day_${config.day}`,
+                            statusUpdatedAt: 0
                         };
                     }
                 }
@@ -329,32 +330,37 @@ function ensureAllMissionsInitialized() {
     });
 }
 
-function saveState() {
+function saveState(changedFields = null) {
     if (gameState) {
         if (currentUser === 'kid9' || currentUser === 'kid14') {
             gameState[currentUser].lastUpdated = Date.now();
         }
-        // NOTA: El Juez NO actualiza timestamps ni sube a Firebase aquí.
-        // Solo sube cuando aprueba/rechaza explícitamente via saveAndSyncJudgeDecision().
     }
     localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
     
     // Sincronizar remotamente SOLO si es un niño activo
     if (window.FirebaseSync && window.FirebaseSync.isConnected() && gameState) {
         if (currentUser === 'kid9' || currentUser === 'kid14') {
-            window.FirebaseSync.syncProfile(currentUser, gameState[currentUser]);
+            if (changedFields) {
+                window.FirebaseSync.syncProfileFields(currentUser, changedFields);
+            } else {
+                window.FirebaseSync.syncProfile(currentUser, gameState[currentUser]);
+            }
         }
-        // El juez NO sube automáticamente. Usa saveAndSyncJudgeDecision().
     }
 }
 
-// Función exclusiva para cuando el Juez aprueba/rechaza una misión
-function saveAndSyncJudgeDecision(kidId) {
+// Función exclusiva para cuando el Juez aprueba/rechaza una misión o recompensa
+function saveAndSyncJudgeDecision(kidId, changedFields = null) {
     if (!gameState || !gameState[kidId]) return;
     gameState[kidId].lastUpdated = Date.now();
     localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
     if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
-        window.FirebaseSync.syncProfile(kidId, gameState[kidId]);
+        if (changedFields) {
+            window.FirebaseSync.syncProfileFields(kidId, changedFields);
+        } else {
+            window.FirebaseSync.syncProfile(kidId, gameState[kidId]);
+        }
     }
 }
 
@@ -371,7 +377,7 @@ function initMissionsForDay(dayStr, missionIds) {
     ['kid9', 'kid14'].forEach(kid => {
         missionIds.forEach(id => {
             if (!gameState[kid].missions[id]) {
-                gameState[kid].missions[id] = { status: "unlocked", submission: null, day: dayStr };
+                gameState[kid].missions[id] = { status: "unlocked", submission: null, day: dayStr, statusUpdatedAt: 0 };
             }
         });
     });
@@ -853,7 +859,6 @@ function checkBadges(kidId, missionId) {
         unlockBadge('racha_idioma_dia');
     }
 
-    saveState();
     return newBadges;
 }
 
@@ -1568,19 +1573,43 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
                 gameState[kid].missions[missionId].status = 'pending';
                 gameState[kid].missions[missionId].submission = enrichedSubmission;
                 gameState[kid].missions[missionId].feedback = null; // Limpiar feedback anterior
+                gameState[kid].missions[missionId].statusUpdatedAt = Date.now();
             }
         });
+        
+        // Guardar timestamps locales
+        gameState['kid9'].lastUpdated = Date.now();
+        gameState['kid14'].lastUpdated = Date.now();
+        localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
+
+        // Limpiar contadores globales
+        window._missionStartTime = null;
+        window._missionAttempts = 1;
+
+        // Sincronizar remotamente ambos perfiles con el campo específico
+        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+            const changes9 = {};
+            changes9[`missions.${missionId}`] = gameState['kid9'].missions[missionId];
+            window.FirebaseSync.syncProfileFields('kid9', changes9);
+
+            const changes14 = {};
+            changes14[`missions.${missionId}`] = gameState['kid14'].missions[missionId];
+            window.FirebaseSync.syncProfileFields('kid14', changes14);
+        }
     } else {
         gameState[role].missions[missionId].status = 'pending';
         gameState[role].missions[missionId].submission = enrichedSubmission;
         gameState[role].missions[missionId].feedback = null; // Limpiar feedback anterior
+        gameState[role].missions[missionId].statusUpdatedAt = Date.now();
+
+        // Limpiar contadores globales
+        window._missionStartTime = null;
+        window._missionAttempts = 1;
+
+        const changes = {};
+        changes[`missions.${missionId}`] = gameState[role].missions[missionId];
+        saveState(changes);
     }
-
-    // Limpiar contadores globales
-    window._missionStartTime = null;
-    window._missionAttempts = 1;
-
-    saveState();
     showAlert('Enviado', '¡Tu misión ha sido enviada al Juez Supremo!');
     renderDayMissions(role, currentDay, currentDayMissions);
 }
@@ -1887,17 +1916,6 @@ async function renderJudgePanel() {
 
     if (currentJudgeTab === 'pending') {
         const list = document.getElementById('pending-missions-list');
-        list.innerHTML = '<p style="text-align:center; padding:20px;">⏳ Descargando datos de la nube...</p>';
-
-        // FORZAR descarga desde Firebase antes de renderizar
-        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
-            try {
-                await window.FirebaseSync.forceDownloadFromCloud();
-            } catch(e) {
-                console.warn("[JudgePanel] Error en descarga forzada:", e);
-            }
-        }
-
         const pendings = getPendingMissions();
         list.innerHTML = '';
 
@@ -2194,6 +2212,8 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
         gameState['kid14'].missions[missionId].status = 'approved';
         gameState['kid9'].missions[missionId].awardedXP = xp;
         gameState['kid14'].missions[missionId].awardedXP = xp;
+        gameState['kid9'].missions[missionId].statusUpdatedAt = Date.now();
+        gameState['kid14'].missions[missionId].statusUpdatedAt = Date.now();
         gameState['kid9'].xp += xp;
         gameState['kid14'].xp += xp;
         gameState['kid9'].wallet = (gameState['kid9'].wallet || 0) + yenEarned;
@@ -2213,17 +2233,44 @@ window.approveMission = (kid, missionId, xp, isFamily) => {
 
         gameState[kid].missions[missionId].status = 'approved';
         gameState[kid].missions[missionId].awardedXP = xp;
+        gameState[kid].missions[missionId].statusUpdatedAt = Date.now();
         gameState[kid].xp += xp;
         gameState[kid].wallet = (gameState[kid].wallet || 0) + yenEarned;
         
         leveledUp = checkLevelUp(kid);
         newBadges = checkBadges(kid, missionId);
     }
+    
     if (isFamily) {
-        saveAndSyncJudgeDecision('kid9');
-        saveAndSyncJudgeDecision('kid14');
+        const changes9 = {
+            [`missions.${missionId}`]: gameState['kid9'].missions[missionId],
+            xp: gameState['kid9'].xp,
+            wallet: gameState['kid9'].wallet,
+            level: gameState['kid9'].level,
+            badges: gameState['kid9'].badges,
+            counters: gameState['kid9'].counters
+        };
+        saveAndSyncJudgeDecision('kid9', changes9);
+
+        const changes14 = {
+            [`missions.${missionId}`]: gameState['kid14'].missions[missionId],
+            xp: gameState['kid14'].xp,
+            wallet: gameState['kid14'].wallet,
+            level: gameState['kid14'].level,
+            badges: gameState['kid14'].badges,
+            counters: gameState['kid14'].counters
+        };
+        saveAndSyncJudgeDecision('kid14', changes14);
     } else {
-        saveAndSyncJudgeDecision(kid);
+        const changes = {
+            [`missions.${missionId}`]: gameState[kid].missions[missionId],
+            xp: gameState[kid].xp,
+            wallet: gameState[kid].wallet,
+            level: gameState[kid].level,
+            badges: gameState[kid].badges,
+            counters: gameState[kid].counters
+        };
+        saveAndSyncJudgeDecision(kid, changes);
     }
     
     if (newBadges.length > 0) {
@@ -2253,6 +2300,7 @@ window.rejectMission = (kid, missionId) => {
                 gameState[k].missions[missionId].status = 'unlocked';
                 gameState[k].missions[missionId].submission = null;
                 gameState[k].missions[missionId].feedback = reason;
+                gameState[k].missions[missionId].statusUpdatedAt = Date.now();
                 if (gameState[k].counters) {
                     gameState[k].counters.physicalStreak = 0;
                     if(MISSIONS_CONFIG[missionId] && (MISSIONS_CONFIG[missionId].tag === 'expert' || MISSIONS_CONFIG[missionId].title.includes('Terminal'))) {
@@ -2265,6 +2313,7 @@ window.rejectMission = (kid, missionId) => {
         gameState[kid].missions[missionId].status = 'unlocked';
         gameState[kid].missions[missionId].submission = null;
         gameState[kid].missions[missionId].feedback = reason;
+        gameState[kid].missions[missionId].statusUpdatedAt = Date.now();
         
         // Si falla, rompemos las rachas (para medalla olimpica o criptografo_elite)
         if(gameState[kid].counters) {
@@ -2276,10 +2325,23 @@ window.rejectMission = (kid, missionId) => {
     }
     
     if (isFamily) {
-        saveAndSyncJudgeDecision('kid9');
-        saveAndSyncJudgeDecision('kid14');
+        const changes9 = {
+            [`missions.${missionId}`]: gameState['kid9'].missions[missionId],
+            counters: gameState['kid9'].counters
+        };
+        saveAndSyncJudgeDecision('kid9', changes9);
+
+        const changes14 = {
+            [`missions.${missionId}`]: gameState['kid14'].missions[missionId],
+            counters: gameState['kid14'].counters
+        };
+        saveAndSyncJudgeDecision('kid14', changes14);
     } else {
-        saveAndSyncJudgeDecision(kid);
+        const changes = {
+            [`missions.${missionId}`]: gameState[kid].missions[missionId],
+            counters: gameState[kid].counters
+        };
+        saveAndSyncJudgeDecision(kid, changes);
     }
     renderJudgePanel();
 };
@@ -2314,6 +2376,7 @@ window.undoApproveMission = (kid, missionId) => {
                 gameState[k].xp = Math.max(0, gameState[k].xp - kXpToSubtract);
                 km.status = 'pending';
                 km.feedback = null;
+                km.statusUpdatedAt = Date.now();
                 recalculateLevel(k);
             }
         });
@@ -2322,15 +2385,32 @@ window.undoApproveMission = (kid, missionId) => {
         gameState[kid].xp = Math.max(0, gameState[kid].xp - xpToSubtract);
         m.status = 'pending';
         m.feedback = null;
+        m.statusUpdatedAt = Date.now();
         recalculateLevel(kid);
         showAlert('Deshecho', `Se ha devuelto la misión al estado pendiente y restado la experiencia a ${gameState[kid].name}.`);
     }
 
     if (isFamily) {
-        saveAndSyncJudgeDecision('kid9');
-        saveAndSyncJudgeDecision('kid14');
+        const changes9 = {
+            [`missions.${missionId}`]: gameState['kid9'].missions[missionId],
+            xp: gameState['kid9'].xp,
+            level: gameState['kid9'].level
+        };
+        saveAndSyncJudgeDecision('kid9', changes9);
+
+        const changes14 = {
+            [`missions.${missionId}`]: gameState['kid14'].missions[missionId],
+            xp: gameState['kid14'].xp,
+            level: gameState['kid14'].level
+        };
+        saveAndSyncJudgeDecision('kid14', changes14);
     } else {
-        saveAndSyncJudgeDecision(kid);
+        const changes = {
+            [`missions.${missionId}`]: gameState[kid].missions[missionId],
+            xp: gameState[kid].xp,
+            level: gameState[kid].level
+        };
+        saveAndSyncJudgeDecision(kid, changes);
     }
     renderJudgePanel();
 };
@@ -2359,10 +2439,23 @@ document.getElementById('btn-judge-cancel').addEventListener('click', () => {
     document.getElementById('judge-modal').classList.add('hidden');
 });
 
-document.getElementById('btn-judge-login').addEventListener('click', () => {
+document.getElementById('btn-judge-login').addEventListener('click', async () => {
     const pin = document.getElementById('judge-pin-input').value;
     if (pin === gameState.judgePIN) {
         document.getElementById('judge-modal').classList.add('hidden');
+        currentUser = 'judge';
+        
+        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+            const list = document.getElementById('pending-missions-list');
+            if (list) {
+                list.innerHTML = '<p style="text-align:center; padding:20px; font-weight:bold; color:var(--color-primary);">⏳ Descargando últimos datos de los exploradores...</p>';
+            }
+            try {
+                await window.FirebaseSync.forceDownloadFromCloud();
+            } catch(e) {
+                console.warn("[JudgeLogin] Error en descarga inicial:", e);
+            }
+        }
         renderJudgePanel();
     } else {
         showAlert('Error', 'PIN incorrecto');
@@ -2698,7 +2791,9 @@ function getRequestedRewards() {
 window.requestReward = (kidId, rewardId) => {
     if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
     gameState[kidId].rewards[rewardId] = 'requested';
-    saveState();
+    const changes = {};
+    changes[`rewards.${rewardId}`] = 'requested';
+    saveState(changes);
     showAlert('Reclamado', '¡Se ha enviado tu solicitud al Juez Supremo!');
     renderPassportView(kidId);
 };
@@ -2706,7 +2801,9 @@ window.requestReward = (kidId, rewardId) => {
 window.approveReward = (kidId, rewardId) => {
     if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
     gameState[kidId].rewards[rewardId] = 'claimed';
-    saveState();
+    const changes = {};
+    changes[`rewards.${rewardId}`] = 'claimed';
+    saveAndSyncJudgeDecision(kidId, changes);
     launchConfetti();
     showAlert('Recompensa Otorgada', `Has concedido la recompensa "${REWARDS_CONFIG[rewardId].title}" a ${gameState[kidId].name}.`);
     renderJudgePanel();
@@ -2715,7 +2812,9 @@ window.approveReward = (kidId, rewardId) => {
 window.rejectReward = (kidId, rewardId) => {
     if (!gameState[kidId].rewards) gameState[kidId].rewards = {};
     gameState[kidId].rewards[rewardId] = 'unlocked';
-    saveState();
+    const changes = {};
+    changes[`rewards.${rewardId}`] = 'unlocked';
+    saveAndSyncJudgeDecision(kidId, changes);
     showAlert('Recompensa Denegada', `Has denegado la recompensa a ${gameState[kidId].name}. Volverá a estar disponible para reclamar.`);
     renderJudgePanel();
 };
@@ -3471,18 +3570,28 @@ window.buyUpgrade = (itemKey, cost) => {
     if (!gameState[currentUser].counters) gameState[currentUser].counters = {};
     gameState[currentUser].counters.upgradesBought = (gameState[currentUser].counters.upgradesBought || 0) + 1;
     
-    saveState();
-    
     // Registrar compra en gameState y localStorage
     if (!gameState[currentUser].purchases) gameState[currentUser].purchases = {};
     gameState[currentUser].purchases[itemKey] = true;
-    saveState();
+    
     localStorage.setItem('minigames_shop_purchases', JSON.stringify(gameState[currentUser].purchases));
+    
+    // Sincronizar campos específicos
+    const changes = {
+        wallet: gameState[currentUser].wallet,
+        [`counters.upgradesBought`]: gameState[currentUser].counters.upgradesBought,
+        [`purchases.${itemKey}`]: true
+    };
+    saveState(changes);
     
     // Comprobar logros
     const newBadges = checkBadges(currentUser, null);
     if (newBadges && newBadges.length > 0) {
         showNewBadges(newBadges);
+        const badgeChanges = {
+            badges: gameState[currentUser].badges
+        };
+        saveState(badgeChanges);
     }
     
     // Reproducir sonido si está disponible
@@ -3567,7 +3676,9 @@ async function renderAlbumCategory(categoryId) {
                 dataUrl = await window.getMedia(slotId);
                 if (dataUrl && !savedIndexes.includes(i)) {
                     savedIndexes.push(i);
-                    saveState();
+                    const changes = {};
+                    changes[`album.${categoryId}`] = gameState[currentUser].album[categoryId];
+                    saveState(changes);
                 }
             }
         }
@@ -3593,7 +3704,9 @@ async function renderAlbumCategory(categoryId) {
                                 const indexToRemove = savedIndexes.indexOf(i);
                                 if (indexToRemove > -1) {
                                     savedIndexes.splice(indexToRemove, 1);
-                                    saveState();
+                                    const changes = {};
+                                    changes[`album.${categoryId}`] = gameState[currentUser].album[categoryId];
+                                    saveState(changes);
                                 }
                                 renderAlbumCategory(categoryId);
                             });
@@ -3654,11 +3767,20 @@ async function renderAlbumCategory(categoryId) {
                             gameState[currentUser].counters.dailyActivity[todayStr] = { minigamesPlayed: 0, photosAdded: 0, physicalCompleted: 0, languageCompleted: 0 };
                         }
                         gameState[currentUser].counters.dailyActivity[todayStr].photosAdded = (gameState[currentUser].counters.dailyActivity[todayStr].photosAdded || 0) + 1;
-                        saveState();
+                        
+                        const changes = {
+                            [`album.${categoryId}`]: gameState[currentUser].album[categoryId],
+                            counters: gameState[currentUser].counters
+                        };
+                        saveState(changes);
                         
                         const newBadges = checkBadges(currentUser, null);
                         if (newBadges && newBadges.length > 0) {
                             showNewBadges(newBadges);
+                            const badgeChanges = {
+                                badges: gameState[currentUser].badges
+                            };
+                            saveState(badgeChanges);
                         }
                     };
                     

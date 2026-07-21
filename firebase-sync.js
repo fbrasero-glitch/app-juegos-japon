@@ -68,19 +68,15 @@ const FirebaseSync = {
             // Iniciar escucha en tiempo real
             this.setupListeners();
 
-            // SOLO subir estado local si el dispositivo es de un niño específico.
-            // El Juez / modo 'all' NUNCA sube automáticamente para no machacar datos de los niños.
             const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
-            if (deviceRole === 'kid9' || deviceRole === 'kid14') {
-                setTimeout(() => {
-                    this.uploadLocalStateToCloud();
-                }, 1500);
-            } else {
-                // Para Juez / all: descargar forzosamente desde la nube en vez de subir
-                console.log("[FirebaseSync] Dispositivo en modo Juez/all: descargando datos desde la nube (sin subir).");
+            if (deviceRole === 'judge' || deviceRole === 'all') {
+                // Para Juez / all: descargar forzosamente desde la nube en el arranque
+                console.log("[FirebaseSync] Dispositivo en modo Juez/all: descargando datos desde la nube.");
                 setTimeout(() => {
                     this.forceDownloadFromCloud();
                 }, 500);
+            } else {
+                console.log("[FirebaseSync] Dispositivo de niño registrado. Conexión en tiempo real activa.");
             }
         } catch (e) {
             console.error("[FirebaseSync] Error al parsear o inicializar Firebase:", e);
@@ -116,6 +112,113 @@ const FirebaseSync = {
         });
     },
 
+    mergeProfileData: function(local, remote) {
+        if (!local) return remote;
+        if (!remote) return local;
+
+        const merged = { ...remote }; // Usamos remote como base
+
+        // 1. Nombre (string)
+        merged.name = remote.name || local.name;
+
+        // 2. XP y Nivel (siempre tomamos el máximo)
+        merged.xp = Math.max(remote.xp || 0, local.xp || 0);
+        merged.level = Math.max(remote.level || 0, local.level || 0);
+
+        // 3. Wallet y compras (Purchases)
+        merged.purchases = { ...(remote.purchases || {}), ...(local.purchases || {}) };
+        
+        let localOnlyPurchasesCost = 0;
+        const UPGRADE_COSTS = {
+            cookie: 50,
+            kintsugi: 150,
+            fish: 100,
+            omikuji: 75,
+            origami: 50,
+            bamboo: 120,
+            temple_pass: 200,
+            badge_booster: 150,
+            ramen_ticket: 250,
+            shinkansen_upgrade: 500
+        };
+        Object.keys(local.purchases || {}).forEach(item => {
+            if (local.purchases[item] && (!remote.purchases || !remote.purchases[item])) {
+                localOnlyPurchasesCost += UPGRADE_COSTS[item] || 0;
+            }
+        });
+        
+        merged.wallet = Math.max(0, (remote.wallet || 0) - localOnlyPurchasesCost);
+        if (local.wallet > merged.wallet && localOnlyPurchasesCost === 0) {
+            merged.wallet = local.wallet;
+        }
+
+        // 4. Insignias (unión)
+        const badgeSet = new Set([...(remote.badges || []), ...(local.badges || [])]);
+        merged.badges = Array.from(badgeSet);
+
+        // 5. Contadores
+        merged.counters = { ...(remote.counters || {}), ...(local.counters || {}) };
+
+        // 6. Álbum (hacemos unión de fotos por categoría)
+        merged.album = {};
+        const catIds = new Set([...Object.keys(remote.album || {}), ...Object.keys(local.album || {})]);
+        catIds.forEach(catId => {
+            const remotePhotos = remote.album[catId] || [];
+            const localPhotos = local.album[catId] || [];
+            const photoMap = {};
+            remotePhotos.forEach(p => photoMap[p] = true);
+            localPhotos.forEach(p => photoMap[p] = true);
+            merged.album[catId] = Object.keys(photoMap).map(k => isNaN(k) ? k : parseInt(k, 10));
+        });
+
+        // 7. Recompensas (Rewards)
+        merged.rewards = { ...(remote.rewards || {}), ...(local.rewards || {}) };
+
+        // 8. Misiones (fusión fina por statusUpdatedAt)
+        merged.missions = { ...(remote.missions || {}) };
+        Object.keys(local.missions || {}).forEach(mId => {
+            const remoteM = remote.missions[mId];
+            const localM = local.missions[mId];
+            if (!remoteM) {
+                merged.missions[mId] = localM;
+            } else {
+                merged.missions[mId] = this.mergeMission(localM, remoteM);
+            }
+        });
+
+        merged.lastUpdated = Math.max(remote.lastUpdated || 0, local.lastUpdated || 0);
+        return merged;
+    },
+
+    mergeMission: function(localM, remoteM) {
+        const localTime = localM.statusUpdatedAt || 0;
+        const remoteTime = remoteM.statusUpdatedAt || 0;
+        
+        if (localTime > remoteTime) {
+            return localM;
+        } else if (remoteTime > localTime) {
+            return remoteM;
+        } else {
+            // Tiempos iguales: resolver empates priorizando estados más avanzados
+            const statusPriority = { unlocked: 0, pending: 1, approved: 2 };
+            const localPri = statusPriority[localM.status] || 0;
+            const remotePri = statusPriority[remoteM.status] || 0;
+            
+            if (localPri > remotePri) {
+                return localM;
+            } else if (remotePri > localPri) {
+                return remoteM;
+            } else {
+                // Si tienen el mismo estado, mezclar sus campos
+                return {
+                    ...remoteM,
+                    submission: remoteM.submission || localM.submission,
+                    feedback: remoteM.feedback || localM.feedback
+                };
+            }
+        }
+    },
+
     handleRemoteUpdate: function(kidId, remoteData) {
         if (!window.gameState) return;
         const localKid = window.gameState[kidId];
@@ -124,36 +227,36 @@ const FirebaseSync = {
         const remoteTime = remoteData.lastUpdated || 0;
         const localTime = localKid.lastUpdated || 0;
 
+        // Mezclar local y remoto de forma inteligente
+        const mergedData = this.mergeProfileData(localKid, remoteData);
+
         const isActiveUser = (window.currentUser === kidId);
-        const isJudge = (window.currentUser === 'judge');
-        // SIEMPRE aplicar datos remotos. No hay razón para rechazarlos.
+        const isKid = (kidId === 'kid9' || kidId === 'kid14');
         const shouldApply = true;
 
         if (shouldApply) {
-            console.log(`[FirebaseSync] Aplicando datos remotos para ${kidId} (remoto: ${remoteTime}, local: ${localTime}, user: ${window.currentUser})`);
-
-            const isKid = (kidId === 'kid9' || kidId === 'kid14');
+            console.log(`[FirebaseSync] Mezclando datos remotos para ${kidId} (remoto: ${remoteTime}, local: ${localTime}, user: ${window.currentUser})`);
 
             let newlyApprovedMissions = [];
             let newlyRejectedMissions = [];
 
             if (isActiveUser && isKid) {
                 // 1. Detectar transiciones de estado de misiones
-                Object.keys(remoteData.missions || {}).forEach(missionId => {
-                    const remoteM = remoteData.missions[missionId];
+                Object.keys(mergedData.missions || {}).forEach(missionId => {
+                    const mergedM = mergedData.missions[missionId];
                     const localM = localKid.missions[missionId] || { status: 'unlocked' };
 
-                    if (remoteM.status === 'approved' && localM.status !== 'approved') {
+                    if (mergedM.status === 'approved' && localM.status !== 'approved') {
                         newlyApprovedMissions.push(missionId);
-                    } else if (remoteM.status === 'unlocked' && remoteM.feedback && localM.status === 'pending') {
-                        newlyRejectedMissions.push({ id: missionId, feedback: remoteM.feedback });
+                    } else if (mergedM.status === 'unlocked' && mergedM.feedback && localM.status === 'pending') {
+                        newlyRejectedMissions.push({ id: missionId, feedback: mergedM.feedback });
                     }
                 });
 
                 // 2. Detectar logros Xbox desbloqueados de forma remota
                 const newlyUnlockedBadges = [];
-                if (remoteData.badges) {
-                    remoteData.badges.forEach(bId => {
+                if (mergedData.badges) {
+                    mergedData.badges.forEach(bId => {
                         if (!localKid.badges || !localKid.badges.includes(bId)) {
                             newlyUnlockedBadges.push(bId);
                         }
@@ -162,10 +265,10 @@ const FirebaseSync = {
 
                 // 3. Detectar subidas de nivel
                 const oldLevel = localKid.level || 0;
-                const newLevel = remoteData.level || 0;
+                const newLevel = mergedData.level || 0;
 
-                // 4. Copiar y guardar estado localmente (SIN subir a Firebase para evitar bucles)
-                window.gameState[kidId] = remoteData;
+                // 4. Copiar y guardar estado localmente
+                window.gameState[kidId] = mergedData;
                 localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
 
                 // Lanzar alertas y animaciones en diferido para evitar superposición
@@ -199,9 +302,16 @@ const FirebaseSync = {
                 }
             } else {
                 // Si es el perfil del hermano o es el Juez, simplemente aplicamos el estado remoto completo
-                // NO subir de vuelta a Firebase para evitar bucle de escritura
-                window.gameState[kidId] = remoteData;
+                window.gameState[kidId] = mergedData;
                 localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
+            }
+
+            // Subir cambios locales si los hay (merged es más nuevo que el servidor)
+            // SOLO si somos el dispositivo de un niño (el Juez no sube automáticamente)
+            const deviceRole = localStorage.getItem('japanMissionsDeviceRole') || 'all';
+            if ((deviceRole === 'kid9' || deviceRole === 'kid14') && mergedData.lastUpdated > remoteTime) {
+                console.log(`[FirebaseSync] Subiendo cambios locales autodetectados para ${kidId}...`);
+                this.syncProfile(kidId, mergedData);
             }
 
             // Refrescar la vista actual de la UI de forma reactiva
@@ -211,12 +321,52 @@ const FirebaseSync = {
         }
     },
 
-    syncProfile: function(kidId, profileData) {
+    syncProfile: async function(kidId, profileData) {
         if (!this.active || !this.db) return;
-        console.log(`[FirebaseSync] Subiendo perfil ${kidId} a la nube...`);
-        this.db.collection('profiles').doc(kidId).set(profileData)
-            .then(() => console.log(`[FirebaseSync] Perfil ${kidId} sincronizado en la nube.`))
-            .catch(err => console.error(`[FirebaseSync] Error al subir perfil ${kidId}:`, err));
+        console.log(`[FirebaseSync] Subiendo perfil ${kidId} a la nube con fusión...`);
+        try {
+            const docRef = this.db.collection('profiles').doc(kidId);
+            const doc = await docRef.get({ source: 'server' }).catch(() => docRef.get());
+            let remoteData = doc.exists ? doc.data() : null;
+            
+            let mergedData = profileData;
+            if (remoteData) {
+                mergedData = this.mergeProfileData(profileData, remoteData);
+            }
+            
+            // Forzar actualización del timestamp
+            mergedData.lastUpdated = Date.now();
+            
+            await docRef.set(mergedData);
+            console.log(`[FirebaseSync] Perfil ${kidId} sincronizado con éxito (set).`);
+            
+            // Actualizar localmente por si la fusión trajo cambios remotos nuevos
+            if (window.gameState) {
+                window.gameState[kidId] = mergedData;
+                localStorage.setItem('japanMissionsState', JSON.stringify(window.gameState));
+            }
+        } catch (err) {
+            console.error(`[FirebaseSync] Error al subir perfil ${kidId}:`, err);
+        }
+    },
+
+    syncProfileFields: function(kidId, changes) {
+        if (!this.active || !this.db) return;
+        console.log(`[FirebaseSync] Sincronizando campos para ${kidId}:`, Object.keys(changes));
+        
+        // Agregar timestamp de actualización
+        changes.lastUpdated = Date.now();
+
+        this.db.collection('profiles').doc(kidId).update(changes)
+            .then(() => console.log(`[FirebaseSync] Campos del perfil ${kidId} actualizados en la nube.`))
+            .catch(err => {
+                console.error(`[FirebaseSync] Error al actualizar campos para ${kidId}:`, err);
+                if (err.code === 'not-found') {
+                    // Si el documento no existe en Firestore, lo creamos con set({ merge: true })
+                    console.log(`[FirebaseSync] Perfil ${kidId} no encontrado. Creándolo con set...`);
+                    this.db.collection('profiles').doc(kidId).set(changes, { merge: true });
+                }
+            });
     },
 
     syncPhoto: function(photoId, dataUrl) {
