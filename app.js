@@ -42,6 +42,16 @@ const LEVELS_IVAN = [
 
 let gameState = null;
 let currentUser = null; // 'kid9', 'kid14', 'judge'
+
+// Vincular a window para compatibilidad con otros scripts (firebase-sync.js, games.js, dbHelper.js)
+Object.defineProperty(window, 'gameState', {
+    get: () => gameState,
+    set: (val) => { gameState = val; }
+});
+Object.defineProperty(window, 'currentUser', {
+    get: () => currentUser,
+    set: (val) => { currentUser = val; }
+});
 let currentDay = null; // Día que se está visualizando
 let currentDayMissions = []; // Misiones del día actual
 let currentJudgeTab = 'pending'; // Pestaña activa del juez ('pending' | 'approved')
