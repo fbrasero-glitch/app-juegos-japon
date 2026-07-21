@@ -1953,6 +1953,7 @@ function getMissionExpectedAnswer(missionId) {
         "day_5_gymnast": "Fotografía de la pose y respuesta de trivia: Shika-senbei.",
         "day_5_mochi": "Mochis preparados en Nakatanidou.",
         "day_5_monk": "Pétalos de loto del pedestal del Buda: 56 pétalos.",
+        "day_5_investor": "Identificación de un souvenir rentable de Nara con cálculo de ROI y justificación financiera razonable.",
         "day_5_deer_galaxy": "Minijuego de alimentar ciervos completado.",
         "day_5_ribbon": "Puntuación en la danza de cinta simulada.",
         "day_5_zen": "Dibujo del kanji de meditación zen.",
