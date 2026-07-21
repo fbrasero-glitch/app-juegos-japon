@@ -116,6 +116,19 @@ const FirebaseSync = {
         if (!local) return remote;
         if (!remote) return local;
 
+        // Si hay una diferencia en resetTime, el que tenga el resetTime mayor (más reciente) gana por completo
+        const localReset = local.resetTime || 0;
+        const remoteReset = remote.resetTime || 0;
+
+        if (remoteReset > localReset) {
+            console.log("[FirebaseSync] Reset detectado en el servidor. Descartando estado local anterior.");
+            return { ...remote };
+        }
+        if (localReset > remoteReset) {
+            console.log("[FirebaseSync] Reset detectado localmente. Descartando estado remoto anterior.");
+            return { ...local };
+        }
+
         const merged = { ...remote }; // Usamos remote como base
 
         // 1. Nombre (string)
@@ -494,6 +507,29 @@ const FirebaseSync = {
                 console.log("[FirebaseSync] Estado local actualizado con datos de la nube.");
             }
         });
+    },
+
+    // Resetea los perfiles en Firestore a sus estados vacíos con un nuevo resetTime
+    resetCloudDatabase: async function(defaultState) {
+        if (!this.active || !this.db) return Promise.resolve();
+        console.log("[FirebaseSync] Reseteando base de datos en la nube (Firestore)...");
+        try {
+            const batch = this.db.batch();
+            const resetTime = Date.now();
+            const kids = ['kid9', 'kid14'];
+            kids.forEach(kidId => {
+                const docRef = this.db.collection('profiles').doc(kidId);
+                const data = JSON.parse(JSON.stringify(defaultState[kidId]));
+                data.lastUpdated = resetTime;
+                data.resetTime = resetTime;
+                batch.set(docRef, data);
+            });
+            await batch.commit();
+            console.log("[FirebaseSync] Base de datos en la nube reseteada con éxito.");
+        } catch (err) {
+            console.error("[FirebaseSync] Error al resetear base de datos en la nube:", err);
+            throw err;
+        }
     }
 };
 

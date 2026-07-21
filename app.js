@@ -5,11 +5,11 @@
 const DEFAULT_STATE = {
     kid9: { 
         name: "Laura", xp: 0, level: 0, missions: {}, wallet: 0,
-        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
+        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {}, resetTime: 0
     },
     kid14: { 
         name: "Iván", xp: 0, level: 0, missions: {}, wallet: 0,
-        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {} 
+        badges: [], counters: { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true }, album: {}, rewards: {}, resetTime: 0
     },
     judgePIN: "1234"
 };
@@ -292,6 +292,9 @@ function loadState() {
                 if (!gameState[kid].rewards) gameState[kid].rewards = {};
                 if (gameState[kid].wallet === undefined) {
                     gameState[kid].wallet = (gameState[kid].xp || 0) * 5;
+                }
+                if (gameState[kid].resetTime === undefined) {
+                    gameState[kid].resetTime = 0;
                 }
             });
         } catch (e) {
@@ -3210,13 +3213,24 @@ document.getElementById('btn-judge-login').addEventListener('click', async () =>
     }
 });
 
-document.getElementById('btn-judge-reset-all').addEventListener('click', () => {
-    if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. También se restablecerá el dispositivo a multiusuario. Esta acción es irreversible.")) {
-        // 1. Limpiar localStorage
-        localStorage.removeItem('japanMissionsState');
-        localStorage.removeItem('japanMissionsDeviceRole');
+document.getElementById('btn-judge-reset-all').addEventListener('click', async () => {
+    if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. (El rol asignado a este dispositivo se conservará). Esta acción es irreversible.")) {
         
-        // 2. Limpiar base de datos IndexedDB de multimedia
+        // 1. Resetear base de datos en la nube (Firestore) si está conectada
+        if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
+            try {
+                await window.FirebaseSync.resetCloudDatabase(DEFAULT_STATE);
+            } catch (err) {
+                console.error("Error al resetear la base de datos remota:", err);
+                // Si falla el reset en la nube, informamos al usuario pero procedemos con el reset local
+                alert("Advertencia: No se pudo resetear la base de datos en la nube (¿estás sin conexión?). El reseteo local continuará.");
+            }
+        }
+
+        // 2. Limpiar localStorage (conservando japanMissionsDeviceRole)
+        localStorage.removeItem('japanMissionsState');
+        
+        // 3. Limpiar base de datos IndexedDB de multimedia
         if (window.indexedDB) {
             try {
                 const DB_NAME = 'JapanTravelDB';
