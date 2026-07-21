@@ -612,11 +612,13 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
+            btnSubmit.addEventListener('click', async () => {
                 if (blobId) {
                     if (window.playProceduralSound) playProceduralSound('success');
                     if (window.launchConfetti) launchConfetti();
-                    submitMission('day_17_sumida', {type:'video', data: 'Video barco Sumida'}, role, true);
+                    const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(videoId, blobId);
+                    submitMission('day_17_sumida', {type:'video', data: videoId}, role, true);
                 }
             });
             
@@ -1213,11 +1215,13 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
+            btnSubmit.addEventListener('click', async () => {
                 if (blobId) {
                     if (window.playProceduralSound) playProceduralSound('success');
                     if (window.launchConfetti) launchConfetti();
-                    submitMission('day_18_crossing', {type:'video', data: 'Video cruce Shibuya'}, role, true);
+                    const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(videoId, blobId);
+                    submitMission('day_18_crossing', {type:'video', data: videoId}, role, true);
                 }
             });
             
@@ -1326,11 +1330,13 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
+            btnSubmit.addEventListener('click', async () => {
                 if (blobId) {
                     if (window.playProceduralSound) playProceduralSound('success');
                     if (window.launchConfetti) launchConfetti();
-                    submitMission('day_19_gundam', {type:'video', data: 'Video Gundam registrado'}, role);
+                    const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(videoId, blobId);
+                    submitMission('day_19_gundam', {type:'video', data: videoId}, role);
                 }
             });
             

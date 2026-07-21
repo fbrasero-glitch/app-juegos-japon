@@ -800,8 +800,12 @@ Object.assign(MISSIONS_CONFIG, {
             blobId = null;
         });
 
-        btn.addEventListener('click', () => {
-            if (blobId) submitMission('day_9_fam_portal', {type:'video', data: 'Vídeo del portal Torii (Guardado localmente)'}, role, true);
+        btn.addEventListener('click', async () => {
+            if (blobId) {
+                const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                await savePhotoToDB(videoId, blobId);
+                submitMission('day_9_fam_portal', {type:'video', data: videoId}, role, true);
+            }
         });
         window._missionCleanup = stopAll;
     }
@@ -3132,6 +3136,9 @@ Object.assign(MISSIONS_CONFIG, {
             let dataArray = [];
             let timeLeft = 5.0;
             let interval = null;
+            let mediaRecorder = null;
+            let chunks = [];
+            let audioUrl = null;
             
             const drawWave = () => {
                 if (!recording) return;
@@ -3184,6 +3191,17 @@ Object.assign(MISSIONS_CONFIG, {
                     btnRec.disabled = true;
                     btnRec.innerText = '⏳ Grabando...';
                     
+                    mediaRecorder = new MediaRecorder(stream);
+                    chunks = [];
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { audioUrl = r.result; };
+                    };
+                    mediaRecorder.start();
+                    
                     drawWave();
                     
                     interval = setInterval(() => {
@@ -3194,6 +3212,7 @@ Object.assign(MISSIONS_CONFIG, {
                             recording = false;
                             cancelAnimationFrame(animationFrame);
                             
+                            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                             stream.getTracks().forEach(t => t.stop());
                             if (audioCtx) audioCtx.close();
                             
@@ -3220,8 +3239,14 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
-                submitMission('day_14_kid9_echo', {type: 'audio', data: 'Sonido grabado de Aokigahara'}, role);
+            btnSubmit.addEventListener('click', async () => {
+                let dataVal = 'Sonido grabado de Aokigahara';
+                if (audioUrl) {
+                    const audioId = 'audio_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(audioId, audioUrl);
+                    dataVal = audioId;
+                }
+                submitMission('day_14_kid9_echo', {type: 'audio', data: dataVal}, role);
             });
             
             window._missionCleanup = () => {
@@ -3528,7 +3553,18 @@ Object.assign(MISSIONS_CONFIG, {
             
             btnSubmit.addEventListener('click', () => {
                 if (videoBlob) {
-                    submitMission('day_14_pressure', {type:'video', data: 'Video explicacion presion (Guardado local)'}, role);
+                    const reader = new FileReader();
+                    reader.readAsDataURL(videoBlob);
+                    reader.onloadend = async () => {
+                        try {
+                            const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                            await savePhotoToDB(videoId, reader.result);
+                            submitMission('day_14_pressure', {type:'video', data: videoId}, role);
+                        } catch (err) {
+                            console.error(err);
+                            showAlert('Error', 'No se pudo guardar el vídeo en IndexedDB. Reinténtalo.');
+                        }
+                    };
                 }
             });
             
@@ -3803,6 +3839,9 @@ Object.assign(MISSIONS_CONFIG, {
             let timeLeft = 5.0;
             let interval = null;
             let maxVol = 0;
+            let mediaRecorder = null;
+            let chunks = [];
+            let audioUrl = null;
             
             const drawWave = () => {
                 if (!recording) return;
@@ -3862,6 +3901,17 @@ Object.assign(MISSIONS_CONFIG, {
                     btnRec.disabled = true;
                     btnRec.innerText = '⏳ Grabando...';
                     
+                    mediaRecorder = new MediaRecorder(stream);
+                    chunks = [];
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { audioUrl = r.result; };
+                    };
+                    mediaRecorder.start();
+                    
                     drawWave();
                     
                     interval = setInterval(() => {
@@ -3872,6 +3922,7 @@ Object.assign(MISSIONS_CONFIG, {
                             recording = false;
                             cancelAnimationFrame(animationFrame);
                             
+                            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                             stream.getTracks().forEach(t => t.stop());
                             if (audioCtx) audioCtx.close();
                             
@@ -3906,8 +3957,14 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
-                submitMission('day_15_waterfall', {type: 'audio', data: 'Sonido de cascada Shiraito grabado'}, role);
+            btnSubmit.addEventListener('click', async () => {
+                let dataVal = 'Sonido de cascada Shiraito grabado';
+                if (audioUrl) {
+                    const audioId = 'audio_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(audioId, audioUrl);
+                    dataVal = audioId;
+                }
+                submitMission('day_15_waterfall', {type: 'audio', data: dataVal}, role);
             });
             
             window._missionCleanup = () => {
@@ -4687,6 +4744,9 @@ Object.assign(MISSIONS_CONFIG, {
             let audioCtx = null;
             let timeLeft = 5.0;
             let interval = null;
+            let mediaRecorder = null;
+            let chunks = [];
+            let audioUrl = null;
             
             btnRec.addEventListener('click', async () => {
                 if (recording) return;
@@ -4705,6 +4765,17 @@ Object.assign(MISSIONS_CONFIG, {
                     light.innerText = '🚶';
                     light.style.animation = 'blink 0.5s infinite';
                     
+                    mediaRecorder = new MediaRecorder(stream);
+                    chunks = [];
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(chunks, { type: 'audio/webm' });
+                        const r = new FileReader();
+                        r.readAsDataURL(blob);
+                        r.onloadend = () => { audioUrl = r.result; };
+                    };
+                    mediaRecorder.start();
+                    
                     interval = setInterval(() => {
                         timeLeft -= 0.1;
                         if (timeLeft <= 0) {
@@ -4712,6 +4783,7 @@ Object.assign(MISSIONS_CONFIG, {
                             clearInterval(interval);
                             recording = false;
                             
+                            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
                             stream.getTracks().forEach(t => t.stop());
                             if (audioCtx) audioCtx.close();
                             
@@ -4733,8 +4805,14 @@ Object.assign(MISSIONS_CONFIG, {
                 }
             });
             
-            btnSubmit.addEventListener('click', () => {
-                submitMission('day_16_traffic', {type: 'audio', data: 'Sonido de semáforo peatonal grabado'}, role);
+            btnSubmit.addEventListener('click', async () => {
+                let dataVal = 'Sonido de semáforo peatonal grabado';
+                if (audioUrl) {
+                    const audioId = 'audio_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(audioId, audioUrl);
+                    dataVal = audioId;
+                }
+                submitMission('day_16_traffic', {type: 'audio', data: dataVal}, role);
             });
             
             window._missionCleanup = () => {

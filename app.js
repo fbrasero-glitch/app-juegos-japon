@@ -501,24 +501,123 @@ function launchConfetti() {
     setTimeout(() => { container.innerHTML = ''; }, 5000);
 }
 
-function showAlert(title, message) {
-    document.getElementById('alert-title').innerText = title;
-    document.getElementById('alert-message').innerText = message;
-    document.getElementById('alert-modal').classList.remove('hidden');
-    
-    // Si hay una misión en curso y se muestra un error, fallo o advertencia, incrementamos el contador de intentos
-    if (window._missionStartTime) {
-        const t = title.toLowerCase();
-        const m = message.toLowerCase();
-        const keywords = ['error', 'fallo', 'incorrecto', 'intentos', 'fallaste', 'revisa', 'de nuevo', 'inválido'];
-        const hasKeyword = keywords.some(k => t.includes(k) || m.includes(k));
-        if (hasKeyword) {
-            window._missionAttempts = (window._missionAttempts || 1) + 1;
-            console.log(`Intento de misión fallido detectado. Total intentos: ${window._missionAttempts}`);
-        }
-    }
+function getMissionClue(missionId) {
+    const clues = {
+        "day_1_customs": "El límite legal de divisas para declarar sin impuestos al entrar a Japón es de 1.000.000 de yenes.",
+        "day_1_flight_radar": "Los motores a reacción de un avión producen un zumbido grave de muy baja frecuencia.",
+        "day_1_eta": "Divide la distancia total de 3600 km entre la velocidad actual para obtener las horas estimadas.",
+        "day_1_clock": "Resta exactamente 7 horas a las 22:00 para conocer la hora en España (las 15:00).",
+        "day_1_emergency": "Busca el pictograma oficial de color verde donde sale un monigote corriendo por una puerta.",
+        "day_1_translation": "El saludo formal en japonés para 'hola' o 'buenas tardes' es 'Konnichiwa' (こんにちは).",
+        "day_2_cangrejo": "Observa el cangrejo gigante: mueve sus pinzas hacia arriba/abajo y sus patas lateralmente de forma articulada.",
+        "day_2_katana": "El precio promedio de un cuchillo artesanal de alta gama en Kuromon ronda los 15.000 yenes.",
+        "day_2_buda": "El Todai-ji es famoso por su Gran Buda de bronce. La flor de loto esculpida en su base tiene exactamente 56 pétalos.",
+        "day_2_kanji": "Asegúrate de dibujar los kanjis de Persona (人) y Montaña (山) respetando la dirección de los trazos.",
+        "day_2_column": "El agujero en la base de la columna mide lo mismo que una fosa nasal del Gran Buda. ¡Pruébalo!",
+        "day_3_ninja": "Camina despacio, pisando con suavidad únicamente sobre las zonas marcadas en rojo para no hacer sonar la madera.",
+        "day_4_vending_roulette": "Busca una máquina de vending y selecciona un refresco con sabor original a melón, uva o té verde.",
+        "day_6_clouds": "Dibuja un trazo suave que represente la forma de una nube en el canvas antes de pulsar guardar.",
+        "day_8_kid14_bamboo_eng": "La altura promedio de los bambúes gigantes en Arashiyama oscila entre los 15 y 30 metros.",
+        "day_8_kid14_codigo": "Asocia los números del código a los símbolos tradicionales japoneses en el jardín del templo.",
+        "day_8_kid9_rake": "Traza líneas paralelas y ondas concéntricas en la arena digital simulando un rastrillo Zen.",
+        "day_8_kid14_haiku": "Un Haiku clásico tiene tres versos de 5, 7 y 5 sílabas respectivamente. Escribe sobre la paz del templo.",
+        "day_9_kid14_torii_count": "Es imposible contarlos todos con precisión, pero hay más de 10.000 toriis en Fushimi Inari.",
+        "day_9_kid14_heart": "Tu pulso se acelera al subir la montaña. El latido típico al subir escaleras está entre 100 y 130 bpm.",
+        "day_9_kid14_phoenix": "El Pabellón Dorado (Kinkaku-ji) tiene un fénix de bronce dorado en su tejado que representa el renacimiento.",
+        "day_9_kid9_zorros": "Busca estatuas de zorros (Kitsune), los mensajeros del dios Inari. Suelen llevar una llave en la boca.",
+        "day_9_kid14_ave": "Mantén el equilibrio concentrándote en un punto fijo para mantenerte erguido sobre un solo pie.",
+        "day_10_kid9_dragon": "El techo de la sala principal del templo Tenryu-ji tiene pintado un enorme dragón que parece mirarte desde cualquier ángulo.",
+        "day_10_kid14_milla": "El mercado de Nishiki es estrecho y largo. Se le conoce como 'la cocina de Kioto' y mide unos 400 metros de longitud.",
+        "day_11_onsen": "Recuerda que antes de entrar al agua termal (onsen) debes lavarte a fondo y no meter la toalla en la poza.",
+        "day_11_yukata": "El cruce de la Yukata debe ser siempre el lado izquierdo sobre el derecho (el derecho encima es para funerales).",
+        "day_12_silence": "Mantén el silencio absoluto en el santuario sintoísta para no perturbar a los kamis (espíritus protectores).",
+        "day_12_sake": "La destilería tradicional de sake fue fundada en el año 1703 (resta este año a 2026 para los años de antigüedad).",
+        "day_12_patrol": "Cuenta las luces tradicionales o farolillos de madera que iluminan las calles del barrio histórico de Sanmachi Suji.",
+        "day_13_stairs": "El templo Chureito Pagoda requiere subir una larga escalinata. Tiene exactamente 398 escalones.",
+        "day_13_manhole": "Las tapas de alcantarilla en Japón son obras de arte de metal. Busca la que tiene el diseño del Monte Fuji con flores.",
+        "day_13_volcano": "El Monte Fuji es un estratovolcán activo, y su última gran erupción histórica ocurrió en el año 1707.",
+        "day_13_triangulation": "La distancia en línea recta desde la pagoda de Chureito hasta la cima del Monte Fuji es de aproximadamente 26 km.",
+        "day_14_echo": "La roca volcánica porosa de Aokigahara absorbe las ondas sonoras, haciendo que no haya eco en absoluto.",
+        "day_15_deity": "La deidad sintoísta consagrada en el santuario de la base del volcán es Konohanasakuya-hime (princesa de las flores).",
+        "day_15_roof": "Los tejados de paja empinados de Shirakawa-go evitan que la pesada nieve de invierno se acumule y los hunda.",
+        "day_16_traffic": "El sonido audible de los semáforos de peatones en Japón suele imitar el canto del cuco o de un pollito.",
+        "day_17_sumida": "Graba el paso del barco bajo alguno de los puentes históricos (como el puente de Azuma o el puente de Kiyosu).",
+        "day_18_crossing": "En cada ciclo de semáforo en verde del cruce de Shibuya cruzan unas 3.000 personas de media.",
+        "day_19_gundam": "El código del modelo gigante en Odaiba es RX-0 Unicorn Gundam (búscalo en el hombro o en los carteles).",
+        "day_20_vintage": "Los videojuegos retro de Akihabara se almacenaban originalmente en cartuchos de plástico de 8 o 16 bits.",
+        "day_21_monkeys": "Los macacos japoneses de las montañas de Kioto se bañan en aguas termales para combatir las heladas de invierno.",
+        "day_22_shout": "El grito de bienvenida de los vendedores de pescado de Tsukiji/Toyosu debe ser enérgico: '¡Irasshaimase!'",
+        "day_23_kitkat": "Busca sabores exóticos de KitKat como Wasabi, Sake, Melón de Hokkaido, Té Matcha o Batata Morada."
+    };
+    return clues[missionId] || "Revisa la información disponible a tu alrededor, lee con atención las instrucciones de la misión y comprueba tu respuesta.";
 }
 
+function showAlert(title, message) {
+    let isValidationError = false;
+    if (window._missionStartTime && window.activeMissionId) {
+        const t = title.toLowerCase();
+        const m = message.toLowerCase();
+        const keywords = ['error', 'fallo', 'incorrecto', 'intentos', 'fallaste', 'revisa', 'de nuevo', 'inválido', 'inexacto', 'incoherente', 'erróneo', 'errón'];
+        isValidationError = keywords.some(k => t.includes(k) || m.includes(k));
+    }
+
+    if (isValidationError) {
+        const currentFailedAttempt = window._missionAttempts || 1;
+        window._missionAttempts = currentFailedAttempt + 1;
+        console.log(`Intento de misión fallido detectado. Intento fallido: ${currentFailedAttempt}. Siguiente intento: ${window._missionAttempts}`);
+
+        if (currentFailedAttempt === 1) {
+            // Primer fallo: mostrar alerta de error normal
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        } else if (currentFailedAttempt === 2) {
+            // Segundo fallo: mostrar error + pista
+            const missionId = window.activeMissionId;
+            const clue = getMissionClue(missionId);
+            document.getElementById('alert-title').innerText = title + ' (¡Pista disponible!)';
+            document.getElementById('alert-message').innerText = message + '\n\n💡 PISTA:\n' + clue;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        } else if (currentFailedAttempt >= 3) {
+            // Tercer fallo: Auto-enviar al juez como fallida
+            const missionId = window.activeMissionId;
+            
+            // Recoger valores del formulario en el DOM
+            const inputs = document.querySelectorAll('#mission-form-wrapper input, #mission-form-wrapper textarea, #mission-form-wrapper select');
+            let dataVal = '';
+            if (inputs.length > 0) {
+                const vals = Array.from(inputs).map(input => {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        return input.checked ? (input.nextSibling?.textContent?.trim() || input.value || 'seleccionado') : '';
+                    }
+                    return input.value;
+                }).filter(Boolean);
+                dataVal = vals.join(', ') || 'Sin valor ingresado';
+            } else {
+                dataVal = 'Agotados los 3 intentos';
+            }
+
+            const submissionData = {
+                type: 'text',
+                data: `FALLIDA: Agotó los 3 intentos sin acertar. Último valor ingresado: "${dataVal}"`,
+                failed: true
+            };
+
+            // Forzar envío a submitMission
+            window._missionAttempts = 3;
+            submitMission(missionId, submissionData, currentUser, false, true);
+
+            // Mostrar alerta de intentos agotados
+            document.getElementById('alert-title').innerText = 'Intentos Agotados';
+            document.getElementById('alert-message').innerText = 'Has agotado tus 3 intentos en esta prueba. La misión ha sido enviada automáticamente al Juez Supremo para su evaluación con el resultado final.';
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+    } else {
+        document.getElementById('alert-title').innerText = title;
+        document.getElementById('alert-message').innerText = message;
+        document.getElementById('alert-modal').classList.remove('hidden');
+    }
+}
 
 document.getElementById('btn-alert-ok').addEventListener('click', () => {
     document.getElementById('alert-modal').classList.add('hidden');
@@ -1374,13 +1473,13 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
 
     let minigameButtonHtml = '';
     if (isMinigameMission) {
-        let descText = 'Al finalizar esta prueba jugarás automáticamente. O practica ahora haciendo clic aquí:';
+        let descText = 'Esta misión dispone de un minijuego independiente al que puedes jugar para divertirte y ganar yenes para tu cartera:';
         if (isLocked) {
-            descText = 'Esta misión está bloqueada temporalmente para su entrega. Sin embargo, puedes practicar el minijuego aquí:';
+            descText = 'Esta misión está bloqueada temporalmente para su entrega. Sin embargo, puedes jugar al minijuego aquí:';
         }
         minigameButtonHtml = `
             <div class="minigame-promo-card" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, rgba(255, 123, 84, 0.15) 0%, rgba(255, 154, 158, 0.05) 100%); border: 2px solid var(--color-primary); border-radius: var(--radius-main); text-align: center; box-shadow: var(--shadow-soft);">
-                <span style="font-size: 1.6rem; display: block; margin-bottom: 5px;">🎮 Minijuego de Entrenamiento</span>
+                <span style="font-size: 1.6rem; display: block; margin-bottom: 5px;">🎮 Minijuego Independiente</span>
                 <p style="margin: 0 0 12px 0; font-size: 0.85rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">${descText}</p>
                 <button id="btn-replay-minigame-direct" class="btn-secondary" style="width:100%; background: #ff7b54; border-color: #ff7b54; color: white; font-weight: bold; border-radius: 20px; box-shadow: 0 4px 10px rgba(255,123,84,0.25); cursor:pointer;">🎮 Jugar Minijuego (Entrenamiento)</button>
             </div>
@@ -1569,13 +1668,8 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
         day22MissionsIvan.includes(missionId) || day23MissionsIvan.includes(missionId)
     ));
 
-    if (isMinigameMission && !bypassMinigame) {
-        window.pendingSubmission = { missionId, submissionData, role, isFamily };
-        if (window.MinigamesManager && typeof window.MinigamesManager.launch === 'function') {
-            window.MinigamesManager.launch(missionId);
-            return;
-        }
-    }
+    // Desactivado: el minijuego es independiente y ya no intercepta el envío al juez.
+    // Todas las pruebas se envían directamente al juez al finalizar.
 
     const timeTaken = window._missionStartTime ? Math.round((Date.now() - window._missionStartTime) / 1000) : null;
     const attempts = window._missionAttempts || 1;
@@ -1661,7 +1755,20 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
         
         try {
             if (file.type.startsWith('video/')) {
-                submitMission(missionId, {type: 'video', data: 'Vídeo guardado en la galería del explorador. ¡Pídele que te lo enseñe!'}, role, isFamily);
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onloadend = async () => {
+                    try {
+                        const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                        await savePhotoToDB(videoId, reader.result);
+                        submitMission(missionId, {type: 'video', data: videoId}, role, isFamily);
+                    } catch (err) {
+                        console.error(err);
+                        showAlert('Error', 'No se pudo guardar el vídeo en IndexedDB. Reinténtalo.');
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                };
             } else {
                 const compressed = await compressImage(file);
                 const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
@@ -1904,8 +2011,26 @@ async function renderSubmissionData(submission) {
             }
         }
         dataHtml = `<div style="display:flex; flex-wrap:wrap; justify-content:center; background:#f1f5f9; padding:8px; border-radius:8px;">${imgHtml}</div>`;
-    } else if (submission.type === 'video' || submission.type === 'audio') {
-        dataHtml = `<b>Evidencia Multimedia:</b> ${submission.data}`;
+    } else if (submission.type === 'video') {
+        let srcUrl = submission.data;
+        if (srcUrl && !srcUrl.startsWith('data:video/') && !srcUrl.startsWith('data:application/')) {
+            srcUrl = await getPhotoFromDB(submission.data);
+        }
+        if (srcUrl) {
+            dataHtml = `<video controls src="${srcUrl}" style="width:100%; border-radius:10px; max-height:250px; background:#000; margin-top:10px;"></video>`;
+        } else {
+            dataHtml = `<b>Evidencia Vídeo:</b> ${submission.data}`;
+        }
+    } else if (submission.type === 'audio') {
+        let srcUrl = submission.data;
+        if (srcUrl && !srcUrl.startsWith('data:audio/')) {
+            srcUrl = await getPhotoFromDB(submission.data);
+        }
+        if (srcUrl) {
+            dataHtml = `<audio controls src="${srcUrl}" style="width:100%; margin-top:10px;"></audio>`;
+        } else {
+            dataHtml = `<b>Evidencia Audio:</b> ${submission.data}`;
+        }
     } else if (submission.type === 'game') {
         dataHtml = `<b>Resultado de la Prueba:</b> ${submission.data}`;
     } else if (submission.type === 'photo_choice') {
