@@ -2172,37 +2172,104 @@ function getMissionExpectedAnswer(missionId) {
     return answers[missionId] || "";
 }
 
+function getMissionEvaluationCriteria(missionId) {
+    const criteria = {
+        // Día 1
+        "day_1_customs": "Comprobar que el niño conozca el límite legal permitido de dinero en efectivo (1.000.000 ¥) para ingresar a Japón sin declarar ante la aduana.",
+        "day_1_flight_radar": "Verificar si el niño identificó correctamente la frecuencia de los motores del avión a través del espectrograma o sensores.",
+        "day_1_eta": "Verificar el cálculo aproximado del tiempo estimado de llegada basándose en la distancia y la velocidad actual del vuelo.",
+        "day_1_clock": "Verificar el huso horario y que el niño haya calculado la hora correcta en España restándole las horas de diferencia a la hora de Japón.",
+        "day_1_emergency": "Evaluar si la fotografía adjuntada muestra claramente el pictograma verde de salida de emergencia (el muñeco verde que corre hacia una puerta).",
+        "day_1_translation": "Verificar si la grabación o respuesta escrita contiene un saludo básico correcto en japonés (como 'Konnichiwa' o similar).",
+        "day_1_exchange": "Comprobar que el niño haya investigado el tipo de cambio actual y realista del euro a yenes (por ejemplo, entre 150 y 170 yenes por euro).",
+        "day_1_bets": "Revisar que la justificación de las tres predicciones divertidas o alocadas para el viaje muestre creatividad y trabajo en equipo.",
+
+        // Día 2
+        "day_2_vending": "Evaluar si la foto muestra un refresco original japonés comprado en una máquina de vending tradicional.",
+        "day_2_cangrejo": "Comprobar si la fotografía o video muestra el icónico cangrejo gigante móvil en la fachada del restaurante de Dotonbori.",
+        "day_2_katana": "Revisar la estimación de precio del cuchillo artesanal e información de Kuromon (precio realista en yenes).",
+        "day_2_buda": "Evaluar que el explorador haya respondido correctamente el número de pétalos de loto que componen la base de bronce de Daibutsu (56 pétalos).",
+        "day_2_kanji": "Evaluar si los trazos de los kanjis de Persona y Montaña dibujados en el lienzo son legibles y correctos.",
+        "day_2_column": "Comprobar si la fotografía muestra el pilar sagrado de madera con el orificio de la fosa nasal del Buda en Todai-ji.",
+        "day_2_shogun": "Verificar la compleción y captura de la ruta interactiva en el Castillo de Osaka.",
+
+        // Día 3
+        "day_3_ninja": "Verificar que el niño haya cruzado el pasillo 'ruiseñor' del Castillo Nijo en absoluto silencio utilizando el acelerómetro/giroscopio.",
+        "day_3_bridge": "Comprobar el recuento de pasos y la foto al cruzar el puente tradicional.",
+        "day_3_architect": "Verificar si la respuesta del niño a la altura del Umeda Sky Building corresponde al valor real (173 metros).",
+        "day_3_neon": "Evaluar la foto del famoso neón de Glico Man en el puente de Dotonbori.",
+        "day_3_rush": "Comprobar si el niño completó el asalto rápido corriendo entre los fosos del Castillo de Osaka.",
+        "day_3_flow": "Verificar la medición de parpadeo de neón en hercios tomada con el sensor de luminosidad.",
+
+        // Día 4
+        "day_4_vending_roulette": "Verificar si la foto muestra la bebida sorpresa obtenida tras participar en la ruleta de vending interactiva.",
+        "day_4_bestiary": "Revisar que los yokais capturados en el mapa interactivo se muestren en el reporte de evidencia.",
+        "day_4_knife": "Verificar el tipo de cuchillo tradicional seleccionado por el niño y su precio de compra estimado en yenes.",
+        "day_4_500yen": "Evaluar si el niño estructuró un menú o lista de compra coherente de snacks típicos en una tienda de conveniencia japonesa por menos de 500 yenes.",
+        "day_4_isshinji": "Revisar la redacción o dibujo sobre la curiosidad del templo Isshin-ji (como las estatuas hechas con cenizas de difuntos).",
+        "day_4_tracker": "Verificar el análisis comparativo de precios de los productos en el mercado de Kuromon.",
+
+        // Día 5
+        "day_5_gymnast": "Evaluar la pose de gimnasia familiar capturada y la respuesta correcta de la trivia sobre las galletas para ciervos (Shika-senbei).",
+        "day_5_mochi": "Revisar la foto o video del famoso mochi rápido machacado de forma tradicional en Nakatanidou.",
+        "day_5_monk": "Evaluar si el explorador contó adecuadamente los pétalos de bronce esculpidos en el pedestal del Buda (debe ser 56).",
+        "day_5_investor": "Evaluar si el explorador analizó correctamente un souvenir de Nara, calculando un ROI realista y justificando financieramente su viabilidad comercial.",
+        "day_5_deer_galaxy": "Verificar que el niño haya completado el reto interactivo digital de alimentar ciervos en el parque de Nara.",
+        "day_5_ribbon": "Comprobar la puntuación obtenida en el juego interactivo de danza de cinta.",
+        "day_5_zen": "Evaluar la legibilidad y trazado en el lienzo del kanji de meditación zen.",
+        "day_5_engineer": "Verificar la fórmula o aproximación matemática del volumen corporal del Gran Buda de bronce.",
+        "day_5_guardian": "Evaluar si la foto o descripción del orificio en la columna trasera del templo confirma que tiene las dimensiones de la fosa nasal del Buda (Daibutsu).",
+
+        // Día 6
+        "day_6_evasion": "Comprobar que el niño cruzó el puente sigilosamente sin activar el acelerómetro ni alertar a los guardias imaginarios.",
+        "day_6_seal": "Evaluar el dibujo digital del sello imperial de Nara trazado en la pantalla.",
+        "day_6_clouds": "Evaluar el trazo digital de la silueta de nube tradicional japonesa.",
+        "day_6_ninja_steps": "Verificar que se completó con éxito la secuencia de movimientos de sigilo ninja.",
+        "day_6_clan": "Evaluar si la fotografía recrea una pose histórica familiar imitando a los antiguos clanes feudales.",
+        "day_6_tactical": "Revisar el informe táctico y de seguridad escrito sobre la arquitectura y defensas del Castillo Nijo.",
+        "day_6_edict": "Verificar si el mensaje secreto descifrado a partir del edicto del Shogun es correcto.",
+        "day_6_ring": "Verificar si el cálculo de los anillos de crecimiento del ciprés del jardín es correcto.",
+        
+        // Día 7
+        "day_7_stone_guardian": "Verificar si el niño midió correctamente la distancia entre las piedras del amor de Jishu Jinja y seleccionó la trivia de 10 metros.",
+
+        // Día 8
+        "day_8_kid14_bosque": "Verificar si el niño estimó correctamente el número de pasos necesarios para atravesar el bosque de bambú de Arashiyama (rango de 2.000 a 6.000 pasos).",
+
+        // Día 14
+        "day_14_kid14_echo": "Evaluar el informe técnico escrito sobre la absorción acústica de los árboles en el bosque de Aokigahara.",
+
+        // Día 24
+        "day_24_clouds": "Evaluar la foto de las nubes tomada desde la ventanilla y la calidad de la reflexión escrita del viaje por el niño."
+    };
+    return criteria[missionId] || "";
+}
+
 function generateJudgeGuide(p) {
     const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
     const isKid9 = p.kid === 'kid9';
-    
-    // 1. Explicación de la prueba según su tag
-    let explanation = '';
     const tag = p.config ? p.config.tag : 'generic';
-    switch (tag) {
-        case 'photo':
-            explanation = 'Esta es una prueba de fotografía. El niño debe localizar un elemento en Japón y capturarlo. Evalúa si la foto corresponde a lo pedido.';
-            break;
-        case 'audio':
-            explanation = 'Esta es una prueba de grabación de sonido. El niño debe capturar el sonido del entorno. Reproduce el audio o pide que te lo muestren.';
-            break;
-        case 'writing':
-            explanation = 'Esta es una prueba escrita. El niño debe dar una respuesta corta, un cálculo aproximado o reflexionar sobre lo observado.';
-            break;
-        case 'sensors':
-            explanation = 'Esta es una prueba física validada por sensores (orientación del dispositivo, movimiento, giroscopio, etc.). El sistema se valida al completarla.';
-            break;
-        case 'versus':
-            explanation = 'Esta es una prueba competitiva o minijuego físico de reflejos. El niño debe completar una meta física o reto familiar.';
-            break;
-        case 'economy':
-            explanation = 'Esta es una prueba económica o de cálculo matemático. Consiste en contar monedas, calcular importes o realizar sumas.';
-            break;
-        case 'game':
-            explanation = 'Esta es una prueba lógica o puzzle interactivo digital jugado y completado en el propio dispositivo.';
-            break;
-        default:
-            explanation = 'Esta es una prueba general. Evalúa la respuesta enviada para asegurar que se ha completado la tarea con honestidad.';
+    
+    // 1. Explicación de la prueba (Qué evalúas)
+    let explanation = '';
+    const customCriteria = getMissionEvaluationCriteria(p.missionId);
+    if (customCriteria) {
+        explanation = customCriteria;
+    } else {
+        const mTitle = p.config ? p.config.title : '';
+        const tagText = tag === 'photo' ? 'fotografía' :
+                        tag === 'audio' ? 'grabación de sonido' :
+                        tag === 'writing' ? 'respuesta escrita' :
+                        tag === 'sensors' ? 'validación física de sensores' :
+                        tag === 'versus' ? 'minijuego/reto familiar competitivo' :
+                        tag === 'economy' ? 'cálculo matemático/económico' :
+                        tag === 'game' ? 'minijuego lógico interactivo' : 'actividad general';
+                        
+        if (mTitle) {
+            explanation = `Esta es una prueba de tipo ${tagText} llamada "${mTitle}". Evalúa la evidencia entregada para asegurar que se ha completado la tarea conforme a las instrucciones especificadas.`;
+        } else {
+            explanation = `Esta es una prueba de tipo ${tagText}. Evalúa la respuesta enviada para asegurar que se ha completado la tarea con honestidad.`;
+        }
     }
 
     // 2. Respuesta esperada sugerida
