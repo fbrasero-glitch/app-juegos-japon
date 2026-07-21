@@ -3216,20 +3216,34 @@ document.getElementById('btn-judge-login').addEventListener('click', async () =>
 document.getElementById('btn-judge-reset-all').addEventListener('click', async () => {
     if (confirm("⚠️ ¿Estás COMPLETAMENTE seguro de que quieres resetear TODA la aplicación? Se perderá todo el progreso de ambos niños (Laura e Iván), sus niveles, recompensas, fotos, audios y dibujos guardados. (El rol asignado a este dispositivo se conservará). Esta acción es irreversible.")) {
         
-        // 1. Resetear base de datos en la nube (Firestore) si está conectada
+        const resetTime = Date.now();
+
+        // 1. Preparar estado completamente limpio con nuevo resetTime
+        ['kid9', 'kid14'].forEach(kidId => {
+            if (gameState && gameState[kidId]) {
+                const freshKid = JSON.parse(JSON.stringify(DEFAULT_STATE[kidId]));
+                freshKid.resetTime = resetTime;
+                freshKid.lastUpdated = resetTime;
+                gameState[kidId] = freshKid;
+            }
+        });
+
+        if (typeof ensureAllMissionsInitialized === 'function') {
+            ensureAllMissionsInitialized();
+        }
+        
+        // Guardar estado reseteado con resetTime alto en localStorage ANTES de recargar
+        localStorage.setItem('japanMissionsState', JSON.stringify(gameState));
+
+        // 2. Resetear base de datos en la nube (Firestore) si está conectada
         if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
             try {
-                await window.FirebaseSync.resetCloudDatabase(DEFAULT_STATE);
+                await window.FirebaseSync.resetCloudDatabase(gameState);
             } catch (err) {
                 console.error("Error al resetear la base de datos remota:", err);
-                // Si falla el reset en la nube, informamos al usuario pero procedemos con el reset local
-                alert("Advertencia: No se pudo resetear la base de datos en la nube (¿estás sin conexión?). El reseteo local continuará.");
             }
         }
 
-        // 2. Limpiar localStorage (conservando japanMissionsDeviceRole)
-        localStorage.removeItem('japanMissionsState');
-        
         // 3. Limpiar base de datos IndexedDB de multimedia
         if (window.indexedDB) {
             try {

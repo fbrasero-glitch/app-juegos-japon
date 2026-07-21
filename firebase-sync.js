@@ -510,18 +510,18 @@ const FirebaseSync = {
     },
 
     // Resetea los perfiles en Firestore a sus estados vacíos con un nuevo resetTime
-    resetCloudDatabase: async function(defaultState) {
+    resetCloudDatabase: async function(stateToUpload) {
         if (!this.active || !this.db) return Promise.resolve();
         console.log("[FirebaseSync] Reseteando base de datos en la nube (Firestore)...");
         try {
             const batch = this.db.batch();
-            const resetTime = Date.now();
             const kids = ['kid9', 'kid14'];
+            const fallbackTime = Date.now();
             kids.forEach(kidId => {
                 const docRef = this.db.collection('profiles').doc(kidId);
-                const data = JSON.parse(JSON.stringify(defaultState[kidId]));
-                data.lastUpdated = resetTime;
-                data.resetTime = resetTime;
+                const data = JSON.parse(JSON.stringify(stateToUpload[kidId]));
+                if (!data.resetTime) data.resetTime = fallbackTime;
+                if (!data.lastUpdated) data.lastUpdated = fallbackTime;
                 batch.set(docRef, data);
             });
             await batch.commit();
