@@ -4312,13 +4312,41 @@ Object.assign(MISSIONS_CONFIG, {
             </div>
         `,
         attachEvents: () => {
-            document.getElementById('p-cam').addEventListener('change', () => {
-                document.getElementById('btn-sub').classList.remove('hidden');
-                if (window.playProceduralSound) playProceduralSound('click');
+            let photoId = '';
+            document.getElementById('p-cam').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const btnSub = document.getElementById('btn-sub');
+                // Buscamos el botón de capturar que precede a btn-sub
+                const btnCam = document.querySelector('button[onclick*="p-cam"]');
+                const originalCamText = btnCam ? btnCam.innerText : '📸 Capturar Pose de Monje';
+                
+                if (btnCam) {
+                    btnCam.innerText = '⏳ Procesando foto...';
+                    btnCam.disabled = true;
+                }
+                
+                try {
+                    const compressed = await compressImage(file);
+                    photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+                    await savePhotoToDB(photoId, compressed);
+                    
+                    btnSub.classList.remove('hidden');
+                    if (window.playProceduralSound) playProceduralSound('click');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Error', 'No se pudo procesar la foto de la pose. Reinténtalo.');
+                } finally {
+                    if (btnCam) {
+                        btnCam.innerText = originalCamText;
+                        btnCam.disabled = false;
+                    }
+                }
             });
             document.getElementById('btn-sub').addEventListener('click', () => {
                 if (window.playProceduralSound) playProceduralSound('success');
-                submitMission('day_8_kid9_pose', {type:'text', data:'Foto imitación enviada'});
+                submitMission('day_8_kid9_pose', {type:'photo', data: photoId});
             });
         }
     },

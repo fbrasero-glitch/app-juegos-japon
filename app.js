@@ -1604,6 +1604,43 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
         showAlert('Prueba Bloqueada', `No puedes enviar la prueba de esta misión hasta el día del viaje correspondiente (${getDayDateString(conf.day)}).`);
         return;
     }
+
+    // Validación de respuesta vacía
+    if (submissionData) {
+        const type = submissionData.type;
+        const data = submissionData.data;
+        const isFailedAutoSubmit = submissionData.failed === true;
+
+        if (!isFailedAutoSubmit) {
+            if (type === 'number' || type === 'text') {
+                if (data === undefined || data === null || String(data).trim() === '') {
+                    showAlert('RESPUESTA VACÍA', 'Por favor, escribe tu respuesta en el campo antes de enviarla al Juez.');
+                    return;
+                }
+            } else if (type === 'photo') {
+                if (!data || String(data).trim() === '' || String(data).toLowerCase().includes('pendiente') || String(data).toLowerCase().includes('vacía')) {
+                    showAlert('FOTO VACÍA', 'Por favor, realiza la captura de foto requerida antes de enviarla al Juez.');
+                    return;
+                }
+            } else if (type === 'video') {
+                if (!data || String(data).trim() === '' || String(data).toLowerCase().includes('pendiente') || String(data).toLowerCase().includes('vacía') || String(data).toLowerCase().includes('localmente')) {
+                    showAlert('VÍDEO VACÍO', 'Por favor, realiza la grabación de vídeo requerida antes de enviarla al Juez.');
+                    return;
+                }
+            } else if (type === 'audio') {
+                if (!data || String(data).trim() === '' || String(data).toLowerCase().includes('pendiente') || String(data).toLowerCase().includes('vacía')) {
+                    showAlert('AUDIO VACÍO', 'Por favor, realiza la grabación de audio requerida antes de enviarla al Juez.');
+                    return;
+                }
+            } else if (type === 'mixed') {
+                if (!data || String(data).trim() === '' || String(data).toLowerCase().includes('pendiente') || String(data).toLowerCase().includes('vacía')) {
+                    showAlert('ENTREGA VACÍA', 'Por favor, completa los campos requeridos antes de enviarla al Juez.');
+                    return;
+                }
+            }
+        }
+    }
+
     const mState = gameState[role].missions[missionId];
         const day3MissionsLaura = ['day_3_glico', 'day_3_ninja', 'day_3_bridge', 'day_3_umeda', 'day_3_reflect'];
     const day3MissionsIvan = ['day_3_architect', 'day_3_neon', 'day_3_rush', 'day_3_flow', 'day_3_reflect'];
@@ -1791,6 +1828,24 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
 // ==========================================
 // 5. PANEL DEL JUEZ
 // ==========================================
+
+function getMissionDescription(config, role) {
+    if (!config || typeof config.render !== 'function') return '';
+    try {
+        const html = config.render(role);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Eliminar elementos interactivos y controles para dejar solo las indicaciones
+        const elementsToRemove = tempDiv.querySelectorAll('button, input, select, textarea, canvas, script, style, .hidden-camera-input');
+        elementsToRemove.forEach(el => el.remove());
+        
+        return tempDiv.textContent.replace(/\s+/g, ' ').trim();
+    } catch (e) {
+        console.error("Error extracting description:", e);
+        return '';
+    }
+}
 
 function generateJudgeGuide(p) {
     const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
@@ -2053,6 +2108,19 @@ async function renderSubmissionData(submission) {
     } else if (submission.type === 'family') {
         dataHtml = `<b>¡Hazaña completada en equipo!</b>`;
     }
+
+    // Renderizado de metadatos adicionales si existen
+    if (submission.metadata) {
+        let metaHtml = '<div style="margin-top:8px; font-size:0.82rem; background:#f8fafc; border:1px solid #e2e8f0; padding:8px 10px; border-radius:6px; color:#475569; line-height:1.4; text-align:left;">';
+        metaHtml += '<div style="font-weight:bold; color:#1e293b; margin-bottom:4px; border-bottom:1px dashed #cbd5e1; padding-bottom:2px;">📋 Datos y Selección de la Prueba:</div>';
+        for (const [key, value] of Object.entries(submission.metadata)) {
+            const prettyKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+            metaHtml += `<div>&bull; <b>${prettyKey}:</b> ${value}</div>`;
+        }
+        metaHtml += '</div>';
+        dataHtml += metaHtml;
+    }
+
     return dataHtml;
 }
 
@@ -2135,6 +2203,7 @@ async function renderJudgePanel() {
 
                 // Generar la guía y comentarios dinámicos
                 const guide = generateJudgeGuide(p);
+                const missionDescription = getMissionDescription(p.config, p.kid);
                 const missionXP = p.config ? p.config.xp : 15;
 
                 let actionsHtml = `
@@ -2182,9 +2251,14 @@ async function renderJudgePanel() {
 
                     <!-- Guía e Instrucción de Evaluación -->
                     <div style="background: rgba(141, 110, 99, 0.05); border: 1px solid rgba(141, 110, 99, 0.15); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; text-align: left; line-height: 1.4;">
-                        <div style="font-weight: 900; color: var(--color-primary-dark); margin-bottom: 2px;">📖 Qué evalúas:</div>
-                        <p style="margin: 0; opacity: 0.95; color: #3e2723;">${guide.explanation}</p>
-                        <div style="font-weight: 900; color: var(--color-accent); margin-top: 8px; margin-bottom: 2px;">💡 Respuesta correcta esperada:</div>
+                        ${missionDescription ? `
+                            <div style="font-weight: 900; color: var(--color-primary-dark); margin-bottom: 2px;">📋 Instrucciones de la prueba:</div>
+                            <p style="margin: 0 0 10px 0; opacity: 0.95; color: #3e2723;">${missionDescription}</p>
+                            <hr style="border:0; border-top:1px solid rgba(0,0,0,0.08); margin:8px 0;">
+                        ` : ''}
+                        <div style="font-weight: 900; color: #795548; margin-bottom: 2px;">📖 Qué evalúas:</div>
+                        <p style="margin: 0 0 8px 0; opacity: 0.95; color: #4e342e;">${guide.explanation}</p>
+                        <div style="font-weight: 900; color: var(--color-accent); margin-bottom: 2px;">💡 Respuesta correcta esperada:</div>
                         <p style="margin: 0; font-style: italic; opacity: 0.95; color: #5d4037;">${guide.expectedAnswer}</p>
                     </div>
 
