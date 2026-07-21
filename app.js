@@ -1494,6 +1494,8 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
             });
         }
     }
+}
+
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false, bypassMinigame = false) {
     const conf = MISSIONS_CONFIG[missionId];
     if (conf && conf.role === 'both') {
