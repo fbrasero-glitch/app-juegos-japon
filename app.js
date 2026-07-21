@@ -40,22 +40,12 @@ const LEVELS_IVAN = [
     { xp: 2200, title: 'Ronin Legendario', icon: '👑' }
 ];
 
-let gameState = null;
-let currentUser = null; // 'kid9', 'kid14', 'judge'
-
-// Vincular a window para compatibilidad con otros scripts (firebase-sync.js, games.js, dbHelper.js)
-Object.defineProperty(window, 'gameState', {
-    get: () => gameState,
-    set: (val) => { gameState = val; }
-});
-Object.defineProperty(window, 'currentUser', {
-    get: () => currentUser,
-    set: (val) => { currentUser = val; }
-});
-let currentDay = null; // Día que se está visualizando
-let currentDayMissions = []; // Misiones del día actual
-let currentJudgeTab = 'pending'; // Pestaña activa del juez ('pending' | 'approved')
-let judgeListenersBound = false;
+var gameState = null;
+var currentUser = null; // 'kid9', 'kid14', 'judge'
+var currentDay = null; // Día que se está visualizando
+var currentDayMissions = []; // Misiones del día actual
+var currentJudgeTab = 'pending'; // Pestaña activa del juez ('pending' | 'approved')
+var judgeListenersBound = false;
 
 // ==========================================
 // CONFIGURACIÓN DE BLOQUEO DE FECHAS (JAPÓN)
@@ -3990,11 +3980,11 @@ async function triggerSWUpdate() {
         }
         // 3. Recargar forzando descarga desde servidor
         console.log('Recargando desde servidor...');
-        window.location.reload(true);
+        window.location.href = window.location.pathname + '?t=' + Date.now();
     } catch (err) {
         console.error('Error durante actualización:', err);
         // Fallback: recargar de todos modos
-        window.location.reload(true);
+        window.location.href = window.location.pathname + '?t=' + Date.now();
     }
 }
 
