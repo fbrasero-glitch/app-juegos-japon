@@ -465,7 +465,7 @@ const FirebaseSync = {
                         const remoteData = doc.data();
                         console.log(`[FirebaseSync] Descarga forzada: ${kidId} obtenido del SERVIDOR. lastUpdated: ${remoteData.lastUpdated}`);
                         if (window.gameState) {
-                            window.gameState[kidId] = remoteData;
+                            window.gameState[kidId] = this.mergeProfileData(window.gameState[kidId], remoteData);
                         }
                     } else {
                         console.log(`[FirebaseSync] Descarga forzada: ${kidId} no existe en servidor.`);
@@ -480,7 +480,7 @@ const FirebaseSync = {
                                 const remoteData = doc.data();
                                 console.log(`[FirebaseSync] Descarga fallback (cache) para ${kidId}.`);
                                 if (window.gameState) {
-                                    window.gameState[kidId] = remoteData;
+                                    window.gameState[kidId] = this.mergeProfileData(window.gameState[kidId], remoteData);
                                 }
                             }
                         })

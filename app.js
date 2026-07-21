@@ -368,7 +368,14 @@ window.refreshCurrentView = function() {
     if (currentUser === 'judge') {
         renderJudgePanel();
     } else if (currentUser === 'kid9' || currentUser === 'kid14') {
-        renderDaysList(localStorage.getItem('japanMissionsDeviceRole') || 'all');
+        const role = currentUser;
+        if (window.currentSubView === 'mission-detail' && window.activeMissionId) {
+            renderMissionDetail(window.activeMissionId, role, true);
+        } else if (window.currentSubView === 'day-detail' && currentDay && currentDayMissions) {
+            renderDayMissions(role, currentDay, currentDayMissions);
+        } else {
+            renderDaysList(role);
+        }
     }
 };
 
@@ -999,6 +1006,8 @@ function switchView(viewId, showHeader = true, headerTitle = "Misiones") {
 }
 
 function renderDaysList(role) {
+    window.currentSubView = 'days';
+    window.activeMissionId = null;
     currentUser = role;
     currentDay = null;
     currentDayMissions = [];
@@ -1145,6 +1154,8 @@ function renderLeaderboard(container) {
 
 
 function renderDayMissions(role, dayNum, missionKeys) {
+    window.currentSubView = 'day-detail';
+    window.activeMissionId = null;
     currentDay = dayNum;
     currentDayMissions = missionKeys;
     const list = document.getElementById('days-list');
@@ -1203,14 +1214,19 @@ function renderDayMissions(role, dayNum, missionKeys) {
     switchView('view-days', true, `Día ${dayNum}`);
 }
 
-function renderMissionDetail(missionId, role) {
-    // Limpiar recursos de la misión anterior (AudioContext, GPS, timers...)
-    if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
-    
-    // Iniciar contadores para medir intentos y tiempo empleado
-    window._missionStartTime = Date.now();
-    window._missionAttempts = 1;
-    console.log(`Misión iniciada: ${missionId}. Temporizador e intentos reiniciados.`);
+function renderMissionDetail(missionId, role, preserveTimer = false) {
+    window.currentSubView = 'mission-detail';
+    window.activeMissionId = missionId;
+
+    // Limpiar recursos de la misión anterior si no se preserva el timer
+    if (!preserveTimer) {
+        if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
+        
+        // Iniciar contadores para medir intentos y tiempo empleado
+        window._missionStartTime = Date.now();
+        window._missionAttempts = 1;
+        console.log(`Misión iniciada: ${missionId}. Temporizador e intentos reiniciados.`);
+    }
 
     const conf = MISSIONS_CONFIG[missionId];
     const container = document.getElementById('mission-content');
@@ -1218,6 +1234,7 @@ function renderMissionDetail(missionId, role) {
     const state = gameState[role].missions[missionId];
     let warningHtml = '';
     const isPending = state && state.status === 'pending';
+    const isApproved = state && state.status === 'approved';
     const isLocked = isDayLocked(conf.day);
     
     let isTimeLocked = false;
@@ -1375,13 +1392,14 @@ function renderMissionDetail(missionId, role) {
         locationTimeSub += ` | ⏱️ Horario: ${conf.startTime} - ${conf.endTime}`;
     }
 
+    const isCompleted = isPending || isApproved;
     container.innerHTML = `
         <h2 class="mission-title">${conf.title}</h2>
         <div style="text-align:center; color:var(--color-accent); margin-bottom:15px; font-weight:bold;">${locationTimeSub}</div>
         ${warningHtml}
         <div id="mission-submitted-photo-container"></div>
         ${minigameButtonHtml}
-        <div id="mission-form-wrapper" style="${isPending || isLocked || isTimeLocked ? 'display: none;' : ''}">
+        <div id="mission-form-wrapper" style="${isCompleted || isLocked || isTimeLocked ? 'display: none;' : ''}">
             ${conf.render(role)}
         </div>
     `;
@@ -1476,10 +1494,11 @@ function renderMissionDetail(missionId, role) {
             });
         }
     }
-}
-
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false, bypassMinigame = false) {
     const conf = MISSIONS_CONFIG[missionId];
+    if (conf && conf.role === 'both') {
+        isFamily = true;
+    }
     if (conf && isDayLocked(conf.day)) {
         showAlert('Prueba Bloqueada', `No puedes enviar la prueba de esta misión hasta el día del viaje correspondiente (${getDayDateString(conf.day)}).`);
         return;
@@ -2200,6 +2219,10 @@ function recordDailyActivityAndMetadata(kid, missionId) {
 }
 
 window.approveMission = (kid, missionId, xp, isFamily) => {
+    const conf = MISSIONS_CONFIG[missionId];
+    if (conf && conf.role === 'both') {
+        isFamily = true;
+    }
     let leveledUp = false;
     let newBadges = [];
 
@@ -2291,8 +2314,12 @@ window.rejectMission = (kid, missionId) => {
     }
     
     const reason = feedback.trim() || "No se especificó un motivo concreto.";
-    const missionState = gameState[kid].missions[missionId];
-    const isFamily = missionState && missionState.submission && missionState.submission.type === 'family';
+    const conf = MISSIONS_CONFIG[missionId];
+    let isFamily = conf && conf.role === 'both';
+    if (!isFamily) {
+        const missionState = gameState[kid].missions[missionId];
+        isFamily = missionState && missionState.submission && missionState.submission.type === 'family';
+    }
 
     if (isFamily) {
         ['kid9', 'kid14'].forEach(k => {
@@ -2366,7 +2393,11 @@ window.undoApproveMission = (kid, missionId) => {
     if (!m || m.status !== 'approved') return;
 
     const xpToSubtract = m.awardedXP !== undefined ? m.awardedXP : (MISSIONS_CONFIG[missionId] ? MISSIONS_CONFIG[missionId].xp : 15);
-    const isFamily = m.submission && m.submission.type === 'family';
+    const conf = MISSIONS_CONFIG[missionId];
+    let isFamily = conf && conf.role === 'both';
+    if (!isFamily) {
+        isFamily = m.submission && m.submission.type === 'family';
+    }
 
     if (isFamily) {
         ['kid9', 'kid14'].forEach(k => {
