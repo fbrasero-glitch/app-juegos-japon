@@ -1321,8 +1321,14 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
     if (!preserveTimer) {
         if (window._missionCleanup) { window._missionCleanup(); window._missionCleanup = null; }
         
-        // Iniciar contadores para medir intentos y tiempo empleado
-        window._missionStartTime = Date.now();
+        // Iniciar contadores para medir intentos y tiempo empleado (con persistencia en localStorage)
+        let savedStart = localStorage.getItem(`mission_start_${missionId}`);
+        if (savedStart) {
+            window._missionStartTime = parseInt(savedStart);
+        } else {
+            window._missionStartTime = Date.now();
+            localStorage.setItem(`mission_start_${missionId}`, window._missionStartTime);
+        }
         window._missionAttempts = 1;
         console.log(`Misión iniciada: ${missionId}. Temporizador e intentos reiniciados.`);
     }
@@ -1710,6 +1716,9 @@ function submitMission(missionId, submissionData, role = currentUser, isFamily =
 
     const timeTaken = window._missionStartTime ? Math.round((Date.now() - window._missionStartTime) / 1000) : null;
     const attempts = window._missionAttempts || 1;
+    
+    // Limpiar de localStorage
+    localStorage.removeItem(`mission_start_${missionId}`);
 
     const enrichedSubmission = {
         ...submissionData,
@@ -1847,6 +1856,265 @@ function getMissionDescription(config, role) {
     }
 }
 
+function getMissionExpectedAnswer(missionId) {
+    const answers = {
+        // Día 1
+        "day_1_customs": "Límite legal: 1.000.000 ¥ (Un millón de yenes) para entrar sin declarar.",
+        "day_1_flight_radar": "Frecuencia de motores: Grave (< 150 Hz).",
+        "day_1_eta": "Horas calculadas dividiendo la distancia de 3600 km por la velocidad actual.",
+        "day_1_clock": "Hora en España: 15:00 (restar 7 horas a las 22:00 de Japón).",
+        "day_1_emergency": "Fotografía del pictograma verde de salida de emergencia (monigote corriendo por la puerta).",
+        "day_1_translation": "Saludo japonés: 'Konnichiwa' (こんにちは) o equivalente.",
+        "day_1_exchange": "Cotización real del yen por 1 Euro (ej. 150-170 yenes).",
+        "day_1_bets": "Tres predicciones locas o divertidas escritas en equipo.",
+        
+        // Día 2
+        "day_2_vending": "Refresco con sabor original japonés (ej. melón, uva, té verde).",
+        "day_2_cangrejo": "Fotografía o animación del cangrejo gigante articulado de Dotonbori.",
+        "day_2_katana": "Precio de un cuchillo artesanal de alta gama en Kuromon (ronda los 15.000 ¥).",
+        "day_2_buda": "Pétalos del pedestal de Buda: 56 pétalos de loto.",
+        "day_2_kanji": "Trazado correcto de los kanjis de Persona (人) y Montaña (山).",
+        "day_2_column": "Foto o validación de la columna con el orificio de la fosa nasal del Buda.",
+        "day_2_shogun": "Ruta interactiva por el foso del Castillo de Osaka completada.",
+
+        // Día 3
+        "day_3_ninja": "Cruzar el pasillo del Castillo Nijo en absoluto silencio sin crujir.",
+        "day_3_bridge": "Cantidad de pasos registrados al cruzar el puente.",
+        "day_3_architect": "Altura del Umeda Sky Building: 173 metros.",
+        "day_3_neon": "Fotografía del cartel de Glico Man en Dotonbori.",
+        "day_3_rush": "Pasos registrados corriendo entre los fosos.",
+        "day_3_flow": "Frecuencia de parpadeo del neón en Hz.",
+
+        // Día 4
+        "day_4_vending_roulette": "Captura del refresco sorpresa obtenido en la ruleta.",
+        "day_4_bestiary": "Yokais localizados y capturados en el mapa.",
+        "day_4_knife": "Tipo de cuchillo seleccionado y precio de compra (¥).",
+        "day_4_500yen": "Lista de compra simulada por menos de 500 ¥ (ej. onigiri, bebida).",
+        "day_4_isshinji": "Redacción de la historia o curiosidad sobre el templo Isshin-ji.",
+        "day_4_tracker": "Análisis de precios de productos en el mercado.",
+
+        // Día 5
+        "day_5_gymnast": "Fotografía de la pose y respuesta de trivia: Shika-senbei.",
+        "day_5_mochi": "Mochis preparados en Nakatanidou.",
+        "day_5_monk": "Pétalos de loto del pedestal del Buda: 56 pétalos.",
+        "day_5_deer_galaxy": "Minijuego de alimentar ciervos completado.",
+        "day_5_ribbon": "Puntuación en la danza de cinta simulada.",
+        "day_5_zen": "Dibujo del kanji de meditación zen.",
+        "day_5_engineer": "Cálculo aproximado del volumen del Gran Buda.",
+        "day_5_guardian": "Foto o descripción del orificio de la fosa nasal en la columna.",
+
+        // Día 6
+        "day_6_evasion": "Cruzar el puente con sigilo sin alertar a los guardias.",
+        "day_6_seal": "Dibujo del sello imperial de Nara.",
+        "day_6_clouds": "Dibujo de una silueta de nube.",
+        "day_6_ninja_steps": "Secuencia de pasos de ninja completada.",
+        "day_6_clan": "Fotografía familiar imitando al clan feudal.",
+        "day_6_tactical": "Reporte táctico del Castillo Nijo.",
+        "day_6_edict": "Mensaje secreto del edicto del Shogun descifrado.",
+        "day_6_ring": "Número de anillos de crecimiento del ciprés centenario.",
+
+        // Día 7
+        "day_7_kimono": "Fotografía vistiendo kimono con cruce correcto (izquierdo sobre derecho).",
+        "day_7_kintsugi": "Plato restaurado virtualmente mediante Kintsugi.",
+        "day_7_tea": "Mantener inclinación sin derramar la taza de té.",
+        "day_7_stone_guardian": "Fotografía de los faroles de piedra en Gion.",
+        "day_7_geisha": "Fotografía de una Geisha o Maiko en Gion.",
+        "day_7_structural": "Pisos de la Pagoda de Yasaka: 5 pisos.",
+        "day_7_survival": "Tres reglas de supervivencia ante terremotos.",
+        "day_7_anti_quake": "Estructura estabilizada en el simulador de sismos.",
+        "day_7_stairs": "Cantidad de escalones de Sannenzaka.",
+
+        // Día 8
+        "day_8_kid9_rake": "Dibujo de ondas zen concéntricas y paralelas.",
+        "day_8_kid9_pose": "Fotografía imitando la pose de una estatua de Otagi Nenbutsu-ji.",
+        "day_8_kid9_wind": "Grabación de audio de 4 segundos del viento de Arashiyama.",
+        "day_8_kid9_bamboo_clock": "Número de nudos del bambú y estimación de edad.",
+        "day_8_kid9_giants": "Fotografía contrapicada del bosque de bambú.",
+        "day_8_kid9_monk": "Grabación de audio cantando el mantra y tocando el cuenco tibetano.",
+        "day_8_fam_squad": "Fotografía familiar oculta en el bambú.",
+        "day_8_kid14_wave_sync": "Sincronización de ondas de frecuencia completada.",
+        "day_8_kid14_bosque": "Pasos calculados para recorrer los 2.7km.",
+        "day_8_kid14_arashiyama": "Informe escrito de campo sensorial de Arashiyama.",
+
+        // Día 9
+        "day_9_kid9_scratch": "Limpiar el reflejo del Pabellón Dorado.",
+        "day_9_kid9_zorros": "Cantidad de zorros con llave en la boca (ej. 2 zorros).",
+        "day_9_kid9_altar": "Ofrenda virtual colocada en el altar.",
+        "day_9_fam_portal": "Vídeo cruzando bajo los pórticos rojos Torii.",
+        "day_9_kid14_torii": "Laberinto de puertas Torii completado.",
+        "day_9_kid14_gravity": "Gravedad calculada al lanzar la piedra.",
+        "day_9_kid14_angulo": "Ángulo de inclinación del sendero.",
+        "day_9_kid14_ave": "Equilibrio sobre un pie durante 30 segundos.",
+        "day_9_kid14_tunnel": "Cálculo de túneles Senbon Torii.",
+
+        // Día 10
+        "day_10_kid9_bento": "Caja de Bento ensamblada correctamente.",
+        "day_10_kid9_nishiki": "Comprar recuerdos o gadgets en Nishiki.",
+        "day_10_kid9_dragon": "Garras del dragón de Tenryu-ji: 3 garras.",
+        "day_10_kid9_rainbow": "Fotografía de ingrediente exótico en el mercado Nishiki.",
+        "day_10_kid9_matcha": "Código secreto obtenido de la cata de té Matcha.",
+        "day_10_fam_sayonara": "Mensaje emotivo familiar de despedida de Kioto.",
+        "day_10_kid14_crypto": "Criptograma del Dilema del Chef resuelto.",
+        "day_10_kid14_milla": "Tiempo de recorrido a pie por la milla de Nishiki.",
+        "day_10_kid14_tako": "Número de mini-pulpos en brocheta (ronda los 1-3).",
+
+        // Día 11
+        "day_11_onsen": "Aceptar normas del baño termal tradicional.",
+        "day_11_tea": "Té servido e inclinado sin derrames.",
+        "day_11_yukata": "Cruce correcto de la Yukata (izquierdo sobre derecho).",
+        "day_11_tatami": "Patrón correcto de tatamis en la habitación.",
+        "day_11_kaiseki": "Descripción de la cena tradicional Kaiseki.",
+        "day_11_spring": "Manantial termal verificado en el mapa.",
+        "day_11_architecture": "Volumen de agua calculado del estanque.",
+        "day_11_economy": "Monedas y billetes sumados en la tienda.",
+        "day_11_geta": "Geta calzadas y 30 pasos registrados.",
+
+        // Día 12
+        "day_12_silence": "Silencio de 10 segundos registrado en Takayama.",
+        "day_12_sugidama": "Fotografía de bola Sugidama de cedro en la entrada.",
+        "day_12_wood": "Identificación de animales tallados en aleros.",
+        "day_12_hida": "Fotografía comiendo carne de ternera de Hida tradicional.",
+        "day_12_carving": "Fotografía de una talla de madera tradicional de Takayama.",
+        "day_12_sake": "Antigüedad de destilería: 323 años (restar 1703 a 2026).",
+        "day_12_patrol": "Madera seleccionada: Ciprés (Hinoki) y conteo de faroles.",
+        "day_12_appraisal": "Valor aproximado de una antigüedad en yenes.",
+        "day_12_bridge": "Fotografía familiar sobre el puente Nakabashi.",
+
+        // Día 13
+        "day_13_stairs": "398 escalones de la Chureito Pagoda.",
+        "day_13_manhole": "Fotografía de tapa de alcantarilla con diseño del Fuji con flores.",
+        "day_13_icecream": "Fotografía comiendo helado de sabor local.",
+        "day_13_yokai": "Fotografía del Monte Fuji con silueta de yokai.",
+        "day_13_oishi": "Fotografía comiendo fideos tradicionales Hoto.",
+        "day_13_perspective": "Fotografía con efecto óptico de perspectiva del Monte Fuji.",
+        "day_13_tunnels": "Número de túneles atravesados hacia Kawaguchiko.",
+        "day_13_volcano": "Última erupción del Fuji: Año 1707.",
+        "day_13_triangulation": "Distancia al cráter: aprox. 26 km.",
+
+        // Día 14
+        "day_14_rock": "Fotografía de rocas de lava en Aokigahara.",
+        "day_14_kid9_echo": "Grabación de audio de silencio (sin eco) en el bosque.",
+        "day_14_root": "Identificar especies de raíces de árboles entrelazadas.",
+        "day_14_compass": "Orientación correcta usando compás magnético hacia el cráter.",
+        "day_14_oxygen": "Secuencia de respiración profunda en el bosque.",
+        "day_14_radar": "Altitud medida en metros.",
+        "day_14_pressure": "Vídeo del niño explicando la variación de presión.",
+        "day_14_altimeter": "Calcular la altitud relativa al nivel del mar.",
+        "day_14_kid14_echo": "Explicación escrita de por qué las rocas de lava absorben el sonido.",
+
+        // Día 15
+        "day_15_waterfall": "Audio de la Cascada Shiraito superando 15% de volumen.",
+        "day_15_thatch": "Fotografía detallada de los tejados de paja empinados de Shirakawa-go.",
+        "day_15_fish": "Fotografía de los peces koi de los canales de la aldea.",
+        "day_15_shogun": "Nombre de la deidad sintoísta de la base: Konohanasakuya-hime.",
+        "day_15_dragon": "Dibujo del dragón de agua de Shiraito.",
+        "day_15_deity": "Santuario consagrado a la deidad Konohanasakuya-hime verificado.",
+        "day_15_honcho": "Ubicación de la casa histórica más grande de Shirakawa-go.",
+        "day_15_flow": "Flujo de agua de la cascada Shiraito.",
+        "day_15_roof": "Ángulo empinado de 60 grados de los tejados Gassho-zukuri.",
+
+        // Día 16
+        "day_16_cat": "Fotografía de un Maneki-Neko en un escaparate.",
+        "day_16_skyscraper": "Fotografía contrapicada de los rascacielos de Shinjuku.",
+        "day_16_colors": "Fotografía de un neón gigante colorido.",
+        "day_16_traffic": "Audio de semáforos de peatones (silbido o canto de cuco).",
+        "day_16_tocho": "Fotografía panorámica desde el mirador del Tocho.",
+        "day_16_vortex": "Cruce de Shibuya cruzado con éxito.",
+        "day_16_combat": "Simulador de combate de robots completado.",
+        "day_16_shinjuku": "Luces de neón contadas en el callejón Omoide Yokocho.",
+        "day_16_density": "Densidad de peatones en el cruce de Shibuya.",
+
+        // Día 17
+        "day_17_omikuji": "Fotografía de papel de fortuna Omikuji atado.",
+        "day_17_incense": "Fotografía purificándote en el quemador de incienso de Senso-ji.",
+        "day_17_gashapon": "Fotografía abriendo un gachapon real.",
+        "day_17_p2p_receiver": "Clave encriptada recibida y descifrada en el juego P2P.",
+        "day_17_sumida": "Vídeo cruzando bajo los puentes del río Sumida.",
+        "day_17_retro": "Identificar un cartucho de videojuego clásico retro de Famicom/GameBoy.",
+        "day_17_skytree": "Fotografía de la torre Tokyo Skytree.",
+        "day_17_p2p_sender": "Clave encriptada transmitida con éxito.",
+        "day_17_height": "Altura de la Skytree: 634 metros.",
+
+        // Día 18
+        "day_18_shibuya": "Fotografía del cruce de Shibuya desde lo alto.",
+        "day_18_hachiko": "Fotografía junto a la estatua de bronce de Hachiko.",
+        "day_18_ema": "Fotografía de tablilla de madera Ema con deseos.",
+        "day_18_crepe": "Fotografía comiendo crepe gigante y colorida en Harajuku.",
+        "day_18_crossing": "Vídeo del niño cruzando el cruce de Shibuya.",
+        "day_18_radio": "Señal de radiofrecuencia sintonizada.",
+        "day_18_trend": "Informe escrito de la moda en Harajuku.",
+        "day_18_flow": "Tránsito de Shibuya: aprox. 3000 personas por ciclo verde.",
+        "day_18_silence": "Silencio de 10 segundos en el bosque de Meiji Jingu.",
+
+        // Día 19
+        "day_19_gundam": "Vídeo del robot gigante RX-0 Unicorn Gundam en Odaiba.",
+        "day_19_color": "Fotografía de las luces cambiantes de la isla.",
+        "day_19_teamlab": "Fotografía dentro del museo digital de luces teamLab.",
+        "day_19_liberty": "Fotografía de la Estatua de la Libertad en Odaiba.",
+        "day_19_immersive": "Fotografía dentro de la instalación digital inmersiva.",
+        "day_19_crypto": "Código secreto descifrado de Odaiba.",
+        "day_19_mirrors": "Fotografía en el laberinto de espejos.",
+        "day_19_weight": "Peso del Gundam gigante: aprox. 49 toneladas.",
+        "day_19_monorail": "Fotografía a bordo del monorraíl cruzando el Rainbow Bridge.",
+
+        // Día 20
+        "day_20_bento": "Caja Bento ensamblada virtualmente con 5 ingredientes correctos.",
+        "day_20_potion": "Poción curativa preparada e identificada.",
+        "day_20_pond": "Peces Koi contabilizados en el estanque virtual.",
+        "day_20_weight": "Cálculo aproximado en gramos del plato de comida y su foto.",
+        "day_20_change": "Vuelta de cambio calculado: b - p = a yenes.",
+        "day_20_museum": "Identificar y describir la pieza estrella del museo.",
+        "day_20_vintage": "Objeto vintage y su precio real anotado en yenes.",
+        "day_20_stairs": "Contar escalones subidos.",
+        "day_20_tasting": "Puntuación de sabores en la cata de tés.",
+
+        // Día 21
+        "day_21_monkeys": "Fotografía de los Tres Monos Sabios en Toshogu (Nikko).",
+        "day_21_dragon": "Despertar al dragón soplador en el minijuego.",
+        "day_21_slash": "Completar el entrenamiento de espada samurai.",
+        "day_21_jizo": "Fotografía de estatua Jizo protectora y su nombre.",
+        "day_21_buddha": "Material (bronce/madera) y año de construcción del Buda.",
+        "day_21_gold": "Peso estimado en gramos del pan de oro de Kanazawa.",
+        "day_21_tracking": "Localizar coordenada Nikko en el mapa.",
+        "day_21_defense": "Posición de defensa marcial completada.",
+        "day_21_silence": "Mantener 30 segundos de silencio en el santuario de Nikko.",
+
+        // Día 22
+        "day_22_shout": "Decibelios registrados de un grito liberador (eco).",
+        "day_22_car": "Fotografía de un coche tradicional o modelo japonés singular en la calle.",
+        "day_22_elevator": "Medición de tiempo del trayecto en el ascensor rápido.",
+        "day_22_tower": "Fotografía de la Torre de Tokio o Tokyo Tower.",
+        "day_22_jewel": "Antigüedad calculada en años para la joya o artesanía tradicional.",
+        "day_22_numbers": "Calibración de la secuencia de números completada.",
+        "day_22_fish": "Especie de pescado elegida e identificada en Tsukiji.",
+        "day_22_compare": "Comparar y ordenar precios de pescado.",
+        "day_22_neon": "Fotografía de luces de neón en un callejón nocturno de Tokio.",
+
+        // Día 23
+        "day_23_kitkat": "Comprar y fotografiar al menos 3 sabores exóticos de KitKat.",
+        "day_23_pokedex": "Registrar datos y código de tu Pokémon favorito en el Pokémon Center.",
+        "day_23_coins": "Monedas lanzadas y profecía de la suerte resultante.",
+        "day_23_mascot": "Fotografía junto a mascota oficial o cartel publicitario gracioso.",
+        "day_23_tetris": "Equipaje optimizado en la maleta virtual (minijuego Tetris).",
+        "day_23_audit": "Suma total de gastos (yenes) calculada durante el viaje.",
+        "day_23_security": "Registrar tiempo de paso por el control de seguridad del aeropuerto.",
+        "day_23_weight": "Peso total de la maleta real en báscula.",
+        "day_23_stamp": "Fotografía del sello de pasaporte de salida de Japón.",
+
+        // Día 24
+        "day_24_meal": "Fotografía de la última comida a bordo del avión.",
+        "day_24_clouds": "Fotografía de nubes desde la ventanilla del avión.",
+        "day_24_turbulence": "Turbulencias medidas con giroscopio a bordo.",
+        "day_24_badges": "Recuento de insignias doradas ganadas.",
+        "day_24_timezones": "Hora de Japón, de España y tiempo de vuelo calculados.",
+        "day_24_distance": "Distancia total o restante de vuelo calculada en km.",
+        "day_24_speed": "Velocidad media de vuelo de regreso en km/h.",
+        "day_24_log": "Entrada final en el diario de bitácora del viaje.",
+        "day_24_sayonara": "Tres mejores recuerdos en familia elegidos por votación."
+    };
+    return answers[missionId] || "";
+}
+
 function generateJudgeGuide(p) {
     const kidName = gameState[p.kid] ? gameState[p.kid].name : p.kid;
     const isKid9 = p.kid === 'kid9';
@@ -1882,7 +2150,10 @@ function generateJudgeGuide(p) {
 
     // 2. Respuesta esperada sugerida
     let expected = '';
-    if (p.config && p.config.correctAnswer) {
+    const customExpected = getMissionExpectedAnswer(p.missionId);
+    if (customExpected) {
+        expected = customExpected;
+    } else if (p.config && p.config.correctAnswer) {
         expected = p.config.correctAnswer;
     } else {
         switch (tag) {
