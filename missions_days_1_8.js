@@ -2635,23 +2635,13 @@ Object.assign(MISSIONS_CONFIG, {
                     <p style="font-size:0.7rem; color:#8d6e63; margin:5px 0 0 0; font-style:italic;">Pista: Es un número par mayor de 50 y menor de 60.</p>
                 </div>
 
-                <button id="btn-submit-monk" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold; background:#8d6e63; border-color:#8d6e63; color:#fff;" disabled>Enviar Respuesta Zen</button>
+                <button id="btn-submit-monk" class="btn-primary" style="width:100%; border-radius:25px; font-family:'Quicksand'; font-weight:bold; background:#8d6e63; border-color:#8d6e63; color:#fff;">Enviar Respuesta Zen</button>
             </div>
         `,
         attachEvents: (role) => {
             const petalsInput = document.getElementById('monk-petals');
             const submitBtn = document.getElementById('btn-submit-monk');
 
-            const checkValidity = () => {
-                const val = parseInt(petalsInput.value);
-                if (val === 56) {
-                    submitBtn.removeAttribute('disabled');
-                } else {
-                    submitBtn.setAttribute('disabled', 'true');
-                }
-            };
-
-            petalsInput.addEventListener('input', checkValidity);
 
             submitBtn.addEventListener('click', () => {
                 const val = parseInt(petalsInput.value);
