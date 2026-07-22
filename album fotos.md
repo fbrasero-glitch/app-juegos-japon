@@ -68,7 +68,9 @@ Quiero que los niños sientan que están creando su propio museo del viaje, no q
   - Diseño del `album-grid` como "álbum de cromos" (casillas con bordes dashed).
   - Efectos visuales de polaroid cuando hay fotos.
   - Compatibilidad con el Glassmorphism (`theme-laura`) y Cyberpunk (`theme-ivan`).
-- [x] **. Lógica Interactiva (`app.js`)**:
-  - `renderAlbumList()`: Renderiza las tarjetas usando `ALBUM_CONFIG`.
-  - `renderAlbumCategory(categoryId)`: Construye las cuadrículas dinámicas leyendo desde `IndexedDB`.
-  - `handleAlbumPhoto(slotId)`: Evento que abre cámara, comprime base64 y guarda usando `dbHelper.js` (`saveMedia`).
+- [x] **5. Álbum de Comidas Japonesas (`comidas`)**:
+  - Añadida categoría "Gran Banquete Japonés" 🍱 con 35 pistas de platos típicos de Japón (Ramen, Sushi, Takoyaki, Okonomiyaki, Tempura, Tonkatsu, Gyoza, Yakitori, Katsudon, Udon, Soba, Kare, Onigiri, Yakisoba, Shabu-Shabu, Unagi, Miso, Edamame, Mochi, Taiyaki, Dango, Kakigori, Tamagoyaki, Karaage, Bento, Wagyu, Melonpan, Dorayaki, Omurice, Chawanmushi, Parfait Matcha, Kaiseki, Somen, Korokke, Kushikatsu).
+- [x] **6. Guardado en Almacenamiento del Teléfono**:
+  - `triggerDeviceDownload` exportado globalmente e integrado en `savePhotoToDB` / `saveMedia` para forzar la descarga de todas las imágenes tomadas en la app directamente a la carpeta de descargas/galería del teléfono.
+- [x] **7. Gestión de Sonidos en Álbum**:
+  - Botones "▶️ Oír" y "🗑️ Borrar" añadidos en las casillas de audio. Opción interactiva para eliminar cualquier audio guardado y así poder modificarlo o volver a grabarlo.

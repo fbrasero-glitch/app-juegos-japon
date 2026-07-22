@@ -144,7 +144,7 @@ function updateSpecialEventsBanner(role) {
     const endHour = parseInt(endParts[0], 10);
     const endMin = parseInt(endParts[1], 10);
 
-    const isToday = activeEvent.day === currentTripDay || (!ENABLE_DATE_LOCK && activeEvent.day === 1);
+    const isToday = activeEvent.day === currentTripDay;
     
     let statusText = '';
     let badgeText = '📅 PRÓXIMO EVENTO';
@@ -162,7 +162,7 @@ function updateSpecialEventsBanner(role) {
 
         if (currentHourMin < startVal) {
             badgeText = '⏰ HOY MÁS TARDE';
-            statusText = `<b>${activeEvent.title}</b> de <b>${activeEvent.startTime} a ${activeEvent.endTime}</b> (${activeEvent.location}). Prepárate para el aviso del juez.`;
+            statusText = `<b>${activeEvent.title}</b> de <b>${activeEvent.startTime} a ${activeEvent.endTime}</b> (${activeEvent.location}). Prepárate para la prueba.`;
         } else if (currentHourMin >= startVal && currentHourMin <= endVal) {
             badgeText = '🔥 ¡ACTIVO AHORA!';
             statusText = `<b>${activeEvent.title}</b>. Tienes hasta las <b>${activeEvent.endTime}</b> para entregar tu prueba. ¡Haz clic para abrirla!`;
@@ -173,8 +173,8 @@ function updateSpecialEventsBanner(role) {
             badgeBg = '#f57f17';
             badgeColor = '#ffffff';
         } else {
-            badgeText = '⏱️ HOY (FUERA DE HORA)';
-            statusText = `<b>${activeEvent.title}</b> finalizó a las <b>${activeEvent.endTime}</b>. Esperando reprogramación o nueva oportunidad.`;
+            badgeText = '⏱️ HOY (PENDIENTE)';
+            statusText = `<b>${activeEvent.title}</b> (Horario previsto: <b>${activeEvent.startTime} - ${activeEvent.endTime}</b>). Aún puedes entregar tu prueba para que la evalúe el Juez Supreme.`;
             bgColor = 'linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%)';
             borderColor = '#ffb74d';
             textColor = '#e65100';
@@ -261,6 +261,26 @@ const ALBUM_CONFIG = {
         roles: ["kid9", "kid14"],
         slots: 9,
         hints: ["KitKat Raro", "Tako Tamago", "Marisco extraño", "Crepe de Harajuku", "Dulce tradicional"]
+    },
+    "comidas": {
+        id: "comidas", title: "Gran Banquete Japonés", emoji: "🍱",
+        description: "Colecciona fotos de al menos 30 deliciosos platos y especialidades de la gastronomía japonesa.",
+        roles: ["kid9", "kid14"],
+        slots: 35,
+        hints: [
+            "Ramen (Tonkotsu/Shoyu/Miso)", "Sushi / Sashimi fresco", "Takoyaki (Bolitas de pulpo)",
+            "Okonomiyaki (Tortilla japonesa)", "Tempura de verduras/marisco", "Tonkatsu (Filete empanado)",
+            "Gyoza (Empanadillas)", "Yakitori (Brochetas de pollo)", "Katsudon / Gyudon / Unagidon",
+            "Udon (Fideos gruesos)", "Soba (Fideos trigo sarraceno)", "Kare Raisu (Curry japonés)",
+            "Onigiri (Triángulo de arroz)", "Yakisoba (Fideos salteados)", "Shabu-Shabu / Sukiyaki",
+            "Unagi Kabayaki (Anguila)", "Sopa de Miso tradicional", "Edamame al vapor",
+            "Mochi / Daifuku relleno", "Taiyaki (Bizcocho de pez)", "Dango (Espetada dulce)",
+            "Kakigori (Hielo raspado)", "Tamagoyaki (Tortilla dulce)", "Chicken Karaage (Pollo frito)",
+            "Bento (Caja preparada)", "Wagyu / Carne de Kobe", "Melonpan (Pan dulce)",
+            "Dorayaki (Pancakes de anko)", "Omurice (Arroz en tortilla)", "Chawanmushi (Flan salado)",
+            "Parfait de Matcha / Helado", "Cena Kaiseki tradicional", "Somen (Fideos fríos)",
+            "Korokke (Croqueta japonesa)", "Kushikatsu (Brochetas fritas)"
+        ]
     },
     "simbolismo": {
         id: "simbolismo", title: "Archivo de Simbolismo", emoji: "⛩️",
@@ -4466,10 +4486,64 @@ async function renderAlbumCategory(categoryId) {
             div.classList.add('filled');
             if (dataUrl.startsWith('data:audio')) {
                 div.classList.add('audio-slot');
-                div.innerText = '🔊';
-                div.addEventListener('click', () => {
-                    const audio = new Audio(dataUrl);
-                    audio.play();
+                let hint = cat.hints[i] || 'Sonido grabado';
+                div.innerHTML = `
+                    <div style="font-size: 1.6rem; line-height: 1;">🔊</div>
+                    <div class="album-hint" style="margin-top:2px; font-size:0.6rem; text-align:center; word-break:break-word;">${hint}</div>
+                    <div style="display:flex; gap:3px; margin-top:4px; width:100%; justify-content:center; padding:0 2px;">
+                        <button class="btn-play-audio" style="font-size:0.65rem; padding:3px 4px; border-radius:6px; border:none; background:#2ecc71; color:white; cursor:pointer; flex:1;">▶️ Oír</button>
+                        <button class="btn-delete-audio" style="font-size:0.65rem; padding:3px 4px; border-radius:6px; border:none; background:#e74c3c; color:white; cursor:pointer; flex:1;">🗑️ Borrar</button>
+                    </div>
+                `;
+                
+                const btnPlay = div.querySelector('.btn-play-audio');
+                if (btnPlay) {
+                    btnPlay.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const audio = new Audio(dataUrl);
+                        audio.play();
+                    });
+                }
+                
+                const btnDelete = div.querySelector('.btn-delete-audio');
+                if (btnDelete) {
+                    btnDelete.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if (confirm('¿Quieres eliminar este sonido del álbum para poder volver a grabarlo o modificarlo?')) {
+                            if (window.deleteMedia) {
+                                await window.deleteMedia(slotId);
+                            }
+                            const indexToRemove = savedIndexes.indexOf(i);
+                            if (indexToRemove > -1) {
+                                savedIndexes.splice(indexToRemove, 1);
+                                const changes = {};
+                                changes[`album.${categoryId}`] = gameState[currentUser].album[categoryId];
+                                saveState(changes);
+                            }
+                            renderAlbumCategory(categoryId);
+                        }
+                    });
+                }
+                
+                div.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('btn-play-audio') || e.target.classList.contains('btn-delete-audio')) return;
+                    if (confirm('🔊 ¿Quieres ELIMINAR este sonido para modificarlo?\n\n• ACEPTAR: Borrar sonido\n• CANCELAR: Escuchar sonido')) {
+                        if (window.deleteMedia) {
+                            window.deleteMedia(slotId).then(() => {
+                                const indexToRemove = savedIndexes.indexOf(i);
+                                if (indexToRemove > -1) {
+                                    savedIndexes.splice(indexToRemove, 1);
+                                    const changes = {};
+                                    changes[`album.${categoryId}`] = gameState[currentUser].album[categoryId];
+                                    saveState(changes);
+                                }
+                                renderAlbumCategory(categoryId);
+                            });
+                        }
+                    } else {
+                        const audio = new Audio(dataUrl);
+                        audio.play();
+                    }
                 });
             } else {
                 const img = document.createElement('img');
@@ -4568,7 +4642,11 @@ async function renderAlbumCategory(categoryId) {
                         if (file.type.startsWith('audio/')) {
                             const reader = new FileReader();
                             reader.onload = async (re) => {
-                                await window.saveMedia(slotId, re.target.result);
+                                if (window.savePhotoToDB) {
+                                    await window.savePhotoToDB(slotId, re.target.result);
+                                } else {
+                                    await window.saveMedia(slotId, re.target.result);
+                                }
                                 if (!savedIndexes.includes(i)) savedIndexes.push(i);
                                 recordAlbumUploadAndCheck();
                                 renderAlbumCategory(categoryId);
@@ -4588,7 +4666,11 @@ async function renderAlbumCategory(categoryId) {
                             ctx.drawImage(bmp, 0, 0, w, h);
                             resultDataUrl = canvas.toDataURL('image/jpeg', 0.6);
                             
-                            await window.saveMedia(slotId, resultDataUrl);
+                            if (window.savePhotoToDB) {
+                                await window.savePhotoToDB(slotId, resultDataUrl);
+                            } else {
+                                await window.saveMedia(slotId, resultDataUrl);
+                            }
                             if (!savedIndexes.includes(i)) savedIndexes.push(i);
                             recordAlbumUploadAndCheck();
                             renderAlbumCategory(categoryId);

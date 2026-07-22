@@ -57,6 +57,8 @@ function triggerDeviceDownload(id, dataUrl) {
     }
 }
 
+window.triggerDeviceDownload = triggerDeviceDownload;
+
 window.savePhotoToDB = async function(id, dataUrl) {
     return saveMedia(id, dataUrl);
 };
