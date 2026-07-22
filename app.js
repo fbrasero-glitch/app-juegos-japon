@@ -296,6 +296,9 @@ function loadState() {
                 if (gameState[kid].resetTime === undefined) {
                     gameState[kid].resetTime = 0;
                 }
+                if (window.FirebaseSync && typeof window.FirebaseSync.cleanStaleMissionsAndData === 'function') {
+                    gameState[kid] = window.FirebaseSync.cleanStaleMissionsAndData(gameState[kid]);
+                }
             });
         } catch (e) {
             console.error("Error parseando estado local. Usando por defecto.", e);

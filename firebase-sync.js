@@ -112,86 +112,101 @@ const FirebaseSync = {
         });
     },
 
-    mergeProfileData: function(local, remote) {
-        if (!local) return remote;
-        if (!remote) return local;
+    cleanStaleMissionsAndData: function(profile) {
+        if (!profile) return profile;
+        const resetTime = profile.resetTime || 0;
+        if (!resetTime) return profile;
 
-        // Si hay una diferencia en resetTime, el que tenga el resetTime mayor (más reciente) gana por completo
+        // Limpiar cualquier misión que se haya actualizado ANTES del resetTime
+        if (profile.missions) {
+            Object.keys(profile.missions).forEach(mId => {
+                const m = profile.missions[mId];
+                if (m && (m.statusUpdatedAt || 0) < resetTime) {
+                    profile.missions[mId] = {
+                        status: "unlocked",
+                        submission: null,
+                        day: m.day || 'day_1',
+                        statusUpdatedAt: 0
+                    };
+                }
+            });
+        }
+        return profile;
+    },
+
+    mergeProfileData: function(local, remote) {
+        if (!local && !remote) return null;
+        if (!local) return this.cleanStaleMissionsAndData({ ...remote });
+        if (!remote) return this.cleanStaleMissionsAndData({ ...local });
+
         const localReset = local.resetTime || 0;
         const remoteReset = remote.resetTime || 0;
+        const maxReset = Math.max(localReset, remoteReset);
 
+        // Si uno tiene un resetTime estrictamente mayor que el otro:
         if (remoteReset > localReset) {
             console.log("[FirebaseSync] Reset detectado en el servidor. Descartando estado local anterior.");
-            return { ...remote };
+            return this.cleanStaleMissionsAndData({ ...remote, resetTime: maxReset });
         }
         if (localReset > remoteReset) {
             console.log("[FirebaseSync] Reset detectado localmente. Descartando estado remoto anterior.");
-            return { ...local };
+            return this.cleanStaleMissionsAndData({ ...local, resetTime: maxReset });
         }
 
-        const merged = { ...remote }; // Usamos remote como base
+        // Si ambos tienen el mismo resetTime:
+        // Primero, limpiamos misiones antiguas de local y remote que hayan ocurrido antes de maxReset
+        const cleanLocal = this.cleanStaleMissionsAndData({ ...local });
+        const cleanRemote = this.cleanStaleMissionsAndData({ ...remote });
 
-        // 1. Nombre (string)
-        merged.name = remote.name || local.name;
+        // Si maxReset > 0 y la última actualización de alguno es anterior al reset, ignorar sus datos globales acumulados
+        const localIsFresh = (cleanLocal.lastUpdated || 0) >= maxReset;
+        const remoteIsFresh = (cleanRemote.lastUpdated || 0) >= maxReset;
 
-        // 2. XP y Nivel (siempre tomamos el máximo)
-        merged.xp = Math.max(remote.xp || 0, local.xp || 0);
-        merged.level = Math.max(remote.level || 0, local.level || 0);
+        let merged = { ...(remoteIsFresh ? cleanRemote : cleanLocal) };
+        merged.resetTime = maxReset;
 
-        // 3. Wallet y compras (Purchases)
-        merged.purchases = { ...(remote.purchases || {}), ...(local.purchases || {}) };
-        
-        let localOnlyPurchasesCost = 0;
-        const UPGRADE_COSTS = {
-            cookie: 50,
-            kintsugi: 150,
-            fish: 100,
-            omikuji: 75,
-            origami: 50,
-            bamboo: 120,
-            temple_pass: 200,
-            badge_booster: 150,
-            ramen_ticket: 250,
-            shinkansen_upgrade: 500
-        };
-        Object.keys(local.purchases || {}).forEach(item => {
-            if (local.purchases[item] && (!remote.purchases || !remote.purchases[item])) {
-                localOnlyPurchasesCost += UPGRADE_COSTS[item] || 0;
-            }
-        });
-        
-        merged.wallet = Math.max(0, (remote.wallet || 0) - localOnlyPurchasesCost);
-        if (local.wallet > merged.wallet && localOnlyPurchasesCost === 0) {
-            merged.wallet = local.wallet;
+        if (!localIsFresh && !remoteIsFresh && maxReset > 0) {
+            // Ambos son anteriores al reset: todo se reinicia a 0
+            merged.xp = 0;
+            merged.level = 0;
+            merged.wallet = 0;
+            merged.badges = [];
+            merged.album = {};
+            merged.rewards = {};
+            merged.counters = { physicalStreak: 0, earlyLateSubmissions: 0, perfectJointMissions: 0, cryptoSolvedFirstTry: true };
+        } else if (localIsFresh && !remoteIsFresh) {
+            merged = { ...cleanLocal };
+        } else if (!localIsFresh && remoteIsFresh) {
+            merged = { ...cleanRemote };
+        } else {
+            // Ambos son posteriores al resetTime (o resetTime es 0)
+            merged.xp = Math.max(cleanRemote.xp || 0, cleanLocal.xp || 0);
+            merged.level = Math.max(cleanRemote.level || 0, cleanLocal.level || 0);
+            merged.wallet = Math.max(cleanRemote.wallet || 0, cleanLocal.wallet || 0);
+
+            const badgeSet = new Set([...(cleanRemote.badges || []), ...(cleanLocal.badges || [])]);
+            merged.badges = Array.from(badgeSet);
+            merged.counters = { ...(cleanRemote.counters || {}), ...(cleanLocal.counters || {}) };
+
+            merged.album = {};
+            const catIds = new Set([...Object.keys(cleanRemote.album || {}), ...Object.keys(cleanLocal.album || {})]);
+            catIds.forEach(catId => {
+                const remotePhotos = cleanRemote.album[catId] || [];
+                const localPhotos = cleanLocal.album[catId] || [];
+                const photoMap = {};
+                remotePhotos.forEach(p => photoMap[p] = true);
+                localPhotos.forEach(p => photoMap[p] = true);
+                merged.album[catId] = Object.keys(photoMap).map(k => isNaN(k) ? k : parseInt(k, 10));
+            });
+
+            merged.rewards = { ...(cleanRemote.rewards || {}), ...(cleanLocal.rewards || {}) };
         }
 
-        // 4. Insignias (unión)
-        const badgeSet = new Set([...(remote.badges || []), ...(local.badges || [])]);
-        merged.badges = Array.from(badgeSet);
-
-        // 5. Contadores
-        merged.counters = { ...(remote.counters || {}), ...(local.counters || {}) };
-
-        // 6. Álbum (hacemos unión de fotos por categoría)
-        merged.album = {};
-        const catIds = new Set([...Object.keys(remote.album || {}), ...Object.keys(local.album || {})]);
-        catIds.forEach(catId => {
-            const remotePhotos = remote.album[catId] || [];
-            const localPhotos = local.album[catId] || [];
-            const photoMap = {};
-            remotePhotos.forEach(p => photoMap[p] = true);
-            localPhotos.forEach(p => photoMap[p] = true);
-            merged.album[catId] = Object.keys(photoMap).map(k => isNaN(k) ? k : parseInt(k, 10));
-        });
-
-        // 7. Recompensas (Rewards)
-        merged.rewards = { ...(remote.rewards || {}), ...(local.rewards || {}) };
-
-        // 8. Misiones (fusión fina por statusUpdatedAt)
-        merged.missions = { ...(remote.missions || {}) };
-        Object.keys(local.missions || {}).forEach(mId => {
-            const remoteM = remote.missions[mId];
-            const localM = local.missions[mId];
+        // Fusión fina de misiones
+        merged.missions = { ...(cleanRemote.missions || {}) };
+        Object.keys(cleanLocal.missions || {}).forEach(mId => {
+            const remoteM = cleanRemote.missions[mId];
+            const localM = cleanLocal.missions[mId];
             if (!remoteM) {
                 merged.missions[mId] = localM;
             } else {
@@ -199,7 +214,7 @@ const FirebaseSync = {
             }
         });
 
-        merged.lastUpdated = Math.max(remote.lastUpdated || 0, local.lastUpdated || 0);
+        merged.lastUpdated = Math.max(cleanRemote.lastUpdated || 0, cleanLocal.lastUpdated || 0, maxReset);
         return merged;
     },
 
