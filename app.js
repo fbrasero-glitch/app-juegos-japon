@@ -422,11 +422,11 @@ function initMissionsForDay(dayStr, missionIds) {
 // Interceptador para subir fotos a Firebase además de guardarlas en IndexedDB local
 setTimeout(() => {
     const originalSavePhotoToDB = window.savePhotoToDB;
-    window.savePhotoToDB = async function(id, dataUrl) {
+    window.savePhotoToDB = async function(id, dataUrl, originalFile) {
         if (originalSavePhotoToDB) {
-            await originalSavePhotoToDB(id, dataUrl);
+            await originalSavePhotoToDB(id, dataUrl, originalFile);
         } else if (window.saveMedia) {
-            await window.saveMedia(id, dataUrl);
+            await window.saveMedia(id, dataUrl, originalFile);
         }
         if (window.FirebaseSync && window.FirebaseSync.isConnected()) {
             window.FirebaseSync.syncPhoto(id, dataUrl);
@@ -472,16 +472,18 @@ const TAG_ICONS = {
 };
 
 
-function compressImage(file) {
-    return new Promise((resolve) => {
+function compressImage(file, maxDimension = 1200, quality = 0.75) {
+    return new Promise((resolve, reject) => {
         const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Error leyendo archivo"));
         reader.onload = (e) => {
             const img = new Image();
+            img.onerror = () => reject(new Error("Error cargando imagen"));
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const MAX_SIZE = 800;
+                const MAX_SIZE = maxDimension;
 
                 if (width > height) {
                     if (width > MAX_SIZE) {
@@ -495,12 +497,12 @@ function compressImage(file) {
                     }
                 }
 
-                canvas.width = width;
-                canvas.height = height;
+                canvas.width = Math.round(width);
+                canvas.height = Math.round(height);
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                // Comprimir a JPEG con 0.6 de calidad
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Comprimir a JPEG con calidad optimizada para visualización dentro de la app (1200px @ 0.75)
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 resolve(dataUrl);
             };
             img.src = e.target.result;
@@ -1888,7 +1890,7 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
                 reader.onloadend = async () => {
                     try {
                         const videoId = 'video_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-                        await savePhotoToDB(videoId, reader.result);
+                        await savePhotoToDB(videoId, reader.result, file);
                         submitMission(missionId, {type: 'video', data: videoId}, role, isFamily);
                     } catch (err) {
                         console.error(err);
@@ -1898,9 +1900,14 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
                     }
                 };
             } else {
-                const compressed = await compressImage(file);
                 const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(7);
-                await savePhotoToDB(photoId, compressed);
+                // 1. Descargar primero la foto a MÁXIMA CALIDAD ORIGINAL en la Galería / Descargas del teléfono
+                if (window.triggerDeviceDownload) {
+                    window.triggerDeviceDownload(photoId, file);
+                }
+                // 2. Comprimir copia ligera a 1200px para almacenamiento y fluidez en la app
+                const compressed = await compressImage(file, 1200, 0.75);
+                await savePhotoToDB(photoId, compressed, file);
                 submitMission(missionId, {type: 'photo', data: photoId}, role, isFamily);
             }
         } catch (err) {
@@ -4643,9 +4650,9 @@ async function renderAlbumCategory(categoryId) {
                             const reader = new FileReader();
                             reader.onload = async (re) => {
                                 if (window.savePhotoToDB) {
-                                    await window.savePhotoToDB(slotId, re.target.result);
+                                    await window.savePhotoToDB(slotId, re.target.result, file);
                                 } else {
-                                    await window.saveMedia(slotId, re.target.result);
+                                    await window.saveMedia(slotId, re.target.result, file);
                                 }
                                 if (!savedIndexes.includes(i)) savedIndexes.push(i);
                                 recordAlbumUploadAndCheck();
@@ -4654,22 +4661,18 @@ async function renderAlbumCategory(categoryId) {
                             reader.readAsDataURL(file);
                             return;
                         } else {
-                            const bmp = await createImageBitmap(file);
-                            const canvas = document.createElement('canvas');
-                            const MAX = 800;
-                            let w = bmp.width;
-                            let h = bmp.height;
-                            if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } 
-                            else { if (h > MAX) { w *= MAX/h; h = MAX; } }
-                            canvas.width = w; canvas.height = h;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(bmp, 0, 0, w, h);
-                            resultDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                            // 1. Guardar primero el archivo original a MÁXIMA CALIDAD en la Galería / Descargas del teléfono
+                            if (window.triggerDeviceDownload) {
+                                window.triggerDeviceDownload(slotId, file);
+                            }
+                            
+                            // 2. Comprimir copia ligera a 1200px para visualización rápida dentro de la app
+                            resultDataUrl = await compressImage(file, 1200, 0.75);
                             
                             if (window.savePhotoToDB) {
-                                await window.savePhotoToDB(slotId, resultDataUrl);
+                                await window.savePhotoToDB(slotId, resultDataUrl, file);
                             } else {
-                                await window.saveMedia(slotId, resultDataUrl);
+                                await window.saveMedia(slotId, resultDataUrl, file);
                             }
                             if (!savedIndexes.includes(i)) savedIndexes.push(i);
                             recordAlbumUploadAndCheck();
