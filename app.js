@@ -473,41 +473,82 @@ const TAG_ICONS = {
 
 
 function compressImage(file, maxDimension = 1200, quality = 0.75) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onerror = () => reject(new Error("Error leyendo archivo"));
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onerror = () => reject(new Error("Error cargando imagen"));
-            img.onload = () => {
+    return new Promise((resolve) => {
+        if (!file) return resolve(null);
+        
+        // Si no es imagen (ej. audio/video), leer como dataURL directo
+        if (file.type && !file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+            return;
+        }
+
+        let blobUrl = null;
+        try {
+            blobUrl = URL.createObjectURL(file);
+        } catch (e) {
+            blobUrl = null;
+        }
+
+        const fallbackRead = () => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        };
+
+        if (!blobUrl) {
+            fallbackRead();
+            return;
+        }
+
+        const img = new Image();
+        const cleanup = () => {
+            try { if (blobUrl) URL.revokeObjectURL(blobUrl); } catch (e) {}
+        };
+
+        img.onload = () => {
+            try {
                 const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
+                let width = img.naturalWidth || img.width || 800;
+                let height = img.naturalHeight || img.height || 600;
                 const MAX_SIZE = maxDimension;
 
                 if (width > height) {
                     if (width > MAX_SIZE) {
-                        height *= MAX_SIZE / width;
+                        height = Math.round(height * (MAX_SIZE / width));
                         width = MAX_SIZE;
                     }
                 } else {
                     if (height > MAX_SIZE) {
-                        width *= MAX_SIZE / height;
+                        width = Math.round(width * (MAX_SIZE / height));
                         height = MAX_SIZE;
                     }
                 }
 
-                canvas.width = Math.round(width);
-                canvas.height = Math.round(height);
+                canvas.width = width;
+                canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Comprimir a JPEG con calidad optimizada para visualización dentro de la app (1200px @ 0.75)
+                ctx.drawImage(img, 0, 0, width, height);
                 const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                cleanup();
                 resolve(dataUrl);
-            };
-            img.src = e.target.result;
+            } catch (err) {
+                console.error("Canvas compression error, using fallback:", err);
+                cleanup();
+                fallbackRead();
+            }
         };
-        reader.readAsDataURL(file);
+
+        img.onerror = (err) => {
+            console.error("Image load error, using fallback:", err);
+            cleanup();
+            fallbackRead();
+        };
+
+        img.src = blobUrl;
     });
 }
 
@@ -1870,7 +1911,6 @@ window.attachCameraFlow = function(btnId, missionId, role = currentUser, isFamil
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*,video/*';
-    input.capture = 'environment';
     input.className = 'hidden-camera-input';
     input.style.display = 'none';
     btn.parentNode.insertBefore(input, btn.nextSibling);
@@ -4608,11 +4648,11 @@ async function renderAlbumCategory(categoryId) {
                         input.removeAttribute('capture'); 
                     } else {
                         input.accept = 'image/*';
-                        input.setAttribute('capture', 'environment');
+                        input.removeAttribute('capture');
                     }
                 } else {
                     input.accept = 'image/*';
-                    input.setAttribute('capture', 'environment');
+                    input.removeAttribute('capture');
                 }
                 
                 input.onchange = async (e) => {
