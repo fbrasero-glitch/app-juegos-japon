@@ -21,11 +21,11 @@ window.initIndexedDB = initDB;
 const downloadedMediaIds = new Set();
 
 function triggerDeviceDownload(id, mediaSource, originalFile) {
-    // En iPhone/iOS, no forzamos la descarga por script porque las fotos tomadas con la cámara
-    // se guardan automáticamente en la app Fotos del iPhone al usar el menú nativo del sistema,
-    // y forzar descargas por script en Safari las envía a 'Descargas' (Archivos) y genera errores.
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (isIOS) {
+    // En dispositivos móviles (Android / iOS), las fotos tomadas con la cámara desde el menú nativo del navegador
+    // se guardan automáticamente en la Galería / Google Fotos / Apple Fotos del sistema.
+    // Forzar la descarga por script en móviles crea archivos duplicados en la carpeta 'Descargas' (Downloads).
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
         return;
     }
 
