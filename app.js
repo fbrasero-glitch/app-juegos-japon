@@ -113,14 +113,17 @@ function updateSpecialEventsBanner(role) {
             return a.startTime.localeCompare(b.startTime);
         });
 
-    // 2. Encontrar el primer evento que no esté aprobado
-    let activeEvent = null;
-    for (let ev of specialEvents) {
-        const state = gameState[role].missions[ev.id];
-        if (state && state.status !== 'approved') {
-            activeEvent = ev;
-            break;
-        }
+    // 2. Determinar el evento activo a mostrar en el banner (priorizando el día actual, luego futuros, luego pasados pendientes)
+    const currentTripDay = getCurrentTripDay();
+
+    let activeEvent = specialEvents.find(ev => ev.day === currentTripDay && gameState[role].missions[ev.id]?.status !== 'approved');
+
+    if (!activeEvent) {
+        activeEvent = specialEvents.find(ev => ev.day > currentTripDay && gameState[role].missions[ev.id]?.status !== 'approved');
+    }
+
+    if (!activeEvent) {
+        activeEvent = specialEvents.find(ev => ev.day < currentTripDay && gameState[role].missions[ev.id]?.status !== 'approved');
     }
 
     if (!activeEvent) {
@@ -134,7 +137,6 @@ function updateSpecialEventsBanner(role) {
 
     // 3. Determinar el estado temporal del evento seleccionado
     const now = new Date();
-    const currentTripDay = getCurrentTripDay();
     const eventDateStr = getDayDateString(activeEvent.day);
     
     const startParts = activeEvent.startTime.split(':');
@@ -1289,32 +1291,35 @@ function renderDaysList(role) {
     let prevDayApproved = true;
 
     days.forEach(dayNum => {
-        // Encontrar misiones del usuario para este día
-        const mKeys = Object.keys(MISSIONS_CONFIG).filter(k => 
-            MISSIONS_CONFIG[k].day === dayNum && (MISSIONS_CONFIG[k].role === role || MISSIONS_CONFIG[k].role === 'both')
-        );
+        // Obtenemos todas las misiones del día para que ambos niños tengan acceso a los minijuegos de ambos
+        const mKeys = Object.keys(MISSIONS_CONFIG).filter(k => MISSIONS_CONFIG[k].day === dayNum);
         if (mKeys.length === 0) return;
 
         // Asegurarse de que existan en el state
         initMissionsForDay(`day_${dayNum}`, mKeys);
 
-        // Check if all missions in this day are approved
+        // Misiones propias del usuario para evaluar el completado del día
+        const ownKeys = mKeys.filter(k => MISSIONS_CONFIG[k].role === role || MISSIONS_CONFIG[k].role === 'both');
+
+        // Check if all own missions in this day are approved
         let allApproved = true;
-        let anyPending = false;
-        mKeys.forEach(k => {
+        ownKeys.forEach(k => {
             const m = gameState[role].missions[k];
-            if (m.status !== 'approved') allApproved = false;
-            if (m.status === 'pending') anyPending = true;
+            if (!m || m.status !== 'approved') allApproved = false;
         });
 
         const card = document.createElement('div');
         card.className = 'card';
         
+        const countText = ownKeys.length < mKeys.length
+            ? `${ownKeys.length} misiones tuyas (${mKeys.length} en total incl. minijuegos)`
+            : `${mKeys.length} misiones`;
+
         const titleHtml = `Día ${dayNum} ${allApproved ? '✅' : '🚀'} <span style="font-size:0.8rem; font-weight:normal; opacity:0.75; float:right;">${getDayDateString(dayNum)}</span>`;
         
         card.innerHTML = `
             <div class="card-title">${titleHtml}</div>
-            <p style="font-size:0.9rem; color:var(--color-gray-dark)">${mKeys.length} misiones</p>
+            <p style="font-size:0.9rem; color:var(--color-gray-dark)">${countText}</p>
         `;
         card.addEventListener('click', () => {
             renderDayMissions(role, dayNum, mKeys);
@@ -1387,7 +1392,9 @@ function renderDayMissions(role, dayNum, missionKeys) {
 
     missionKeys.forEach(k => {
         const conf = MISSIONS_CONFIG[k];
-        const state = gameState[role].missions[k];
+        const state = (gameState[role] && gameState[role].missions && gameState[role].missions[k]) || { status: 'unlocked' };
+        const isSiblingMission = conf.role && conf.role !== 'both' && conf.role !== role;
+
         const card = document.createElement('div');
         card.className = 'card';
         
@@ -1395,14 +1402,23 @@ function renderDayMissions(role, dayNum, missionKeys) {
             card.style.border = '2px solid #ff9800';
             card.style.background = 'linear-gradient(135deg, var(--color-card-bg) 70%, rgba(255, 152, 0, 0.08) 100%)';
             card.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.12)';
+        } else if (isSiblingMission) {
+            card.style.opacity = '0.9';
+            card.style.border = '1px dashed var(--color-primary)';
         }
         
         let statusHtml = '';
-        if (state.status === 'pending') statusHtml = `<span class="status-badge status-pending">⏳ Esperando Juez</span>`;
-        else if (state.status === 'approved') statusHtml = `<span class="status-badge status-approved">✅ Completada</span>`;
+        if (isSiblingMission) {
+            const siblingName = conf.role === 'kid9' ? 'Laura' : 'Iván';
+            statusHtml = `<span class="status-badge" style="background:rgba(103, 58, 183, 0.15); color:#673ab7;">👤 Exclusiva de ${siblingName} (Solo Minijuego)</span>`;
+        } else if (state.status === 'pending') {
+            statusHtml = `<span class="status-badge status-pending">⏳ Esperando Juez</span>`;
+        } else if (state.status === 'approved') {
+            statusHtml = `<span class="status-badge status-approved">✅ Completada</span>`;
+        }
         
         let feedbackHtml = '';
-        if (state.feedback) {
+        if (!isSiblingMission && state.feedback) {
             feedbackHtml = `
                 <div class="feedback-badge" style="margin-top: 8px; padding: 6px 10px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px; font-size: 0.8rem; color: #b91c1c; text-align: left; line-height: 1.3;">
                     <strong>❌ Nota del Juez:</strong> "${state.feedback}"
@@ -1461,11 +1477,12 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
     const conf = MISSIONS_CONFIG[missionId];
     const container = document.getElementById('mission-content');
     
-    const state = gameState[role].missions[missionId];
+    const state = gameState[role] && gameState[role].missions ? gameState[role].missions[missionId] : null;
     let warningHtml = '';
     const isPending = state && state.status === 'pending';
     const isApproved = state && state.status === 'approved';
     const isLocked = isDayLocked(conf.day);
+    const isSiblingMission = conf && conf.role && conf.role !== 'both' && conf.role !== role;
     
     let isTimeLocked = false;
     let timeLockMessage = '';
@@ -1485,60 +1502,6 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
         }
     }
     
-    if (isLocked) {
-        warningHtml = `
-            <div class="mission-warning-card" style="background: rgba(156, 39, 176, 0.1); border: 2px solid #9c27b0; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
-                <span style="font-size: 2rem;">🔒</span>
-                <div>
-                    <strong style="color: #9c27b0; font-size: 1.05rem;">Prueba Bloqueada Temporalmente</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">Esta misión corresponde al día de viaje programado (${getDayDateString(conf.day)}). No se puede realizar ni enviar la prueba antes de esa fecha, pero puedes jugar al minijuego para practicar.</p>
-                </div>
-            </div>
-        `;
-    } else if (isTimeLocked) {
-        warningHtml = `
-            <div class="mission-warning-card" style="background: rgba(244, 67, 54, 0.1); border: 2px solid #f44336; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
-                <span style="font-size: 2rem;">⏰</span>
-                <div>
-                    <strong style="color: #f44336; font-size: 1.05rem;">Fuera de Horario Permitido</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">${timeLockMessage}</p>
-                </div>
-            </div>
-        `;
-    } else if (isPending) {
-        warningHtml = `
-            <div class="mission-warning-card" style="background: rgba(33, 150, 243, 0.1); border: 2px solid #2196f3; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
-                <span style="font-size: 2rem;">⏳</span>
-                <div>
-                    <strong style="color: #2196f3; font-size: 1.05rem;">Prueba en Revisión</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">El Juez Supremo está evaluando tu entrega. No puedes realizar la prueba de nuevo en este momento, pero puedes jugar al minijuego para practicar.</p>
-                </div>
-            </div>
-        `;
-    } else if (state && state.status === 'approved') {
-        warningHtml = `
-            <div class="mission-warning-card" style="background: rgba(255, 193, 7, 0.1); border: 2px solid #ffc107; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
-                <span style="font-size: 2rem;">⚠️</span>
-                <div>
-                    <strong style="color: #ffc107; font-size: 1.05rem;">Prueba Ya Puntuada</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">Puedes repetir esta prueba para jugar, pero ya no sumará más XP ni se enviará al juez.</p>
-                </div>
-            </div>
-        `;
-    }
-    
-    if (state && state.feedback) {
-        warningHtml += `
-            <div class="mission-warning-card" style="background: rgba(239, 68, 68, 0.08); border: 2px solid #ef4444; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: left; display: flex; align-items: flex-start; gap: 10px; flex-direction: row; box-shadow: var(--shadow-soft);">
-                <span style="font-size: 1.8rem; line-height: 1;">❌</span>
-                <div>
-                    <strong style="color: #b91c1c; font-size: 1.05rem;">Prueba Con Feedback</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: #7f1d1d;"><strong>Motivo:</strong> "${state.feedback}"</p>
-                </div>
-            </div>
-        `;
-    }
-
     const day3MissionsLaura = ['day_3_glico', 'day_3_ninja', 'day_3_bridge', 'day_3_umeda', 'day_3_reflect'];
     const day3MissionsIvan = ['day_3_architect', 'day_3_neon', 'day_3_rush', 'day_3_flow', 'day_3_reflect'];
     const day4MissionsIvan = ['day_4_knife', 'day_4_500yen', 'day_4_isshinji', 'day_4_tracker', 'day_4_yakiniku'];
@@ -1582,30 +1545,104 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
     const day23MissionsLaura = ['day_23_kitkat', 'day_23_pokedex', 'day_23_coins', 'day_23_mascot', 'day_23_stamp'];
     const day23MissionsIvan = ['day_23_tetris', 'day_23_audit', 'day_23_security', 'day_23_weight', 'day_23_stamp'];
 
-    const isMinigameMission = (role === 'kid9' && (
-        day3MissionsLaura.includes(missionId) || day4MissionsLaura.includes(missionId) || day5MissionsLaura.includes(missionId) ||
-        day6MissionsLaura.includes(missionId) || day7MissionsLaura.includes(missionId) || day8MissionsLaura.includes(missionId) ||
-        day9MissionsLaura.includes(missionId) || day10MissionsLaura.includes(missionId) || day11MissionsLaura.includes(missionId) ||
-        day12MissionsLaura.includes(missionId) || day13MissionsLaura.includes(missionId) || day14MissionsLaura.includes(missionId) ||
-        day15MissionsLaura.includes(missionId) || day16MissionsLaura.includes(missionId) || day17MissionsLaura.includes(missionId) ||
-        day18MissionsLaura.includes(missionId) || day19MissionsLaura.includes(missionId) ||
-        day20MissionsLaura.includes(missionId) || day21MissionsLaura.includes(missionId) ||
-        day22MissionsLaura.includes(missionId) || day23MissionsLaura.includes(missionId)
-    )) || (role === 'kid14' && (
-        day3MissionsIvan.includes(missionId) || day4MissionsIvan.includes(missionId) || day5MissionsIvan.includes(missionId) ||
-        day6MissionsIvan.includes(missionId) || day7MissionsIvan.includes(missionId) || day8MissionsIvan.includes(missionId) ||
-        day9MissionsIvan.includes(missionId) || day10MissionsIvan.includes(missionId) || day11MissionsIvan.includes(missionId) ||
-        day12MissionsIvan.includes(missionId) || day13MissionsIvan.includes(missionId) || day14MissionsIvan.includes(missionId) ||
-        day15MissionsIvan.includes(missionId) || day16MissionsIvan.includes(missionId) || day17MissionsIvan.includes(missionId) ||
-        day18MissionsIvan.includes(missionId) || day19MissionsIvan.includes(missionId) ||
-        day20MissionsIvan.includes(missionId) || day21MissionsIvan.includes(missionId) ||
-        day22MissionsIvan.includes(missionId) || day23MissionsIvan.includes(missionId)
-    ));
+    const allMinigameMissions = [
+        ...day3MissionsLaura, ...day3MissionsIvan,
+        ...day4MissionsLaura, ...day4MissionsIvan,
+        ...day5MissionsLaura, ...day5MissionsIvan,
+        ...day6MissionsLaura, ...day6MissionsIvan,
+        ...day7MissionsLaura, ...day7MissionsIvan,
+        ...day8MissionsLaura, ...day8MissionsIvan,
+        ...day9MissionsLaura, ...day9MissionsIvan,
+        ...day10MissionsLaura, ...day10MissionsIvan,
+        ...day11MissionsLaura, ...day11MissionsIvan,
+        ...day12MissionsLaura, ...day12MissionsIvan,
+        ...day13MissionsLaura, ...day13MissionsIvan,
+        ...day14MissionsLaura, ...day14MissionsIvan,
+        ...day15MissionsLaura, ...day15MissionsIvan,
+        ...day16MissionsLaura, ...day16MissionsIvan,
+        ...day17MissionsLaura, ...day17MissionsIvan,
+        ...day18MissionsLaura, ...day18MissionsIvan,
+        ...day19MissionsLaura, ...day19MissionsIvan,
+        ...day20MissionsLaura, ...day20MissionsIvan,
+        ...day21MissionsLaura, ...day21MissionsIvan,
+        ...day22MissionsLaura, ...day22MissionsIvan,
+        ...day23MissionsLaura, ...day23MissionsIvan
+    ];
+
+    const isMinigameMission = allMinigameMissions.includes(missionId);
+    
+    if (isSiblingMission) {
+        const siblingName = conf.role === 'kid9' ? 'Laura' : 'Iván';
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(103, 58, 183, 0.1); border: 2px solid #673ab7; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">👤</span>
+                <div>
+                    <strong style="color: #673ab7; font-size: 1.05rem;">Prueba Exclusiva de ${siblingName}</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">No puedes realizar ni entregar esta prueba desde tu perfil. ${isMinigameMission ? '¡Pero puedes jugar libremente a su minijuego para entrenar y divertirte!' : ''}</p>
+                </div>
+            </div>
+        `;
+    } else if (isLocked) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(156, 39, 176, 0.1); border: 2px solid #9c27b0; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">🔒</span>
+                <div>
+                    <strong style="color: #9c27b0; font-size: 1.05rem;">Prueba Bloqueada Temporalmente</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">Esta misión corresponde al día de viaje programado (${getDayDateString(conf.day)}). No se puede realizar ni enviar la prueba antes de esa fecha, pero puedes jugar al minijuego para practicar.</p>
+                </div>
+            </div>
+        `;
+    } else if (isTimeLocked) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(244, 67, 54, 0.1); border: 2px solid #f44336; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⏰</span>
+                <div>
+                    <strong style="color: #f44336; font-size: 1.05rem;">Fuera de Horario Permitido</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: var(--color-text);">${timeLockMessage}</p>
+                </div>
+            </div>
+        `;
+    } else if (isPending) {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(33, 150, 243, 0.1); border: 2px solid #2196f3; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⏳</span>
+                <div>
+                    <strong style="color: #2196f3; font-size: 1.05rem;">Prueba en Revisión</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">El Juez Supremo está evaluando tu entrega. No puedes realizar la prueba de nuevo en este momento, pero puedes jugar al minijuego para practicar.</p>
+                </div>
+            </div>
+        `;
+    } else if (state && state.status === 'approved') {
+        warningHtml = `
+            <div class="mission-warning-card" style="background: rgba(255, 193, 7, 0.1); border: 2px solid #ffc107; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; flex-direction: column;">
+                <span style="font-size: 2rem;">⚠️</span>
+                <div>
+                    <strong style="color: #ffc107; font-size: 1.05rem;">Prueba Ya Puntuada</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4;">Puedes repetir esta prueba para jugar, pero ya no sumará más XP ni se enviará al juez.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (!isSiblingMission && state && state.feedback) {
+        warningHtml += `
+            <div class="mission-warning-card" style="background: rgba(239, 68, 68, 0.08); border: 2px solid #ef4444; border-radius: var(--radius-main); padding: 15px; margin-bottom: 20px; text-align: left; display: flex; align-items: flex-start; gap: 10px; flex-direction: row; box-shadow: var(--shadow-soft);">
+                <span style="font-size: 1.8rem; line-height: 1;">❌</span>
+                <div>
+                    <strong style="color: #b91c1c; font-size: 1.05rem;">Prueba Con Feedback</strong>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; color: #7f1d1d;"><strong>Motivo:</strong> "${state.feedback}"</p>
+                </div>
+            </div>
+        `;
+    }
 
     let minigameButtonHtml = '';
     if (isMinigameMission) {
         let descText = 'Esta misión dispone de un minijuego independiente al que puedes jugar para divertirte y ganar yenes para tu cartera:';
-        if (isLocked) {
+        if (isSiblingMission) {
+            const siblingName = conf.role === 'kid9' ? 'Laura' : 'Iván';
+            descText = `Esta prueba es de ${siblingName}. Su entrega de respuesta está reservada para él/ella, ¡pero puedes jugar libremente a su minijuego!`;
+        } else if (isLocked) {
             descText = 'Esta misión está bloqueada temporalmente para su entrega. Sin embargo, puedes jugar al minijuego aquí:';
         }
         minigameButtonHtml = `
@@ -1629,7 +1666,7 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
         ${warningHtml}
         <div id="mission-submitted-photo-container"></div>
         ${minigameButtonHtml}
-        <div id="mission-form-wrapper" style="${isCompleted || isLocked || isTimeLocked ? 'display: none;' : ''}">
+        <div id="mission-form-wrapper" style="${isCompleted || isLocked || isTimeLocked || isSiblingMission ? 'display: none;' : ''}">
             ${conf.render(role)}
         </div>
     `;
@@ -1726,8 +1763,14 @@ function renderMissionDetail(missionId, role, preserveTimer = false) {
     }
 }
 
+
 function submitMission(missionId, submissionData, role = currentUser, isFamily = false, bypassMinigame = false) {
     const conf = MISSIONS_CONFIG[missionId];
+    if (conf && conf.role && conf.role !== 'both' && conf.role !== role) {
+        const siblingName = conf.role === 'kid9' ? 'Laura' : 'Iván';
+        showAlert('Prueba No Permitida', `Esta prueba es exclusiva de ${siblingName}. No puedes realizarla ni entregarla desde tu perfil.`);
+        return;
+    }
     if (conf && conf.role === 'both') {
         isFamily = true;
     }
@@ -4045,8 +4088,8 @@ window.onload = async () => {
             location: 'Aeropuerto (Salida)',
             xp: 30,
             role: 'both',
-            startTime: '14:00',
-            endTime: '15:00',
+            startTime: '16:00',
+            endTime: '19:00',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">✨ ¡Momento del Despegue! ✨</p>
@@ -4066,7 +4109,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid14',
             startTime: '10:30',
-            endTime: '11:30',
+            endTime: '13:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🕵️‍♂️ ¡Misión de Infiltración! 🕵️‍♂️</p>
@@ -4086,11 +4129,11 @@ window.onload = async () => {
             xp: 30,
             role: 'both',
             startTime: '11:15',
-            endTime: '12:15',
+            endTime: '14:15',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🚄 ¡Vigilantes del Tren Bala! 🚄</p>
-                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Disfrutad del trayecto rápido. A las 11:15 AM, tomaos una foto conjunta sosteniendo vuestros billetes junto a la ventana a toda velocidad.</p>
+                    <p style="font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4;">Disfrutad del trayecto rápido. Entre las 11:15 AM y las 14:15 PM, tomaos una foto conjunta sosteniendo vuestros billetes junto a la ventana a toda velocidad.</p>
                     <button id="btn-ev-3" class="btn-primary" style="background:#ff9800; border-color:#ff9800; border-radius: 20px; font-weight: bold; width: 100%;">📸 Registrar Billete y Viaje</button>
                 </div>
             `,
@@ -4106,7 +4149,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid9',
             startTime: '10:30',
-            endTime: '11:30',
+            endTime: '13:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🦊 Pose del Kitsune 🦊</p>
@@ -4126,7 +4169,7 @@ window.onload = async () => {
             xp: 30,
             role: 'both',
             startTime: '09:30',
-            endTime: '10:30',
+            endTime: '12:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🍃 Conexión Zen en Arashiyama 🍃</p>
@@ -4174,7 +4217,7 @@ window.onload = async () => {
             xp: 30,
             role: 'both',
             startTime: '20:30',
-            endTime: '21:30',
+            endTime: '23:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🏮 Ceremonia de los Deseos 🏮</p>
@@ -4194,7 +4237,7 @@ window.onload = async () => {
             xp: 30,
             role: 'both',
             startTime: '08:30',
-            endTime: '09:30',
+            endTime: '11:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🗻 El Triángulo del Fuji 🗻</p>
@@ -4214,7 +4257,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid9',
             startTime: '11:30',
-            endTime: '12:30',
+            endTime: '14:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🙏 Humo Sagrado e Incienso 🙏</p>
@@ -4234,7 +4277,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid14',
             startTime: '17:30',
-            endTime: '18:30',
+            endTime: '20:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🔋 ¡Curiosidad de Akiba! 🔋</p>
@@ -4254,7 +4297,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid9',
             startTime: '15:30',
-            endTime: '16:30',
+            endTime: '18:30',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🍭 Estilo Harajuku 🍭</p>
@@ -4274,7 +4317,7 @@ window.onload = async () => {
             xp: 30,
             role: 'kid14',
             startTime: '14:00',
-            endTime: '15:00',
+            endTime: '17:00',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🤖 ¡Saludo de Piloto de Mecha! 🤖</p>
@@ -4294,7 +4337,7 @@ window.onload = async () => {
             xp: 30,
             role: 'both',
             startTime: '18:00',
-            endTime: '19:00',
+            endTime: '21:00',
             render: (role) => `
                 <div class="special-event-box" style="padding: 15px; background: rgba(255, 152, 0, 0.05); border: 2px dashed #ff9800; border-radius: 12px; text-align: center; color: var(--color-text);">
                     <p style="font-weight: bold; margin-bottom: 8px;">🌸 Sayonara, Nihon! 🌸</p>
